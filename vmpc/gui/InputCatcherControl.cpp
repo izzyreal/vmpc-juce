@@ -22,7 +22,7 @@ InputCatcherControl::InputCatcherControl(const String& componentName, mpc::Mpc* 
 }
 
 void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
-	MLOG("ipc mod keys");
+	//MLOG("ipc mod keys");
 	auto c = mpc->getControls().lock();
 	auto hw = mpc->getHardware().lock();
 	if (modifiers.isShiftDown() && !c->isShiftPressed()) {
@@ -47,7 +47,12 @@ void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
 
 bool InputCatcherControl::keyPressed(const KeyPress &key) {
 
-	MLOG("\nkey press received, keycode " + std::to_string(key.getKeyCode()));
+	MLOG("\nkey press received, keycode        : " + std::to_string(key.getKeyCode()));
+	MLOG("key press received, text character : " + std::to_string(key.getTextCharacter()));
+	std::string foo;
+	foo.push_back(key.getTextCharacter());
+	MLOG("key press received, text character : " + foo);
+	MLOG("key press received, description    : " + key.getTextDescription().toStdString());
 
 	bool alreadyPressed = false;
 	for (int i = 0; i < pressedKeys.size(); i++) {
@@ -127,7 +132,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 	}
 	
 	auto desc = key.getTextDescription().toStdString();
-	MLOG("desc: " + desc);
+	//MLOG("desc: " + desc);
 	int number = -1;
 	if (desc.length() == 9 && desc.substr(0, 5).compare("shift") == 0) {
 		int length = desc.length();
@@ -208,7 +213,7 @@ bool InputCatcherControl::keyStateChanged(bool isKeyDown) {
 		}
 	}
 	if (k == -1) return false;
-	MLOG("\nkey release received, keycode " + std::to_string(k));
+	//MLOG("\nkey release received, keycode " + std::to_string(k));
 	auto hw = mpc->getHardware().lock();
 
 	std::string padkeys = "ZXCVASDFBNM,GHJK";
