@@ -76,6 +76,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 	}
 	else if (k == KeyPress::upKey) {
 		hw->getButton("up").lock()->push();
+		return true;
 	}
 	else if (k == KeyPress::downKey) {
 		hw->getButton("down").lock()->push();
@@ -130,22 +131,14 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 		hw->getButton("playstart").lock()->push();
 		return true;
 	}
-	
-	auto desc = key.getTextDescription().toStdString();
-	//MLOG("desc: " + desc);
-	int number = -1;
-	if (desc.length() == 9 && desc.substr(0, 5).compare("shift") == 0) {
-		int length = desc.length();
-		try {
-			number = stoi(desc.substr(length - 1));
-		}
-		catch (std::invalid_argument& e) {
-		}
-		if (number != -1) {
-			hw->getButton(std::to_string(number)).lock()->push();
+
+	for (int i = 0; i <= 9; i++) {
+		if (key == KeyPress(std::to_string(i)[0], ModifierKeys::shiftModifier, 0)) {
+			hw->getButton(std::to_string(3)).lock()->push();
 			return true;
 		}
 	}
+
 	std::string padkeys = "ZXCVASDFBNM,GHJK";
 	for (int i = 0; i < padkeys.length(); i++) {
 		if (k == padkeys[i]) {
