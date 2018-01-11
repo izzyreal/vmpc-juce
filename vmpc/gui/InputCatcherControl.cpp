@@ -54,6 +54,10 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 	MLOG("key press received, text character : " + foo);
 	MLOG("key press received, description    : " + key.getTextDescription().toStdString());
 
+	if (key == KeyPress::numberPad1) {
+		MLOG("numberPad1 detected");
+	}
+
 	bool alreadyPressed = false;
 	for (int i = 0; i < pressedKeys.size(); i++) {
 		if (pressedKeys[i] == key.getKeyCode()) {
@@ -134,7 +138,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 
 	for (int i = 0; i <= 9; i++) {
 		if (key == KeyPress(std::to_string(i)[0], ModifierKeys::shiftModifier, 0)) {
-			hw->getButton(std::to_string(3)).lock()->push();
+			hw->getButton(std::to_string(i)).lock()->push();
 			return true;
 		}
 	}
