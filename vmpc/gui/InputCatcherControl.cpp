@@ -48,9 +48,7 @@ void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
 bool InputCatcherControl::keyPressed(const KeyPress &key) {
 
 	MLOG("\nkey press received, keycode " + std::to_string(key.getKeyCode()));
-	std::string charStr;
-	charStr.push_back(key.getTextCharacter());
-	MLOG("Key char " + charStr);
+
 	bool alreadyPressed = false;
 	for (int i = 0; i < pressedKeys.size(); i++) {
 		if (pressedKeys[i] == key.getKeyCode()) {
@@ -128,19 +126,29 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 		return true;
 	}
 	
-	if (k >= 49 && k <= 58) {
-		hw->getButton(std::to_string(k - 48)).lock()->push();
-		return true;
+	auto desc = key.getTextDescription().toStdString();
+	MLOG("desc: " + desc);
+	int number = -1;
+	if (desc.length() == 9 && desc.substr(0, 5).compare("shift") == 0) {
+		int length = desc.length();
+		try {
+			number = stoi(desc.substr(length - 1));
+		}
+		catch (std::invalid_argument& e) {
+		}
+		if (number != -1) {
+			hw->getButton(std::to_string(number)).lock()->push();
+			return true;
+		}
 	}
-
-    /*
-	for (int i = 0; i < KbMapping::padKeys().size(); i++) {
-		if (k == KbMapping::padKeys().at(i)) {
+	std::string padkeys = "ZXCVASDFBNM,GHJK";
+	for (int i = 0; i < padkeys.length(); i++) {
+		if (k == padkeys[i]) {
 			hw->getPad(i).lock()->push(127);
 			return true;
 		}
 	}
-*/
+
 	if (k == KeyPress::homeKey) {
 		hw->getButton("banka").lock()->push();
 		return true;
@@ -202,15 +210,15 @@ bool InputCatcherControl::keyStateChanged(bool isKeyDown) {
 	if (k == -1) return false;
 	MLOG("\nkey release received, keycode " + std::to_string(k));
 	auto hw = mpc->getHardware().lock();
-/*
-	for (int i = 0; i < KbMapping::padKeys().size(); i++) {
-		auto padkey = KbMapping::padKeys().at(i);
-		if (padkey == k) {
+
+	std::string padkeys = "ZXCVASDFBNM,GHJK";
+	for (int i = 0; i < padkeys.length(); i++) {
+		if (k == padkeys[i]) {
 			hw->getPad(i).lock()->release();
 			return true;
 		}
 	}
-*/
+
 	if (k == KeyPress::F1Key) {
 		hw->getButton("f1").lock()->release();
 		return true;
