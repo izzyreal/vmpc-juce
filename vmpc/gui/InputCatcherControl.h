@@ -8,7 +8,7 @@
 namespace mpc {
 	class Mpc;
 	namespace controls {
-		class KbMapping;
+		//class KbMapping;
 	}
 }
 
@@ -17,7 +17,7 @@ class InputCatcherControl
 
 private:
 	mpc::Mpc* mpc;
-	mpc::controls::KbMapping* kbMapping;
+	//mpc::controls::KbMapping* kbMapping;
 	std::vector<int> pressedKeys;
 
 public:

@@ -4,7 +4,6 @@
 
 #include <Mpc.hpp>
 
-#include <controls/KbMapping.hpp>
 #include <controls/Controls.hpp>
 #include <hardware/Hardware.hpp>
 #include <hardware/DataWheel.hpp>
@@ -19,7 +18,7 @@ InputCatcherControl::InputCatcherControl(const String& componentName, mpc::Mpc* 
 	: Component(componentName)
 {
 	this->mpc = mpc;
-	kbMapping = new mpc::controls::KbMapping();
+	//kbMapping = new mpc::controls::KbMapping();
 }
 
 void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
@@ -134,13 +133,14 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 		return true;
 	}
 
+    /*
 	for (int i = 0; i < KbMapping::padKeys().size(); i++) {
 		if (k == KbMapping::padKeys().at(i)) {
 			hw->getPad(i).lock()->push(127);
 			return true;
 		}
 	}
-
+*/
 	if (k == KeyPress::homeKey) {
 		hw->getButton("banka").lock()->push();
 		return true;
@@ -202,7 +202,7 @@ bool InputCatcherControl::keyStateChanged(bool isKeyDown) {
 	if (k == -1) return false;
 	MLOG("\nkey release received, keycode " + std::to_string(k));
 	auto hw = mpc->getHardware().lock();
-
+/*
 	for (int i = 0; i < KbMapping::padKeys().size(); i++) {
 		auto padkey = KbMapping::padKeys().at(i);
 		if (padkey == k) {
@@ -210,7 +210,7 @@ bool InputCatcherControl::keyStateChanged(bool isKeyDown) {
 			return true;
 		}
 	}
-
+*/
 	if (k == KeyPress::F1Key) {
 		hw->getButton("f1").lock()->release();
 		return true;

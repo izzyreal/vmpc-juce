@@ -116,10 +116,9 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 	lcd->setInputCatcher(inputCatcher);
 	addAndMakeVisible(lcd);
 
-	MLOG("lastUIHeight in ctor before: " + std::to_string(p.lastUIHeight));
-	setSize(p.lastUIWidth, p.lastUIHeight);
+    setResizable(true, true);
+    setSize(p.lastUIWidth, p.lastUIHeight);
 	setResizeLimits(1298 / 2, 994 / 2, 1298, 994);
-	MLOG("lastUIHeight in ctor after: " + std::to_string(p.lastUIHeight));
 	getConstrainer()->setFixedAspectRatio(1.305835010060362);
 
 	lcd->drawPixelsToImg();
