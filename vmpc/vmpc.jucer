@@ -3,14 +3,15 @@
 <JUCERPROJECT id="toyOrS" name="vmpc" displaySplashScreen="1" reportAppUsage="1"
               splashScreenColour="Dark" projectType="audioplug" version="1.0.0"
               bundleIdentifier="com.yourcompany.vmpc" includeBinaryInAppConfig="1"
-              cppLanguageStandard="11" companyCopyright="" buildVST="1" buildVST3="1"
-              buildAU="1" buildAUv3="0" buildRTAS="0" buildAAX="0" buildStandalone="1"
-              enableIAA="0" pluginName="vmpc" pluginDesc="vmpc" pluginManufacturer="yourcompany"
-              pluginManufacturerCode="Manu" pluginCode="Toyo" pluginChannelConfigs=""
-              pluginIsSynth="0" pluginWantsMidiIn="0" pluginProducesMidiOut="0"
-              pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="0" pluginAUExportPrefix="vmpcAU"
-              pluginRTASCategory="" aaxIdentifier="com.yourcompany.vmpc" pluginAAXCategory="AAX_ePlugInCategory_Dynamics"
-              jucerVersion="5.2.0">
+              cppLanguageStandard="14" companyCopyright="Izmar" buildVST="1"
+              buildVST3="0" buildAU="1" buildAUv3="0" buildRTAS="0" buildAAX="0"
+              buildStandalone="1" enableIAA="0" pluginName="vmpc" pluginDesc="vmpc"
+              pluginManufacturer="yourcompany" pluginManufacturerCode="Manu"
+              pluginCode="Toyo" pluginChannelConfigs="" pluginIsSynth="0" pluginWantsMidiIn="0"
+              pluginProducesMidiOut="0" pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="0"
+              pluginAUExportPrefix="vmpcAU" pluginRTASCategory="" aaxIdentifier="com.yourcompany.vmpc"
+              pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="5.2.0"
+              defines="" companyName="Izmar">
   <MAINGROUP id="XNuzIS" name="vmpc">
     <GROUP id="{7EBC1C15-2C6C-48C7-5635-39FCD71B8380}" name="dsp">
       <FILE id="OHf5XD" name="BufferedLagrange.cpp" compile="1" resource="0"
@@ -119,12 +120,15 @@
         <MODULEPATH id="juce_audio_utils" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </VS2017>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" externalLibraries="moduru&#10;ctoot&#10;mpc"
+                enableGNUExtensions="0">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" linkTimeOptimisation="0"
-                       targetName="vmpc"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" linkTimeOptimisation="1"
-                       targetName="vmpc"/>
+                       targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/vmpc/moduru/src/&#10;/home/osboxes/git/vmpc/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include"
+                       libraryPath="/home/osboxes/git/vmpc/moduru/build&#10;/home/osboxes/git/vmpc/ctoot/build&#10;/home/osboxes/git/vmpc/mpc/build&#10;/usr/X11R6/lib/"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="1" linkTimeOptimisation="0"
+                       targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/vmpc/moduru/src/&#10;/home/osboxes/git/vmpc/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include"
+                       libraryPath="/home/osboxes/git/vmpc/moduru/build&#10;/home/osboxes/git/vmpc/ctoot/build&#10;/home/osboxes/git/vmpc/mpc/build&#10;/usr/X11R6/lib/"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_video" path="../../JUCE/modules"/>
@@ -144,6 +148,33 @@
         <MODULEPATH id="juce_audio_basics" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
+    <CODEBLOCKS_LINUX targetFolder="Builds/CodeBlocksLinux" externalLibraries="moduru&#10;ctoot&#10;mpc">
+      <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" linuxCodeBlocksArchitecture="-m64" isDebug="1" optimisation="1"
+                       linkTimeOptimisation="0" targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/vmpc/moduru/src/&#10;/home/osboxes/git/vmpc/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include"
+                       libraryPath="/home/osboxes/git/vmpc/moduru/build&#10;/home/osboxes/git/vmpc/ctoot/build&#10;/home/osboxes/git/vmpc/mpc/build&#10;/usr/X11R6/lib/"/>
+        <CONFIGURATION name="Release" linuxCodeBlocksArchitecture="-m64" isDebug="0"
+                       optimisation="6" linkTimeOptimisation="1" targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/vmpc/moduru/src/&#10;/home/osboxes/git/vmpc/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include"
+                       libraryPath="/home/osboxes/git/vmpc/moduru/build&#10;/home/osboxes/git/vmpc/ctoot/build&#10;/home/osboxes/git/vmpc/mpc/build&#10;/usr/X11R6/lib/"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_video" path="../../juce"/>
+        <MODULEPATH id="juce_opengl" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_cryptography" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+      </MODULEPATHS>
+    </CODEBLOCKS_LINUX>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
@@ -164,4 +195,7 @@
     <MODULE id="juce_video" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
   </MODULES>
   <JUCEOPTIONS JUCE_QUICKTIME="disabled"/>
+  <LIVE_SETTINGS>
+    <LINUX/>
+  </LIVE_SETTINGS>
 </JUCERPROJECT>

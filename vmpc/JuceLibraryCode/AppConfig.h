@@ -101,6 +101,10 @@
  //#define JUCE_USE_WINRT_MIDI 1
 #endif
 
+#ifndef    JUCE_DISABLE_AUDIO_MIXING_WITH_OTHER_APPS
+ //#define JUCE_DISABLE_AUDIO_MIXING_WITH_OTHER_APPS 1
+#endif
+
 //==============================================================================
 // juce_audio_formats flags:
 
@@ -137,6 +141,10 @@
 
 #ifndef    JUCE_USE_STUDIO_ONE_COMPATIBLE_PARAMETERS
  //#define JUCE_USE_STUDIO_ONE_COMPATIBLE_PARAMETERS 1
+#endif
+
+#ifndef    JUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE
+ //#define JUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE 1
 #endif
 
 //==============================================================================
@@ -225,6 +233,14 @@
  //#define JUCE_ENABLE_REPAINT_DEBUGGING 1
 #endif
 
+#ifndef    JUCE_USE_XRANDR
+ //#define JUCE_USE_XRANDR 1
+#endif
+
+#ifndef    JUCE_USE_XINERAMA
+ //#define JUCE_USE_XINERAMA 1
+#endif
+
 #ifndef    JUCE_USE_XSHM
  //#define JUCE_USE_XSHM 1
 #endif
@@ -270,7 +286,7 @@
  #define JucePlugin_Build_VST              1
 #endif
 #ifndef  JucePlugin_Build_VST3
- #define JucePlugin_Build_VST3             1
+ #define JucePlugin_Build_VST3             0
 #endif
 #ifndef  JucePlugin_Build_AU
  #define JucePlugin_Build_AU               1
