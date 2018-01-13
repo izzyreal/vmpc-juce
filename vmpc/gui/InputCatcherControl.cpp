@@ -143,9 +143,10 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 		}
 	}
 
-	std::string padkeys = "ZXCVASDFBNM,GHJK";
-	for (int i = 0; i < padkeys.length(); i++) {
-		if (k == padkeys[i]) {
+	std::string padkeys1 = "ZXCVASDFBNM,GHJK";
+	std::string padkeys2 = "zxcvasdfbnm,ghjk";
+	for (int i = 0; i < padkeys1.length(); i++) {
+		if (k == padkeys1[i] || k == padkeys2[i]) {
 			hw->getPad(i).lock()->push(127);
 			return true;
 		}
@@ -199,7 +200,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 
 bool InputCatcherControl::keyStateChanged(bool isKeyDown) {
 	if (isKeyDown) return false;
-	
+
 	int k = -1;
 	for (int i = 0; i < pressedKeys.size(); i++) {
 		int candidate = pressedKeys[i];
@@ -213,9 +214,10 @@ bool InputCatcherControl::keyStateChanged(bool isKeyDown) {
 	//MLOG("\nkey release received, keycode " + std::to_string(k));
 	auto hw = mpc->getHardware().lock();
 
-	std::string padkeys = "ZXCVASDFBNM,GHJK";
-	for (int i = 0; i < padkeys.length(); i++) {
-		if (k == padkeys[i]) {
+	std::string padkeys1 = "ZXCVASDFBNM,GHJK";
+	std::string padkeys2 = "zxcvasdfbnm,ghjk";
+	for (int i = 0; i < padkeys1.length(); i++) {
+		if (k == padkeys1[i] || k == padkeys2[i]) {
 			hw->getPad(i).lock()->release();
 			return true;
 		}

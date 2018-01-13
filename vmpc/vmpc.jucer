@@ -126,9 +126,10 @@
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" linkTimeOptimisation="0"
                        targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/vmpc/moduru/src/&#10;/home/osboxes/git/vmpc/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include"
                        libraryPath="/home/osboxes/git/vmpc/moduru/build&#10;/home/osboxes/git/vmpc/ctoot/build&#10;/home/osboxes/git/vmpc/mpc/build&#10;/usr/X11R6/lib/"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="1" linkTimeOptimisation="0"
+        <CONFIGURATION name="Release" isDebug="0" optimisation="6" linkTimeOptimisation="1"
                        targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/vmpc/moduru/src/&#10;/home/osboxes/git/vmpc/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include"
-                       libraryPath="/home/osboxes/git/vmpc/moduru/build&#10;/home/osboxes/git/vmpc/ctoot/build&#10;/home/osboxes/git/vmpc/mpc/build&#10;/usr/X11R6/lib/"/>
+                       libraryPath="/home/osboxes/git/vmpc/moduru/build&#10;/home/osboxes/git/vmpc/ctoot/build&#10;/home/osboxes/git/vmpc/mpc/build&#10;/usr/X11R6/lib/"
+                       linuxArchitecture="-m64"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_video" path="../../JUCE/modules"/>
@@ -154,7 +155,7 @@
                        linkTimeOptimisation="0" targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/vmpc/moduru/src/&#10;/home/osboxes/git/vmpc/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include"
                        libraryPath="/home/osboxes/git/vmpc/moduru/build&#10;/home/osboxes/git/vmpc/ctoot/build&#10;/home/osboxes/git/vmpc/mpc/build&#10;/usr/X11R6/lib/"/>
         <CONFIGURATION name="Release" linuxCodeBlocksArchitecture="-m64" isDebug="0"
-                       optimisation="6" linkTimeOptimisation="1" targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/vmpc/moduru/src/&#10;/home/osboxes/git/vmpc/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include"
+                       optimisation="1" linkTimeOptimisation="0" targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/vmpc/moduru/src/&#10;/home/osboxes/git/vmpc/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include"
                        libraryPath="/home/osboxes/git/vmpc/moduru/build&#10;/home/osboxes/git/vmpc/ctoot/build&#10;/home/osboxes/git/vmpc/mpc/build&#10;/usr/X11R6/lib/"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
