@@ -18,6 +18,7 @@ class LCDControl
 private:
 	std::weak_ptr<mpc::lcdgui::LayeredScreen> ls;
 	Image lcd;
+public:
 	Rectangle<int> dirtyRect;
 
 public:
