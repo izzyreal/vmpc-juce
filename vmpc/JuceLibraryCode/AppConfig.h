@@ -70,19 +70,19 @@
 // juce_audio_devices flags:
 
 #ifndef    JUCE_ASIO
- //#define JUCE_ASIO 1
+ #define   JUCE_ASIO 1
 #endif
 
 #ifndef    JUCE_WASAPI
- //#define JUCE_WASAPI 1
+ #define   JUCE_WASAPI 1
 #endif
 
 #ifndef    JUCE_WASAPI_EXCLUSIVE
- //#define JUCE_WASAPI_EXCLUSIVE 1
+ #define   JUCE_WASAPI_EXCLUSIVE 1
 #endif
 
 #ifndef    JUCE_DIRECTSOUND
- //#define JUCE_DIRECTSOUND 1
+ #define   JUCE_DIRECTSOUND 1
 #endif
 
 #ifndef    JUCE_ALSA
@@ -99,10 +99,6 @@
 
 #ifndef    JUCE_USE_WINRT_MIDI
  //#define JUCE_USE_WINRT_MIDI 1
-#endif
-
-#ifndef    JUCE_DISABLE_AUDIO_MIXING_WITH_OTHER_APPS
- //#define JUCE_DISABLE_AUDIO_MIXING_WITH_OTHER_APPS 1
 #endif
 
 //==============================================================================
@@ -141,10 +137,6 @@
 
 #ifndef    JUCE_USE_STUDIO_ONE_COMPATIBLE_PARAMETERS
  //#define JUCE_USE_STUDIO_ONE_COMPATIBLE_PARAMETERS 1
-#endif
-
-#ifndef    JUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE
- //#define JUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE 1
 #endif
 
 //==============================================================================
@@ -233,14 +225,6 @@
  //#define JUCE_ENABLE_REPAINT_DEBUGGING 1
 #endif
 
-#ifndef    JUCE_USE_XRANDR
- //#define JUCE_USE_XRANDR 1
-#endif
-
-#ifndef    JUCE_USE_XINERAMA
- //#define JUCE_USE_XINERAMA 1
-#endif
-
 #ifndef    JUCE_USE_XSHM
  //#define JUCE_USE_XSHM 1
 #endif
@@ -286,7 +270,7 @@
  #define JucePlugin_Build_VST              1
 #endif
 #ifndef  JucePlugin_Build_VST3
- #define JucePlugin_Build_VST3             0
+ #define JucePlugin_Build_VST3             1
 #endif
 #ifndef  JucePlugin_Build_AU
  #define JucePlugin_Build_AU               1
@@ -331,7 +315,7 @@
  #define JucePlugin_IsSynth                0
 #endif
 #ifndef  JucePlugin_WantsMidiInput
- #define JucePlugin_WantsMidiInput         0
+ #define JucePlugin_WantsMidiInput         1
 #endif
 #ifndef  JucePlugin_ProducesMidiOutput
  #define JucePlugin_ProducesMidiOutput     0
@@ -358,7 +342,7 @@
  #define JucePlugin_VSTCategory            kPlugCategEffect
 #endif
 #ifndef  JucePlugin_AUMainType
- #define JucePlugin_AUMainType             kAudioUnitType_Effect
+ #define JucePlugin_AUMainType             kAudioUnitType_MusicEffect
 #endif
 #ifndef  JucePlugin_AUSubType
  #define JucePlugin_AUSubType              JucePlugin_PluginCode
@@ -409,7 +393,7 @@
  #define JucePlugin_AAXDisableMultiMono    0
 #endif
 #ifndef  JucePlugin_IAAType
- #define JucePlugin_IAAType                0x61757278 // 'aurx'
+ #define JucePlugin_IAAType                0x6175726d // 'aurm'
 #endif
 #ifndef  JucePlugin_IAASubType
  #define JucePlugin_IAASubType             JucePlugin_PluginCode

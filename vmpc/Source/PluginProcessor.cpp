@@ -13,6 +13,14 @@
 
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audio/server/RtAudioServer.hpp>
+#include <audio/server/NonRealTimeAudioServer.hpp>
+#include <audiomidi/MpcMidiPorts.hpp>
+#include <audiomidi/MpcMidiInput.hpp>
+
+#include <ui/midisync/MidiSyncGui.hpp>
+
+// ctoot
+#include <midi/core/ShortMessage.hpp>
 
 //==============================================================================
 VmpcAudioProcessor::VmpcAudioProcessor()
@@ -137,12 +145,92 @@ bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
 
 void VmpcAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
+	auto offlineServer = mpc->getAudioMidiServices().lock()->getOfflineServer();
+	if (!offlineServer->isRealTime()) return;
+
+	auto midiOutMsgQueues = mpc->getMidiPorts().lock()->getReceivers();
+
+	for (auto& queue : *midiOutMsgQueues) {
+		for (auto msg : queue) {
+			auto velo = msg.getData2();
+			if (velo == 0) continue;
+			/*
+			IMidiMsg imsg;
+			imsg.MakeNoteOnMsg(msg.getData1(), velo, 0, msg.getChannel());
+			imsg.mStatus = msg.getStatus();
+			SendMidiMsg(&imsg);
+			*/
+		}
+		for (auto msg : queue) {
+			auto velo = msg.getData2();
+			if (velo != 0) continue;
+			/*
+			IMidiMsg imsg;
+			imsg.MakeNoteOffMsg(msg.getData1(), 0, msg.getChannel());
+			imsg.mStatus = msg.getStatus();
+			SendMidiMsg(&imsg);
+			*/
+		}
+		queue.clear();
+	}
+
+
+	auto msGui = mpc->getUis().lock()->getMidiSyncGui();
+	bool syncEnabled = msGui->getModeIn() == 1;
+
+	if (syncEnabled) {
+		/*
+		const double tempo = GetTempo();
+		if (tempo != m_Tempo || mpc->getSequencer().lock()->getTempo().toDouble() != tempo) {
+			mpc->getSequencer().lock()->setTempo(BCMath(tempo));
+			m_Tempo = tempo;
+		}
+
+		ITimeInfo ti;
+		GetTime(&ti);
+
+		bool isPlaying = ti.mTransportIsRunning;
+
+		if (!m_WasPlaying && isPlaying)
+		{
+			mpc->getSequencer().lock()->playFromStart();
+		}
+		if (m_WasPlaying && !isPlaying) {
+			mpc->getSequencer().lock()->stop();
+		}
+		m_WasPlaying = isPlaying;
+		*/
+	}
+
+	MidiBuffer::Iterator midiIterator(midiMessages);
+	MidiMessage m;
+	int midiEventPos;
+	while (midiIterator.getNextEvent(m, midiEventPos)) {
+		int frames = m.getTimeStamp();
+		int velocity = m.getVelocity();
+
+		if (m.isNoteOn()) {
+			auto tootMsg = ctoot::midi::core::ShortMessage();
+			//auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_ON, (char)(pMsg->mData1), (char)(velocity) };
+			auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_ON, (char)(m.getNoteNumber()), (char)(velocity) };
+			tootMsg.setMessage(data, 3);
+			mpc->getMpcMidiInput(0)->transport(&tootMsg, 0);
+		}
+		else if (m.isNoteOff()) {
+			auto tootMsg = ctoot::midi::core::ShortMessage();
+			//auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_OFF, (char)(pMsg->mData1), (char)(velocity) };
+			auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_OFF, (char)(m.getNoteNumber()), (char)(velocity) };
+			tootMsg.setMessage(data, 3);
+			mpc->getMpcMidiInput(0)->transport(&tootMsg, 0);
+		}
+	}
+
     ScopedNoDenormals noDenormals;
     const int totalNumInputChannels  = getTotalNumInputChannels();
     const int totalNumOutputChannels = getTotalNumOutputChannels();
 
-    for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
+    //for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+    //    buffer.clear (i, 0, buffer.getNumSamples());
 
 	auto server = mpc->getAudioMidiServices().lock()->getRtAudioServer();
 	auto sr = getSampleRate();
@@ -188,13 +276,15 @@ void VmpcAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mi
 	}
 	else {	
 		if (totalNumInputChannels >= 2) {
+			tempInL.resize(buffer.getNumSamples());
+			tempInR.resize(buffer.getNumSamples());
 			for (int i = 0; i < buffer.getNumSamples(); i++) {
-				tempInL.push_back(channelDataIn[0][i]);
-				tempInR.push_back(channelDataIn[1][i]);
+				tempInL[i] = channelDataIn[0][i];
+				tempInR[i] = channelDataIn[1][i];
 			}
 			tempInLR = { &tempInL[0], &tempInR[0] };
 		}
-		server->work(&tempInLR[0], channelDataOut, buffer.getNumSamples(), totalNumInputChannels, totalNumOutputChannels);
+		server->work(channelDataOut, channelDataOut, buffer.getNumSamples(), totalNumInputChannels, totalNumOutputChannels);
 	}
 }
 

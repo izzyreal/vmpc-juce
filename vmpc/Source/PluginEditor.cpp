@@ -104,7 +104,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 		for (int i = 0; i < 4; i++) {
 			int x1 = (padWidth + padSpacing) * i + padOffsetX + i;
 			int y1 = (padWidth + padSpacing) * j + padOffsetY;
-			Rectangle<float> rect(x1, y1, padWidth, padWidth);
+			Rectangle<float> rect(x1, y1, padWidth + i, padWidth);
 			auto pc = new PadControl(rect, mpc->getHardware().lock()->getPad(padCounter++), padHitImg, "pad");
 			addAndMakeVisible(pc);
 			pads.push_back(pc);

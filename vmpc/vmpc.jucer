@@ -4,10 +4,10 @@
               splashScreenColour="Dark" projectType="audioplug" version="1.0.0"
               bundleIdentifier="com.yourcompany.vmpc" includeBinaryInAppConfig="1"
               cppLanguageStandard="14" companyCopyright="Izmar" buildVST="1"
-              buildVST3="0" buildAU="1" buildAUv3="0" buildRTAS="0" buildAAX="0"
+              buildVST3="1" buildAU="1" buildAUv3="0" buildRTAS="0" buildAAX="0"
               buildStandalone="1" enableIAA="0" pluginName="vmpc" pluginDesc="vmpc"
               pluginManufacturer="yourcompany" pluginManufacturerCode="Manu"
-              pluginCode="Toyo" pluginChannelConfigs="" pluginIsSynth="0" pluginWantsMidiIn="0"
+              pluginCode="Toyo" pluginChannelConfigs="" pluginIsSynth="0" pluginWantsMidiIn="1"
               pluginProducesMidiOut="0" pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="0"
               pluginAUExportPrefix="vmpcAU" pluginRTASCategory="" aaxIdentifier="com.yourcompany.vmpc"
               pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="5.2.0"
@@ -98,7 +98,7 @@
                        libraryPath="C:\Users\izmar\git\vmpc\build64\lib\Debug"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
-                       linkTimeOptimisation="1" isDebug="0" optimisation="1" targetName="vmpc"
+                       linkTimeOptimisation="0" isDebug="0" optimisation="1" targetName="vmpc"
                        headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\vmpc\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\vmpc\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
                        libraryPath="C:\Users\izmar\git\vmpc\build64\lib\Release"/>
       </CONFIGURATIONS>
@@ -195,7 +195,8 @@
     <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_video" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
   </MODULES>
-  <JUCEOPTIONS JUCE_QUICKTIME="disabled"/>
+  <JUCEOPTIONS JUCE_QUICKTIME="disabled" JUCE_ASIO="enabled" JUCE_WASAPI="enabled"
+               JUCE_WASAPI_EXCLUSIVE="enabled" JUCE_DIRECTSOUND="enabled"/>
   <LIVE_SETTINGS>
     <LINUX/>
   </LIVE_SETTINGS>
