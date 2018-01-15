@@ -10,24 +10,36 @@
 
 #include "BufferedLagrange.h"
 
+#include <Mpc.hpp>
+
 BufferedLagrange::BufferedLagrange() {
+}
+
+void BufferedLagrange::resample(const float* srcData, int srcSize, double srcSr, float* destData, int destDataSize, double destSr) {
+	std::vector<float> srcVec(srcSize);
+	for (int i = 0; i < srcSize; i++)
+		srcVec[i] = srcData[i];
+	resample(&srcVec, srcSr, destData, destDataSize, destSr);
 }
 
 void BufferedLagrange::resample(std::vector<float>* srcData, double srcSr, float* destData, int destDataSize, double destSr) {
 	if (srcSr == destSr) return;
-	//MLOG("\nbuf size: " + std::to_string(buf.size()));
+	bool l = name.compare("log") == 0;
+	l = false;
+	if (l) MLOG("\nbuf size: " + std::to_string(buf.size()));
 	if (!buf.size() == 0) {
-		//MLOG("srcData size before: " + std::to_string(srcData->size()));
+		if (l) MLOG("srcData size before: " + std::to_string(srcData->size()));
 		srcData->insert(srcData->begin(), buf.begin(), buf.end());
-		//MLOG("srcData size after: " + std::to_string(srcData->size()));
+		if (l) MLOG("srcData size after: " + std::to_string(srcData->size()));
 		buf.clear();
 	}
 
 	auto ratio = srcSr / destSr;
-	//MLOG("input samples provided: " + std::to_string(srcData->size()));
+	auto inReq = ratio * destDataSize;
+	if (l) MLOG("input samples required: " + std::to_string(inReq));
+	if (l) MLOG("input samples provided: " + std::to_string(srcData->size()));
 	auto res = proc(ratio, srcData, destData, destDataSize);
-	//MLOG("input samples used: " + std::to_string(res));
-
+	if (l) MLOG("input samples used: " + std::to_string(res));
 	if (res != srcData->size()) {
 		int diff = srcData->size() - res;
 		int counter = srcData->size() - diff;

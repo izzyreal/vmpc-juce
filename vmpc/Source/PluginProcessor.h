@@ -64,10 +64,17 @@ public:
 	mpc::Mpc* getMpc() { return mpc; }
 
 private:
+	void processMidiIn(MidiBuffer& midiMessages);
+	void processMidiOut(MidiBuffer& midiMessages);
+	void processTransport();
+
+private:
 	mpc::Mpc* mpc = nullptr;
 	
 	BufferedLagrange ipOutL;
 	BufferedLagrange ipOutR;
+	BufferedLagrange ipInL;
+	BufferedLagrange ipInR;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcAudioProcessor)

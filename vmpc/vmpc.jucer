@@ -98,7 +98,7 @@
                        libraryPath="C:\Users\izmar\git\vmpc\build64\lib\Debug"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
-                       linkTimeOptimisation="0" isDebug="0" optimisation="1" targetName="vmpc"
+                       linkTimeOptimisation="1" isDebug="0" optimisation="1" targetName="vmpc"
                        headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\vmpc\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\vmpc\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
                        libraryPath="C:\Users\izmar\git\vmpc\build64\lib\Release"/>
       </CONFIGURATIONS>

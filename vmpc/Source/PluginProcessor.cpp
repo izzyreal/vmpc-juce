@@ -18,6 +18,7 @@
 #include <audiomidi/MpcMidiInput.hpp>
 
 #include <ui/midisync/MidiSyncGui.hpp>
+#include <sequencer/Sequencer.hpp>
 
 // ctoot
 #include <midi/core/ShortMessage.hpp>
@@ -36,7 +37,7 @@ VmpcAudioProcessor::VmpcAudioProcessor()
 #endif
 {
 	mpc = new mpc::Mpc();
-	mpc->init("rtaudio");
+	mpc->init("rtaudio", getSampleRate());
 }
 
 VmpcAudioProcessor::~VmpcAudioProcessor()
@@ -109,6 +110,14 @@ void VmpcAudioProcessor::changeProgramName (int index, const String& newName)
 //==============================================================================
 void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+	MLOG("I'm called\n");
+	auto seq = mpc->getSequencer().lock();
+	bool wasPlaying = seq->isPlaying();
+	if (wasPlaying) seq->stop();
+	auto ams = mpc->getAudioMidiServices().lock();
+	ams->destroyServices();
+	ams->start("rtaudio", sampleRate);
+	if (wasPlaying) seq->play();
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 }
@@ -143,11 +152,30 @@ bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
 }
 #endif
 
-void VmpcAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
-{
-	auto offlineServer = mpc->getAudioMidiServices().lock()->getOfflineServer();
-	if (!offlineServer->isRealTime()) return;
+void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
+	MidiBuffer::Iterator midiIterator(midiMessages);
+	MidiMessage m;
+	int midiEventPos;
+	while (midiIterator.getNextEvent(m, midiEventPos)) {
+		int frames = m.getTimeStamp();
+		int velocity = m.getVelocity();
 
+		if (m.isNoteOn()) {
+			auto tootMsg = ctoot::midi::core::ShortMessage();
+			auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_ON, (char)(m.getNoteNumber()), (char)(velocity) };
+			tootMsg.setMessage(data, 3);
+			mpc->getMpcMidiInput(0)->transport(&tootMsg, 0);
+		}
+		else if (m.isNoteOff()) {
+			auto tootMsg = ctoot::midi::core::ShortMessage();
+			auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_OFF, (char)(m.getNoteNumber()), (char)(velocity) };
+			tootMsg.setMessage(data, 3);
+			mpc->getMpcMidiInput(0)->transport(&tootMsg, 0);
+		}
+	}
+}
+
+void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages) {
 	auto midiOutMsgQueues = mpc->getMidiPorts().lock()->getReceivers();
 
 	for (auto& queue : *midiOutMsgQueues) {
@@ -173,8 +201,9 @@ void VmpcAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mi
 		}
 		queue.clear();
 	}
+}
 
-
+void VmpcAudioProcessor::processTransport() {
 	auto msGui = mpc->getUis().lock()->getMidiSyncGui();
 	bool syncEnabled = msGui->getModeIn() == 1;
 
@@ -182,8 +211,8 @@ void VmpcAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mi
 		/*
 		const double tempo = GetTempo();
 		if (tempo != m_Tempo || mpc->getSequencer().lock()->getTempo().toDouble() != tempo) {
-			mpc->getSequencer().lock()->setTempo(BCMath(tempo));
-			m_Tempo = tempo;
+		mpc->getSequencer().lock()->setTempo(BCMath(tempo));
+		m_Tempo = tempo;
 		}
 
 		ITimeInfo ti;
@@ -193,75 +222,52 @@ void VmpcAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mi
 
 		if (!m_WasPlaying && isPlaying)
 		{
-			mpc->getSequencer().lock()->playFromStart();
+		mpc->getSequencer().lock()->playFromStart();
 		}
 		if (m_WasPlaying && !isPlaying) {
-			mpc->getSequencer().lock()->stop();
+		mpc->getSequencer().lock()->stop();
 		}
 		m_WasPlaying = isPlaying;
 		*/
 	}
+}
 
-	MidiBuffer::Iterator midiIterator(midiMessages);
-	MidiMessage m;
-	int midiEventPos;
-	while (midiIterator.getNextEvent(m, midiEventPos)) {
-		int frames = m.getTimeStamp();
-		int velocity = m.getVelocity();
+void VmpcAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
+{
+	auto offlineServer = mpc->getAudioMidiServices().lock()->getOfflineServer();
+	if (!offlineServer->isRealTime()) return;
 
-		if (m.isNoteOn()) {
-			auto tootMsg = ctoot::midi::core::ShortMessage();
-			//auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_ON, (char)(pMsg->mData1), (char)(velocity) };
-			auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_ON, (char)(m.getNoteNumber()), (char)(velocity) };
-			tootMsg.setMessage(data, 3);
-			mpc->getMpcMidiInput(0)->transport(&tootMsg, 0);
-		}
-		else if (m.isNoteOff()) {
-			auto tootMsg = ctoot::midi::core::ShortMessage();
-			//auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_OFF, (char)(pMsg->mData1), (char)(velocity) };
-			auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_OFF, (char)(m.getNoteNumber()), (char)(velocity) };
-			tootMsg.setMessage(data, 3);
-			mpc->getMpcMidiInput(0)->transport(&tootMsg, 0);
-		}
-	}
+	processMidiOut(midiMessages);
+	processTransport();
+	processMidiIn(midiMessages);
 
     ScopedNoDenormals noDenormals;
     const int totalNumInputChannels  = getTotalNumInputChannels();
     const int totalNumOutputChannels = getTotalNumOutputChannels();
 
-    //for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-    //    buffer.clear (i, 0, buffer.getNumSamples());
-
 	auto server = mpc->getAudioMidiServices().lock()->getRtAudioServer();
 	auto sr = getSampleRate();
-
-	
-	std::vector<float> tempInL;
-	std::vector<float> tempInR;
-	std::vector<float*> tempInLR;
-
-	const float** channelDataIn = 0;
-	if (totalNumInputChannels != 0) {
-		channelDataIn = buffer.getArrayOfReadPointers();
-	}
-	float** channelDataOut = 0;
-	if (totalNumOutputChannels != 0) {
-		channelDataOut = buffer.getArrayOfWritePointers();
-	}
-	
+/*		
 	if (sr != 44100.0) {
-		int numFramesToWork = ipOutL.getFramesToWork(44100.0, sr, buffer.getNumSamples());
+		ipInL.setName("log");
+		int numFramesToWork = ipInL.getFramesToWork(44100.0, sr, buffer.getNumSamples());
 
+		//MLOG("\nnumFrames to work: " + std::to_string(numFramesToWork));
 		std::vector<float> tempOutL(numFramesToWork);
 		std::vector<float> tempOutR(numFramesToWork);
 		std::vector<float*> tempOutLR{ &tempOutL[0], &tempOutR[0] };
 
+		std::vector<float> tempInL(numFramesToWork);
+		std::vector<float> tempInR(numFramesToWork);
+		std::vector<float*> tempInLR = { &tempInL[0], &tempInR[0] };
 		if (totalNumInputChannels >= 2) {
-			for (int i = 0; i < numFramesToWork; i++) {
-				tempInL.push_back(channelDataIn[0][i]);
-				tempInR.push_back(channelDataIn[1][i]);
-			}
-			tempInLR = { &tempInL[0], &tempInR[0] };
+			auto chDataIn = buffer.getArrayOfReadPointers();
+			ipInL.resample(chDataIn[0], buffer.getNumSamples(), sr, &tempInL[0], numFramesToWork, 44100.0);
+			ipInR.resample(chDataIn[1], buffer.getNumSamples(), sr, &tempInR[0], numFramesToWork, 44100.0);
+		}
+		else {
+			for (int i = 0; i < totalNumInputChannels; ++i)
+				buffer.clear (i, 0, buffer.getNumSamples());
 		}
 
 		server->work(&tempInLR[0], &tempOutLR[0], numFramesToWork, totalNumInputChannels, totalNumOutputChannels);
@@ -272,20 +278,29 @@ void VmpcAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mi
 			ipOutL.resample(&tempOutL, 44100.0, destOutL, buffer.getNumSamples(), sr);
 			ipOutR.resample(&tempOutR, 44100.0, destOutR, buffer.getNumSamples(), sr);
 		}
-
+		else {
+			for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+				buffer.clear(i, 0, buffer.getNumSamples());
+		}
 	}
 	else {	
-		if (totalNumInputChannels >= 2) {
-			tempInL.resize(buffer.getNumSamples());
-			tempInR.resize(buffer.getNumSamples());
-			for (int i = 0; i < buffer.getNumSamples(); i++) {
-				tempInL[i] = channelDataIn[0][i];
-				tempInR[i] = channelDataIn[1][i];
-			}
-			tempInLR = { &tempInL[0], &tempInR[0] };
+	*/
+		auto chDataIn = buffer.getArrayOfReadPointers();
+		auto chDataOut = buffer.getArrayOfWritePointers();
+
+		if (totalNumInputChannels < 2) {
+			for (int i = 0; i < totalNumInputChannels; ++i)
+				buffer.clear(i, 0, buffer.getNumSamples());
 		}
-		server->work(channelDataOut, channelDataOut, buffer.getNumSamples(), totalNumInputChannels, totalNumOutputChannels);
-	}
+
+		server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannels, totalNumOutputChannels);
+
+		if (totalNumOutputChannels < 2) {
+			for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+				buffer.clear(i, 0, buffer.getNumSamples());
+		}
+
+	//}
 }
 
 //==============================================================================

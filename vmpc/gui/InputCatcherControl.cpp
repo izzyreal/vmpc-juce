@@ -47,16 +47,12 @@ void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
 
 bool InputCatcherControl::keyPressed(const KeyPress &key) {
 
-	MLOG("\nkey press received, keycode        : " + std::to_string(key.getKeyCode()));
-	MLOG("key press received, text character : " + std::to_string(key.getTextCharacter()));
-	std::string foo;
-	foo.push_back(key.getTextCharacter());
-	MLOG("key press received, text character : " + foo);
-	MLOG("key press received, description    : " + key.getTextDescription().toStdString());
-
-	if (key == KeyPress::numberPad1) {
-		MLOG("numberPad1 detected");
-	}
+	//MLOG("\nkey press received, keycode        : " + std::to_string(key.getKeyCode()));
+	//MLOG("key press received, text character : " + std::to_string(key.getTextCharacter()));
+	//std::string foo;
+	//foo.push_back(key.getTextCharacter());
+	//MLOG("key press received, text character : " + foo);
+	//MLOG("key press received, description    : " + key.getTextDescription().toStdString());
 
 	bool alreadyPressed = false;
 	for (int i = 0; i < pressedKeys.size(); i++) {
