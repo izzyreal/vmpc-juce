@@ -12,8 +12,6 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "../dsp/BufferedLagrange.h"
-
 #include <Mpc.hpp>
 
 //==============================================================================
@@ -70,12 +68,6 @@ private:
 
 private:
 	mpc::Mpc* mpc = nullptr;
-	
-	BufferedLagrange ipOutL;
-	BufferedLagrange ipOutR;
-	BufferedLagrange ipInL;
-	BufferedLagrange ipInR;
-
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcAudioProcessor)
 };

@@ -110,16 +110,14 @@ void VmpcAudioProcessor::changeProgramName (int index, const String& newName)
 //==============================================================================
 void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-	MLOG("I'm called\n");
 	auto seq = mpc->getSequencer().lock();
 	bool wasPlaying = seq->isPlaying();
 	if (wasPlaying) seq->stop();
 	auto ams = mpc->getAudioMidiServices().lock();
 	ams->destroyServices();
 	ams->start("rtaudio", sampleRate);
+	ams->setDisabled(false);
 	if (wasPlaying) seq->play();
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
 }
 
 void VmpcAudioProcessor::releaseResources()
@@ -232,75 +230,43 @@ void VmpcAudioProcessor::processTransport() {
 	}
 }
 
-void VmpcAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
+void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
+	ScopedNoDenormals noDenormals;
+	const int totalNumInputChannels = getTotalNumInputChannels();
+	const int totalNumOutputChannels = getTotalNumOutputChannels();
+
+	if (mpc->getAudioMidiServices().lock()->isDisabled()) {
+		for (int i = 0; i < totalNumInputChannels; ++i)
+			buffer.clear(i, 0, buffer.getNumSamples());
+		return;
+	}
 	auto offlineServer = mpc->getAudioMidiServices().lock()->getOfflineServer();
-	if (!offlineServer->isRealTime()) return;
+	if (!offlineServer->isRealTime()) {
+		for (int i = 0; i < totalNumInputChannels; ++i)
+			buffer.clear(i, 0, buffer.getNumSamples());
+		return;
+	}
 
 	processMidiOut(midiMessages);
 	processTransport();
 	processMidiIn(midiMessages);
 
-    ScopedNoDenormals noDenormals;
-    const int totalNumInputChannels  = getTotalNumInputChannels();
-    const int totalNumOutputChannels = getTotalNumOutputChannels();
-
 	auto server = mpc->getAudioMidiServices().lock()->getRtAudioServer();
-	auto sr = getSampleRate();
-/*		
-	if (sr != 44100.0) {
-		ipInL.setName("log");
-		int numFramesToWork = ipInL.getFramesToWork(44100.0, sr, buffer.getNumSamples());
+	auto chDataIn = buffer.getArrayOfReadPointers();
+	auto chDataOut = buffer.getArrayOfWritePointers();
 
-		//MLOG("\nnumFrames to work: " + std::to_string(numFramesToWork));
-		std::vector<float> tempOutL(numFramesToWork);
-		std::vector<float> tempOutR(numFramesToWork);
-		std::vector<float*> tempOutLR{ &tempOutL[0], &tempOutR[0] };
-
-		std::vector<float> tempInL(numFramesToWork);
-		std::vector<float> tempInR(numFramesToWork);
-		std::vector<float*> tempInLR = { &tempInL[0], &tempInR[0] };
-		if (totalNumInputChannels >= 2) {
-			auto chDataIn = buffer.getArrayOfReadPointers();
-			ipInL.resample(chDataIn[0], buffer.getNumSamples(), sr, &tempInL[0], numFramesToWork, 44100.0);
-			ipInR.resample(chDataIn[1], buffer.getNumSamples(), sr, &tempInR[0], numFramesToWork, 44100.0);
-		}
-		else {
-			for (int i = 0; i < totalNumInputChannels; ++i)
-				buffer.clear (i, 0, buffer.getNumSamples());
-		}
-
-		server->work(&tempInLR[0], &tempOutLR[0], numFramesToWork, totalNumInputChannels, totalNumOutputChannels);
-
-		if (totalNumOutputChannels >= 2) {
-			float* destOutL = buffer.getWritePointer(0);
-			float* destOutR = buffer.getWritePointer(1);
-			ipOutL.resample(&tempOutL, 44100.0, destOutL, buffer.getNumSamples(), sr);
-			ipOutR.resample(&tempOutR, 44100.0, destOutR, buffer.getNumSamples(), sr);
-		}
-		else {
-			for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-				buffer.clear(i, 0, buffer.getNumSamples());
-		}
+	if (totalNumInputChannels < 2) {
+		for (int i = 0; i < totalNumInputChannels; ++i)
+			buffer.clear(i, 0, buffer.getNumSamples());
 	}
-	else {	
-	*/
-		auto chDataIn = buffer.getArrayOfReadPointers();
-		auto chDataOut = buffer.getArrayOfWritePointers();
 
-		if (totalNumInputChannels < 2) {
-			for (int i = 0; i < totalNumInputChannels; ++i)
-				buffer.clear(i, 0, buffer.getNumSamples());
-		}
+	server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannels, totalNumOutputChannels);
 
-		server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannels, totalNumOutputChannels);
-
-		if (totalNumOutputChannels < 2) {
-			for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-				buffer.clear(i, 0, buffer.getNumSamples());
-		}
-
-	//}
+	if (totalNumOutputChannels < 2) {
+		for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+			buffer.clear(i, 0, buffer.getNumSamples());
+	}
 }
 
 //==============================================================================

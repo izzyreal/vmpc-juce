@@ -13,12 +13,6 @@
               pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="5.2.0"
               defines="" companyName="Izmar">
   <MAINGROUP id="XNuzIS" name="vmpc">
-    <GROUP id="{7EBC1C15-2C6C-48C7-5635-39FCD71B8380}" name="dsp">
-      <FILE id="OHf5XD" name="BufferedLagrange.cpp" compile="1" resource="0"
-            file="dsp/BufferedLagrange.cpp"/>
-      <FILE id="xYUX3z" name="BufferedLagrange.h" compile="0" resource="0"
-            file="dsp/BufferedLagrange.h"/>
-    </GROUP>
     <GROUP id="{E4118CDD-9ABD-EAD4-FA51-1A9CD7CF3D30}" name="gui">
       <FILE id="s9DPVb" name="VmpcComponent.h" compile="0" resource="0" file="gui/VmpcComponent.h"/>
       <FILE id="daJKrx" name="ButtonControl.cpp" compile="1" resource="0"
@@ -91,6 +85,16 @@
     <VS2017 targetFolder="Builds/VisualStudio2017" windowsTargetPlatformVersion="10.0.16299.0"
             externalLibraries="moduru.lib&#10;ctoot.lib&#10;mpc.lib" vst3Folder="">
       <CONFIGURATIONS>
+        <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="Win32"
+                       debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
+                       linkTimeOptimisation="0" isDebug="1" optimisation="1" targetName="vmpc"
+                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\vmpc\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\vmpc\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;"
+                       libraryPath="C:\Users\izmar\git\vmpc\build\lib\Debug"/>
+        <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="Win32"
+                       debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
+                       linkTimeOptimisation="1" isDebug="0" optimisation="3" targetName="vmpc"
+                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\vmpc\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\vmpc\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
+                       libraryPath="C:\Users\izmar\git\vmpc\build\lib\Release"/>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
                        linkTimeOptimisation="0" isDebug="1" optimisation="1" targetName="vmpc"
@@ -98,7 +102,7 @@
                        libraryPath="C:\Users\izmar\git\vmpc\build64\lib\Debug"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
-                       linkTimeOptimisation="1" isDebug="0" optimisation="1" targetName="vmpc"
+                       linkTimeOptimisation="1" isDebug="0" optimisation="3" targetName="vmpc"
                        headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\vmpc\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\vmpc\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
                        libraryPath="C:\Users\izmar\git\vmpc\build64\lib\Release"/>
       </CONFIGURATIONS>
