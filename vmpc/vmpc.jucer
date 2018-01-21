@@ -154,8 +154,7 @@
       </MODULEPATHS>
     </LINUX_MAKE>
     <CODEBLOCKS_LINUX targetFolder="Builds/CodeBlocksLinux" externalLibraries="moduru&#10;ctoot&#10;mpc"
-                      extraLinkerFlags="-${MODURU_LIB}&#10;-${CTOOT_LIB}&#10;-${MPC_LIB}"
-                      extraDefs="- MODURU_LIB=libmoduru.a&#10;- CTOOT_LIB=libmoduru.a&#10;- MPC_LIB=libmoduru.a">
+                      extraLinkerFlags="" extraDefs="">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" linuxCodeBlocksArchitecture="-m64" isDebug="1" optimisation="1"
                        linkTimeOptimisation="0" targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/vmpc/moduru/src/&#10;/home/osboxes/git/vmpc/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include&#10;/usr/include/gtk-3.0/&#10;/usr/include/glib-2.0/&#10;/usr/lib/glib-2.0/include/&#10;usr/lib/gtk-3.0/include/&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include/&#10;/usr/include/cairo/&#10;/usr/include/pango-1.0&#10;/usr/lib/x86_64-linux-gnu/gtk-2.0/include&#10;/usr/include/gdk-pixbuf-2.0/&#10;/usr/include/atk-1.0/&#10;/usr/include/webkitgtk-4.0&#10;/usr/include/libsoup-2.4&#10;"
@@ -202,7 +201,8 @@
     <MODULE id="juce_video" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
   </MODULES>
   <JUCEOPTIONS JUCE_QUICKTIME="disabled" JUCE_ASIO="enabled" JUCE_WASAPI="enabled"
-               JUCE_WASAPI_EXCLUSIVE="enabled" JUCE_DIRECTSOUND="enabled"/>
+               JUCE_WASAPI_EXCLUSIVE="enabled" JUCE_DIRECTSOUND="enabled" JUCE_ALSA="enabled"
+               JUCE_JACK="enabled"/>
   <LIVE_SETTINGS>
     <LINUX/>
   </LIVE_SETTINGS>
