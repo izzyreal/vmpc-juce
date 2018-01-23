@@ -176,6 +176,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
         return true;
     }
 
+
 	for (int i = 0; i <= 9; i++) {
 		if (key == KeyPress(std::to_string(i)[0], ModifierKeys::shiftModifier, 0)) {
 			hw->getButton(std::to_string(i)).lock()->push();
