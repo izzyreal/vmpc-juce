@@ -111,7 +111,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 		return true;
 	}
 
-	if (k == 'L') {
+	if (k == 'L' || k == 'l') {
 		hw->getButton("rec").lock()->push();
 		return true;
 	}
@@ -131,6 +131,50 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 		hw->getButton("playstart").lock()->push();
 		return true;
 	}
+	else if (k == 'i' || k == 'I') {
+        hw->getButton("openwindow").lock()->push();
+        return true;
+	}
+	else if (k == 'q' || k == 'Q') {
+        hw->getButton("prevstepevent").lock()->push();
+        return true;
+	}
+    else if (k == 'w' || k == 'W') {
+        hw->getButton("nextstepevent").lock()->push();
+        return true;
+    }
+    else if (k == 'e' || k == 'E') {
+        hw->getButton("goto").lock()->push();
+        return true;
+    }
+    else if (k == 'r' || k == 'R') {
+        hw->getButton("prevbarstart").lock()->push();
+        return true;
+    }
+    else if (k == 't' || k == 'T') {
+        hw->getButton("nextbarend").lock()->push();
+        return true;
+    }
+    else if (k == 'y' || k == 'Y') {
+        hw->getButton("tap").lock()->push();
+        return true;
+    }
+    else if (k == 'o' || k == 'O') {
+        hw->getButton("fulllevel").lock()->push();
+        return true;
+    }
+    else if (k == 'p' || k == 'P') {
+        hw->getButton("sixteenlevels").lock()->push();
+        return true;
+    }
+    else if (k == '[') {
+        hw->getButton("nextseq").lock()->push();
+        return true;
+    }
+    else if (k == ']') {
+        hw->getButton("trackmute").lock()->push();
+        return true;
+    }
 
 	for (int i = 0; i <= 9; i++) {
 		if (key == KeyPress(std::to_string(i)[0], ModifierKeys::shiftModifier, 0)) {
@@ -166,11 +210,6 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 	}
 
 	int c = key.getTextCharacter();
-
-	if (key == 'I') {
-		hw->getButton("openwindow").lock()->push();
-		return true;
-	}
 
 	if (c == '-' || c == '_') {
 		auto controls = mpc->getControls().lock();
@@ -244,7 +283,7 @@ bool InputCatcherControl::keyStateChanged(bool isKeyDown) {
 		return true;
 	}
 
-	if (k == 'L') {
+	if (k == 'L' || k == 'l') {
 		hw->getButton("rec").lock()->release();
 		return true;
 	}
