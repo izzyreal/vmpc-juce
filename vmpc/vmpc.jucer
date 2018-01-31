@@ -59,10 +59,12 @@
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" enablePluginBinaryCopyStep="1" isDebug="1" optimisation="1"
                        linkTimeOptimisation="0" targetName="vmpc" libraryPath="/Users/admin/git/vmpc/build/lib/Debug"
-                       headerPath="/usr/local/include&#10;/Users/admin/git/vmpc/moduru/src/&#10;/Users/admin/git/vmpc/ctoot/src/&#10;/Users/admin/git/vmpc/mpc/src/&#10;/Users/admin/git/vmpc/rapidjson/include&#10;/Users/admin/git/VST_SDK/VST3_SDK"/>
-        <CONFIGURATION name="Release" enablePluginBinaryCopyStep="1" isDebug="0" optimisation="1"
+                       headerPath="/usr/local/include&#10;/Users/admin/git/vmpc/moduru/src/&#10;/Users/admin/git/vmpc/ctoot/src/&#10;/Users/admin/git/vmpc/mpc/src/&#10;/Users/admin/git/vmpc/rapidjson/include&#10;/Users/admin/git/VST_SDK/VST3_SDK"
+                       osxCompatibility="10.8 SDK" cppLibType="libc++"/>
+        <CONFIGURATION name="Release" enablePluginBinaryCopyStep="1" isDebug="0" optimisation="3"
                        linkTimeOptimisation="1" targetName="vmpc" libraryPath="/Users/admin/git/vmpc/build/lib/Release"
-                       headerPath="/usr/local/include&#10;/Users/admin/git/vmpc/moduru/src/&#10;/Users/admin/git/vmpc/ctoot/src/&#10;/Users/admin/git/vmpc/mpc/src/&#10;/Users/admin/git/vmpc/rapidjson/include&#10;/Users/admin/git/VST_SDK/VST3_SDK"/>
+                       headerPath="/usr/local/include&#10;/Users/admin/git/vmpc/moduru/src/&#10;/Users/admin/git/vmpc/ctoot/src/&#10;/Users/admin/git/vmpc/mpc/src/&#10;/Users/admin/git/vmpc/rapidjson/include&#10;/Users/admin/git/VST_SDK/VST3_SDK"
+                       osxCompatibility="10.8 SDK" cppLibType="libc++"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../JUCE/modules"/>
