@@ -47,7 +47,7 @@ void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
 
 bool InputCatcherControl::keyPressed(const KeyPress &key) {
 
-	MLOG("\nkey press received, keycode        : " + std::to_string(key.getKeyCode()));
+	//MLOG("\nkey press received, keycode        : " + std::to_string(key.getKeyCode()));
 	//MLOG("key press received, text character : " + std::to_string(key.getTextCharacter()));
 	//std::string foo;
 	//foo.push_back(key.getTextCharacter());

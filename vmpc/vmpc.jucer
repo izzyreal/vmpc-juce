@@ -8,7 +8,7 @@
               buildStandalone="1" enableIAA="0" pluginName="vmpc" pluginDesc="vmpc"
               pluginManufacturer="yourcompany" pluginManufacturerCode="Manu"
               pluginCode="Toyo" pluginChannelConfigs="" pluginIsSynth="0" pluginWantsMidiIn="1"
-              pluginProducesMidiOut="0" pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="0"
+              pluginProducesMidiOut="1" pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="0"
               pluginAUExportPrefix="vmpcAU" pluginRTASCategory="" aaxIdentifier="com.yourcompany.vmpc"
               pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="5.2.0"
               defines="" companyName="Izmar">

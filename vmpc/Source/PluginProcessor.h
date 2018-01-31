@@ -63,7 +63,7 @@ public:
 
 private:
 	void processMidiIn(MidiBuffer& midiMessages);
-	void processMidiOut(MidiBuffer& midiMessages);
+	void processMidiOut(MidiBuffer& midiMessages, int bufferSize);
 	void processTransport();
 
 private:

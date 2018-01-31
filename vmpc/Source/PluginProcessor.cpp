@@ -110,6 +110,14 @@ void VmpcAudioProcessor::changeProgramName (int index, const String& newName)
 //==============================================================================
 void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+	if (JUCEApplication::isStandaloneApp()) {
+		int latencySamples = deviceManager->getCurrentAudioDevice()->getInputLatencyInSamples() + deviceManager->getCurrentAudioDevice()->getOutputLatencyInSamples();
+		MLOG("Total latency in samples reported by JUCE: " + to_string(latencySamples));
+		auto midiOutput = deviceManager->getDefaultMidiOutput();
+		if (midiOutput != nullptr) {
+			midiOutput->stopBackgroundThread();
+		}
+	}
 	auto seq = mpc->getSequencer().lock();
 	bool wasPlaying = seq->isPlaying();
 	if (wasPlaying) seq->stop();
@@ -118,6 +126,12 @@ void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 	ams->start("rtaudio", sampleRate);
 	ams->setDisabled(false);
 	if (wasPlaying) seq->play();
+	if (JUCEApplication::isStandaloneApp()) {
+		auto midiOutput = deviceManager->getDefaultMidiOutput();
+		if (midiOutput != nullptr) {
+			midiOutput->startBackgroundThread();
+		}
+	}
 }
 
 void VmpcAudioProcessor::releaseResources()
@@ -133,10 +147,7 @@ bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
     ignoreUnused (layouts);
     return true;
   #else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    if (layouts.getMainOutputChannelSet() != AudioChannelSet::mono()
-     && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo())
+    if (layouts.getMainOutputChannelSet() != AudioChannelSet::stereo())
         return false;
 
     // This checks if the input layout matches the output layout
@@ -173,31 +184,38 @@ void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
 	}
 }
 
-void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages) {
-	auto midiOutMsgQueues = mpc->getMidiPorts().lock()->getReceivers();
+void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages, int bufferSize) {
+	bool standalone = JUCEApplication::isStandaloneApp();
+	MidiOutput* midiOutput = nullptr;
+	if (standalone) {
+		midiOutput = deviceManager->getDefaultMidiOutput();
+	}
 
+	auto midiOutMsgQueues = mpc->getMidiPorts().lock()->getReceivers();
 	for (auto& queue : *midiOutMsgQueues) {
 		for (auto msg : queue) {
-			auto velo = msg.getData2();
+
+			juce::uint8 velo = (juce::uint8) msg.getData2();
 			if (velo == 0) continue;
-			/*
-			IMidiMsg imsg;
-			imsg.MakeNoteOnMsg(msg.getData1(), velo, 0, msg.getChannel());
-			imsg.mStatus = msg.getStatus();
-			SendMidiMsg(&imsg);
-			*/
+			auto jmsg = MidiMessage::noteOn(msg.getChannel(), msg.getData1(), juce::uint8(velo));
+			midiMessages.addEvent(jmsg, msg.bufferPos);
 		}
 		for (auto msg : queue) {
 			auto velo = msg.getData2();
 			if (velo != 0) continue;
-			/*
-			IMidiMsg imsg;
-			imsg.MakeNoteOffMsg(msg.getData1(), 0, msg.getChannel());
-			imsg.mStatus = msg.getStatus();
-			SendMidiMsg(&imsg);
-			*/
+			auto jmsg = MidiMessage::noteOff(msg.getChannel(), msg.getData1());
+			midiMessages.addEvent(jmsg, msg.bufferPos);
 		}
 		queue.clear();
+	}
+	if (standalone) {
+		if (midiOutput != nullptr) {
+			int latencySamples = deviceManager->getCurrentAudioDevice()->getInputLatencyInSamples() + deviceManager->getCurrentAudioDevice()->getOutputLatencyInSamples();
+			//double latencyMs = (double) (bufferSize) / (getSampleRate() / 1000.0);
+			double latencyMs = (double)(latencySamples) / (getSampleRate() / 1000.0);
+			midiOutput->sendBlockOfMessages(midiMessages, Time::getMillisecondCounter() + latencyMs, getSampleRate());
+		}
+		midiMessages.clear(); // necessary?
 	}
 }
 
@@ -233,8 +251,15 @@ void VmpcAudioProcessor::processTransport() {
 void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
 	ScopedNoDenormals noDenormals;
+
+	processTransport();
+	processMidiIn(midiMessages);
+
 	const int totalNumInputChannels = getTotalNumInputChannels();
 	const int totalNumOutputChannels = getTotalNumOutputChannels();
+	
+	//processMidiOut(midiMessages, buffer.getNumSamples() * (totalNumInputChannels + totalNumOutputChannels) * 0.5);
+	processMidiOut(midiMessages, buffer.getNumSamples());
 
 	if (mpc->getAudioMidiServices().lock()->isDisabled()) {
 		for (int i = 0; i < totalNumInputChannels; ++i)
@@ -247,10 +272,6 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 			buffer.clear(i, 0, buffer.getNumSamples());
 		return;
 	}
-
-	processMidiOut(midiMessages);
-	processTransport();
-	processMidiIn(midiMessages);
 
 	auto server = mpc->getAudioMidiServices().lock()->getRtAudioServer();
 	auto chDataIn = buffer.getArrayOfReadPointers();
