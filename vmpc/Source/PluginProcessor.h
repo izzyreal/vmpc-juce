@@ -68,6 +68,8 @@ private:
 
 private:
 	mpc::Mpc* mpc = nullptr;
+	double m_Tempo = 0;
+	bool m_WasPlaying = false;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcAudioProcessor)
 };

@@ -170,15 +170,18 @@ void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
 		int velocity = m.getVelocity();
 
 		if (m.isNoteOn()) {
+			m.getRawData();
 			auto tootMsg = ctoot::midi::core::ShortMessage();
-			auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_ON, (char)(m.getNoteNumber()), (char)(velocity) };
-			tootMsg.setMessage(data, 3);
+			tootMsg.setMessage(ctoot::midi::core::ShortMessage::NOTE_ON, m.getChannel() - 1, m.getNoteNumber(), velocity);
+			//auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_ON, (char)(m.getNoteNumber()), (char)(velocity) };
+			//tootMsg.setMessage(data, 3);
 			mpc->getMpcMidiInput(0)->transport(&tootMsg, 0);
 		}
 		else if (m.isNoteOff()) {
 			auto tootMsg = ctoot::midi::core::ShortMessage();
-			auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_OFF, (char)(m.getNoteNumber()), (char)(velocity) };
-			tootMsg.setMessage(data, 3);
+			//auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_OFF, (char)(m.getNoteNumber()), (char)(velocity) };
+			//tootMsg.setMessage(data, 3);
+			tootMsg.setMessage(ctoot::midi::core::ShortMessage::NOTE_OFF, m.getChannel() - 1, m.getNoteNumber(), 0);
 			mpc->getMpcMidiInput(0)->transport(&tootMsg, 0);
 		}
 	}
@@ -197,13 +200,13 @@ void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages, int bufferSize
 
 			juce::uint8 velo = (juce::uint8) msg.getData2();
 			if (velo == 0) continue;
-			auto jmsg = MidiMessage::noteOn(msg.getChannel(), msg.getData1(), juce::uint8(velo));
+			auto jmsg = MidiMessage::noteOn(msg.getChannel() + 1, msg.getData1(), juce::uint8(velo));
 			midiMessages.addEvent(jmsg, msg.bufferPos);
 		}
 		for (auto msg : queue) {
 			auto velo = msg.getData2();
 			if (velo != 0) continue;
-			auto jmsg = MidiMessage::noteOff(msg.getChannel(), msg.getData1());
+			auto jmsg = MidiMessage::noteOff(msg.getChannel() + 1, msg.getData1());
 			midiMessages.addEvent(jmsg, msg.bufferPos);
 		}
 		queue.clear();
@@ -220,31 +223,30 @@ void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages, int bufferSize
 }
 
 void VmpcAudioProcessor::processTransport() {
+	if (JUCEApplication::isStandaloneApp()) return;
 	auto msGui = mpc->getUis().lock()->getMidiSyncGui();
 	bool syncEnabled = msGui->getModeIn() == 1;
 
 	if (syncEnabled) {
-		/*
-		const double tempo = GetTempo();
+		AudioPlayHead::CurrentPositionInfo info;
+		getPlayHead()->getCurrentPosition(info);
+		double tempo = info.bpm;
 		if (tempo != m_Tempo || mpc->getSequencer().lock()->getTempo().toDouble() != tempo) {
-		mpc->getSequencer().lock()->setTempo(BCMath(tempo));
-		m_Tempo = tempo;
+			mpc->getSequencer().lock()->setTempo(BCMath(tempo));
+			m_Tempo = tempo;
 		}
-
-		ITimeInfo ti;
-		GetTime(&ti);
-
-		bool isPlaying = ti.mTransportIsRunning;
+		
+		bool isPlaying = info.isPlaying;
 
 		if (!m_WasPlaying && isPlaying)
 		{
-		mpc->getSequencer().lock()->playFromStart();
+			mpc->getSequencer().lock()->playFromStart();
 		}
+		
 		if (m_WasPlaying && !isPlaying) {
-		mpc->getSequencer().lock()->stop();
+			mpc->getSequencer().lock()->stop();
 		}
 		m_WasPlaying = isPlaying;
-		*/
 	}
 }
 
