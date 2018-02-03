@@ -80,6 +80,10 @@ Rectangle<float> ButtonControl::fulllevel = Rectangle<float>(777, 178, mw, mh);
 Rectangle<float> ButtonControl::sixteenlevels = Rectangle<float>(861, 180, mw, mh);
 Rectangle<float> ButtonControl::nextseq = Rectangle<float>(778, 263, mw, mh);
 Rectangle<float> ButtonControl::trackmute = Rectangle<float>(860, 261, mw, mh);
+Rectangle<float> ButtonControl::left = Rectangle<float>(416, 581, 29, 76);
+Rectangle<float> ButtonControl::up = Rectangle<float>(445, 581, 46, 38);
+Rectangle<float> ButtonControl::down = Rectangle<float>(445, 619, 46, 38);
+Rectangle<float> ButtonControl::right = Rectangle<float>(491, 581, 29, 76);
 
 void ButtonControl::initRects() {
 	if (rects.size() != 0) return;
@@ -116,6 +120,11 @@ void ButtonControl::initRects() {
 	rects.emplace("bankb", &bankb);
 	rects.emplace("bankc", &bankc);
 	rects.emplace("bankd", &bankd);
+	rects.emplace("left", &left);
+	rects.emplace("right", &right);
+	rects.emplace("up", &up);
+	rects.emplace("down", &down);
+
 	for (auto r : rects) {
 		auto rc = r.second;
 		r.second->setY(r.second->getY() + 55);

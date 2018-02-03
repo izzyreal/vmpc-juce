@@ -76,6 +76,10 @@ class ButtonControl
 		static Rectangle<float> sixteenlevels;
 		static Rectangle<float> nextseq;
 		static Rectangle<float> trackmute;
+		static Rectangle<float> left;
+		static Rectangle<float> up;
+		static Rectangle<float> down;
+		static Rectangle<float> right;
 
 public:
 	void mouseDown(const MouseEvent& event) override;
