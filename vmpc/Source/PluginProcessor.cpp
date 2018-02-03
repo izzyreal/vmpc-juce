@@ -166,23 +166,24 @@ void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
 	MidiMessage m;
 	int midiEventPos;
 	while (midiIterator.getNextEvent(m, midiEventPos)) {
-		int frames = m.getTimeStamp();
+		int timeStamp = m.getTimeStamp();
 		int velocity = m.getVelocity();
 
 		if (m.isNoteOn()) {
+			//MLOG("\nNote on timestamp: " + std::to_string(timeStamp));
 			m.getRawData();
 			auto tootMsg = ctoot::midi::core::ShortMessage();
 			tootMsg.setMessage(ctoot::midi::core::ShortMessage::NOTE_ON, m.getChannel() - 1, m.getNoteNumber(), velocity);
 			//auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_ON, (char)(m.getNoteNumber()), (char)(velocity) };
 			//tootMsg.setMessage(data, 3);
-			mpc->getMpcMidiInput(0)->transport(&tootMsg, 0);
+			mpc->getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
 		}
 		else if (m.isNoteOff()) {
 			auto tootMsg = ctoot::midi::core::ShortMessage();
 			//auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_OFF, (char)(m.getNoteNumber()), (char)(velocity) };
 			//tootMsg.setMessage(data, 3);
 			tootMsg.setMessage(ctoot::midi::core::ShortMessage::NOTE_OFF, m.getChannel() - 1, m.getNoteNumber(), 0);
-			mpc->getMpcMidiInput(0)->transport(&tootMsg, 0);
+			mpc->getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
 		}
 	}
 }
