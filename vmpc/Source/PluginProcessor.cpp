@@ -254,16 +254,10 @@ void VmpcAudioProcessor::processTransport() {
 void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
 	ScopedNoDenormals noDenormals;
-
-	processTransport();
-	processMidiIn(midiMessages);
-
+\
 	const int totalNumInputChannels = getTotalNumInputChannels();
 	const int totalNumOutputChannels = getTotalNumOutputChannels();
 	
-	//processMidiOut(midiMessages, buffer.getNumSamples() * (totalNumInputChannels + totalNumOutputChannels) * 0.5);
-	processMidiOut(midiMessages, buffer.getNumSamples());
-
 	if (mpc->getAudioMidiServices().lock()->isDisabled()) {
 		for (int i = 0; i < totalNumInputChannels; ++i)
 			buffer.clear(i, 0, buffer.getNumSamples());
@@ -275,6 +269,11 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 			buffer.clear(i, 0, buffer.getNumSamples());
 		return;
 	}
+
+	processTransport();
+	processMidiIn(midiMessages);
+	//processMidiOut(midiMessages, buffer.getNumSamples() * (totalNumInputChannels + totalNumOutputChannels) * 0.5);
+	processMidiOut(midiMessages, buffer.getNumSamples());
 
 	auto server = mpc->getAudioMidiServices().lock()->getRtAudioServer();
 	auto chDataIn = buffer.getArrayOfReadPointers();
