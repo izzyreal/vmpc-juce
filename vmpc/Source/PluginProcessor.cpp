@@ -125,6 +125,7 @@ void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 	ams->destroyServices();
 	ams->start("rtaudio", sampleRate);
 	ams->setDisabled(false);
+	ams->getRtAudioServer()->resizeBuffers(samplesPerBlock);
 	if (wasPlaying) seq->play();
 	if (JUCEApplication::isStandaloneApp()) {
 		auto midiOutput = deviceManager->getDefaultMidiOutput();
