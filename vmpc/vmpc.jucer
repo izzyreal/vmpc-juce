@@ -59,7 +59,7 @@
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" enablePluginBinaryCopyStep="1" isDebug="1" optimisation="1"
                        linkTimeOptimisation="0" targetName="vmpc" libraryPath="/Users/admin/git/vmpc/build/lib/Debug"
-                       headerPath="/usr/local/include&#10;/Users/admin/git/vmpc/moduru/src/&#10;/Users/admin/git/vmpc/ctoot/src/&#10;/Users/admin/git/vmpc/mpc/src/&#10;/Users/admin/git/vmpc/rapidjson/include&#10;/Users/admin/git/VST_SDK/VST3_SDK"
+                       headerPath="/usr/local/include&#10;/Users/admin/git/moduru/src/&#10;/Users/admin/git/ctoot/src/&#10;/Users/admin/git/vmpc/mpc/src/&#10;/Users/admin/git/vmpc/rapidjson/include&#10;/Users/admin/git/VST_SDK/VST3_SDK"
                        osxCompatibility="10.8 SDK" cppLibType="libc++"/>
         <CONFIGURATION name="Release" enablePluginBinaryCopyStep="1" isDebug="0" optimisation="3"
                        linkTimeOptimisation="1" targetName="vmpc" libraryPath="/Users/admin/git/vmpc/build/lib/Release"
@@ -88,22 +88,22 @@
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="Win32"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
                        linkTimeOptimisation="0" isDebug="1" optimisation="1" targetName="vmpc"
-                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\vmpc\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\vmpc\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;"
+                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;"
                        libraryPath="C:\Users\izmar\git\vmpc\build\lib\Debug"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="Win32"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
                        linkTimeOptimisation="1" isDebug="0" optimisation="3" targetName="vmpc"
-                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\vmpc\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\vmpc\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
+                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
                        libraryPath="C:\Users\izmar\git\vmpc\build\lib\Release"/>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
                        linkTimeOptimisation="0" isDebug="1" optimisation="1" targetName="vmpc"
-                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\vmpc\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\vmpc\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;"
+                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;"
                        libraryPath="C:\Users\izmar\git\vmpc\build64\lib\Debug"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
                        linkTimeOptimisation="1" isDebug="0" optimisation="3" targetName="vmpc"
-                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\vmpc\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\vmpc\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
+                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
                        libraryPath="C:\Users\izmar\git\vmpc\build64\lib\Release"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -153,10 +153,10 @@
                       extraLinkerFlags="" extraDefs="">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" linuxCodeBlocksArchitecture="-m64" isDebug="1" optimisation="1"
-                       linkTimeOptimisation="0" targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/vmpc/moduru/src/&#10;/home/osboxes/git/vmpc/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include&#10;/usr/include/gtk-3.0/&#10;/usr/include/glib-2.0/&#10;/usr/lib/glib-2.0/include/&#10;usr/lib/gtk-3.0/include/&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include/&#10;/usr/include/cairo/&#10;/usr/include/pango-1.0&#10;/usr/lib/x86_64-linux-gnu/gtk-2.0/include&#10;/usr/include/gdk-pixbuf-2.0/&#10;/usr/include/atk-1.0/&#10;/usr/include/webkitgtk-4.0&#10;/usr/include/libsoup-2.4&#10;"
+                       linkTimeOptimisation="0" targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/moduru/src/&#10;/home/osboxes/git/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include&#10;/usr/include/gtk-3.0/&#10;/usr/include/glib-2.0/&#10;/usr/lib/glib-2.0/include/&#10;usr/lib/gtk-3.0/include/&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include/&#10;/usr/include/cairo/&#10;/usr/include/pango-1.0&#10;/usr/lib/x86_64-linux-gnu/gtk-2.0/include&#10;/usr/include/gdk-pixbuf-2.0/&#10;/usr/include/atk-1.0/&#10;/usr/include/webkitgtk-4.0&#10;/usr/include/libsoup-2.4&#10;"
                        libraryPath="/home/osboxes/git/vmpc/moduru/build&#10;/home/osboxes/git/vmpc/ctoot/build&#10;/home/osboxes/git/vmpc/mpc/build&#10;"/>
         <CONFIGURATION name="Release" linuxCodeBlocksArchitecture="-m64" isDebug="0"
-                       optimisation="6" linkTimeOptimisation="0" targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/vmpc/moduru/src/&#10;/home/osboxes/git/vmpc/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include&#10;/usr/include/gtk-3.0/&#10;/usr/include/glib-2.0/&#10;/usr/lib/glib-2.0/include/&#10;usr/lib/gtk-3.0/include/&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include/&#10;/usr/include/cairo/&#10;/usr/include/pango-1.0&#10;/usr/lib/x86_64-linux-gnu/gtk-2.0/include&#10;/usr/include/gdk-pixbuf-2.0/&#10;/usr/include/atk-1.0/&#10;/usr/include/webkitgtk-4.0&#10;/usr/include/libsoup-2.4&#10;"
+                       optimisation="6" linkTimeOptimisation="0" targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/moduru/src/&#10;/home/osboxes/git/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include&#10;/usr/include/gtk-3.0/&#10;/usr/include/glib-2.0/&#10;/usr/lib/glib-2.0/include/&#10;usr/lib/gtk-3.0/include/&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include/&#10;/usr/include/cairo/&#10;/usr/include/pango-1.0&#10;/usr/lib/x86_64-linux-gnu/gtk-2.0/include&#10;/usr/include/gdk-pixbuf-2.0/&#10;/usr/include/atk-1.0/&#10;/usr/include/webkitgtk-4.0&#10;/usr/include/libsoup-2.4&#10;"
                        libraryPath="/home/osboxes/git/vmpc/moduru/build&#10;/home/osboxes/git/vmpc/ctoot/build&#10;/home/osboxes/git/vmpc/mpc/build&#10;"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
