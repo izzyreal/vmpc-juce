@@ -1,15 +1,6 @@
 #include "ButtonControl.hpp"
 #include <hardware/Button.hpp>
 
-//#include "FTControl.hpp"
-//#include <controls/KbMapping.hpp>
-
-//#include <math.h>
-//#include <algorithm>
-
-//#include <Logger.hpp>
-//#include <thirdp/wrpkey/key.hxx>
-
 using namespace std;
 
 ButtonControl::ButtonControl(Rectangle<float> rect, std::weak_ptr<mpc::hardware::Button> button, const String& componentName)
@@ -17,24 +8,6 @@ ButtonControl::ButtonControl(Rectangle<float> rect, std::weak_ptr<mpc::hardware:
 {
 	this->button = button;
 	this->rect = rect;
-
-	//MLOG("button name: " + button.lock()->getLabel());
-	//MLOG("Rect coords: " + to_string(rect.getX()) + ", " + to_string(rect.getY()) + ", " + to_string(rect.getRight()) + ", " + to_string(rect.getBottom()));
-
-	/*
-	mpc::controls::KbMapping kbMapping;
-	auto buttonLabel = button.lock()->getLabel();
-	int keyCode = kbMapping.getKeyCodeFromLabel(buttonLabel);
-	auto labelString = kbMapping.getKeyCodeString(keyCode);
-	std::transform(labelString.begin(), labelString.end(), labelString.begin(), ::toupper);
-	int labelWidth = FTControl::getStringWidth(labelString);
-	int yMouseCursorOffset = Constants::KBLABEL_FONT_SIZE;
-	int labelOffsetX = rect.MW() - (labelWidth / 2) - ((Constants::KBLABEL_OUTLINE_SIZE));
-	int labelOffsetY = rect.MH() - (((Constants::KBLABEL_FONT_SIZE / 2) - Constants::KBLABEL_OUTLINE_SIZE + yMouseCursorOffset));
-	kbLabel = new FTControl(pPlug, labelOffsetX, labelOffsetY, labelString);
-	kbLabel->Hide(true);
-	gui->AttachControl(kbLabel);
-	*/
 }
 
 std::unordered_map<std::string, Rectangle<float>*> ButtonControl::rects;

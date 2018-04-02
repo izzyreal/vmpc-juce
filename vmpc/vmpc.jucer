@@ -88,23 +88,23 @@
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="Win32"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
                        linkTimeOptimisation="0" isDebug="1" optimisation="1" targetName="vmpc"
-                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;"
-                       libraryPath="C:\Users\izmar\git\vmpc\build\lib\Debug"/>
+                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\moduru\src&#10;C:\Users\izmar\git\mpc\src&#10;C:\Users\izmar\git\ctoot\src&#10;C:\Users\izmar\git\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
+                       libraryPath="C:\Users\izmar\git\mpc\build\Debug&#10;C:\Users\izmar\git\ctoot\build\Debug&#10;C:\Users\izmar\git\moduru\build\Debug"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="Win32"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
                        linkTimeOptimisation="1" isDebug="0" optimisation="3" targetName="vmpc"
-                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
-                       libraryPath="C:\Users\izmar\git\vmpc\build\lib\Release"/>
+                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\moduru\src&#10;C:\Users\izmar\git\mpc\src&#10;C:\Users\izmar\git\ctoot\src&#10;C:\Users\izmar\git\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
+                       libraryPath="C:\Users\izmar\git\mpc\build\Release&#10;C:\Users\izmar\git\ctoot\build\Release&#10;C:\Users\izmar\git\moduru\build\Release"/>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
                        linkTimeOptimisation="0" isDebug="1" optimisation="1" targetName="vmpc"
-                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;"
-                       libraryPath="C:\Users\izmar\git\vmpc\build64\lib\Debug"/>
+                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\moduru\src&#10;C:\Users\izmar\git\mpc\src&#10;C:\Users\izmar\git\ctoot\src&#10;C:\Users\izmar\git\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
+                       libraryPath="C:\Users\izmar\git\mpc\build64\Debug&#10;C:\Users\izmar\git\ctoot\build64\Debug&#10;C:\Users\izmar\git\moduru\build64\Debug"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
                        linkTimeOptimisation="1" isDebug="0" optimisation="3" targetName="vmpc"
-                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\moduru\src&#10;C:\Users\izmar\git\vmpc\mpc\src&#10;C:\Users\izmar\git\ctoot\src&#10;C:\Users\izmar\git\vmpc\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
-                       libraryPath="C:\Users\izmar\git\vmpc\build64\lib\Release"/>
+                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\moduru\src&#10;C:\Users\izmar\git\mpc\src&#10;C:\Users\izmar\git\ctoot\src&#10;C:\Users\izmar\git\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
+                       libraryPath="C:\Users\izmar\git\mpc\build64\Release&#10;C:\Users\izmar\git\ctoot\build64\Release&#10;C:\Users\izmar\git\moduru\build64\Release"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../JUCE/modules"/>
