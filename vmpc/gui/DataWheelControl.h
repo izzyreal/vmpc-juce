@@ -9,7 +9,7 @@ class DataWheelControl
 	, public moduru::observer::Observer
 {
 public:
-	DataWheelControl(std::weak_ptr<mpc::hardware::DataWheel> dataWheel, const String& componentName = String::empty);
+	DataWheelControl(std::weak_ptr<mpc::hardware::DataWheel> dataWheel, const String& componentName = "");
 
 	~DataWheelControl();
 	void setImage(Image image, int numFrames);
@@ -21,7 +21,7 @@ public:
 	void mouseUp(const MouseEvent& event) override;
 
 public:
-	void update(moduru::observer::Observable* o, boost::any arg) override;
+	void update(moduru::observer::Observable* o, std::any arg) override;
 
 private:
 	Image filmStripImage;

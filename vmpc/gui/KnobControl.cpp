@@ -1,5 +1,4 @@
 #include "KnobControl.hpp"
-#include <Logger.hpp>
 #include <hardware/Pot.hpp>
 
 

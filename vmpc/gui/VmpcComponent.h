@@ -21,7 +21,7 @@ class VmpcComponent
 	: public Component
 {
 public:
-    VmpcComponent(const String& componentName = String::empty)
+    VmpcComponent(const String& componentName = "")
     {
     }
 

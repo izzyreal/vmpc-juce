@@ -34,8 +34,8 @@ static inline void clampIndex(int& dataWheelIndex) {
 	}
 }
 
-void DataWheelControl::update(moduru::observer::Observable* o, boost::any arg) {
-	int increment = boost::any_cast<int>(arg);
+void DataWheelControl::update(moduru::observer::Observable* o, std::any arg) {
+	int increment = std::any_cast<int>(arg);
 	dataWheelIndex += increment;
 	clampIndex(dataWheelIndex);
 	repaint();

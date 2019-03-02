@@ -3,15 +3,15 @@
 <JUCERPROJECT id="toyOrS" name="vmpc" displaySplashScreen="1" reportAppUsage="1"
               splashScreenColour="Dark" projectType="audioplug" version="1.0.0"
               bundleIdentifier="com.yourcompany.vmpc" includeBinaryInAppConfig="1"
-              cppLanguageStandard="14" companyCopyright="Izmar" buildVST="1"
+              cppLanguageStandard="17" companyCopyright="Izmar" buildVST="1"
               buildVST3="1" buildAU="1" buildAUv3="0" buildRTAS="0" buildAAX="0"
               buildStandalone="1" enableIAA="0" pluginName="vmpc" pluginDesc="vmpc"
               pluginManufacturer="yourcompany" pluginManufacturerCode="Manu"
               pluginCode="Toyo" pluginChannelConfigs="" pluginIsSynth="0" pluginWantsMidiIn="1"
               pluginProducesMidiOut="1" pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="1"
               pluginAUExportPrefix="vmpcAU" pluginRTASCategory="" aaxIdentifier="com.yourcompany.vmpc"
-              pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="5.2.0"
-              defines="" companyName="Izmar">
+              pluginAAXCategory="2" jucerVersion="5.4.1" defines="" companyName="Izmar"
+              pluginFormats="buildVST,buildVST3,buildAU,buildStandalone" pluginCharacteristicsValue="pluginWantsMidiIn,pluginProducesMidiOut,pluginEditorRequiresKeys">
   <MAINGROUP id="XNuzIS" name="vmpc">
     <GROUP id="{E4118CDD-9ABD-EAD4-FA51-1A9CD7CF3D30}" name="gui">
       <FILE id="s9DPVb" name="VmpcComponent.h" compile="0" resource="0" file="gui/VmpcComponent.h"/>
@@ -55,16 +55,17 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" vst3Folder="" externalLibraries="moduru&#10;ctoot&#10;mpc">
+    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="moduru&#10;ctoot&#10;mpc"
+               microphonePermissionNeeded="1">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" enablePluginBinaryCopyStep="1" isDebug="1" optimisation="1"
-                       linkTimeOptimisation="0" targetName="vmpc" libraryPath="/Users/admin/git/vmpc/build/lib/Debug"
-                       headerPath="/usr/local/include&#10;/Users/admin/git/moduru/src/&#10;/Users/admin/git/ctoot/src/&#10;/Users/admin/git/vmpc/mpc/src/&#10;/Users/admin/git/vmpc/rapidjson/include&#10;/Users/admin/git/VST_SDK/VST3_SDK"
-                       osxCompatibility="10.8 SDK" cppLibType="libc++"/>
+                       linkTimeOptimisation="0" targetName="vmpc" libraryPath="/Users/izmarverhage/git/moduru/build/Debug&#10;/Users/izmarverhage/git/ctoot/build/Debug&#10;/Users/izmarverhage/git/mpc/build/Debug"
+                       headerPath="/Users/izmarverhage/git/moduru/src/&#10;/Users/izmarverhage/git/ctoot/src/&#10;/Users/izmarverhage/git/mpc/src/&#10;/Users/izmarverhage/git/rapidjson/include&#10;/Users/izmarverhage/git/VST_SDK/VST3_SDK"
+                       osxCompatibility="10.14 SDK" cppLibType="libc++"/>
         <CONFIGURATION name="Release" enablePluginBinaryCopyStep="1" isDebug="0" optimisation="3"
-                       linkTimeOptimisation="1" targetName="vmpc" libraryPath="/Users/admin/git/vmpc/build/lib/Release"
-                       headerPath="/usr/local/include&#10;/Users/admin/git/vmpc/moduru/src/&#10;/Users/admin/git/vmpc/ctoot/src/&#10;/Users/admin/git/vmpc/mpc/src/&#10;/Users/admin/git/vmpc/rapidjson/include&#10;/Users/admin/git/VST_SDK/VST3_SDK"
-                       osxCompatibility="10.8 SDK" cppLibType="libc++"/>
+                       linkTimeOptimisation="1" targetName="vmpc" libraryPath="/Users/izmarverhage/git/moduru/build/Release/lib&#10;/Users/izmarverhage/git/ctoot/build/Release/lib&#10;/Users/izmarverhage/git/mpc/build/Release/lib"
+                       headerPath="/Users/izmarverhage/git/moduru/src/&#10;/Users/izmarverhage/git/ctoot/src/&#10;/Users/izmarverhage/git/mpc/src/&#10;/Users/izmarverhage/git/rapidjson/include&#10;/Users/izmarverhage/git/VST_SDK/VST3_SDK"
+                       osxCompatibility="10.14 SDK" cppLibType="libc++"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../JUCE/modules"/>
@@ -83,7 +84,7 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <VS2017 targetFolder="Builds/VisualStudio2017" windowsTargetPlatformVersion="10.0.16299.0"
-            externalLibraries="moduru.lib&#10;ctoot.lib&#10;mpc.lib" vst3Folder="">
+            externalLibraries="moduru.lib&#10;ctoot.lib&#10;mpc.lib">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="Win32"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
@@ -192,10 +193,10 @@
     <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
   </MODULES>
-  <JUCEOPTIONS JUCE_QUICKTIME="disabled" JUCE_ASIO="enabled" JUCE_WASAPI="enabled"
-               JUCE_WASAPI_EXCLUSIVE="enabled" JUCE_DIRECTSOUND="enabled" JUCE_ALSA="enabled"
-               JUCE_JACK="enabled" JUCE_WEB_BROWSER="disabled"/>
+  <JUCEOPTIONS JUCE_QUICKTIME="disabled" JUCE_ASIO="1" JUCE_WASAPI="1" JUCE_WASAPI_EXCLUSIVE="1"
+               JUCE_DIRECTSOUND="1" JUCE_ALSA="1" JUCE_JACK="1" JUCE_WEB_BROWSER="0"/>
   <LIVE_SETTINGS>
     <LINUX/>
+    <OSX/>
   </LIVE_SETTINGS>
 </JUCERPROJECT>

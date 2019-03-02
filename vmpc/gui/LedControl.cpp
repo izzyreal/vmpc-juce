@@ -197,8 +197,8 @@ void LedControl::setUndoSeq(bool b)
     undoSeqLed->setOn(b);
 }
 
-void LedControl::update(moduru::observer::Observable* o, boost::any arg) {
-	string s = boost::any_cast<string>(arg);
+void LedControl::update(moduru::observer::Observable* o, std::any arg) {
+	string s = std::any_cast<string>(arg);
 	if (s.compare("fulllevelon") == 0) {
 		setFullLevel(true);
 	}
