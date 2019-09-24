@@ -34,7 +34,7 @@ private:
 	int frameWidth, frameHeight, lastDy = 0;
 
 public:
-	KnobControl(int type, std::weak_ptr<mpc::hardware::Pot> pot, int startIndex, const String& componentName = String::empty);
+	KnobControl(int type, std::weak_ptr<mpc::hardware::Pot> pot, int startIndex, const String& componentName);
 	~KnobControl();
 
 };

@@ -48,7 +48,7 @@ private:
 		bool pressed = false;
 
 public:
-	PadControl(Rectangle<float> rect, std::weak_ptr<mpc::hardware::HwPad> pad, Image padhit, const String& componentName = String::empty);
+	PadControl(Rectangle<float> rect, std::weak_ptr<mpc::hardware::HwPad> pad, Image padhit, const String& componentName);
 	~PadControl();
 
 };

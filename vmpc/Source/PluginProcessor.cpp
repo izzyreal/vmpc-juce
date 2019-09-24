@@ -12,7 +12,7 @@
 #include "PluginEditor.h"
 
 #include <audiomidi/AudioMidiServices.hpp>
-#include <audio/server/RtAudioServer.hpp>
+#include <audio/server/ExternalAudioServer.hpp>
 #include <audio/server/NonRealTimeAudioServer.hpp>
 #include <audiomidi/MpcMidiPorts.hpp>
 #include <audiomidi/MpcMidiInput.hpp>
@@ -37,7 +37,8 @@ VmpcAudioProcessor::VmpcAudioProcessor()
 #endif
 {
 	mpc = new mpc::Mpc();
-	mpc->init("rtaudio", getSampleRate());
+	mpc->init(getSampleRate(), 1, 1);
+	mpc->getLayeredScreen().lock()->openScreen("sequencer");
 }
 
 VmpcAudioProcessor::~VmpcAudioProcessor()
@@ -110,29 +111,31 @@ void VmpcAudioProcessor::changeProgramName (int index, const String& newName)
 //==============================================================================
 void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-//    if (JUCEApplication::isStandaloneApp()) {
-//        int latencySamples = deviceManager->getCurrentAudioDevice()->getInputLatencyInSamples() + deviceManager->getCurrentAudioDevice()->getOutputLatencyInSamples();
-//        MLOG("Total latency in samples reported by JUCE: " + to_string(latencySamples));
-//        auto midiOutput = deviceManager->getDefaultMidiOutput();
-//        if (midiOutput != nullptr) {
-//            midiOutput->stopBackgroundThread();
-//        }
-//    }
-//    auto seq = mpc->getSequencer().lock();
-//    bool wasPlaying = seq->isPlaying();
-//    if (wasPlaying) seq->stop();
-//    auto ams = mpc->getAudioMidiServices().lock();
-//    ams->destroyServices();
-//    ams->start("rtaudio", sampleRate);
-//    ams->setDisabled(false);
-//    ams->getRtAudioServer()->resizeBuffers(samplesPerBlock);
-//    if (wasPlaying) seq->play();
-//    if (JUCEApplication::isStandaloneApp()) {
-//        auto midiOutput = deviceManager->getDefaultMidiOutput();
-//        if (midiOutput != nullptr) {
-//            midiOutput->startBackgroundThread();
-//        }
-//    }
+    if (JUCEApplication::isStandaloneApp()) {
+        //int latencySamples = deviceManager->getCurrentAudioDevice()->getInputLatencyInSamples() + deviceManager->getCurrentAudioDevice()->getOutputLatencyInSamples();
+        //MLOG("Total latency in samples reported by JUCE: " + to_string(latencySamples));
+        //auto midiOutput = deviceManager->getDefaultMidiOutput();
+        //if (midiOutput != nullptr) {
+        //   midiOutput->stopBackgroundThread();
+        //}
+    }
+    auto seq = mpc->getSequencer().lock();
+    bool wasPlaying = seq->isPlaying();
+    if (wasPlaying) seq->stop();
+    auto ams = mpc->getAudioMidiServices().lock();
+    ams->destroyServices();
+    ams->start(sampleRate, 1, 1);
+    ams->setDisabled(false);
+    ams->getExternalAudioServer()->resizeBuffers(samplesPerBlock);
+    if (wasPlaying) seq->play();
+	/*
+    if (JUCEApplication::isStandaloneApp()) {
+        auto midiOutput = deviceManager->getDefaultMidiOutput();
+        if (midiOutput != nullptr) {
+            midiOutput->startBackgroundThread();
+        }
+    }
+	*/
 }
 
 void VmpcAudioProcessor::releaseResources()
@@ -276,7 +279,7 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	//processMidiOut(midiMessages, buffer.getNumSamples() * (totalNumInputChannels + totalNumOutputChannels) * 0.5);
 	processMidiOut(midiMessages, buffer.getNumSamples());
 
-	auto server = mpc->getAudioMidiServices().lock()->getRtAudioServer();
+	auto server = mpc->getAudioMidiServices().lock()->getExternalAudioServer();
 	auto chDataIn = buffer.getArrayOfReadPointers();
 	auto chDataOut = buffer.getArrayOfWritePointers();
 

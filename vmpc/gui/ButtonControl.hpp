@@ -89,7 +89,7 @@ public:
 	void paint(Graphics& g) override;
 
 public:
-	ButtonControl(Rectangle<float> rect, std::weak_ptr<mpc::hardware::Button> button, const String& componentName = String::empty);
+	ButtonControl(Rectangle<float> rect, std::weak_ptr<mpc::hardware::Button> button, const String& componentName);
 	~ButtonControl();
 
 };

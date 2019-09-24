@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="toyOrS" name="vmpc" displaySplashScreen="1" reportAppUsage="1"
               splashScreenColour="Dark" projectType="audioplug" version="1.0.0"
-              bundleIdentifier="com.yourcompany.vmpc" includeBinaryInAppConfig="1"
+              bundleIdentifier="nl.izmar.vmpc" includeBinaryInAppConfig="1"
               cppLanguageStandard="17" companyCopyright="Izmar" buildVST="1"
               buildVST3="1" buildAU="1" buildAUv3="0" buildRTAS="0" buildAAX="0"
               buildStandalone="1" enableIAA="0" pluginName="vmpc" pluginDesc="vmpc"
@@ -10,7 +10,7 @@
               pluginCode="Toyo" pluginChannelConfigs="" pluginIsSynth="0" pluginWantsMidiIn="1"
               pluginProducesMidiOut="1" pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="1"
               pluginAUExportPrefix="vmpcAU" pluginRTASCategory="" aaxIdentifier="com.yourcompany.vmpc"
-              pluginAAXCategory="2" jucerVersion="5.4.1" defines="" companyName="Izmar"
+              pluginAAXCategory="2" jucerVersion="5.4.4" defines="" companyName="Izmar"
               pluginFormats="buildVST,buildVST3,buildAU,buildStandalone" pluginCharacteristicsValue="pluginWantsMidiIn,pluginProducesMidiOut,pluginEditorRequiresKeys">
   <MAINGROUP id="XNuzIS" name="vmpc">
     <GROUP id="{E4118CDD-9ABD-EAD4-FA51-1A9CD7CF3D30}" name="gui">
@@ -99,13 +99,13 @@
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
                        linkTimeOptimisation="0" isDebug="1" optimisation="1" targetName="vmpc"
-                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\moduru\src&#10;C:\Users\izmar\git\mpc\src&#10;C:\Users\izmar\git\ctoot\src&#10;C:\Users\izmar\git\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
-                       libraryPath="C:\Users\izmar\git\mpc\build64\Debug&#10;C:\Users\izmar\git\ctoot\build64\Debug&#10;C:\Users\izmar\git\moduru\build64\Debug"/>
+                       headerPath="C:\Users\izmar\git\vmpc-workspace\moduru\src\main\&#10;C:\Users\izmar\git\vmpc-workspace\mpc\src\main&#10;C:\Users\izmar\git\vmpc-workspace\ctoot\src\main&#10;C:\Users\izmar\git\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
+                       libraryPath="C:\Users\izmar\git\vmpc-workspace\mpc\build\Debug&#10;C:\Users\izmar\git\vmpc-workspace\ctoot\build\Debug&#10;C:\Users\izmar\git\vmpc-workspace\moduru\build\Debug"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="x64"
                        debugInformationFormat="ProgramDatabase" enablePluginBinaryCopyStep="0"
                        linkTimeOptimisation="1" isDebug="0" optimisation="3" targetName="vmpc"
-                       headerPath="C:\local\boost_1_64_0&#10;C:\Users\izmar\git\moduru\src&#10;C:\Users\izmar\git\mpc\src&#10;C:\Users\izmar\git\ctoot\src&#10;C:\Users\izmar\git\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
-                       libraryPath="C:\Users\izmar\git\mpc\build64\Release&#10;C:\Users\izmar\git\ctoot\build64\Release&#10;C:\Users\izmar\git\moduru\build64\Release"/>
+                       headerPath="C:\Users\izmar\git\vmpc-workspace\moduru\src\main\&#10;C:\Users\izmar\git\vmpc-workspace\mpc\src\main&#10;C:\Users\izmar\git\vmpc-workspace\ctoot\src\main&#10;C:\Users\izmar\git\rapidjson\include&#10;C:\Users\Izmar\git\ASIOSDK2.3\common&#10;C:\Users\Izmar\git\VST_SDK\VST3_SDK"
+                       libraryPath="C:\Users\izmar\git\vmpc-workspace\mpc\build\Release&#10;C:\Users\izmar\git\vmpc-workspace\ctoot\build\Release&#10;C:\Users\izmar\git\vmpc-workspace\moduru\build\Release"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../JUCE/modules"/>
@@ -198,5 +198,6 @@
   <LIVE_SETTINGS>
     <LINUX/>
     <OSX/>
+    <WINDOWS/>
   </LIVE_SETTINGS>
 </JUCERPROJECT>

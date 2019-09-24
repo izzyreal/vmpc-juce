@@ -32,7 +32,7 @@ public:
 	void mouseUp(const MouseEvent& event) override;
 
 public:
-	SliderControl(std::weak_ptr<mpc::hardware::Slider> slider, int startIndex, const String& componentName = String::empty);
+	SliderControl(std::weak_ptr<mpc::hardware::Slider> slider, int startIndex, const String& componentName);
 	~SliderControl();
 
 };
