@@ -174,18 +174,13 @@ void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
 		int velocity = m.getVelocity();
 
 		if (m.isNoteOn()) {
-			//MLOG("\nNote on timestamp: " + std::to_string(timeStamp));
 			m.getRawData();
 			auto tootMsg = ctoot::midi::core::ShortMessage();
 			tootMsg.setMessage(ctoot::midi::core::ShortMessage::NOTE_ON, m.getChannel() - 1, m.getNoteNumber(), velocity);
-			//auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_ON, (char)(m.getNoteNumber()), (char)(velocity) };
-			//tootMsg.setMessage(data, 3);
 			mpc->getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
 		}
 		else if (m.isNoteOff()) {
 			auto tootMsg = ctoot::midi::core::ShortMessage();
-			//auto data = std::vector<char>{ (char)ctoot::midi::core::ShortMessage::NOTE_OFF, (char)(m.getNoteNumber()), (char)(velocity) };
-			//tootMsg.setMessage(data, 3);
 			tootMsg.setMessage(ctoot::midi::core::ShortMessage::NOTE_OFF, m.getChannel() - 1, m.getNoteNumber(), 0);
 			mpc->getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
 		}
@@ -193,12 +188,6 @@ void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
 }
 
 void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages, int bufferSize) {
-	bool standalone = JUCEApplication::isStandaloneApp();
-	MidiOutput* midiOutput = nullptr;
-	if (standalone) {
-//        midiOutput = deviceManager->getDefaultMidiOutput();
-	}
-
 	auto midiOutMsgQueues = mpc->getMidiPorts().lock()->getReceivers();
 	for (auto& queue : *midiOutMsgQueues) {
 		for (auto msg : queue) {
@@ -215,15 +204,6 @@ void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages, int bufferSize
 			midiMessages.addEvent(jmsg, msg.bufferPos);
 		}
 		queue.clear();
-	}
-	if (standalone) {
-		if (midiOutput != nullptr) {
-//            int latencySamples = deviceManager->getCurrentAudioDevice()->getInputLatencyInSamples() + deviceManager->getCurrentAudioDevice()->getOutputLatencyInSamples();
-			//double latencyMs = (double) (bufferSize) / (getSampleRate() / 1000.0);
-//            double latencyMs = (double)(latencySamples) / (getSampleRate() / 1000.0);
-//            midiOutput->sendBlockOfMessages(midiMessages, Time::getMillisecondCounter() + latencyMs, getSampleRate());
-		}
-		midiMessages.clear(); // necessary?
 	}
 }
 
@@ -276,7 +256,6 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 
 	processTransport();
 	processMidiIn(midiMessages);
-	//processMidiOut(midiMessages, buffer.getNumSamples() * (totalNumInputChannels + totalNumOutputChannels) * 0.5);
 	processMidiOut(midiMessages, buffer.getNumSamples());
 
 	auto server = mpc->getAudioMidiServices().lock()->getExternalAudioServer();
