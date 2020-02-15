@@ -22,6 +22,7 @@
 VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p)
 {
+	initialise();
 	mpc = p.getMpc();
 
 	inputCatcher = new InputCatcherControl("inputcatcher", mpc);
@@ -128,6 +129,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 
 VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
 {
+	mpcSplashScreen.deleteAndZero();
 	lcd->stopTimer();
 	delete dataWheel;
 	delete lcd;
@@ -147,7 +149,14 @@ VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
 	delete inputCatcher;
 }
 
-//==============================================================================
+void VmpcAudioProcessorEditor::initialise()
+{
+	auto bgImgPath = mpc::StartUp::resPath + "/img/disclaimer.gif";
+	auto disclaimer = ImageFileFormat::loadFrom(File(bgImgPath));
+	mpcSplashScreen = new SplashScreen("Woah", disclaimer, true);
+	mpcSplashScreen->deleteAfterDelay(RelativeTime::seconds(8), true);
+}
+\
 void VmpcAudioProcessorEditor::paint (Graphics& g)
 {
 	if (!initialFocusSet) {

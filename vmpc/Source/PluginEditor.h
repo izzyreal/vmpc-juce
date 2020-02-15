@@ -32,13 +32,14 @@ public:
     VmpcAudioProcessorEditor (VmpcAudioProcessor&);
     ~VmpcAudioProcessorEditor();
 
-    //==============================================================================
     void paint (Graphics&) override;
     void resized() override;
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
+	void initialise();
+
+private:
+	Component::SafePointer<SplashScreen> mpcSplashScreen;
     VmpcAudioProcessor& processor;
 	DataWheelControl* dataWheel;
 	KnobControl* recKnob;
