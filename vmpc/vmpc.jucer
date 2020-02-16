@@ -11,7 +11,8 @@
               pluginProducesMidiOut="1" pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="1"
               pluginAUExportPrefix="vmpcAU" pluginRTASCategory="" aaxIdentifier="com.yourcompany.vmpc"
               pluginAAXCategory="2" jucerVersion="5.4.7" defines="" companyName="Izmar"
-              pluginFormats="buildVST,buildVST3,buildAU,buildStandalone" pluginCharacteristicsValue="pluginWantsMidiIn,pluginProducesMidiOut,pluginEditorRequiresKeys">
+              pluginFormats="buildVST,buildVST3,buildAU,buildStandalone" pluginCharacteristicsValue="pluginWantsMidiIn,pluginProducesMidiOut,pluginEditorRequiresKeys"
+              headerPath="~/git/moduru/src/main&#10;~/git/ctoot/src/main&#10;~/git/mpc/src/main&#10;~/git/rapidjson/include">
   <MAINGROUP id="XNuzIS" name="vmpc">
     <GROUP id="{E4118CDD-9ABD-EAD4-FA51-1A9CD7CF3D30}" name="gui">
       <FILE id="s9DPVb" name="VmpcComponent.h" compile="0" resource="0" file="gui/VmpcComponent.h"/>
@@ -83,33 +84,6 @@
         <MODULEPATH id="juce_gui_extra" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" externalLibraries="moduru&#10;ctoot&#10;mpc"
-                enableGNUExtensions="0">
-      <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" linkTimeOptimisation="0"
-                       targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/vmpc/moduru/src/&#10;/home/osboxes/git/vmpc/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include"
-                       libraryPath="/home/osboxes/git/vmpc/moduru/build&#10;/home/osboxes/git/vmpc/ctoot/build&#10;/home/osboxes/git/vmpc/mpc/build&#10;/usr/X11R6/lib/"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="6" linkTimeOptimisation="1"
-                       targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/vmpc/moduru/src/&#10;/home/osboxes/git/vmpc/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include"
-                       libraryPath="/home/osboxes/git/vmpc/moduru/build&#10;/home/osboxes/git/vmpc/ctoot/build&#10;/home/osboxes/git/vmpc/mpc/build&#10;/usr/X11R6/lib/"
-                       linuxArchitecture="-m64"/>
-      </CONFIGURATIONS>
-      <MODULEPATHS>
-        <MODULEPATH id="juce_opengl" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_events" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_core" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_basics" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../JUCE/modules"/>
-      </MODULEPATHS>
-    </LINUX_MAKE>
     <CODEBLOCKS_LINUX targetFolder="Builds/CodeBlocksLinux" externalLibraries="moduru&#10;ctoot&#10;mpc"
                       extraLinkerFlags="" extraDefs="">
       <CONFIGURATIONS>
@@ -160,6 +134,28 @@
         <MODULEPATH id="juce_audio_basics"/>
       </MODULEPATHS>
     </VS2019>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" externalLibraries="mpc&#10;ctoot&#10;moduru"
+                extraCompilerFlags="-D_GLIBCXX_USE_CXX11_ABI=0">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release" libraryPath="~/git/moduru/build/Release&#10;~/git/ctoot/build/Release&#10;~/git/mpc/build/Release&#10;"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_opengl" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
