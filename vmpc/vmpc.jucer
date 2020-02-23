@@ -6,7 +6,7 @@
               cppLanguageStandard="17" companyCopyright="Izmar" buildVST="1"
               buildVST3="0" buildAU="0" buildAUv3="0" buildRTAS="0" buildAAX="0"
               buildStandalone="1" enableIAA="0" pluginName="vmpc" pluginDesc="vmpc"
-              pluginManufacturer="nl.izmar" pluginManufacturerCode="izmr" pluginCode="2kxl"
+              pluginManufacturer="Izmar" pluginManufacturerCode="Izmr" pluginCode="2kxl"
               pluginChannelConfigs="{ 2, 2 }" pluginIsSynth="1" pluginWantsMidiIn="1"
               pluginProducesMidiOut="1" pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="1"
               pluginAUExportPrefix="vmpcAU" pluginRTASCategory="" aaxIdentifier="nl.izmar.vmpc"
@@ -62,12 +62,12 @@
                microphonePermissionNeeded="1">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" enablePluginBinaryCopyStep="1" isDebug="1" optimisation="1"
-                       linkTimeOptimisation="0" targetName="vmpc" libraryPath="/Users/izmarverhage/git/moduru/build/Debug&#10;/Users/izmarverhage/git/ctoot/build/Debug&#10;/Users/izmarverhage/git/mpc/build/Debug"
-                       headerPath="/Users/izmarverhage/git/moduru/src/&#10;/Users/izmarverhage/git/ctoot/src/&#10;/Users/izmarverhage/git/mpc/src/&#10;/Users/izmarverhage/git/rapidjson/include&#10;/Users/izmarverhage/git/VST_SDK/VST3_SDK"
+                       linkTimeOptimisation="0" targetName="vmpc" libraryPath="~/git/moduru/build/Debug&#10;~/git/ctoot/build/Debug&#10;~/git/mpc/build/Debug"
+                       headerPath="~/git/moduru/src/&#10;~/git/ctoot/src/&#10;~/git/mpc/src/&#10;~/git/rapidjson/include&#10;~/git/VST_SDK/VST3_SDK"
                        osxCompatibility="10.14 SDK" cppLibType="libc++"/>
         <CONFIGURATION name="Release" enablePluginBinaryCopyStep="1" isDebug="0" optimisation="3"
-                       linkTimeOptimisation="1" targetName="vmpc" libraryPath="/Users/izmarverhage/git/moduru/build/Release/lib&#10;/Users/izmarverhage/git/ctoot/build/Release/lib&#10;/Users/izmarverhage/git/mpc/build/Release/lib"
-                       headerPath="/Users/izmarverhage/git/moduru/src/&#10;/Users/izmarverhage/git/ctoot/src/&#10;/Users/izmarverhage/git/mpc/src/&#10;/Users/izmarverhage/git/rapidjson/include&#10;/Users/izmarverhage/git/VST_SDK/VST3_SDK"
+                       linkTimeOptimisation="1" targetName="vmpc" libraryPath="~/git/moduru/build/Release&#10;~/git/ctoot/build/Release&#10;~/git/mpc/build/Release"
+                       headerPath="~/git/moduru/src/&#10;~/git/ctoot/src/&#10;~/git/mpc/src/&#10;~/git/rapidjson/include&#10;~/git/VST_SDK/VST3_SDK"
                        osxCompatibility="10.14 SDK" cppLibType="libc++"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -158,6 +158,23 @@
         <MODULEPATH id="juce_audio_basics" path="../../juce"/>
       </MODULEPATHS>
     </LINUX_MAKE>
+    <CLION targetFolder="Builds/CLion" clionXcodeEnabled="1" clionMakefileEnabled="0">
+      <MODULEPATHS>
+        <MODULEPATH id="juce_opengl"/>
+        <MODULEPATH id="juce_gui_extra"/>
+        <MODULEPATH id="juce_gui_basics"/>
+        <MODULEPATH id="juce_graphics"/>
+        <MODULEPATH id="juce_events"/>
+        <MODULEPATH id="juce_data_structures"/>
+        <MODULEPATH id="juce_core"/>
+        <MODULEPATH id="juce_audio_utils"/>
+        <MODULEPATH id="juce_audio_processors"/>
+        <MODULEPATH id="juce_audio_plugin_client"/>
+        <MODULEPATH id="juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_basics"/>
+      </MODULEPATHS>
+    </CLION>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>

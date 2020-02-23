@@ -337,7 +337,7 @@
  #define JucePlugin_Desc                   "vmpc"
 #endif
 #ifndef  JucePlugin_Manufacturer
- #define JucePlugin_Manufacturer           "nl.izmar"
+ #define JucePlugin_Manufacturer           "Izmar"
 #endif
 #ifndef  JucePlugin_ManufacturerWebsite
  #define JucePlugin_ManufacturerWebsite    ""
@@ -346,7 +346,7 @@
  #define JucePlugin_ManufacturerEmail      ""
 #endif
 #ifndef  JucePlugin_ManufacturerCode
- #define JucePlugin_ManufacturerCode       0x697a6d72 // 'izmr'
+ #define JucePlugin_ManufacturerCode       0x497a6d72 // 'Izmr'
 #endif
 #ifndef  JucePlugin_PluginCode
  #define JucePlugin_PluginCode             0x326b786c // '2kxl'
@@ -442,7 +442,7 @@
  #define JucePlugin_IAASubType             JucePlugin_PluginCode
 #endif
 #ifndef  JucePlugin_IAAName
- #define JucePlugin_IAAName                "nl.izmar: vmpc"
+ #define JucePlugin_IAAName                "Izmar: vmpc"
 #endif
 #ifndef  JucePlugin_VSTNumMidiInputs
  #define JucePlugin_VSTNumMidiInputs       16
