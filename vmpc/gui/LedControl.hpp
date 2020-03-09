@@ -68,7 +68,7 @@ public:
 	//void paint(Graphics& g) override;
 
 public:
-	void update(moduru::observer::Observable* o, std::any arg) override;
+	void update(moduru::observer::Observable* o, nonstd::any arg) override;
 
 public:
 	LedControl(Image ledGreen, Image ledRed, InputCatcherControl* ipc);

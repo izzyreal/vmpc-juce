@@ -38,7 +38,7 @@ private:
 		void timerCallback() override;
 
 	public:
-		void update(moduru::observer::Observable* o, std::any arg) override;
+		void update(moduru::observer::Observable* o, nonstd::any arg) override;
 
 	public:
 		void setBounds();

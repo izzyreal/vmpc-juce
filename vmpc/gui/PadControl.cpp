@@ -27,8 +27,8 @@ void PadControl::timerCallback() {
 	}
 }
 
-void PadControl::update(moduru::observer::Observable* o, std::any arg) {
-	int velocity = std::any_cast<int>(arg);
+void PadControl::update(moduru::observer::Observable* o, nonstd::any arg) {
+	int velocity = nonstd::any_cast<int>(arg);
 	if (velocity == 255) {
 		fading = true;
 		pressed = false;
