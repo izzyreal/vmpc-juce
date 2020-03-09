@@ -47,12 +47,12 @@ void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
 
 bool InputCatcherControl::keyPressed(const KeyPress &key) {
 
-	//MLOG("\nkey press received, keycode        : " + std::to_string(key.getKeyCode()));
-	//MLOG("key press received, text character : " + std::to_string(key.getTextCharacter()));
-	//std::string foo;
-	//foo.push_back(key.getTextCharacter());
-	//MLOG("key press received, text character : " + foo);
-	//MLOG("key press received, description    : " + key.getTextDescription().toStdString());
+//	MLOG("\nkey press received, keycode        : " + std::to_string(key.getKeyCode()));
+//	MLOG("key press received, text character : " + std::to_string(key.getTextCharacter()));
+//	std::string foo;
+//	foo.push_back(key.getTextCharacter());
+//	MLOG("key press received, text character : " + foo);
+//	MLOG("key press received, description    : " + key.getTextDescription().toStdString());
 
 	bool alreadyPressed = false;
 	for (int i = 0; i < pressedKeys.size(); i++) {
@@ -177,8 +177,10 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
     }
 
 
+    std::vector<char> mappingUS = {')', '!', '@', '#', '$', '%', '^', '&', '*', '(' };
+    
 	for (int i = 0; i <= 9; i++) {
-		if (key == KeyPress(std::to_string(i)[0], ModifierKeys::shiftModifier, 0)) {
+		if (key == KeyPress(std::to_string(i)[0], ModifierKeys::shiftModifier, 0) || key.getTextCharacter() == mappingUS[i]) {
 			hw->getButton(std::to_string(i)).lock()->push();
 			return true;
 		}
