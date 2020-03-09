@@ -307,7 +307,7 @@
  #define JucePlugin_Build_VST              1
 #endif
 #ifndef  JucePlugin_Build_VST3
- #define JucePlugin_Build_VST3             0
+ #define JucePlugin_Build_VST3             1
 #endif
 #ifndef  JucePlugin_Build_AU
  #define JucePlugin_Build_AU               0
