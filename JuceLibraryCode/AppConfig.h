@@ -213,7 +213,7 @@
 #endif
 
 #ifndef    JUCE_INCLUDE_ZLIB_CODE
- //#define JUCE_INCLUDE_ZLIB_CODE 1
+ //#define JUCE_INCLUDE_ZLIB_CODE 0
 #endif
 
 #ifndef    JUCE_USE_CURL
