@@ -12,7 +12,7 @@
               pluginAUExportPrefix="vmpcAU" pluginRTASCategory="" aaxIdentifier="nl.izmar.vmpc"
               pluginAAXCategory="2" jucerVersion="5.4.7" defines="" companyName="Izmar"
               pluginFormats="buildAU,buildStandalone" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn,pluginProducesMidiOut,pluginEditorRequiresKeys"
-              headerPath="../../../../mpc/src/main&#10;../../../../ctoot/src/main&#10;../../../../moduru/src/main&#10;../../../../rapidjson/include&#10;../../../../ASIOSDK2.3/common"
+              headerPath="~/git/mpc/src/main&#10;~/git/ctoot/src/main&#10;~/git/moduru/src/main&#10;~/git/rapidjson/include&#10;~/git/ASIOSDK2.3/common"
               pluginRTASDisableBypass="0" pluginRTASDisableMultiMono="0" pluginAAXDisableBypass="0"
               pluginAAXDisableMultiMono="0">
   <MAINGROUP id="XNuzIS" name="vmpc">
