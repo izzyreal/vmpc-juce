@@ -37,7 +37,7 @@ VmpcAudioProcessor::VmpcAudioProcessor()
 #endif
 {
 	mpc = new mpc::Mpc();
-	mpc->init(getSampleRate(), 1, 1);
+	mpc->init(44100.f, 1, 1);
 	mpc->getLayeredScreen().lock()->openScreen("sequencer");
 }
 
