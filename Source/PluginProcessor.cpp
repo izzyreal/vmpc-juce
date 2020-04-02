@@ -18,6 +18,7 @@
 #include <audiomidi/MpcMidiInput.hpp>
 
 #include <ui/midisync/MidiSyncGui.hpp>
+#include <ui/vmpc/DirectToDiskRecorderGui.hpp>
 #include <sequencer/Sequencer.hpp>
 
 // ctoot
@@ -111,31 +112,21 @@ void VmpcAudioProcessor::changeProgramName (int index, const String& newName)
 //==============================================================================
 void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    if (JUCEApplication::isStandaloneApp()) {
-        //int latencySamples = deviceManager->getCurrentAudioDevice()->getInputLatencyInSamples() + deviceManager->getCurrentAudioDevice()->getOutputLatencyInSamples();
-        //MLOG("Total latency in samples reported by JUCE: " + to_string(latencySamples));
-        //auto midiOutput = deviceManager->getDefaultMidiOutput();
-        //if (midiOutput != nullptr) {
-        //   midiOutput->stopBackgroundThread();
-        //}
-    }
     auto seq = mpc->getSequencer().lock();
     bool wasPlaying = seq->isPlaying();
-    if (wasPlaying) seq->stop();
-    auto ams = mpc->getAudioMidiServices().lock();
-    ams->destroyServices();
-    ams->start(sampleRate, 1, 1);
-    ams->setDisabled(false);
-    ams->getExternalAudioServer()->resizeBuffers(samplesPerBlock);
-    if (wasPlaying) seq->play();
-	/*
-    if (JUCEApplication::isStandaloneApp()) {
-        auto midiOutput = deviceManager->getDefaultMidiOutput();
-        if (midiOutput != nullptr) {
-            midiOutput->startBackgroundThread();
-        }
-    }
-	*/
+    
+	if (wasPlaying) {
+		seq->stop();
+	}
+    
+	auto ams = mpc->getAudioMidiServices().lock();
+	auto server = ams->getExternalAudioServer();
+    server->setSampleRate(sampleRate);
+    server->resizeBuffers(samplesPerBlock);
+	
+	if (wasPlaying) {
+		seq->play();
+	}
 }
 
 void VmpcAudioProcessor::releaseResources()
@@ -242,23 +233,36 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	const int totalNumInputChannels = getTotalNumInputChannels();
 	const int totalNumOutputChannels = getTotalNumOutputChannels();
 	
-	if (mpc->getAudioMidiServices().lock()->isDisabled()) {
+	auto ams = mpc->getAudioMidiServices().lock();
+	auto server = ams->getExternalAudioServer();
+	auto offlineServer = ams->getOfflineServer();
+
+	if (!server->isRunning()) {
 		for (int i = 0; i < totalNumInputChannels; ++i)
 			buffer.clear(i, 0, buffer.getNumSamples());
 		return;
 	}
-	auto offlineServer = mpc->getAudioMidiServices().lock()->getOfflineServer();
-	if (!offlineServer->isRealTime()) {
-		for (int i = 0; i < totalNumInputChannels; ++i)
-			buffer.clear(i, 0, buffer.getNumSamples());
-		return;
+
+	if (ams->isBouncing()) { 
+		auto directToDiskRecorderGui = mpc->getUis().lock()->getD2DRecorderGui();
+		if (directToDiskRecorderGui->isOffline()) {
+			if (offlineServer->isRealTime()) {
+				offlineServer->setRealTime(false);
+			}
+			vector<int> rates{ 44100, 48000, 88200 };
+			server->setSampleRate(rates[directToDiskRecorderGui->getSampleRate()]);
+		}
+		if (!offlineServer->isRealTime()) {
+			for (int i = 0; i < totalNumInputChannels; ++i)
+				buffer.clear(i, 0, buffer.getNumSamples());
+			return;
+		}
 	}
 
 	processTransport();
 	processMidiIn(midiMessages);
 	processMidiOut(midiMessages, buffer.getNumSamples());
 
-	auto server = mpc->getAudioMidiServices().lock()->getExternalAudioServer();
 	auto chDataIn = buffer.getArrayOfReadPointers();
 	auto chDataOut = buffer.getArrayOfWritePointers();
 
