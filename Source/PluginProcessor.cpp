@@ -12,6 +12,8 @@
 #include "PluginEditor.h"
 
 #include <audiomidi/AudioMidiServices.hpp>
+#include <audiomidi/ExportAudioProcessAdapter.hpp>
+
 #include <audio/server/ExternalAudioServer.hpp>
 #include <audio/server/NonRealTimeAudioServer.hpp>
 #include <audiomidi/MpcMidiPorts.hpp>
@@ -257,6 +259,11 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 				//server->setSampleRate(rates[directToDiskRecorderGui->getSampleRate()]);
 			}
 		}
+
+		for (auto& eapa : ams->exportProcesses) {
+			eapa->start();
+		}
+
 	} else if (!amsIsBouncing && wasBouncing) {
 		MLOG("JUCE will stop bouncing now...")
 		wasBouncing = false;
@@ -265,7 +272,7 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 		if (directToDiskRecorderGui->isOffline()) {
 			if (!offlineServer->isRealTime()) {
 				offlineServer->setRealTime(true);
-				//server->setSampleRate(getSampleRate());
+				//sserver->setSampleRate(getSampleRate());
 			}
 		}
 	}
