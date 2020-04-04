@@ -214,15 +214,15 @@ void VmpcAudioProcessor::processTransport() {
 		
 		bool isPlaying = info.isPlaying;
 
-		if (!m_WasPlaying && isPlaying)
+		if (!wasPlaying && isPlaying)
 		{
 			mpc->getSequencer().lock()->playFromStart();
 		}
 		
-		if (m_WasPlaying && !isPlaying) {
+		if (wasPlaying && !isPlaying) {
 			mpc->getSequencer().lock()->stop();
 		}
-		m_WasPlaying = isPlaying;
+		wasPlaying = isPlaying;
 	}
 }
 
@@ -237,26 +237,43 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	auto server = ams->getExternalAudioServer();
 	auto offlineServer = ams->getOfflineServer();
 
-	if (!server->isRunning()) {
+	if (!offlineServer->isRunning()) {
 		for (int i = 0; i < totalNumInputChannels; ++i)
 			buffer.clear(i, 0, buffer.getNumSamples());
 		return;
 	}
+	bool amsIsBouncing = ams->isBouncing();
 
-	if (ams->isBouncing()) { 
+	if (amsIsBouncing && !wasBouncing) {
+		MLOG("JUCE will start bouncing now...")
+
+		wasBouncing = true;
+
 		auto directToDiskRecorderGui = mpc->getUis().lock()->getD2DRecorderGui();
 		if (directToDiskRecorderGui->isOffline()) {
 			if (offlineServer->isRealTime()) {
 				offlineServer->setRealTime(false);
+				vector<int> rates{ 44100, 48000, 88200 };
+				//server->setSampleRate(rates[directToDiskRecorderGui->getSampleRate()]);
 			}
-			vector<int> rates{ 44100, 48000, 88200 };
-			server->setSampleRate(rates[directToDiskRecorderGui->getSampleRate()]);
 		}
-		if (!offlineServer->isRealTime()) {
-			for (int i = 0; i < totalNumInputChannels; ++i)
-				buffer.clear(i, 0, buffer.getNumSamples());
-			return;
+	} else if (!amsIsBouncing && wasBouncing) {
+		MLOG("JUCE will stop bouncing now...")
+		wasBouncing = false;
+
+		auto directToDiskRecorderGui = mpc->getUis().lock()->getD2DRecorderGui();
+		if (directToDiskRecorderGui->isOffline()) {
+			if (!offlineServer->isRealTime()) {
+				offlineServer->setRealTime(true);
+				//server->setSampleRate(getSampleRate());
+			}
 		}
+	}
+
+	if (!offlineServer->isRealTime()) {
+		for (int i = 0; i < totalNumInputChannels; ++i)
+			buffer.clear(i, 0, buffer.getNumSamples());
+		return;
 	}
 
 	processTransport();
