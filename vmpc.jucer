@@ -3,7 +3,7 @@
 <JUCERPROJECT id="toyOrS" name="vmpc" displaySplashScreen="1" reportAppUsage="1"
               splashScreenColour="Dark" projectType="audioplug" version="1.0.0"
               bundleIdentifier="nl.izmar.vmpc" includeBinaryInAppConfig="1"
-              cppLanguageStandard="17" companyCopyright="Izmar" buildVST="0"
+              cppLanguageStandard="17" companyCopyright="Izmar" buildVST="1"
               buildVST3="0" buildAU="1" buildAUv3="0" buildRTAS="0" buildAAX="0"
               buildStandalone="1" enableIAA="0" pluginName="vmpc" pluginDesc="vmpc"
               pluginManufacturer="Izmar" pluginManufacturerCode="Izmr" pluginCode="2kxl"
@@ -11,7 +11,7 @@
               pluginProducesMidiOut="1" pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="1"
               pluginAUExportPrefix="vmpcAU" pluginRTASCategory="" aaxIdentifier="nl.izmar.vmpc"
               pluginAAXCategory="2" jucerVersion="5.4.7" defines="" companyName="Izmar"
-              pluginFormats="buildAU,buildStandalone" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn,pluginProducesMidiOut,pluginEditorRequiresKeys"
+              pluginFormats="buildAU,buildStandalone,buildVST" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn,pluginProducesMidiOut,pluginEditorRequiresKeys"
               headerPath="../../../mpc/src/main&#10;../../../ctoot/src/main&#10;../../../moduru/src/main&#10;../../../rapidjson/include&#10;../../../ASIOSDK2.3/common"
               pluginRTASDisableBypass="0" pluginRTASDisableMultiMono="0" pluginAAXDisableBypass="0"
               pluginAAXDisableMultiMono="0">
@@ -76,7 +76,6 @@
         <MODULEPATH id="juce_graphics" path="../../JUCE/modules"/>
         <MODULEPATH id="juce_data_structures" path="../../JUCE/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_opengl" path="../../JUCE/modules"/>
         <MODULEPATH id="juce_audio_basics" path="../../JUCE/modules"/>
         <MODULEPATH id="juce_audio_devices" path="../../JUCE/modules"/>
         <MODULEPATH id="juce_audio_formats" path="../../JUCE/modules"/>
@@ -97,7 +96,6 @@
                        optimisation="6" linkTimeOptimisation="1" targetName="vmpc" libraryPath="/home/izmar/git/moduru/build/Release&#10;/home/izmar/git/ctoot/build/Release&#10;/home/izmar/git/mpc/build/Release&#10;"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_opengl" path="../../juce"/>
         <MODULEPATH id="juce_gui_basics" path="../../juce"/>
         <MODULEPATH id="juce_graphics" path="../../juce"/>
         <MODULEPATH id="juce_events" path="../../juce"/>
@@ -116,12 +114,11 @@
             extraDefs="JUCE_VST3_CAN_REPLACE_VST2=0">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" libraryPath="../../../mpc/build/64bit/Debug&#10;../../../ctoot/build/64bit/Debug&#10;../../../moduru/build/64bit/Debug"
-                       useRuntimeLibDLL="0"/>
+                       useRuntimeLibDLL="1"/>
         <CONFIGURATION isDebug="0" name="Release" libraryPath="../../../mpc/build/64bit/Release&#10;../../../ctoot/build/64bit/Release&#10;../../../moduru/build/64bit/Release"
-                       enableIncrementalLinking="1"/>
+                       enableIncrementalLinking="1" optimisation="3" linkTimeOptimisation="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_opengl"/>
         <MODULEPATH id="juce_gui_extra"/>
         <MODULEPATH id="juce_gui_basics"/>
         <MODULEPATH id="juce_graphics"/>
@@ -143,7 +140,6 @@
         <CONFIGURATION isDebug="0" name="Release" libraryPath="~/git/moduru/build/Release&#10;~/git/ctoot/build/Release&#10;~/git/mpc/build/Release&#10;"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_opengl" path="../../juce"/>
         <MODULEPATH id="juce_gui_extra" path="../../juce"/>
         <MODULEPATH id="juce_gui_basics" path="../../juce"/>
         <MODULEPATH id="juce_graphics" path="../../juce"/>
@@ -160,7 +156,6 @@
     </LINUX_MAKE>
     <CLION targetFolder="Builds/CLion" clionXcodeEnabled="1" clionMakefileEnabled="0">
       <MODULEPATHS>
-        <MODULEPATH id="juce_opengl"/>
         <MODULEPATH id="juce_gui_extra"/>
         <MODULEPATH id="juce_gui_basics"/>
         <MODULEPATH id="juce_graphics"/>
@@ -184,7 +179,6 @@
                        winArchitecture="Win32"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_opengl"/>
         <MODULEPATH id="juce_gui_extra"/>
         <MODULEPATH id="juce_gui_basics"/>
         <MODULEPATH id="juce_graphics"/>
@@ -214,7 +208,6 @@
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
   </MODULES>
   <JUCEOPTIONS JUCE_QUICKTIME="disabled" JUCE_ASIO="1" JUCE_WASAPI="1" JUCE_WASAPI_EXCLUSIVE="1"
                JUCE_DIRECTSOUND="1" JUCE_ALSA="1" JUCE_JACK="1" JUCE_WEB_BROWSER="0"/>
