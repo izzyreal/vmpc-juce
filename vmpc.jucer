@@ -78,11 +78,11 @@
         <MODULEPATH id="juce_gui_basics" path="../../JUCE/modules"/>
         <MODULEPATH id="juce_audio_basics" path="../../JUCE/modules"/>
         <MODULEPATH id="juce_audio_devices" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../JUCE/modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../JUCE/modules"/>
         <MODULEPATH id="juce_audio_plugin_client" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../../JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <CODEBLOCKS_LINUX targetFolder="Builds/CodeBlocksLinux" externalLibraries="mpc&#10;ctoot&#10;moduru"
@@ -101,13 +101,13 @@
         <MODULEPATH id="juce_events" path="../../juce"/>
         <MODULEPATH id="juce_data_structures" path="../../juce"/>
         <MODULEPATH id="juce_core" path="../../juce"/>
-        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
         <MODULEPATH id="juce_audio_processors" path="../../juce"/>
         <MODULEPATH id="juce_audio_plugin_client" path="../../juce"/>
-        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
         <MODULEPATH id="juce_audio_devices" path="../../juce"/>
         <MODULEPATH id="juce_audio_basics" path="../../juce"/>
-        <MODULEPATH id="juce_gui_extra" path="../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
       </MODULEPATHS>
     </CODEBLOCKS_LINUX>
     <VS2019 targetFolder="Builds/VisualStudio2019-64bit" externalLibraries="moduru.lib&#10;ctoot.lib&#10;mpc.lib"
@@ -119,18 +119,18 @@
                        enableIncrementalLinking="1" optimisation="3" linkTimeOptimisation="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_gui_extra"/>
         <MODULEPATH id="juce_gui_basics"/>
         <MODULEPATH id="juce_graphics"/>
         <MODULEPATH id="juce_events"/>
         <MODULEPATH id="juce_data_structures"/>
         <MODULEPATH id="juce_core"/>
-        <MODULEPATH id="juce_audio_utils"/>
         <MODULEPATH id="juce_audio_processors"/>
         <MODULEPATH id="juce_audio_plugin_client"/>
-        <MODULEPATH id="juce_audio_formats"/>
         <MODULEPATH id="juce_audio_devices"/>
         <MODULEPATH id="juce_audio_basics"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
       </MODULEPATHS>
     </VS2019>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" externalLibraries="mpc&#10;ctoot&#10;moduru"
@@ -140,34 +140,34 @@
         <CONFIGURATION isDebug="0" name="Release" libraryPath="~/git/moduru/build/Release&#10;~/git/ctoot/build/Release&#10;~/git/mpc/build/Release&#10;"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
         <MODULEPATH id="juce_gui_basics" path="../../juce"/>
         <MODULEPATH id="juce_graphics" path="../../juce"/>
         <MODULEPATH id="juce_events" path="../../juce"/>
         <MODULEPATH id="juce_data_structures" path="../../juce"/>
         <MODULEPATH id="juce_core" path="../../juce"/>
-        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
         <MODULEPATH id="juce_audio_processors" path="../../juce"/>
         <MODULEPATH id="juce_audio_plugin_client" path="../../juce"/>
-        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
         <MODULEPATH id="juce_audio_devices" path="../../juce"/>
         <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
     <CLION targetFolder="Builds/CLion" clionXcodeEnabled="1" clionMakefileEnabled="0">
       <MODULEPATHS>
-        <MODULEPATH id="juce_gui_extra"/>
         <MODULEPATH id="juce_gui_basics"/>
         <MODULEPATH id="juce_graphics"/>
         <MODULEPATH id="juce_events"/>
         <MODULEPATH id="juce_data_structures"/>
         <MODULEPATH id="juce_core"/>
-        <MODULEPATH id="juce_audio_utils"/>
         <MODULEPATH id="juce_audio_processors"/>
         <MODULEPATH id="juce_audio_plugin_client"/>
-        <MODULEPATH id="juce_audio_formats"/>
         <MODULEPATH id="juce_audio_devices"/>
         <MODULEPATH id="juce_audio_basics"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
       </MODULEPATHS>
     </CLION>
     <VS2019 targetFolder="Builds/VisualStudio2019-32bit" extraDefs="JUCE_VST3_CAN_REPLACE_VST2=0"
@@ -179,18 +179,18 @@
                        winArchitecture="Win32"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_gui_extra"/>
         <MODULEPATH id="juce_gui_basics"/>
         <MODULEPATH id="juce_graphics"/>
         <MODULEPATH id="juce_events"/>
         <MODULEPATH id="juce_data_structures"/>
         <MODULEPATH id="juce_core"/>
-        <MODULEPATH id="juce_audio_utils"/>
         <MODULEPATH id="juce_audio_processors"/>
         <MODULEPATH id="juce_audio_plugin_client"/>
-        <MODULEPATH id="juce_audio_formats"/>
         <MODULEPATH id="juce_audio_devices"/>
         <MODULEPATH id="juce_audio_basics"/>
+        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
       </MODULEPATHS>
     </VS2019>
   </EXPORTFORMATS>

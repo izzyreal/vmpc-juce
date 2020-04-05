@@ -253,10 +253,12 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 
 		auto directToDiskRecorderGui = mpc->getUis().lock()->getD2DRecorderGui();
 		if (directToDiskRecorderGui->isOffline()) {
+			vector<int> rates{ 44100, 48000, 88200 };
+			auto rate = rates[directToDiskRecorderGui->getSampleRate()];
+			ams->getFrameSequencer().lock()->start(rate);
 			if (offlineServer->isRealTime()) {
+				server->setSampleRate(rate);
 				offlineServer->setRealTime(false);
-				vector<int> rates{ 44100, 48000, 88200 };
-				server->setSampleRate(rates[directToDiskRecorderGui->getSampleRate()]);
 			}
 		}
 
