@@ -59,7 +59,8 @@
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="moduru&#10;ctoot&#10;mpc"
-               microphonePermissionNeeded="1">
+               microphonePermissionNeeded="1" extraDefs="JUCE_VST3_CAN_REPLACE_VST2=0"
+               vstLegacyFolder="/Users/admin/git/vstsdk2.4" vst3Folder="/Users/admin/git/VST3_SDK">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" enablePluginBinaryCopyStep="1" isDebug="1" optimisation="1"
                        linkTimeOptimisation="0" targetName="vmpc" libraryPath="~/git/moduru/build/Debug&#10;~/git/ctoot/build/Debug&#10;~/git/mpc/build/Debug"
