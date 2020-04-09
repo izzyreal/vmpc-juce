@@ -13,14 +13,14 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
 
-#include "../gui/DataWheelControl.h"
-#include "../gui/LCDControl.h"
-#include "../gui/InputCatcherControl.h"
-#include "../gui/SliderControl.hpp"
-#include "../gui/PadControl.hpp"
-#include "../gui/LedControl.hpp"
-#include "../gui/KnobControl.hpp"
-#include "../gui/ButtonControl.hpp"
+#include "gui/DataWheelControl.h"
+#include "gui/LCDControl.h"
+#include "gui/InputCatcherControl.h"
+#include "gui/SliderControl.hpp"
+#include "gui/PadControl.hpp"
+#include "gui/LedControl.hpp"
+#include "gui/KnobControl.hpp"
+#include "gui/ButtonControl.hpp"
 
 //==============================================================================
 /**

@@ -11,7 +11,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-#include "../gui/Constants.h"
+#include "gui/Constants.h"
 
 #include <hardware/Hardware.hpp>
 #include <hardware/Led.hpp>

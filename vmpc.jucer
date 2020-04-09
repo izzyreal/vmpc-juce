@@ -16,38 +16,41 @@
               pluginRTASDisableBypass="0" pluginRTASDisableMultiMono="0" pluginAAXDisableBypass="0"
               pluginAAXDisableMultiMono="0">
   <MAINGROUP id="XNuzIS" name="vmpc">
-    <GROUP id="{E4118CDD-9ABD-EAD4-FA51-1A9CD7CF3D30}" name="gui">
-      <FILE id="s9DPVb" name="VmpcComponent.h" compile="0" resource="0" file="gui/VmpcComponent.h"/>
-      <FILE id="daJKrx" name="ButtonControl.cpp" compile="1" resource="0"
-            file="gui/ButtonControl.cpp"/>
-      <FILE id="brYKf5" name="ButtonControl.hpp" compile="0" resource="0"
-            file="gui/ButtonControl.hpp"/>
-      <FILE id="ZS6tfM" name="Led.cpp" compile="1" resource="0" file="gui/Led.cpp"/>
-      <FILE id="NOEI5X" name="Led.hpp" compile="0" resource="0" file="gui/Led.hpp"/>
-      <FILE id="kPMyCd" name="DataWheelControl.cpp" compile="1" resource="0"
-            file="gui/DataWheelControl.cpp"/>
-      <FILE id="GMEMFE" name="Constants.cpp" compile="1" resource="0" file="gui/Constants.cpp"/>
-      <FILE id="Zt1SCP" name="Constants.h" compile="0" resource="0" file="gui/Constants.h"/>
-      <FILE id="lgvWdI" name="DataWheelControl.h" compile="0" resource="0"
-            file="gui/DataWheelControl.h"/>
-      <FILE id="bH88jf" name="LCDControl.cpp" compile="1" resource="0" file="gui/LCDControl.cpp"/>
-      <FILE id="Wusr69" name="LCDControl.h" compile="0" resource="0" file="gui/LCDControl.h"/>
-      <FILE id="E0WKuM" name="KnobControl.cpp" compile="1" resource="0" file="gui/KnobControl.cpp"/>
-      <FILE id="tNN6Nc" name="KnobControl.hpp" compile="0" resource="0" file="gui/KnobControl.hpp"/>
-      <FILE id="PHCY05" name="InputCatcherControl.cpp" compile="1" resource="0"
-            file="gui/InputCatcherControl.cpp"/>
-      <FILE id="nB9omC" name="InputCatcherControl.h" compile="0" resource="0"
-            file="gui/InputCatcherControl.h"/>
-      <FILE id="hwvYTP" name="LedControl.cpp" compile="1" resource="0" file="gui/LedControl.cpp"/>
-      <FILE id="gmtx2F" name="LedControl.hpp" compile="0" resource="0" file="gui/LedControl.hpp"/>
-      <FILE id="ZyguDi" name="PadControl.cpp" compile="1" resource="0" file="gui/PadControl.cpp"/>
-      <FILE id="s7ctV9" name="PadControl.hpp" compile="0" resource="0" file="gui/PadControl.hpp"/>
-      <FILE id="i97d6B" name="SliderControl.cpp" compile="1" resource="0"
-            file="gui/SliderControl.cpp"/>
-      <FILE id="NVJqlo" name="SliderControl.hpp" compile="0" resource="0"
-            file="gui/SliderControl.hpp"/>
-    </GROUP>
     <GROUP id="{FD94A746-89C4-1A96-B91F-19DA5E2BF0C3}" name="Source">
+      <GROUP id="{A1B7D4FA-F761-9058-F6C5-67B5780E62DE}" name="resources">
+        <FILE id="s4GyTE" name="icon.png" compile="0" resource="1" file="Source/resources/icon.png"/>
+      </GROUP>
+      <GROUP id="{88D32703-C474-11D8-D7EA-9B8B695DD9FD}" name="gui">
+        <FILE id="y9x6HN" name="ButtonControl.cpp" compile="1" resource="0"
+              file="Source/gui/ButtonControl.cpp"/>
+        <FILE id="B0doZo" name="ButtonControl.hpp" compile="0" resource="0"
+              file="Source/gui/ButtonControl.hpp"/>
+        <FILE id="tf16IO" name="Constants.cpp" compile="1" resource="0" file="Source/gui/Constants.cpp"/>
+        <FILE id="KW65SW" name="Constants.h" compile="0" resource="0" file="Source/gui/Constants.h"/>
+        <FILE id="wTQ6yT" name="DataWheelControl.cpp" compile="1" resource="0"
+              file="Source/gui/DataWheelControl.cpp"/>
+        <FILE id="NIGINY" name="DataWheelControl.h" compile="0" resource="0"
+              file="Source/gui/DataWheelControl.h"/>
+        <FILE id="MeTJgx" name="InputCatcherControl.cpp" compile="1" resource="0"
+              file="Source/gui/InputCatcherControl.cpp"/>
+        <FILE id="f9Jp0f" name="InputCatcherControl.h" compile="0" resource="0"
+              file="Source/gui/InputCatcherControl.h"/>
+        <FILE id="zzY2ma" name="KnobControl.cpp" compile="1" resource="0" file="Source/gui/KnobControl.cpp"/>
+        <FILE id="fVjy8K" name="KnobControl.hpp" compile="0" resource="0" file="Source/gui/KnobControl.hpp"/>
+        <FILE id="tMA9U9" name="LCDControl.cpp" compile="1" resource="0" file="Source/gui/LCDControl.cpp"/>
+        <FILE id="Khj3WM" name="LCDControl.h" compile="0" resource="0" file="Source/gui/LCDControl.h"/>
+        <FILE id="ultfxD" name="Led.cpp" compile="1" resource="0" file="Source/gui/Led.cpp"/>
+        <FILE id="UsIGp6" name="Led.hpp" compile="0" resource="0" file="Source/gui/Led.hpp"/>
+        <FILE id="y2XmKE" name="LedControl.cpp" compile="1" resource="0" file="Source/gui/LedControl.cpp"/>
+        <FILE id="EtAZaj" name="LedControl.hpp" compile="0" resource="0" file="Source/gui/LedControl.hpp"/>
+        <FILE id="MqdkeL" name="PadControl.cpp" compile="1" resource="0" file="Source/gui/PadControl.cpp"/>
+        <FILE id="JkZB8H" name="PadControl.hpp" compile="0" resource="0" file="Source/gui/PadControl.hpp"/>
+        <FILE id="MgUf1g" name="SliderControl.cpp" compile="1" resource="0"
+              file="Source/gui/SliderControl.cpp"/>
+        <FILE id="kGqTh5" name="SliderControl.hpp" compile="0" resource="0"
+              file="Source/gui/SliderControl.hpp"/>
+        <FILE id="CUh87v" name="VmpcComponent.h" compile="0" resource="0" file="Source/gui/VmpcComponent.h"/>
+      </GROUP>
       <FILE id="VzqcAq" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="GChylr" name="PluginProcessor.h" compile="0" resource="0"
@@ -60,7 +63,8 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="moduru&#10;ctoot&#10;mpc"
                microphonePermissionNeeded="1" extraDefs="JUCE_VST3_CAN_REPLACE_VST2=0"
-               vstLegacyFolder="/Users/admin/git/vstsdk2.4" vst3Folder="/Users/admin/git/VST3_SDK">
+               vstLegacyFolder="/Users/admin/git/vstsdk2.4" vst3Folder="/Users/admin/git/VST3_SDK"
+               bigIcon="s4GyTE">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" enablePluginBinaryCopyStep="1" isDebug="1" optimisation="1"
                        linkTimeOptimisation="0" targetName="vmpc" libraryPath="~/git/moduru/build/Debug&#10;~/git/ctoot/build/Debug&#10;~/git/mpc/build/Debug"
@@ -86,33 +90,8 @@
         <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
-    <CODEBLOCKS_LINUX targetFolder="Builds/CodeBlocksLinux" externalLibraries="mpc&#10;ctoot&#10;moduru"
-                      extraLinkerFlags="" extraDefs="" extraCompilerFlags="-D_GLIBCXX_USE_CXX11_ABI=0"
-                      enableGNUExtensions="1">
-      <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" linuxCodeBlocksArchitecture="-m64" isDebug="1" optimisation="1"
-                       linkTimeOptimisation="0" targetName="vmpc" headerPath="/usr/local/include&#10;/home/osboxes/git/moduru/src/&#10;/home/osboxes/git/ctoot/src/&#10;/home/osboxes/git/vmpc/mpc/src/&#10;/home/osboxes/git/vmpc/rapidjson/include&#10;/usr/include/gtk-3.0/&#10;/usr/include/glib-2.0/&#10;/usr/lib/glib-2.0/include/&#10;usr/lib/gtk-3.0/include/&#10;/usr/lib/x86_64-linux-gnu/glib-2.0/include/&#10;/usr/include/cairo/&#10;/usr/include/pango-1.0&#10;/usr/lib/x86_64-linux-gnu/gtk-2.0/include&#10;/usr/include/gdk-pixbuf-2.0/&#10;/usr/include/atk-1.0/&#10;/usr/include/webkitgtk-4.0&#10;/usr/include/libsoup-2.4&#10;"
-                       libraryPath="/home/osboxes/git/vmpc/moduru/build&#10;/home/osboxes/git/vmpc/ctoot/build&#10;/home/osboxes/git/vmpc/mpc/build&#10;"/>
-        <CONFIGURATION name="Release" linuxCodeBlocksArchitecture="-m64" isDebug="0"
-                       optimisation="6" linkTimeOptimisation="1" targetName="vmpc" libraryPath="/home/izmar/git/moduru/build/Release&#10;/home/izmar/git/ctoot/build/Release&#10;/home/izmar/git/mpc/build/Release&#10;"/>
-      </CONFIGURATIONS>
-      <MODULEPATHS>
-        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
-        <MODULEPATH id="juce_graphics" path="../../juce"/>
-        <MODULEPATH id="juce_events" path="../../juce"/>
-        <MODULEPATH id="juce_data_structures" path="../../juce"/>
-        <MODULEPATH id="juce_core" path="../../juce"/>
-        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="../../juce"/>
-        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
-        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
-        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
-      </MODULEPATHS>
-    </CODEBLOCKS_LINUX>
     <VS2019 targetFolder="Builds/VisualStudio2019-64bit" externalLibraries="moduru.lib&#10;ctoot.lib&#10;mpc.lib"
-            extraDefs="JUCE_VST3_CAN_REPLACE_VST2=0">
+            extraDefs="JUCE_VST3_CAN_REPLACE_VST2=0" bigIcon="s4GyTE">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" libraryPath="../../../mpc/build/64bit/Debug&#10;../../../ctoot/build/64bit/Debug&#10;../../../moduru/build/64bit/Debug"
                        useRuntimeLibDLL="1"/>
@@ -135,7 +114,7 @@
       </MODULEPATHS>
     </VS2019>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" externalLibraries="mpc&#10;ctoot&#10;moduru"
-                extraCompilerFlags="-D_GLIBCXX_USE_CXX11_ABI=0">
+                extraCompilerFlags="-D_GLIBCXX_USE_CXX11_ABI=0" bigIcon="s4GyTE">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" libraryPath="~/git/moduru/build/Debug&#10;~/git/ctoot/build/Debug&#10;~/git/mpc/build/Debug"/>
         <CONFIGURATION isDebug="0" name="Release" libraryPath="~/git/moduru/build/Release&#10;~/git/ctoot/build/Release&#10;~/git/mpc/build/Release&#10;"/>
@@ -155,24 +134,8 @@
         <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
-    <CLION targetFolder="Builds/CLion" clionXcodeEnabled="1" clionMakefileEnabled="0">
-      <MODULEPATHS>
-        <MODULEPATH id="juce_gui_basics"/>
-        <MODULEPATH id="juce_graphics"/>
-        <MODULEPATH id="juce_events"/>
-        <MODULEPATH id="juce_data_structures"/>
-        <MODULEPATH id="juce_core"/>
-        <MODULEPATH id="juce_audio_processors"/>
-        <MODULEPATH id="juce_audio_plugin_client"/>
-        <MODULEPATH id="juce_audio_devices"/>
-        <MODULEPATH id="juce_audio_basics"/>
-        <MODULEPATH id="juce_gui_extra" path="../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../JUCE/modules"/>
-      </MODULEPATHS>
-    </CLION>
     <VS2019 targetFolder="Builds/VisualStudio2019-32bit" extraDefs="JUCE_VST3_CAN_REPLACE_VST2=0"
-            externalLibraries="moduru.lib&#10;ctoot.lib&#10;mpc.lib">
+            externalLibraries="moduru.lib&#10;ctoot.lib&#10;mpc.lib" bigIcon="s4GyTE">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" libraryPath="../../../mpc/build/32bit/Debug&#10;../../../ctoot/build/32bit/Debug&#10;../../../moduru/build/32bit/Debug"
                        winArchitecture="Win32"/>
