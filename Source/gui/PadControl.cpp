@@ -15,7 +15,7 @@ PadControl::PadControl(Rectangle <float> rect, std::weak_ptr<mpc::hardware::HwPa
 }
 
 void PadControl::timerCallback() {
-	if (fading) padhitBrightness -= 4;
+	if (fading) padhitBrightness -= 20;
 	if (padhitBrightness < 0) {
 		padhitBrightness = 0;
 		repaint();
@@ -37,7 +37,7 @@ void PadControl::update(moduru::observer::Observable* o, nonstd::any arg) {
 		padhitBrightness = velocity + 25;
 		pressed = true;
 		fading = false;
-		startTimer(20);
+		startTimer(100);
 	}
 }
 

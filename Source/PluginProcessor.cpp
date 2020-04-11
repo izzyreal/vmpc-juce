@@ -14,7 +14,6 @@
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audiomidi/ExportAudioProcessAdapter.hpp>
 
-#include <audio/server/ExternalAudioServer.hpp>
 #include <audio/server/NonRealTimeAudioServer.hpp>
 #include <audiomidi/MpcMidiPorts.hpp>
 #include <audiomidi/MpcMidiInput.hpp>
@@ -122,7 +121,7 @@ void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 	}
     
 	auto ams = mpc->getAudioMidiServices().lock();
-	auto server = ams->getExternalAudioServer();
+	auto server = ams->getAudioServer();
     server->setSampleRate(sampleRate);
     server->resizeBuffers(samplesPerBlock);
 	
@@ -236,10 +235,9 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	const int totalNumOutputChannels = getTotalNumOutputChannels();
 	
 	auto ams = mpc->getAudioMidiServices().lock();
-	auto server = ams->getExternalAudioServer();
-	auto offlineServer = ams->getOfflineServer();
+	auto server = ams->getAudioServer();
 
-	if (!offlineServer->isRunning()) {
+	if (!server->isRunning()) {
 		for (int i = 0; i < totalNumInputChannels; ++i)
 			buffer.clear(i, 0, buffer.getNumSamples());
 		return;
@@ -256,14 +254,14 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 			vector<int> rates{ 44100, 48000, 88200 };
 			auto rate = rates[directToDiskRecorderGui->getSampleRate()];
 			ams->getFrameSequencer().lock()->start(rate);
-			if (offlineServer->isRealTime()) {
+			if (server->isRealTime()) {
 				server->setSampleRate(rate);
-				offlineServer->setRealTime(false);
+				server->setRealTime(false);
 			}
 		}
 
-		for (auto& eapa : ams->exportProcesses) {
-			eapa->start();
+		for (auto& eapa : ams->getExportProcesses()) {
+			eapa.lock()->start();
 		}
 
 	} else if (!amsIsBouncing && wasBouncing) {
@@ -272,14 +270,14 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 
 		auto directToDiskRecorderGui = mpc->getUis().lock()->getD2DRecorderGui();
 		if (directToDiskRecorderGui->isOffline()) {
-			if (!offlineServer->isRealTime()) {
+			if (!server->isRealTime()) {
 				server->setSampleRate(getSampleRate());
-				offlineServer->setRealTime(true);
+				server->setRealTime(true);
 			}
 		}
 	}
 
-	if (!offlineServer->isRealTime()) {
+	if (!server->isRealTime()) {
 		for (int i = 0; i < totalNumInputChannels; ++i)
 			buffer.clear(i, 0, buffer.getNumSamples());
 		return;
