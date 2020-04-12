@@ -181,22 +181,24 @@ void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
 
 void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages, int bufferSize) {
 	auto midiOutMsgQueues = mpc->getMidiPorts().lock()->getReceivers();
-	for (auto& queue : *midiOutMsgQueues) {
-		for (auto msg : queue) {
+	for (auto& queue : midiOutMsgQueues) {
+		for (auto& msg : queue) {
 
 			juce::uint8 velo = (juce::uint8) msg.getData2();
 			if (velo == 0) continue;
 			auto jmsg = MidiMessage::noteOn(msg.getChannel() + 1, msg.getData1(), juce::uint8(velo));
 			midiMessages.addEvent(jmsg, msg.bufferPos);
 		}
+
 		for (auto msg : queue) {
 			auto velo = msg.getData2();
 			if (velo != 0) continue;
 			auto jmsg = MidiMessage::noteOff(msg.getChannel() + 1, msg.getData1());
 			midiMessages.addEvent(jmsg, msg.bufferPos);
 		}
-		queue.clear();
 	}
+	mpc->getMidiPorts().lock()->getReceivers()[0].clear();
+	mpc->getMidiPorts().lock()->getReceivers()[1].clear();
 }
 
 void VmpcAudioProcessor::processTransport() {
@@ -227,25 +229,12 @@ void VmpcAudioProcessor::processTransport() {
 	}
 }
 
-void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
-{
-	ScopedNoDenormals noDenormals;
-\
-	const int totalNumInputChannels = getTotalNumInputChannels();
-	const int totalNumOutputChannels = getTotalNumOutputChannels();
-	
+void VmpcAudioProcessor::checkBouncing() {
 	auto ams = mpc->getAudioMidiServices().lock();
 	auto server = ams->getAudioServer();
-
-	if (!server->isRunning()) {
-		for (int i = 0; i < totalNumInputChannels; ++i)
-			buffer.clear(i, 0, buffer.getNumSamples());
-		return;
-	}
 	bool amsIsBouncing = ams->isBouncing();
 
 	if (amsIsBouncing && !wasBouncing) {
-		MLOG("JUCE will start bouncing now...")
 
 		wasBouncing = true;
 
@@ -259,13 +248,17 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 				server->setRealTime(false);
 			}
 		}
+		else {
+			ams->getFrameSequencer().lock()->start(getSampleRate());
+		}
 
 		for (auto& eapa : ams->getExportProcesses()) {
 			eapa.lock()->start();
 		}
 
-	} else if (!amsIsBouncing && wasBouncing) {
-		MLOG("JUCE will stop bouncing now...")
+	}
+	else if (!amsIsBouncing && wasBouncing) {
+
 		wasBouncing = false;
 
 		auto directToDiskRecorderGui = mpc->getUis().lock()->getD2DRecorderGui();
@@ -276,6 +269,38 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 			}
 		}
 	}
+}
+
+void VmpcAudioProcessor::checkSampling() {
+	auto ams = mpc->getAudioMidiServices().lock();
+	if (!wasSampling && ams->isSampling()) {
+		wasSampling = true;
+		ams->getSamplerAudioIO().lock()->setEnabled(true);
+	}
+	else if (wasSampling && !ams->isSampling()) {
+		wasSampling = false;
+		ams->getSamplerAudioIO().lock()->setEnabled(false);
+	}
+}
+
+void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
+{
+	ScopedNoDenormals noDenormals;
+\
+	const int totalNumInputChannels = getTotalNumInputChannels();
+	const int totalNumOutputChannels = getTotalNumOutputChannels();
+	
+	auto server = mpc->getAudioMidiServices().lock()->getAudioServer();
+
+	if (!server->isRunning()) {
+		for (int i = 0; i < totalNumInputChannels; ++i)
+			buffer.clear(i, 0, buffer.getNumSamples());
+		return;
+	}
+
+
+	checkBouncing();
+	checkSampling();
 
 	if (!server->isRealTime()) {
 		for (int i = 0; i < totalNumInputChannels; ++i)
