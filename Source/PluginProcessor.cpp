@@ -285,11 +285,17 @@ void VmpcAudioProcessor::checkSoundRecorder() {
 
 	if (!wasRecordingSound && ams->isRecordingSound()) {
 		wasRecordingSound = true;
+		mpc->getLayeredScreen().lock()->getCurrentBackground()->setName("recording");
 		recorder->start();
 	}
 	else if (wasRecordingSound && !ams->isRecordingSound()) {
 		wasRecordingSound = false;
 		recorder->stop();
+		mpc->getLayeredScreen().lock()->getCurrentBackground()->setName("sample");
+		auto components = mpc->getLayeredScreen().lock()->getLayer(0)->getAllLabelsAndFields();
+		for (auto& c : components) {
+			c.lock()->SetDirty();
+		}
 		mpc->getLayeredScreen().lock()->openScreen("keeporretry");
 	}
 }
