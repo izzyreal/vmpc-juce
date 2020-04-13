@@ -96,7 +96,7 @@
         <CONFIGURATION isDebug="1" name="Debug" libraryPath="../../../mpc/build/64bit/Debug&#10;../../../ctoot/build/64bit/Debug&#10;../../../moduru/build/64bit/Debug"
                        useRuntimeLibDLL="1"/>
         <CONFIGURATION isDebug="0" name="Release" libraryPath="../../../mpc/build/64bit/Release&#10;../../../ctoot/build/64bit/Release&#10;../../../moduru/build/64bit/Release"
-                       enableIncrementalLinking="1" optimisation="3" linkTimeOptimisation="1"/>
+                       enableIncrementalLinking="1" optimisation="3" linkTimeOptimisation="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_gui_basics"/>

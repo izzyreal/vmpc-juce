@@ -12,7 +12,8 @@
 #include "PluginEditor.h"
 
 #include <audiomidi/AudioMidiServices.hpp>
-#include <audiomidi/ExportAudioProcessAdapter.hpp>
+#include <audiomidi/DiskRecorder.hpp>
+#include <audiomidi/SoundRecorder.hpp>
 
 #include <audio/server/NonRealTimeAudioServer.hpp>
 #include <audiomidi/MpcMidiPorts.hpp>
@@ -24,6 +25,8 @@
 
 // ctoot
 #include <midi/core/ShortMessage.hpp>
+
+using namespace ctoot::midi::core;
 
 //==============================================================================
 VmpcAudioProcessor::VmpcAudioProcessor()
@@ -159,7 +162,7 @@ bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
 
 void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
 	MidiBuffer::Iterator midiIterator(midiMessages);
-	MidiMessage m;
+	juce::MidiMessage m;
 	int midiEventPos;
 	while (midiIterator.getNextEvent(m, midiEventPos)) {
 		int timeStamp = m.getTimeStamp();
@@ -167,13 +170,13 @@ void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
 
 		if (m.isNoteOn()) {
 			m.getRawData();
-			auto tootMsg = ctoot::midi::core::ShortMessage();
-			tootMsg.setMessage(ctoot::midi::core::ShortMessage::NOTE_ON, m.getChannel() - 1, m.getNoteNumber(), velocity);
+			auto tootMsg = ShortMessage();
+			tootMsg.setMessage(ShortMessage::NOTE_ON, m.getChannel() - 1, m.getNoteNumber(), velocity);
 			mpc->getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
 		}
 		else if (m.isNoteOff()) {
-			auto tootMsg = ctoot::midi::core::ShortMessage();
-			tootMsg.setMessage(ctoot::midi::core::ShortMessage::NOTE_OFF, m.getChannel() - 1, m.getNoteNumber(), 0);
+			auto tootMsg = ShortMessage();
+			tootMsg.setMessage(ShortMessage::NOTE_OFF, m.getChannel() - 1, m.getNoteNumber(), 0);
 			mpc->getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
 		}
 	}
@@ -186,14 +189,14 @@ void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages, int bufferSize
 
 			juce::uint8 velo = (juce::uint8) msg.getData2();
 			if (velo == 0) continue;
-			auto jmsg = MidiMessage::noteOn(msg.getChannel() + 1, msg.getData1(), juce::uint8(velo));
+			auto jmsg = juce::MidiMessage::noteOn(msg.getChannel() + 1, msg.getData1(), juce::uint8(velo));
 			midiMessages.addEvent(jmsg, msg.bufferPos);
 		}
 
 		for (auto msg : queue) {
 			auto velo = msg.getData2();
 			if (velo != 0) continue;
-			auto jmsg = MidiMessage::noteOff(msg.getChannel() + 1, msg.getData1());
+			auto jmsg = juce::MidiMessage::noteOff(msg.getChannel() + 1, msg.getData1());
 			midiMessages.addEvent(jmsg, msg.bufferPos);
 		}
 	}
@@ -252,8 +255,8 @@ void VmpcAudioProcessor::checkBouncing() {
 			ams->getFrameSequencer().lock()->start(getSampleRate());
 		}
 
-		for (auto& eapa : ams->getExportProcesses()) {
-			eapa.lock()->start();
+		for (auto& diskRecorder : ams->getDiskRecorders()) {
+			diskRecorder.lock()->start();
 		}
 
 	}
@@ -271,15 +274,23 @@ void VmpcAudioProcessor::checkBouncing() {
 	}
 }
 
-void VmpcAudioProcessor::checkSampling() {
+void VmpcAudioProcessor::checkSoundRecorder() {
 	auto ams = mpc->getAudioMidiServices().lock();
-	if (!wasSampling && ams->isSampling()) {
-		wasSampling = true;
-		ams->getSamplerAudioIO().lock()->setEnabled(true);
+	auto recorder = ams->getSoundRecorder().lock();
+
+	if (wasRecordingSound && !recorder->isRecording()) {
+		recorder->stop();
+		ams->stopSoundRecorder();
 	}
-	else if (wasSampling && !ams->isSampling()) {
-		wasSampling = false;
-		ams->getSamplerAudioIO().lock()->setEnabled(false);
+
+	if (!wasRecordingSound && ams->isRecordingSound()) {
+		wasRecordingSound = true;
+		recorder->start();
+	}
+	else if (wasRecordingSound && !ams->isRecordingSound()) {
+		wasRecordingSound = false;
+		recorder->stop();
+		mpc->getLayeredScreen().lock()->openScreen("keeporretry");
 	}
 }
 
@@ -300,7 +311,7 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 
 
 	checkBouncing();
-	checkSampling();
+	checkSoundRecorder();
 
 	if (!server->isRealTime()) {
 		for (int i = 0; i < totalNumInputChannels; ++i)

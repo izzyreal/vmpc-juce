@@ -66,14 +66,14 @@ private:
 	void processMidiOut(MidiBuffer& midiMessages, int bufferSize);
 	void processTransport();
     void checkBouncing();
-    void checkSampling();
+    void checkSoundRecorder();
 
 private:
 	mpc::Mpc* mpc = nullptr;
 	double m_Tempo = 0;
     bool wasPlaying = false;
     bool wasBouncing = false;
-    bool wasSampling = false;
+    bool wasRecordingSound = false;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcAudioProcessor)
