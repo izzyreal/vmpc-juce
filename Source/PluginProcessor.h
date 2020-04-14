@@ -70,6 +70,7 @@ private:
 
 private:
 	mpc::Mpc* mpc = nullptr;
+    AudioSampleBuffer monoToStereoBuffer;
 	double m_Tempo = 0;
     bool wasPlaying = false;
     bool wasBouncing = false;

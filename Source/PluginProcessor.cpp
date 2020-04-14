@@ -131,6 +131,9 @@ void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 	if (wasPlaying) {
 		seq->play();
 	}
+
+	monoToStereoBuffer.clear();
+	monoToStereoBuffer.setSize(2, samplesPerBlock);
 }
 
 void VmpcAudioProcessor::releaseResources()
@@ -332,7 +335,15 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	auto chDataIn = buffer.getArrayOfReadPointers();
 	auto chDataOut = buffer.getArrayOfWritePointers();
 
-	server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannels, totalNumOutputChannels);
+	if (totalNumInputChannels == 1) {
+		monoToStereoBuffer.clear();
+		monoToStereoBuffer.copyFrom(0, 0, buffer.getReadPointer(0), buffer.getNumSamples());
+		monoToStereoBuffer.copyFrom(1, 0, buffer.getReadPointer(0), buffer.getNumSamples());
+		server->work(monoToStereoBuffer.getArrayOfReadPointers(), chDataOut, buffer.getNumSamples(), totalNumInputChannels, totalNumOutputChannels);
+	}
+	else {
+		server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannels, totalNumOutputChannels);
+	}
 
 	if (totalNumOutputChannels < 2) {
 		for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
