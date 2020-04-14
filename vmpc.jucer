@@ -97,6 +97,8 @@
                        useRuntimeLibDLL="1"/>
         <CONFIGURATION isDebug="0" name="Release" libraryPath="../../../mpc/build/64bit/Release&#10;../../../ctoot/build/64bit/Release&#10;../../../moduru/build/64bit/Release"
                        enableIncrementalLinking="1" optimisation="3" linkTimeOptimisation="0"/>
+        <CONFIGURATION isDebug="0" name="Release LTO" libraryPath="../../../mpc/build/64bit/Release&#10;../../../ctoot/build/64bit/Release&#10;../../../moduru/build/64bit/Release"
+                       enableIncrementalLinking="1" optimisation="3" linkTimeOptimisation="1"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_gui_basics"/>
