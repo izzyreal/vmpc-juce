@@ -332,11 +332,6 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	auto chDataIn = buffer.getArrayOfReadPointers();
 	auto chDataOut = buffer.getArrayOfWritePointers();
 
-	if (totalNumInputChannels < 2) {
-		for (int i = 0; i < totalNumInputChannels; ++i)
-			buffer.clear(i, 0, buffer.getNumSamples());
-	}
-
 	server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannels, totalNumOutputChannels);
 
 	if (totalNumOutputChannels < 2) {
