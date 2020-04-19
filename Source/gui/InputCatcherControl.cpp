@@ -306,6 +306,11 @@ bool InputCatcherControl::keyStateChanged(bool isKeyDown) {
 		hw->getButton("playstart").lock()->release();
 		return true;
 	}
+	else if (k == 'e' || k == 'E') {
+		hw->getButton("goto").lock()->release();
+		return true;
+	}
+
 
 	/*
 	auto label = kbMapping->getLabelFromKeyCode(c);
