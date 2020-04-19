@@ -118,6 +118,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 	addAndMakeVisible(lcd);
 
     setResizable(true, true);
+	MLOG("lastWidth " + std::to_string(p.lastUIWidth) + ", lastHeight " + std::to_string(p.lastUIHeight));
     setSize(p.lastUIWidth, p.lastUIHeight);
 	setResizeLimits(1298 / 2, 994 / 2, 1298, 994);
 	getConstrainer()->setFixedAspectRatio(1.305835010060362);
