@@ -157,7 +157,7 @@ void VmpcAudioProcessorEditor::initialise()
 	mpcSplashScreen = new SplashScreen("Woah", disclaimer, true);
 	mpcSplashScreen->deleteAfterDelay(RelativeTime::seconds(8), true);
 }
-\
+
 void VmpcAudioProcessorEditor::paint (Graphics& g)
 {
 	if (!initialFocusSet) {
