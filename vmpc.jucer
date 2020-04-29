@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="toyOrS" name="vmpc" displaySplashScreen="1" reportAppUsage="1"
-              splashScreenColour="Dark" projectType="audioplug" version="1.0.0"
+              splashScreenColour="Dark" projectType="audioplug" version="0.1.0"
               bundleIdentifier="nl.izmar.vmpc" includeBinaryInAppConfig="1"
               cppLanguageStandard="17" companyCopyright="Izmar" buildVST="1"
               buildVST3="1" buildAU="1" buildAUv3="0" buildRTAS="0" buildAAX="0"
@@ -14,7 +14,8 @@
               pluginFormats="buildAU,buildStandalone,buildVST,buildVST3" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn,pluginProducesMidiOut,pluginEditorRequiresKeys"
               headerPath="../../../mpc/src/main&#10;../../../ctoot/src/main&#10;../../../moduru/src/main&#10;../../../rapidjson/include&#10;../../../ASIOSDK2.3/common"
               pluginRTASDisableBypass="0" pluginRTASDisableMultiMono="0" pluginAAXDisableBypass="0"
-              pluginAAXDisableMultiMono="0">
+              pluginAAXDisableMultiMono="0" companyWebsite="www.izmar.nl" pluginVST3Category="Instrument,Sampler"
+              pluginVSTCategory="kPlugCategSynth">
   <MAINGROUP id="XNuzIS" name="vmpc">
     <GROUP id="{FD94A746-89C4-1A96-B91F-19DA5E2BF0C3}" name="Source">
       <GROUP id="{A1B7D4FA-F761-9058-F6C5-67B5780E62DE}" name="resources">
