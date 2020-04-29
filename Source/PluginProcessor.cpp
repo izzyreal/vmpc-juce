@@ -14,16 +14,17 @@
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audiomidi/DiskRecorder.hpp>
 #include <audiomidi/SoundRecorder.hpp>
-
-#include <audio/server/NonRealTimeAudioServer.hpp>
 #include <audiomidi/MpcMidiPorts.hpp>
 #include <audiomidi/MpcMidiInput.hpp>
 
-#include <ui/midisync/MidiSyncGui.hpp>
-#include <ui/vmpc/DirectToDiskRecorderGui.hpp>
+#include <StartUp.hpp>
 #include <sequencer/Sequencer.hpp>
 
+#include <ui/midisync/MidiSyncGui.hpp>
+#include <ui/vmpc/DirectToDiskRecorderGui.hpp>
+
 // ctoot
+#include <audio/server/NonRealTimeAudioServer.hpp>
 #include <midi/core/ShortMessage.hpp>
 
 using namespace ctoot::midi::core;
@@ -41,6 +42,14 @@ VmpcAudioProcessor::VmpcAudioProcessor()
                        )
 #endif
 {
+	time_t currentTime = time(NULL);
+	struct tm* currentLocalTime = localtime(&currentTime);
+	auto timeString = string(asctime(currentLocalTime));
+
+	moduru::Logger::l.setPath(mpc::StartUp::logFilePath);
+	moduru::Logger::l.log("\n\n-= vMPC2000XL v" + string(ProjectInfo::versionString) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
+
+
 	mpc = new mpc::Mpc();
 	mpc->init(44100.f, 1, 5);
 	mpc->getLayeredScreen().lock()->openScreen("sequencer");

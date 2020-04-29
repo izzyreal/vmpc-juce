@@ -117,9 +117,13 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 	lcd->setInputCatcher(inputCatcher);
 	addAndMakeVisible(lcd);
 
+	versionLabel.setText("v" + string(ProjectInfo::versionString), dontSendNotification);
+	versionLabel.setColour(Label::textColourId, Colours::darkgrey);
+	addAndMakeVisible(versionLabel);
+
     setResizable(true, true);
-	MLOG("lastWidth " + std::to_string(p.lastUIWidth) + ", lastHeight " + std::to_string(p.lastUIHeight));
-    setSize(p.lastUIWidth, p.lastUIHeight);
+
+	setSize(p.lastUIWidth, p.lastUIHeight);
 	setResizeLimits(1298 / 2, 994 / 2, 1298, 994);
 	getConstrainer()->setFixedAspectRatio(1.305835010060362);
 
@@ -195,4 +199,7 @@ void VmpcAudioProcessorEditor::resized()
 
 	leds->setTransform(scaleTransform);
 	leds->setBounds();
+
+	versionLabel.setTransform(scaleTransform);
+	versionLabel.setBounds(1175, 118, 100, 20);
 }

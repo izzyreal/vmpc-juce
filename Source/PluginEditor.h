@@ -40,6 +40,7 @@ private:
 
 private:
 	Component::SafePointer<SplashScreen> mpcSplashScreen;
+	Label versionLabel;
     VmpcAudioProcessor& processor;
 	DataWheelControl* dataWheel;
 	KnobControl* recKnob;
