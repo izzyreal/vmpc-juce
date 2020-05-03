@@ -59,8 +59,6 @@ public:
 
 	int lastUIWidth = 1298/2, lastUIHeight = 994/2;
 
-	mpc::Mpc* getMpc() { return mpc; }
-
 private:
 	void processMidiIn(MidiBuffer& midiMessages);
 	void processMidiOut(MidiBuffer& midiMessages, int bufferSize);
@@ -69,7 +67,6 @@ private:
     void checkSoundRecorder();
 
 private:
-	mpc::Mpc* mpc = nullptr;
     AudioSampleBuffer monoToStereoBuffer;
 	double m_Tempo = 0;
     bool wasPlaying = false;

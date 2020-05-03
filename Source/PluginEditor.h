@@ -61,7 +61,6 @@ private:
 	Image ledRedImg;
 	Image ledGreenImg;
 
-	mpc::Mpc* mpc = nullptr;
 	bool initialFocusSet = false;
 
 	VmpcAudioProcessor& getProcessor() const

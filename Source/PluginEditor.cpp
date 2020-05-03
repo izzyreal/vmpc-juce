@@ -23,9 +23,8 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p)
 {
 	initialise();
-	mpc = p.getMpc();
 
-	inputCatcher = new InputCatcherControl("inputcatcher", mpc);
+	inputCatcher = new InputCatcherControl("inputcatcher");
 	inputCatcher->setSize(1298, 994);
 	inputCatcher->setWantsKeyboardFocus(true);
 	addAndMakeVisible(inputCatcher);
@@ -36,8 +35,8 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 	f = File(bgImgPath);
 	bgImg = ImageFileFormat::loadFrom(f);
 
-	dataWheel = new DataWheelControl(mpc->getHardware().lock()->getDataWheel(), "datawheel");
-	mpc->getHardware().lock()->getDataWheel().lock()->addObserver(dataWheel);
+	dataWheel = new DataWheelControl(mpc::Mpc::instance().getHardware().lock()->getDataWheel(), "datawheel");
+	mpc::Mpc::instance().getHardware().lock()->getDataWheel().lock()->addObserver(dataWheel);
 	auto dataWheelImgPath = mpc::StartUp::resPath + "/img/datawheels.png";
 	f = File(dataWheelImgPath);
 	dataWheelImg = ImageFileFormat::loadFrom(f);
@@ -48,7 +47,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 	auto sliderImgPath = mpc::StartUp::resPath + "/img/sliders.png";
 	f = File(sliderImgPath);
 	sliderImg = ImageFileFormat::loadFrom(f);
-	slider = new SliderControl(mpc->getHardware().lock()->getSlider(), 0, "slider");
+	slider = new SliderControl(mpc::Mpc::instance().getHardware().lock()->getSlider(), 0, "slider");
 	slider->setImage(sliderImg);
 	slider->setInputCatcher(inputCatcher);
 	addAndMakeVisible(slider);
@@ -56,7 +55,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 	auto recKnobImgPath = mpc::StartUp::resPath + "/img/recknobs.png";
 	f = File(recKnobImgPath);
 	recKnobImg = ImageFileFormat::loadFrom(f);
-	recKnob = new KnobControl(0, mpc->getHardware().lock()->getRecPot(), mpc->getAudioMidiServices().lock()->getRecordLevel(), "recknob");
+	recKnob = new KnobControl(0, mpc::Mpc::instance().getHardware().lock()->getRecPot(), mpc::Mpc::instance().getAudioMidiServices().lock()->getRecordLevel(), "recknob");
 	recKnob->setImage(recKnobImg);
 	addAndMakeVisible(recKnob);
 	recKnob->setInputCatcher(inputCatcher);
@@ -64,7 +63,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 	auto volKnobImgPath = mpc::StartUp::resPath + "/img/volknobs.png";
 	f = File(volKnobImgPath);
 	volKnobImg = ImageFileFormat::loadFrom(f);
-	volKnob = new KnobControl(0, mpc->getHardware().lock()->getVolPot(), mpc->getAudioMidiServices().lock()->getMasterLevel(), "volknob");
+	volKnob = new KnobControl(0, mpc::Mpc::instance().getHardware().lock()->getVolPot(), mpc::Mpc::instance().getAudioMidiServices().lock()->getMasterLevel(), "volknob");
 	volKnob->setImage(volKnobImg);
 	addAndMakeVisible(volKnob);
 	volKnob->setInputCatcher(inputCatcher);
@@ -83,14 +82,14 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 	leds = new LedControl(ledGreenImg, ledRedImg, inputCatcher);
 	leds->setPadBankA(true);
 	leds->addAndMakeVisible(this);
-	for (auto& l : mpc->getHardware().lock()->getLeds()) {
+	for (auto& l : mpc::Mpc::instance().getHardware().lock()->getLeds()) {
 		l->addObserver(leds);
 	}
 
 	ButtonControl::initRects();
 	std::vector<std::string> buttonLabels{ "left", "right", "up", "down", "rec", "overdub", "stop", "play", "playstart", "mainscreen", "prevstepevent", "nextstepevent",	"goto",	"prevbarstart",	"nextbarend", "tap", "nextseq",	"trackmute", "openwindow", "fulllevel", "sixteenlevels", "f1", "f2", "f3", "f4", "f5", "f6", "shift", "enter", "undoseq", "erase", "after", "banka", "bankb", "bankc", "bankd" };
 	for (auto& l : buttonLabels) {
-		auto bc = new ButtonControl(*ButtonControl::rects[l], mpc->getHardware().lock()->getButton(l), l);
+		auto bc = new ButtonControl(*ButtonControl::rects[l], mpc::Mpc::instance().getHardware().lock()->getButton(l), l);
 		addAndMakeVisible(bc);
 		bc->setInputCatcher(inputCatcher);
 		buttons.push_back(bc);
@@ -106,13 +105,13 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 			int x1 = (padWidth + padSpacing) * i + padOffsetX + i;
 			int y1 = (padWidth + padSpacing) * j + padOffsetY;
 			Rectangle<float> rect(x1, y1, padWidth + i, padWidth);
-			auto pc = new PadControl(rect, mpc->getHardware().lock()->getPad(padCounter++), padHitImg, "pad");
+			auto pc = new PadControl(rect, mpc::Mpc::instance().getHardware().lock()->getPad(padCounter++), padHitImg, "pad");
 			addAndMakeVisible(pc);
 			pads.push_back(pc);
 		}
 	}
 
-	lcd = new LCDControl("lcd", mpc->getLayeredScreen());
+	lcd = new LCDControl("lcd", mpc::Mpc::instance().getLayeredScreen());
 	lcd->setSize(496, 120);
 	lcd->setInputCatcher(inputCatcher);
 	addAndMakeVisible(lcd);
@@ -138,7 +137,7 @@ VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
 	lcd->stopTimer();
 	delete dataWheel;
 	delete lcd;
-	for (auto& l : mpc->getHardware().lock()->getLeds()) {
+	for (auto& l : mpc::Mpc::instance().getHardware().lock()->getLeds()) {
 		l->deleteObserver(leds);
 	}
 	delete leds;

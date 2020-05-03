@@ -1,7 +1,5 @@
 #include "InputCatcherControl.h"
 
-//#include "Constants.hpp"
-
 #include <Mpc.hpp>
 
 #include <controls/Controls.hpp>
@@ -14,17 +12,15 @@
 
 using namespace mpc::controls;
 
-InputCatcherControl::InputCatcherControl(const String& componentName, mpc::Mpc* mpc)
+InputCatcherControl::InputCatcherControl(const String& componentName)
 	: Component(componentName)
 {
-	this->mpc = mpc;
-	//kbMapping = new mpc::controls::KbMapping();
 }
 
 void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
 	//MLOG("ipc mod keys");
-	auto c = mpc->getControls().lock();
-	auto hw = mpc->getHardware().lock();
+	auto c = mpc::Mpc::instance().getControls().lock();
+	auto hw = mpc::Mpc::instance().getHardware().lock();
 	if (modifiers.isShiftDown() && !c->isShiftPressed()) {
 		hw->getButton("shift").lock()->push();
 	}
@@ -65,7 +61,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 	if (!alreadyPressed) pressedKeys.push_back(key.getKeyCode());
 
 	auto k = key.getKeyCode();
-	auto hw = mpc->getHardware().lock();
+	auto hw = mpc::Mpc::instance().getHardware().lock();
 	if (k == KeyPress::leftKey) {
 		hw->getButton("left").lock()->push();
 		return true;
@@ -215,7 +211,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 	int c = key.getTextCharacter();
 
 	if (c == '-' || c == '_') {
-		auto controls = mpc->getControls().lock();
+		auto controls = mpc::Mpc::instance().getControls().lock();
 		auto increment = -1;
 		if (controls->isShiftPressed()) increment *= 10;
 		if (controls->isAltPressed()) increment *= 10;
@@ -224,7 +220,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 		return true;
 	}
 	else if (c == '+' || c == '=') {
-		auto controls = mpc->getControls().lock();
+		auto controls = mpc::Mpc::instance().getControls().lock();
 		auto increment = 1;
 		if (controls->isShiftPressed()) increment *= 10;
 		if (controls->isAltPressed()) increment *= 10;
@@ -250,7 +246,7 @@ bool InputCatcherControl::keyStateChanged(bool isKeyDown) {
 	}
 	if (k == -1) return false;
 	//MLOG("\nkey release received, keycode " + std::to_string(k));
-	auto hw = mpc->getHardware().lock();
+	auto hw = mpc::Mpc::instance().getHardware().lock();
 
 	std::string padkeys1 = "ZXCVASDFBNM,GHJK";
 	std::string padkeys2 = "zxcvasdfbnm,ghjk";
