@@ -7,15 +7,15 @@
               buildVST3="1" buildAU="1" buildAUv3="0" buildRTAS="0" buildAAX="0"
               buildStandalone="1" enableIAA="0" pluginName="vmpc" pluginDesc="vmpc"
               pluginManufacturer="Izmar" pluginManufacturerCode="Izmr" pluginCode="2kxl"
-              pluginChannelConfigs="{ 2, 10 }" pluginIsSynth="1" pluginWantsMidiIn="1"
-              pluginProducesMidiOut="1" pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="1"
-              pluginAUExportPrefix="vmpcAU" pluginRTASCategory="" aaxIdentifier="nl.izmar.vmpc"
-              pluginAAXCategory="2" jucerVersion="5.4.7" defines="" companyName="Izmar"
-              pluginFormats="buildAU,buildStandalone,buildVST,buildVST3" pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn,pluginProducesMidiOut,pluginEditorRequiresKeys"
+              pluginIsSynth="1" pluginWantsMidiIn="1" pluginProducesMidiOut="1"
+              pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="1" pluginAUExportPrefix="vmpcAU"
+              pluginRTASCategory="" aaxIdentifier="nl.izmar.vmpc" pluginAAXCategory="2"
+              jucerVersion="5.4.7" defines="" companyName="Izmar" pluginFormats="buildAU,buildStandalone,buildVST,buildVST3"
+              pluginCharacteristicsValue="pluginEditorRequiresKeys,pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn"
               headerPath="../../../mpc/src/main&#10;../../../ctoot/src/main&#10;../../../moduru/src/main&#10;../../../rapidjson/include&#10;../../../ASIOSDK2.3/common"
               pluginRTASDisableBypass="0" pluginRTASDisableMultiMono="0" pluginAAXDisableBypass="0"
               pluginAAXDisableMultiMono="0" companyWebsite="www.izmar.nl" pluginVST3Category="Instrument,Sampler"
-              pluginVSTCategory="kPlugCategSynth">
+              pluginVSTCategory="kPlugCategEffect">
   <MAINGROUP id="XNuzIS" name="vmpc">
     <GROUP id="{FD94A746-89C4-1A96-B91F-19DA5E2BF0C3}" name="Source">
       <GROUP id="{A1B7D4FA-F761-9058-F6C5-67B5780E62DE}" name="resources">

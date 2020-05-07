@@ -31,16 +31,13 @@ using namespace ctoot::midi::core;
 
 //==============================================================================
 VmpcAudioProcessor::VmpcAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", AudioChannelSet::stereo(), true)
-                     #endif
-                       )
-#endif
+		 .withInput  ("Input",  AudioChannelSet::stereo(), true)
+		 .withOutput ("Output", AudioChannelSet::stereo(), true)
+		 .withOutput("Indiv 1/2", AudioChannelSet::stereo(), true)
+		 .withOutput("Indiv 3/4", AudioChannelSet::stereo(), true)
+		 .withOutput("Indiv 5/6", AudioChannelSet::stereo(), true)
+		 .withOutput("Indiv 7/8", AudioChannelSet::stereo(), true))
 {
 	time_t currentTime = time(NULL);
 	struct tm* currentLocalTime = localtime(&currentTime);
@@ -148,26 +145,34 @@ void VmpcAudioProcessor::releaseResources()
     // spare memory, etc.
 }
 
-#ifndef JucePlugin_PreferredChannelConfigurations
 bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-  #if JucePlugin_IsMidiEffect
-    ignoreUnused (layouts);
-    return true;
-  #else
-    if (layouts.getMainOutputChannelSet() != AudioChannelSet::stereo())
-        return false;
+	auto outs = layouts.outputBuses.size();
+	if (layouts.inputBuses.size() != 1)
+	{
+		return false;
+	}
 
-    // This checks if the input layout matches the output layout
-   #if ! JucePlugin_IsSynth
-    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
-        return false;
-   #endif
+	if (outs < 1 || outs > 5)
+	{
+		return false;
+	}
+
+	if (layouts.getChannelSet(true, 0) != AudioChannelSet::stereo())
+	{
+		return false;
+	}
+
+	for (auto& bus : layouts.outputBuses)
+	{
+		if (bus != AudioChannelSet::stereo())
+		{
+			return false;
+		}
+	}
 
     return true;
-  #endif
 }
-#endif
 
 void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
 	MidiBuffer::Iterator midiIterator(midiMessages);
@@ -378,6 +383,7 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
 		std::unique_ptr<XmlElement> xml(new XmlElement("LastUIDimensions"));
 		xml->setAttribute("w", w);
 		xml->setAttribute("h", h);
+
 		copyXmlToBinary(*xml, destData);
 	}
 }
