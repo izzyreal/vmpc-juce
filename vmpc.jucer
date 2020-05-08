@@ -11,7 +11,7 @@
               pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="1" pluginAUExportPrefix="vmpcAU"
               pluginRTASCategory="" aaxIdentifier="nl.izmar.vmpc" pluginAAXCategory="2"
               jucerVersion="5.4.7" defines="" companyName="Izmar" pluginFormats="buildAU,buildStandalone,buildVST,buildVST3"
-              pluginCharacteristicsValue="pluginEditorRequiresKeys,pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn"
+              pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn,pluginProducesMidiOut,pluginEditorRequiresKeys"
               headerPath="../../../mpc/src/main&#10;../../../ctoot/src/main&#10;../../../moduru/src/main&#10;../../../rapidjson/include&#10;../../../ASIOSDK2.3/common"
               pluginRTASDisableBypass="0" pluginRTASDisableMultiMono="0" pluginAAXDisableBypass="0"
               pluginAAXDisableMultiMono="0" companyWebsite="www.izmar.nl" pluginVST3Category="Instrument,Sampler"

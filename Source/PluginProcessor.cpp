@@ -32,12 +32,12 @@ using namespace ctoot::midi::core;
 //==============================================================================
 VmpcAudioProcessor::VmpcAudioProcessor()
      : AudioProcessor (BusesProperties()
-		 .withInput  ("Input",  AudioChannelSet::stereo(), true)
-		 .withOutput ("Output", AudioChannelSet::stereo(), true)
-		 .withOutput("Indiv 1/2", AudioChannelSet::stereo(), true)
-		 .withOutput("Indiv 3/4", AudioChannelSet::stereo(), true)
-		 .withOutput("Indiv 5/6", AudioChannelSet::stereo(), true)
-		 .withOutput("Indiv 7/8", AudioChannelSet::stereo(), true))
+		 .withInput  ("RECORD IN",  AudioChannelSet::stereo(), true)
+		 .withOutput ("STEREO OUT", AudioChannelSet::stereo(), true)
+		 .withOutput("MIX OUT 1/2", AudioChannelSet::stereo(), true)
+		 .withOutput("MIX OUT 3/4", AudioChannelSet::stereo(), true)
+		 .withOutput("MIX OUT 5/6", AudioChannelSet::stereo(), true)
+		 .withOutput("MIX OUT 7/8", AudioChannelSet::stereo(), true))
 {
 	time_t currentTime = time(NULL);
 	struct tm* currentLocalTime = localtime(&currentTime);
@@ -153,7 +153,7 @@ bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
 		return false;
 	}
 
-	if (outs < 1 || outs > 5)
+	if (layouts.outputBuses.size() != 5)
 	{
 		return false;
 	}
