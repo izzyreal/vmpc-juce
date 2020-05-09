@@ -4,7 +4,7 @@ VST instruments with audio inputs are a bit of a rare one. Once upon a time a so
 
 Long story short, using vMPC2000XL as a sampler, recording new sounds with it, doesn't work properly in all DAWs. Maybe some things will improve as my understanding of it does, but for now the below matrix applies.
 
-Multipe instances are not supported!
+Multipe instances is currently not supported!
 
 
 |     Windows     |                      VST2                      |                       VST3                        |
