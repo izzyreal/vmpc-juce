@@ -71,6 +71,9 @@ private:
     bool wasBouncing = false;
     bool wasRecordingSound = false;
 
+public:
+    bool shouldShowDisclaimer = true;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcAudioProcessor)
 };

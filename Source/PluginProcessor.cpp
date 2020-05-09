@@ -32,12 +32,12 @@ using namespace ctoot::midi::core;
 //==============================================================================
 VmpcAudioProcessor::VmpcAudioProcessor()
      : AudioProcessor (BusesProperties()
-		 .withInput  ("RECORD IN",  AudioChannelSet::stereo(), true)
-		 .withOutput ("STEREO OUT", AudioChannelSet::stereo(), true)
-		 .withOutput("MIX OUT 1/2", AudioChannelSet::stereo(), true)
-		 .withOutput("MIX OUT 3/4", AudioChannelSet::stereo(), true)
-		 .withOutput("MIX OUT 5/6", AudioChannelSet::stereo(), true)
-		 .withOutput("MIX OUT 7/8", AudioChannelSet::stereo(), true))
+		 .withInput  ("RECORD IN",  AudioChannelSet::stereo(), false)
+		 .withOutput ("STEREO OUT", AudioChannelSet::stereo(), false)
+		 .withOutput("MIX OUT 1/2", AudioChannelSet::stereo(), false)
+		 .withOutput("MIX OUT 3/4", AudioChannelSet::stereo(), false)
+		 .withOutput("MIX OUT 5/6", AudioChannelSet::stereo(), false)
+		 .withOutput("MIX OUT 7/8", AudioChannelSet::stereo(), false))
 {
 	time_t currentTime = time(NULL);
 	struct tm* currentLocalTime = localtime(&currentTime);
@@ -147,20 +147,26 @@ void VmpcAudioProcessor::releaseResources()
 
 bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
+	return true;
 	auto outs = layouts.outputBuses.size();
-	if (layouts.inputBuses.size() != 1)
+	if (layouts.inputBuses.size() > 1)
 	{
 		return false;
 	}
 
-	if (layouts.outputBuses.size() != 5)
+	if (layouts.outputBuses.size() > 5)
 	{
 		return false;
 	}
 
-	if (layouts.getChannelSet(true, 0) != AudioChannelSet::stereo())
+	// Mono input is anticipated, but outputs need to come in stereo pairs
+
+	for (auto& bus : layouts.inputBuses)
 	{
-		return false;
+		if (bus != AudioChannelSet::mono() && bus != AudioChannelSet::stereo())
+		{
+			return false;
+		}
 	}
 
 	for (auto& bus : layouts.outputBuses)

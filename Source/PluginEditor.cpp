@@ -155,10 +155,15 @@ VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
 
 void VmpcAudioProcessorEditor::initialise()
 {
-	auto bgImgPath = mpc::StartUp::resPath + "/img/disclaimer.gif";
-	auto disclaimer = ImageFileFormat::loadFrom(File(bgImgPath));
-	mpcSplashScreen = new SplashScreen("Woah", disclaimer, true);
-	mpcSplashScreen->deleteAfterDelay(RelativeTime::seconds(8), true);
+
+	if (processor.shouldShowDisclaimer)
+	{
+		auto bgImgPath = mpc::StartUp::resPath + "/img/disclaimer.gif";
+		auto disclaimer = ImageFileFormat::loadFrom(File(bgImgPath));
+		mpcSplashScreen = new SplashScreen("Woah", disclaimer, true);
+		mpcSplashScreen->deleteAfterDelay(RelativeTime::seconds(8), true);
+		processor.shouldShowDisclaimer = false;
+	}
 }
 
 void VmpcAudioProcessorEditor::paint (Graphics& g)
