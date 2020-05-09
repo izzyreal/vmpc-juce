@@ -13,7 +13,7 @@ Long story short, using vMPC2000XL as a sampler, recording new sounds with it, d
 |       Mac       |                              AU                              | VST2 | VST3 |
 | :-------------: | :----------------------------------------------------------: | :--: | :--: |
 |   Logix Pro X   | 5 stereo out<br />1 stereo in (Side Chain in top right of plugin) |      |      |
-| Ableton Live 10 |                                                              |      |      |
+| Ableton Live 10 |                5 stereo out<br />1 stereo in                 |      |      |
 |    Reaper 6     |                                                              |      |      |
 |    Cubase 10    |                                                              |      |      |
 
