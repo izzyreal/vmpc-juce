@@ -44,16 +44,9 @@ void LCDControl::drawPixelsToImg() {
 
 void LCDControl::checkLsDirty() {
 	if (ls.lock()->IsDirty()) {
+		auto dirtyArea = ls.lock()->getDirtyArea();
+		dirtyRect = Rectangle<int>(dirtyArea.L, dirtyArea.T, dirtyArea.W(), dirtyArea.H());
 		ls.lock()->Draw();
-		auto da = ls.lock()->getDirtyArea();
-		da->L -= 1;
-		da->B += 1;
-		if (da->L < 0) da->L = 0;
-		if (da->R > 248) da->R = 248;
-		if (da->T < 0) da->T = 0;
-		if (da->B > 60) da->B = 60;
-		dirtyRect = Rectangle<int>(da->L, da->T, da->W(), da->H());
-		ls.lock()->getDirtyArea()->Clear();
 		drawPixelsToImg();
 		repaint();
 	}
