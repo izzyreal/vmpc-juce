@@ -17,11 +17,13 @@
 #include <audiomidi/MpcMidiPorts.hpp>
 #include <audiomidi/MpcMidiInput.hpp>
 
-#include <StartUp.hpp>
+#include <Paths.hpp>
 #include <sequencer/Sequencer.hpp>
 
 #include <ui/midisync/MidiSyncGui.hpp>
 #include <ui/vmpc/DirectToDiskRecorderGui.hpp>
+
+#include <lcdgui/Background.hpp>
 
 // ctoot
 #include <audio/server/NonRealTimeAudioServer.hpp>
@@ -43,7 +45,7 @@ VmpcAudioProcessor::VmpcAudioProcessor()
 	struct tm* currentLocalTime = localtime(&currentTime);
 	auto timeString = string(asctime(currentLocalTime));
 
-	moduru::Logger::l.setPath(mpc::StartUp::logFilePath);
+	moduru::Logger::l.setPath(mpc::Paths::logFilePath());
 	moduru::Logger::l.log("\n\n-= vMPC2000XL v" + string(ProjectInfo::versionString) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
 
 	mpc::Mpc::instance().init(44100.f, 1, 5);
