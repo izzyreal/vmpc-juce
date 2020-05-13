@@ -18,6 +18,5 @@ public:
 
 public:
 	InputCatcherControl(const String& componentName);
-	~InputCatcherControl();
 
 };
