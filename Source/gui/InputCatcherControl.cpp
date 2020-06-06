@@ -20,29 +20,37 @@ InputCatcherControl::InputCatcherControl(const String& componentName)
 
 void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
 
-	auto controls = mpc::Mpc::instance().getLayeredScreen().lock()->findScreenComponent().lock();
+	auto controls = mpc::Mpc::instance().getControls().lock();
 	auto hw = mpc::Mpc::instance().getHardware().lock();
 
-	/*
-	if (modifiers.isShiftDown() && !controls->isShiftPressed()) {
+	if (modifiers.isShiftDown() && !controls->isShiftPressed())
+	{
 		hw->getButton("shift").lock()->push();
 	}
-	if (!modifiers.isShiftDown() && controls->isShiftPressed()) {
+	
+	if (!modifiers.isShiftDown() && controls->isShiftPressed())
+	{
 		hw->getButton("shift").lock()->release();
 	}
-	if (modifiers.isCtrlDown() && !controls->isCtrlPressed()) {
+	
+	if (modifiers.isCtrlDown() && !controls->isCtrlPressed())
+	{
 		controls->setCtrlPressed(true);
 	}
-	if (!modifiers.isCtrlDown() && controls->isCtrlPressed()) {
+	
+	if (!modifiers.isCtrlDown() && controls->isCtrlPressed())
+	{
 		controls->setCtrlPressed(false);
 	}
-	if (modifiers.isAltDown() && !controls->isAltPressed()) {
+	
+	if (modifiers.isAltDown() && !controls->isAltPressed())
+	{
 		controls->setAltPressed(true);
 	}
+	
 	if (!modifiers.isAltDown() && controls->isAltPressed()) {
 		controls->setAltPressed(false);
 	}
-	*/
 }
 
 bool InputCatcherControl::keyPressed(const KeyPress &key)
@@ -195,12 +203,12 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
     }
     else if (k == '[')
 	{
-        hw->getButton("nextseq").lock()->push();
+        hw->getButton("next-seq").lock()->push();
         return true;
     }
     else if (k == ']')
 	{
-        hw->getButton("trackmute").lock()->push();
+        hw->getButton("track-mute").lock()->push();
         return true;
     }
 
@@ -254,9 +262,20 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 	{
 		auto controls = mpc::Mpc::instance().getControls().lock();
 		auto increment = -1;
-		if (controls->isShiftPressed()) increment *= 10;
-		if (controls->isAltPressed()) increment *= 10;
-		if (controls->isCtrlPressed()) increment *= 10;
+		if (controls->isShiftPressed())
+		{
+			increment *= 10;
+		}
+		
+		if (controls->isAltPressed())
+		{
+			increment *= 10;
+		}
+
+		if (controls->isCtrlPressed())
+		{
+			increment *= 10;
+		}
 		hw->getDataWheel().lock()->turn(increment);
 		return true;
 	}
@@ -264,9 +283,20 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 	{
 		auto controls = mpc::Mpc::instance().getControls().lock();
 		auto increment = 1;
-		if (controls->isShiftPressed()) increment *= 10;
-		if (controls->isAltPressed()) increment *= 10;
-		if (controls->isCtrlPressed()) increment *= 10;
+		if (controls->isShiftPressed())
+		{
+			increment *= 10;
+		}
+
+		if (controls->isAltPressed())
+		{
+			increment *= 10;
+		}
+
+		if (controls->isCtrlPressed())
+		{
+			increment *= 10;
+		}
 		hw->getDataWheel().lock()->turn(increment);
 		return true;
 	}

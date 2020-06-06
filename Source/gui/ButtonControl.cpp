@@ -73,8 +73,8 @@ void ButtonControl::initRects() {
 	rects.emplace("prevbarstart", &prevbarstart);
 	rects.emplace("nextbarend", &nextbarend);
 	rects.emplace("tap", &taptemponoterepeat);
-	rects.emplace("nextseq", &nextseq);
-	rects.emplace("trackmute", &trackmute);
+	rects.emplace("next-seq", &nextseq);
+	rects.emplace("track-mute", &trackmute);
 	rects.emplace("openwindow", &openwindow);
 	rects.emplace("fulllevel", &fulllevel);
 	rects.emplace("sixteenlevels", &sixteenlevels);

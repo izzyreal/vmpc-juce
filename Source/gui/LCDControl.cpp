@@ -21,11 +21,15 @@ void LCDControl::drawPixelsToImg() {
 	const auto rectRight = dirtyRect.getRight();
 	const auto rectBottom = dirtyRect.getBottom();
 
-	for (int x = rectX; x < rectRight; x++) {
-		for (int y = rectY; y < rectBottom; y++) {
+	for (int x = rectX; x < rectRight; x++)
+	{
+		for (int y = rectY; y < rectBottom; y++)
+		{
 			const auto x_x2 = x * 2;
 			const auto y_x2 = y * 2;
-			if ((*pixels)[x][y] == true) {
+			
+			if ((*pixels)[x][y] == true)
+			{
 				c = Constants::LCD_HALF_ON;
 				lcd.setPixelAt(x_x2, y_x2, Constants::LCD_ON);
 			}

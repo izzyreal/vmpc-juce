@@ -21,15 +21,18 @@
 #include <sequencer/Sequencer.hpp>
 
 #include <ui/midisync/MidiSyncGui.hpp>
-#include <ui/vmpc/DirectToDiskRecorderGui.hpp>
 
 #include <lcdgui/Background.hpp>
+#include <lcdgui/Screens.hpp>
+#include <lcdgui/screens/window/VmpcDirectToDiskRecorderScreen.hpp>
 
 // ctoot
 #include <audio/server/NonRealTimeAudioServer.hpp>
 #include <midi/core/ShortMessage.hpp>
 
 using namespace ctoot::midi::core;
+using namespace mpc::lcdgui;
+using namespace mpc::lcdgui::screens::window;
 
 //==============================================================================
 VmpcAudioProcessor::VmpcAudioProcessor()
@@ -254,41 +257,49 @@ void VmpcAudioProcessor::processTransport() {
 	}
 }
 
-void VmpcAudioProcessor::checkBouncing() {
+void VmpcAudioProcessor::checkBouncing()
+{
 	auto ams = mpc::Mpc::instance().getAudioMidiServices().lock();
 	auto server = ams->getAudioServer();
 	bool amsIsBouncing = ams->isBouncing();
 
+	auto directToDiskRecorderScreen = dynamic_pointer_cast<VmpcDirectToDiskRecorderScreen>(Screens::getScreenComponent("vmpc-direct-to-disk-recorder"));
+
 	if (amsIsBouncing && !wasBouncing) {
 
 		wasBouncing = true;
-
-		auto directToDiskRecorderGui = mpc::Mpc::instance().getUis().lock()->getD2DRecorderGui();
-		if (directToDiskRecorderGui->isOffline()) {
+		
+		if (directToDiskRecorderScreen->isOffline())
+		{
 			vector<int> rates{ 44100, 48000, 88200 };
-			auto rate = rates[directToDiskRecorderGui->getSampleRate()];
+			auto rate = rates[directToDiskRecorderScreen->getSampleRate()];
 			ams->getFrameSequencer().lock()->start(rate);
-			if (server->isRealTime()) {
+			
+			if (server->isRealTime())
+			{
 				server->setSampleRate(rate);
 				server->setRealTime(false);
 			}
 		}
-		else {
+		else
+		{
 			ams->getFrameSequencer().lock()->start(getSampleRate());
 		}
 
-		for (auto& diskRecorder : ams->getDiskRecorders()) {
+		for (auto& diskRecorder : ams->getDiskRecorders())
+		{
 			diskRecorder.lock()->start();
 		}
 
 	}
-	else if (!amsIsBouncing && wasBouncing) {
-
+	else if (!amsIsBouncing && wasBouncing)
+	{
 		wasBouncing = false;
 
-		auto directToDiskRecorderGui = mpc::Mpc::instance().getUis().lock()->getD2DRecorderGui();
-		if (directToDiskRecorderGui->isOffline()) {
-			if (!server->isRealTime()) {
+		if (directToDiskRecorderScreen->isOffline())
+		{
+			if (!server->isRealTime())
+			{
 				server->setSampleRate(getSampleRate());
 				server->setRealTime(true);
 			}
@@ -296,21 +307,25 @@ void VmpcAudioProcessor::checkBouncing() {
 	}
 }
 
-void VmpcAudioProcessor::checkSoundRecorder() {
+void VmpcAudioProcessor::checkSoundRecorder()
+{
 	auto ams = mpc::Mpc::instance().getAudioMidiServices().lock();
 	auto recorder = ams->getSoundRecorder().lock();
 
-	if (wasRecordingSound && !recorder->isRecording()) {
+	if (wasRecordingSound && !recorder->isRecording())
+	{
 		recorder->stop();
 		ams->stopSoundRecorder();
 	}
 
-	if (!wasRecordingSound && ams->isRecordingSound()) {
+	if (!wasRecordingSound && ams->isRecordingSound())
+	{
 		wasRecordingSound = true;
 		mpc::Mpc::instance().getLayeredScreen().lock()->getCurrentBackground()->setName("recording");
 		recorder->start();
 	}
-	else if (wasRecordingSound && !ams->isRecordingSound()) {
+	else if (wasRecordingSound && !ams->isRecordingSound())
+	{
 		wasRecordingSound = false;
 		recorder->stop();
 		mpc::Mpc::instance().getLayeredScreen().lock()->getCurrentBackground()->setName("sample");
@@ -327,9 +342,12 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	
 	auto server = mpc::Mpc::instance().getAudioMidiServices().lock()->getAudioServer();
 
-	if (!server->isRunning()) {
+	if (!server->isRunning())
+	{
 		for (int i = 0; i < totalNumInputChannels; ++i)
+		{
 			buffer.clear(i, 0, buffer.getNumSamples());
+		}
 		return;
 	}
 
@@ -337,9 +355,12 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	checkBouncing();
 	checkSoundRecorder();
 
-	if (!server->isRealTime()) {
+	if (!server->isRealTime())
+	{
 		for (int i = 0; i < totalNumInputChannels; ++i)
+		{
 			buffer.clear(i, 0, buffer.getNumSamples());
+		}
 		return;
 	}
 
@@ -350,19 +371,24 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	auto chDataIn = buffer.getArrayOfReadPointers();
 	auto chDataOut = buffer.getArrayOfWritePointers();
 
-	if (totalNumInputChannels == 1) {
+	if (totalNumInputChannels == 1)
+	{
 		monoToStereoBuffer.clear();
 		monoToStereoBuffer.copyFrom(0, 0, buffer.getReadPointer(0), buffer.getNumSamples());
 		monoToStereoBuffer.copyFrom(1, 0, buffer.getReadPointer(0), buffer.getNumSamples());
 		server->work(monoToStereoBuffer.getArrayOfReadPointers(), chDataOut, buffer.getNumSamples(), 2, totalNumOutputChannels);
 	}
-	else {
+	else
+	{
 		server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannels, totalNumOutputChannels);
 	}
 
-	if (totalNumOutputChannels < 2) {
+	if (totalNumOutputChannels < 2)
+	{
 		for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+		{
 			buffer.clear(i, 0, buffer.getNumSamples());
+		}
 	}
 }
 
@@ -381,7 +407,9 @@ AudioProcessorEditor* VmpcAudioProcessor::createEditor()
 void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
 	auto editor = getActiveEditor();
-	if (editor != nullptr) {
+
+	if (editor != nullptr)
+	{
 		auto w = editor->getWidth();
 		auto h = editor->getHeight();
 		std::unique_ptr<XmlElement> xml(new XmlElement("LastUIDimensions"));
@@ -396,8 +424,10 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
 	std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
 
-	if (xmlState.get() != nullptr) {
-		if (xmlState->hasTagName("LastUIDimensions")) {
+	if (xmlState.get() != nullptr)
+	{
+		if (xmlState->hasTagName("LastUIDimensions"))
+		{
 			auto w = xmlState->getIntAttribute("w", 1298 / 2);
 			auto h = xmlState->getIntAttribute("h", 994 / 2);
 			lastUIWidth = w;
