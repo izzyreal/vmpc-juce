@@ -129,15 +129,20 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 	lcd->dirtyRect = Rectangle<int>(0, 0, 248, 60);
 	lcd->drawPixelsToImg();
 	lcd->startTimer(50);
+
+	inputCatcher->setWantsKeyboardFocus(true);
 }
 
 VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
 {
 	mpcSplashScreen.deleteAndZero();
 	lcd->stopTimer();
+
 	delete dataWheel;
 	delete lcd;
-	for (auto& l : mpc::Mpc::instance().getHardware().lock()->getLeds()) {
+
+	for (auto& l : mpc::Mpc::instance().getHardware().lock()->getLeds())
+	{
 		l->deleteObserver(leds);
 	}
 	delete leds;
@@ -155,7 +160,6 @@ VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
 
 void VmpcAudioProcessorEditor::initialise()
 {
-
 	if (processor.shouldShowDisclaimer)
 	{
 		auto bgImgPath = mpc::Paths::resPath() + "/img/disclaimer.gif";
@@ -164,14 +168,21 @@ void VmpcAudioProcessorEditor::initialise()
 		mpcSplashScreen->deleteAfterDelay(RelativeTime::seconds(8), true);
 		processor.shouldShowDisclaimer = false;
 	}
+
+	if (TopLevelWindow::getNumTopLevelWindows() != 0 && TopLevelWindow::getTopLevelWindow(0) != nullptr)
+	{
+		MLOG("topLevelWindow(0)");
+		TopLevelWindow::getTopLevelWindow(0)->setWantsKeyboardFocus(false);
+	}
 }
 
 void VmpcAudioProcessorEditor::paint (Graphics& g)
 {
-	if (!initialFocusSet) {
+	if (inputCatcher->isVisible())
+	{
 		inputCatcher->grabKeyboardFocus();
-		initialFocusSet = true;
 	}
+
 	g.drawImageWithin(bgImg, 0, 0, getWidth(), getHeight(), RectanglePlacement(RectanglePlacement::centred));
 }
 

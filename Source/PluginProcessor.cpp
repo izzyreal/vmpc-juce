@@ -20,11 +20,10 @@
 #include <Paths.hpp>
 #include <sequencer/Sequencer.hpp>
 
-#include <ui/midisync/MidiSyncGui.hpp>
-
 #include <lcdgui/Background.hpp>
 #include <lcdgui/Screens.hpp>
 #include <lcdgui/screens/window/VmpcDirectToDiskRecorderScreen.hpp>
+#include <lcdgui/screens/SyncScreen.hpp>
 
 // ctoot
 #include <audio/server/NonRealTimeAudioServer.hpp>
@@ -32,6 +31,7 @@
 
 using namespace ctoot::midi::core;
 using namespace mpc::lcdgui;
+using namespace mpc::lcdgui::screens;
 using namespace mpc::lcdgui::screens::window;
 
 //==============================================================================
@@ -229,16 +229,24 @@ void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages, int bufferSize
 	mpc::Mpc::instance().getMidiPorts().lock()->getReceivers()[1].clear();
 }
 
-void VmpcAudioProcessor::processTransport() {
-	if (JUCEApplication::isStandaloneApp()) return;
-	auto msGui = mpc::Mpc::instance().getUis().lock()->getMidiSyncGui();
-	bool syncEnabled = msGui->getModeIn() == 1;
+void VmpcAudioProcessor::processTransport()
+{
+	if (JUCEApplication::isStandaloneApp())
+	{
+		return;
+	}
+	auto syncScreen = dynamic_pointer_cast<SyncScreen>(Screens::getScreenComponent("sync"));
 
-	if (syncEnabled) {
+	bool syncEnabled = syncScreen->getModeIn() == 1;
+
+	if (syncEnabled)
+	{
 		AudioPlayHead::CurrentPositionInfo info;
 		getPlayHead()->getCurrentPosition(info);
 		double tempo = info.bpm;
-		if (tempo != m_Tempo || mpc::Mpc::instance().getSequencer().lock()->getTempo().toDouble() != tempo) {
+		
+		if (tempo != m_Tempo || mpc::Mpc::instance().getSequencer().lock()->getTempo().toDouble() != tempo)
+		{
 			mpc::Mpc::instance().getSequencer().lock()->setTempo(BCMath(tempo));
 			m_Tempo = tempo;
 		}

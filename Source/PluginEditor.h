@@ -25,7 +25,8 @@
 //==============================================================================
 /**
 */
-class VmpcAudioProcessorEditor  : public AudioProcessorEditor
+class VmpcAudioProcessorEditor
+	: public AudioProcessorEditor
 {
 
 public:
@@ -61,11 +62,10 @@ private:
 	Image ledRedImg;
 	Image ledGreenImg;
 
-	bool initialFocusSet = false;
-
 	VmpcAudioProcessor& getProcessor() const
 	{
 		return static_cast<VmpcAudioProcessor&> (processor);
 	}
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcAudioProcessorEditor)
+
+	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcAudioProcessorEditor)
 };

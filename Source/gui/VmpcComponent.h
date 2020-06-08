@@ -23,6 +23,7 @@ class VmpcComponent
 public:
     VmpcComponent(const String& componentName = "")
     {
+        setWantsKeyboardFocus(false);
     }
 
 	VmpcComponent()

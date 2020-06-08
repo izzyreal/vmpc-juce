@@ -16,6 +16,12 @@ using namespace mpc::controls;
 InputCatcherControl::InputCatcherControl(const String& componentName)
 	: Component(componentName)
 {
+	setWantsKeyboardFocus(true);
+}
+
+void InputCatcherControl::visibilityChanged()
+{
+	grabKeyboardFocus();
 }
 
 void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
