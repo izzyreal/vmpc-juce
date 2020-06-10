@@ -22,6 +22,7 @@
 VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p)
 {
+	setWantsKeyboardFocus(false);
 	initialise();
 
 	inputCatcher = new InputCatcherControl("inputcatcher");

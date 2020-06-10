@@ -19,11 +19,6 @@ InputCatcherControl::InputCatcherControl(const String& componentName)
 	setWantsKeyboardFocus(true);
 }
 
-void InputCatcherControl::visibilityChanged()
-{
-	grabKeyboardFocus();
-}
-
 void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
 
 	auto controls = mpc::Mpc::instance().getControls().lock();
