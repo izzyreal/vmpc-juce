@@ -245,9 +245,9 @@ void VmpcAudioProcessor::processTransport()
 		getPlayHead()->getCurrentPosition(info);
 		double tempo = info.bpm;
 		
-		if (tempo != m_Tempo || mpc::Mpc::instance().getSequencer().lock()->getTempo().toDouble() != tempo)
+		if (tempo != m_Tempo || mpc::Mpc::instance().getSequencer().lock()->getTempo() != tempo)
 		{
-			mpc::Mpc::instance().getSequencer().lock()->setTempo(BCMath(tempo));
+			mpc::Mpc::instance().getSequencer().lock()->setTempo(tempo);
 			m_Tempo = tempo;
 		}
 		
