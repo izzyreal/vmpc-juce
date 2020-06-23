@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="toyOrS" name="vmpc" reportAppUsage="1" splashScreenColour="Dark"
-              projectType="audioplug" version="0.1.4" bundleIdentifier="nl.izmar.vmpc"
+              projectType="audioplug" version="0.1.5" bundleIdentifier="nl.izmar.vmpc"
               includeBinaryInAppConfig="1" cppLanguageStandard="17" companyCopyright="Izmar"
               buildVST="1" buildVST3="1" buildAU="1" buildAUv3="0" buildRTAS="0"
               buildAAX="0" buildStandalone="1" enableIAA="0" pluginName="vmpc"
@@ -9,12 +9,12 @@
               pluginCode="2kxl" pluginIsSynth="1" pluginWantsMidiIn="1" pluginProducesMidiOut="1"
               pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="1" pluginAUExportPrefix="vmpcAU"
               pluginRTASCategory="" aaxIdentifier="nl.izmar.vmpc" pluginAAXCategory="2"
-              jucerVersion="5.4.7" defines="" companyName="Izmar" pluginFormats="buildAU,buildStandalone,buildVST,buildVST3"
+              jucerVersion="5.4.7" companyName="Izmar" pluginFormats="buildAU,buildStandalone,buildVST,buildVST3"
               pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn,pluginProducesMidiOut,pluginEditorRequiresKeys"
               headerPath="../../../mpc/src/main&#10;../../../ctoot/src/main&#10;../../../moduru/src/main&#10;../../../rapidjson/include&#10;../../../ASIOSDK2.3/common"
               pluginRTASDisableBypass="0" pluginRTASDisableMultiMono="0" pluginAAXDisableBypass="0"
               pluginAAXDisableMultiMono="0" companyWebsite="www.izmar.nl" pluginVST3Category="Instrument,Sampler"
-              pluginVSTCategory="kPlugCategEffect">
+              pluginVSTCategory="kPlugCategEffect" defines="JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1">
   <MAINGROUP id="XNuzIS" name="vmpc">
     <GROUP id="{FD94A746-89C4-1A96-B91F-19DA5E2BF0C3}" name="Source">
       <GROUP id="{A1B7D4FA-F761-9058-F6C5-67B5780E62DE}" name="resources">
@@ -51,6 +51,8 @@
               file="Source/gui/SliderControl.hpp"/>
         <FILE id="CUh87v" name="VmpcComponent.h" compile="0" resource="0" file="Source/gui/VmpcComponent.h"/>
       </GROUP>
+      <FILE id="IvdXIi" name="StandaloneFilter.cpp" compile="1" resource="0"
+            file="Source/StandaloneFilter.cpp"/>
       <FILE id="VzqcAq" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="GChylr" name="PluginProcessor.h" compile="0" resource="0"
