@@ -31,6 +31,5 @@ public:
 
 public:
 	LCDControl(const String& componentName, std::weak_ptr<mpc::lcdgui::LayeredScreen> ls);
-	~LCDControl();
 
 };

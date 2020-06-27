@@ -113,7 +113,15 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 	}
 	else if (k == KeyPress::F4Key)
 	{
+		auto controls = mpc::Mpc::instance().getControls().lock();
+		
+		if (controls->isAltPressed())
+		{
+			return true;
+		}
+
 		hw->getButton("f4").lock()->push();
+
 		return true;
 	}
 	else if (k == KeyPress::F5Key)
@@ -263,6 +271,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 	{
 		auto controls = mpc::Mpc::instance().getControls().lock();
 		auto increment = -1;
+
 		if (controls->isShiftPressed())
 		{
 			increment *= 10;

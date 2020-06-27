@@ -64,7 +64,3 @@ void LCDControl::paint(Graphics& g)
 {
 	g.drawImageAt(lcd, 0, 0);
 }
-
-LCDControl::~LCDControl() {
-	MLOG("LCDControl dtor");
-}

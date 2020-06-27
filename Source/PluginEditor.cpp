@@ -136,6 +136,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 
 VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
 {
+	delete inputCatcher;
 	mpcSplashScreen.deleteAndZero();
 	lcd->stopTimer();
 
@@ -156,7 +157,6 @@ VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
 	for (auto& p : pads) {
 		delete p;
 	}
-	delete inputCatcher;
 }
 
 void VmpcAudioProcessorEditor::initialise()
@@ -172,7 +172,6 @@ void VmpcAudioProcessorEditor::initialise()
 
 	if (TopLevelWindow::getNumTopLevelWindows() != 0 && TopLevelWindow::getTopLevelWindow(0) != nullptr)
 	{
-		MLOG("topLevelWindow(0)");
 		TopLevelWindow::getTopLevelWindow(0)->setWantsKeyboardFocus(false);
 	}
 }
