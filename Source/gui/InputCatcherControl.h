@@ -15,6 +15,7 @@ public:
 	bool keyPressed(const KeyPress &key) override;
 	bool keyStateChanged(bool isKeyDown) override;
 	void modifierKeysChanged(const ModifierKeys& modifiers) override;
+	void focusLost(FocusChangeType cause) override;
 
 public:
 	InputCatcherControl(const String& componentName);

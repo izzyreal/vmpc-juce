@@ -16,7 +16,16 @@ using namespace mpc::controls;
 InputCatcherControl::InputCatcherControl(const String& componentName)
 	: Component(componentName)
 {
-	setWantsKeyboardFocus(true);
+}
+
+void InputCatcherControl::focusLost(FocusChangeType cause)
+{
+	// We sometimes get a "stuck" isShiftPressed, so here we always make sure shift is
+	// internally considered not pressed when this component loses focus.
+	// In fact any buttons/keys could get stuck, so we clear everything.
+	MLOG("About to releaseAll");
+	auto controls = mpc::Mpc::instance().getControls().lock();
+	controls->releaseAll();
 }
 
 void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
@@ -49,14 +58,14 @@ void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
 		controls->setAltPressed(true);
 	}
 	
-	if (!modifiers.isAltDown() && controls->isAltPressed()) {
+	if (!modifiers.isAltDown() && controls->isAltPressed())
+	{
 		controls->setAltPressed(false);
 	}
 }
 
 bool InputCatcherControl::keyPressed(const KeyPress &key)
 {
-
 	bool alreadyPressed = false;
 	
 	for (int i = 0; i < pressedKeys.size(); i++)
