@@ -13,7 +13,9 @@ LCDControl::LCDControl(const String& componentName, std::weak_ptr<mpc::lcdgui::L
 	lcd = Image(Image::ARGB, 496, 120, true);
 }
 
-void LCDControl::drawPixelsToImg() {
+void LCDControl::drawPixelsToImg()
+{
+
 	auto pixels = ls.lock()->getPixels();
 	Colour c;
 	const auto rectX = dirtyRect.getX();
@@ -46,8 +48,10 @@ void LCDControl::drawPixelsToImg() {
 	dirtyRect = Rectangle<int>();
 }
 
-void LCDControl::checkLsDirty() {
-	if (ls.lock()->IsDirty()) {
+void LCDControl::checkLsDirty()
+{
+	if (ls.lock()->IsDirty())
+	{
 		auto dirtyArea = ls.lock()->getDirtyArea();
 		dirtyRect = Rectangle<int>(dirtyArea.L, dirtyArea.T, dirtyArea.W(), dirtyArea.H());
 		ls.lock()->Draw();
@@ -56,7 +60,8 @@ void LCDControl::checkLsDirty() {
 	}
 }
 
-void LCDControl::timerCallback() {
+void LCDControl::timerCallback()
+{
 	checkLsDirty();
 }
 
