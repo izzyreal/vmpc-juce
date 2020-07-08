@@ -337,7 +337,7 @@ void VmpcAudioProcessor::checkSoundRecorder()
 		wasRecordingSound = false;
 		recorder->stop();
 		mpc::Mpc::instance().getLayeredScreen().lock()->getCurrentBackground()->setName("sample");
-		mpc::Mpc::instance().getLayeredScreen().lock()->openScreen("keeporretry");
+		mpc::Mpc::instance().getLayeredScreen().lock()->openScreen("keep-or-retry");
 	}
 }
 
