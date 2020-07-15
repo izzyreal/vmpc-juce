@@ -130,8 +130,6 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 	lcd->dirtyRect = Rectangle<int>(0, 0, 248, 60);
 	lcd->drawPixelsToImg();
 	lcd->startTimer(50);
-
-	inputCatcher->setWantsKeyboardFocus(true);
 }
 
 VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
@@ -166,6 +164,7 @@ void VmpcAudioProcessorEditor::initialise()
 		auto bgImgPath = mpc::Paths::resPath() + "/img/disclaimer.gif";
 		auto disclaimer = ImageFileFormat::loadFrom(File(bgImgPath));
 		mpcSplashScreen = new SplashScreen("Woah", disclaimer, true);
+		mpcSplashScreen->setWantsKeyboardFocus(false);
 		mpcSplashScreen->deleteAfterDelay(RelativeTime::seconds(8), true);
 		processor.shouldShowDisclaimer = false;
 	}

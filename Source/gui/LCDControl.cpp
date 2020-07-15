@@ -62,6 +62,13 @@ void LCDControl::checkLsDirty()
 
 void LCDControl::timerCallback()
 {
+	static auto focus = getCurrentlyFocusedComponent();
+	if (focus != getCurrentlyFocusedComponent())
+	{
+		if (getCurrentlyFocusedComponent() != nullptr)
+			MLOG("focus: " + getCurrentlyFocusedComponent()->getName().toStdString());
+		focus = getCurrentlyFocusedComponent();
+	}
 	checkLsDirty();
 }
 
