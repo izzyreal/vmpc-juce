@@ -1,9 +1,26 @@
 #include "PadControl.hpp"
 #include <hardware/HwPad.hpp>
 
+#include <Mpc.hpp>
+#include <sequencer/Sequencer.hpp>
+#include <sequencer/Track.hpp>
+#include <sampler/Sampler.hpp>
+#include <sampler/Pad.hpp>
+#include <sampler/NoteParameters.hpp>
+#include <disk/SoundLoader.hpp>
+#include <disk/MpcFile.hpp>
+
+#include <mpc/MpcSoundPlayerChannel.hpp>
+
+#include <file/File.hpp>
+#include <lang/StrUtil.hpp>
+
+#include <Logger.hpp>
+
 #include <math.h>
 
 using namespace std;
+using namespace moduru::lang;
 
 PadControl::PadControl(Rectangle <float> rect, std::weak_ptr<mpc::hardware::HwPad> pad, Image padhit, const String &componentName)
 	: VmpcComponent(componentName)
@@ -14,26 +31,123 @@ PadControl::PadControl(Rectangle <float> rect, std::weak_ptr<mpc::hardware::HwPa
 	pad.lock()->addObserver(this);
 }
 
-void PadControl::timerCallback() {
-	if (fading) padhitBrightness -= 20;
-	if (padhitBrightness < 0) {
+bool PadControl::isInterestedInFileDrag(const StringArray& files)
+{
+	if (files.size() != 1)
+	{
+		return false;
+	}
+
+	for (auto& s : files)
+	{
+		if (StrUtil::hasEnding(StrUtil::toLower(s.toStdString()), ".snd") || StrUtil::hasEnding(StrUtil::toLower(s.toStdString()), ".wav"))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void PadControl::filesDropped(const StringArray& files, int x, int y)
+{
+	if (files.size() != 1)
+	{
+		return;
+	}
+
+	const auto padIndex = pad.lock()->getIndex();
+
+	for (auto& s : files)
+	{
+		if (StrUtil::hasEnding(StrUtil::toLower(s.toStdString()), ".snd") || StrUtil::hasEnding(StrUtil::toLower(s.toStdString()), ".wav"))
+		{
+			auto& mpc = mpc::Mpc::instance();
+			auto sampler = mpc.getSampler().lock();
+
+			auto soundLoader = mpc::disk::SoundLoader(sampler->getSounds(), false);
+			soundLoader.setPreview(false);
+			soundLoader.setPartOfProgram(false);
+			bool hasNotBeenLoadedAlready = true;
+
+			auto compatiblePath = StrUtil::replaceAll(s.toStdString(), '\\', string("\\"));
+			auto moduruFile = dynamic_pointer_cast<moduru::file::FsNode>(make_shared<moduru::file::File>(compatiblePath, nullptr));
+
+			mpc::disk::MpcFile file(moduruFile);
+
+			try
+			{
+				hasNotBeenLoadedAlready = soundLoader.loadSound(&file) == -1;
+			}
+			catch (const invalid_argument& exception)
+			{
+				MLOG("A problem occurred when trying to load " + moduruFile->getName() + ": " + string(exception.what()));
+				return;
+			}
+
+			if (hasNotBeenLoadedAlready)
+			{
+				auto drumIndex = mpc.getSequencer().lock()->getActiveTrack().lock()->getBus() - 1;
+				
+				if (drumIndex == -1)
+				{
+					return;
+				}
+
+				auto mpcSoundPlayerChannel = mpc.getDrum(drumIndex);
+
+				auto programIndex = mpcSoundPlayerChannel->getProgram();
+				auto program = dynamic_pointer_cast<mpc::sampler::Program>(mpc.getSampler().lock()->getProgram(programIndex).lock());
+				auto soundIndex = mpc.getSampler().lock()->getSoundCount() - 1;
+				auto programPad = program->getPad(padIndex);
+				auto padNote = programPad->getNote();
+				
+				auto noteParameters = dynamic_cast<mpc::sampler::NoteParameters*>(program->getNoteParameters(padNote));
+
+				if (noteParameters == nullptr)
+				{
+					return;
+				}
+
+				noteParameters->setSoundNumber(soundIndex);
+
+				auto layeredScreen = mpc.getLayeredScreen().lock();
+				layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
+			}
+		}
+	}
+}
+
+void PadControl::timerCallback()
+{
+	if (fading)
+	{
+		padhitBrightness -= 20;
+	}
+
+	if (padhitBrightness < 0)
+	{
 		padhitBrightness = 0;
 		repaint();
 		fading = false;
 		stopTimer();
 	}
-	else {
+	else
+	{
 		repaint();
 	}
 }
 
-void PadControl::update(moduru::observer::Observable* o, nonstd::any arg) {
+void PadControl::update(moduru::observer::Observable* o, nonstd::any arg)
+{
 	int velocity = nonstd::any_cast<int>(arg);
-	if (velocity == 255) {
+
+	if (velocity == 255)
+	{
 		fading = true;
 		pressed = false;
 	}
-	else {
+	else
+	{
 		padhitBrightness = velocity + 25;
 		pressed = true;
 		fading = false;
@@ -41,7 +155,8 @@ void PadControl::update(moduru::observer::Observable* o, nonstd::any arg) {
 	}
 }
 
-int PadControl::getVelo(int x, int y) {
+int PadControl::getVelo(int x, int y)
+{
 	float centX = rect.getCentreX() - rect.getX();
 	float centY = rect.getCentreY() - rect.getY();
 	float distX = x - centX;
@@ -54,18 +169,22 @@ int PadControl::getVelo(int x, int y) {
 	return velo;
 }
 
-void PadControl::mouseDown(const MouseEvent& event) {
+void PadControl::mouseDown(const MouseEvent& event)
+{
 	pad.lock()->push(getVelo(event.x, event.y));
 }
 
-void PadControl::mouseDoubleClick(const MouseEvent& event) {
+void PadControl::mouseDoubleClick(const MouseEvent& event)
+{
 }
 
-void PadControl::mouseUp(const MouseEvent& event) {
+void PadControl::mouseUp(const MouseEvent& event)
+{
 	pad.lock()->release();
 }
 
-void PadControl::setBounds() {
+void PadControl::setBounds()
+{
 	setSize(rect.getWidth(), rect.getHeight());
 	Component::setBounds(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
 }
@@ -78,6 +197,7 @@ void PadControl::paint(Graphics& g)
 	g.drawImageAt(img, 0, 0);
 }
 
-PadControl::~PadControl() {
+PadControl::~PadControl()
+{
 	pad.lock()->deleteObserver(this);
 }

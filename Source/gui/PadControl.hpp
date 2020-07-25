@@ -7,15 +7,15 @@
 #include <thread>
 #include <memory>
 
-namespace mpc {
-	namespace hardware {
-		class HwPad;
-	}
+namespace mpc::hardware
+{
+	class HwPad;
 }
 
 class PadControl
 	: public VmpcComponent
 	, public Timer
+	, public FileDragAndDropTarget
 	, public moduru::observer::Observer
 	{
 
@@ -36,11 +36,11 @@ private:
 		void mouseUp(const MouseEvent& event) override;
 		void mouseDoubleClick(const MouseEvent& event) override;
 		void timerCallback() override;
+		bool isInterestedInFileDrag(const StringArray& files);
+		void filesDropped(const StringArray& files, int x, int y);
 
 	public:
 		void update(moduru::observer::Observable* o, nonstd::any arg) override;
-
-	public:
 		void setBounds();
 
 	private:
