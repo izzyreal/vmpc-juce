@@ -33,6 +33,7 @@ using namespace ctoot::midi::core;
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 using namespace mpc::lcdgui::screens::window;
+using namespace std;
 
 //==============================================================================
 VmpcAudioProcessor::VmpcAudioProcessor()

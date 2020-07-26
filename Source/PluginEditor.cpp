@@ -18,6 +18,8 @@
 #include <audiomidi/AudioMidiServices.hpp>
 #include <Paths.hpp>
 
+using namespace std;
+
 //==============================================================================
 VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
     : AudioProcessorEditor (&p), processor (p)

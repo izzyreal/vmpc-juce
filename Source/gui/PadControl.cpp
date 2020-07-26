@@ -74,13 +74,16 @@ void PadControl::filesDropped(const StringArray& files, int x, int y)
 
 			mpc::disk::MpcFile file(moduruFile);
 
+			auto layeredScreen = mpc.getLayeredScreen().lock();
+
 			try
 			{
 				hasNotBeenLoadedAlready = soundLoader.loadSound(&file) == -1;
 			}
-			catch (const invalid_argument& exception)
+			catch (const exception& exception)
 			{
 				MLOG("A problem occurred when trying to load " + moduruFile->getName() + ": " + string(exception.what()));
+				layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
 				return;
 			}
 
@@ -90,6 +93,7 @@ void PadControl::filesDropped(const StringArray& files, int x, int y)
 				
 				if (drumIndex == -1)
 				{
+					layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
 					return;
 				}
 
@@ -105,12 +109,11 @@ void PadControl::filesDropped(const StringArray& files, int x, int y)
 
 				if (noteParameters == nullptr)
 				{
+					layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
 					return;
 				}
 
 				noteParameters->setSoundNumber(soundIndex);
-
-				auto layeredScreen = mpc.getLayeredScreen().lock();
 				layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
 			}
 		}
