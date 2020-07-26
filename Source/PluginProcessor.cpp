@@ -53,7 +53,6 @@ VmpcAudioProcessor::VmpcAudioProcessor()
 	moduru::Logger::l.log("\n\n-= vMPC2000XL v" + string(ProjectInfo::versionString) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
 
 	mpc::Mpc::instance().init(44100.f, 1, 5);
-	mpc::Mpc::instance().getLayeredScreen().lock()->openScreen("sequencer");
 }
 
 VmpcAudioProcessor::~VmpcAudioProcessor()
