@@ -10,7 +10,7 @@ LCDControl::LCDControl(const String& componentName, std::weak_ptr<mpc::lcdgui::L
 	: VmpcComponent(componentName)
 {
 	this->ls = ls;
-	lcd = Image(Image::ARGB, 496, 120, true);
+	lcd = Image(Image::RGB, 496, 120, true);
 }
 
 void LCDControl::startPowerUpSequence()

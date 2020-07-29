@@ -15,9 +15,9 @@ Rectangle<float> * Constants::LCD_RECT()
 }
 Rectangle<float> Constants::LCD_RECT_ = Rectangle<float>(116, 102, 496, 120);
 
-const Colour Constants::LCD_ON = Colour::fromRGBA(86, 61, 145, 255);
-const Colour Constants::LCD_OFF = Colour::fromRGBA(170, 248, 218, 255);
-const Colour Constants::LCD_HALF_ON = Colour::fromRGBA(128, 154, 181, 255);
+const Colour Constants::LCD_ON = Colour::fromRGB(86, 61, 145);
+const Colour Constants::LCD_OFF = Colour::fromRGB(170, 248, 218);
+const Colour Constants::LCD_HALF_ON = Colour::fromRGB(128, 154, 181);
 
 Rectangle<float>* Constants::RECKNOB_RECT()
 {
