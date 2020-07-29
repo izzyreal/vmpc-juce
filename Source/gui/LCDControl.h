@@ -2,17 +2,19 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "VmpcComponent.h"
 
+#include <observer/Observer.hpp>
+
 #include <vector>
 #include <memory>
 
-namespace mpc::lcdgui
-{
+namespace mpc::lcdgui {
 	class LayeredScreen;
 }
 
 class LCDControl
 	: public VmpcComponent
 	, public Timer
+	, public moduru::observer::Observer
 {
 
 private:
@@ -39,5 +41,6 @@ public:
 
 public:
 	LCDControl(const String& componentName, std::weak_ptr<mpc::lcdgui::LayeredScreen> ls);
+	void update(moduru::observer::Observable* o, nonstd::any msg) override;
 
 };
