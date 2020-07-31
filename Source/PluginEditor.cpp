@@ -130,8 +130,16 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor (VmpcAudioProcessor& p)
 	getConstrainer()->setFixedAspectRatio(1.305835010060362);
 
 	lcd->drawPixelsToImg();
-	lcd->startTimer(50);
-	lcd->startPowerUpSequence();
+	lcd->startTimer(25);
+	
+	if (processor.poweredUp)
+	{
+		lcd->skipPowerUpSequence();
+	}
+	else {
+		lcd->startPowerUpSequence();
+		processor.poweredUp = true;
+	}
 }
 
 VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()

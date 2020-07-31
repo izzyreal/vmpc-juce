@@ -37,6 +37,14 @@ void LCDControl::startPowerUpSequence()
 	poweringUp = true;
 }
 
+void LCDControl::skipPowerUpSequence()
+{
+	poweredUp = true;
+	ls.lock()->getFocusedLayer().lock()->getParent()->SetDirty();
+	drawPixelsToImg();
+	repaint();
+}
+
 void LCDControl::drawPixelsToImg()
 {
 	auto pixels = ls.lock()->getPixels();

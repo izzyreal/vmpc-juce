@@ -34,6 +34,7 @@ private:
 
 public:
 	void startPowerUpSequence();
+	void skipPowerUpSequence();
 	void checkLsDirty();
 	void drawPixelsToImg();
 	void paint(Graphics& g) override;

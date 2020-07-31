@@ -73,7 +73,7 @@ private:
 
 public:
     bool shouldShowDisclaimer = true;
-
+    bool poweredUp = false;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcAudioProcessor)
 };
