@@ -52,7 +52,7 @@ VmpcAudioProcessor::VmpcAudioProcessor()
 	moduru::Logger::l.setPath(mpc::Paths::logFilePath());
 	moduru::Logger::l.log("\n\n-= vMPC2000XL v" + string(ProjectInfo::versionString) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
 
-	mpc::Mpc::instance().init(44100.f, 1, 5);
+	mpc.init(44100.f, 1, 5);
 }
 
 VmpcAudioProcessor::~VmpcAudioProcessor()
@@ -124,14 +124,14 @@ void VmpcAudioProcessor::changeProgramName (int index, const String& newName)
 //==============================================================================
 void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    auto seq = mpc::Mpc::instance().getSequencer().lock();
+    auto seq = mpc.getSequencer().lock();
     bool wasPlaying = seq->isPlaying();
     
 	if (wasPlaying) {
 		seq->stop();
 	}
     
-	auto ams = mpc::Mpc::instance().getAudioMidiServices().lock();
+	auto ams = mpc.getAudioMidiServices().lock();
 	auto server = ams->getAudioServer();
     server->setSampleRate(sampleRate);
     server->resizeBuffers(samplesPerBlock);
@@ -197,18 +197,18 @@ void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
 			m.getRawData();
 			auto tootMsg = ShortMessage();
 			tootMsg.setMessage(ShortMessage::NOTE_ON, m.getChannel() - 1, m.getNoteNumber(), velocity);
-			mpc::Mpc::instance().getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
+			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
 		}
 		else if (m.isNoteOff()) {
 			auto tootMsg = ShortMessage();
 			tootMsg.setMessage(ShortMessage::NOTE_OFF, m.getChannel() - 1, m.getNoteNumber(), 0);
-			mpc::Mpc::instance().getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
+			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
 		}
 	}
 }
 
 void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages, int bufferSize) {
-	auto midiOutMsgQueues = mpc::Mpc::instance().getMidiPorts().lock()->getReceivers();
+	auto midiOutMsgQueues = mpc.getMidiPorts().lock()->getReceivers();
 	for (auto& queue : midiOutMsgQueues) {
 		for (auto& msg : queue) {
 
@@ -225,8 +225,8 @@ void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages, int bufferSize
 			midiMessages.addEvent(jmsg, msg.bufferPos);
 		}
 	}
-	mpc::Mpc::instance().getMidiPorts().lock()->getReceivers()[0].clear();
-	mpc::Mpc::instance().getMidiPorts().lock()->getReceivers()[1].clear();
+	mpc.getMidiPorts().lock()->getReceivers()[0].clear();
+	mpc.getMidiPorts().lock()->getReceivers()[1].clear();
 }
 
 void VmpcAudioProcessor::processTransport()
@@ -235,7 +235,7 @@ void VmpcAudioProcessor::processTransport()
 	{
 		return;
 	}
-	auto syncScreen = dynamic_pointer_cast<SyncScreen>(Screens::getScreenComponent("sync"));
+	auto syncScreen = dynamic_pointer_cast<SyncScreen>(mpc.screens->getScreenComponent("sync"));
 
 	bool syncEnabled = syncScreen->getModeIn() == 1;
 
@@ -245,9 +245,9 @@ void VmpcAudioProcessor::processTransport()
 		getPlayHead()->getCurrentPosition(info);
 		double tempo = info.bpm;
 		
-		if (tempo != m_Tempo || mpc::Mpc::instance().getSequencer().lock()->getTempo() != tempo)
+		if (tempo != m_Tempo || mpc.getSequencer().lock()->getTempo() != tempo)
 		{
-			mpc::Mpc::instance().getSequencer().lock()->setTempo(tempo);
+			mpc.getSequencer().lock()->setTempo(tempo);
 			m_Tempo = tempo;
 		}
 		
@@ -255,11 +255,11 @@ void VmpcAudioProcessor::processTransport()
 
 		if (!wasPlaying && isPlaying)
 		{
-			mpc::Mpc::instance().getSequencer().lock()->playFromStart();
+			mpc.getSequencer().lock()->playFromStart();
 		}
 		
 		if (wasPlaying && !isPlaying) {
-			mpc::Mpc::instance().getSequencer().lock()->stop();
+			mpc.getSequencer().lock()->stop();
 		}
 		wasPlaying = isPlaying;
 	}
@@ -267,11 +267,11 @@ void VmpcAudioProcessor::processTransport()
 
 void VmpcAudioProcessor::checkBouncing()
 {
-	auto ams = mpc::Mpc::instance().getAudioMidiServices().lock();
+	auto ams = mpc.getAudioMidiServices().lock();
 	auto server = ams->getAudioServer();
 	bool amsIsBouncing = ams->isBouncing();
 
-	auto directToDiskRecorderScreen = dynamic_pointer_cast<VmpcDirectToDiskRecorderScreen>(Screens::getScreenComponent("vmpc-direct-to-disk-recorder"));
+	auto directToDiskRecorderScreen = dynamic_pointer_cast<VmpcDirectToDiskRecorderScreen>(mpc.screens->getScreenComponent("vmpc-direct-to-disk-recorder"));
 
 	if (amsIsBouncing && !wasBouncing) {
 
@@ -317,7 +317,7 @@ void VmpcAudioProcessor::checkBouncing()
 
 void VmpcAudioProcessor::checkSoundRecorder()
 {
-	auto ams = mpc::Mpc::instance().getAudioMidiServices().lock();
+	auto ams = mpc.getAudioMidiServices().lock();
 	auto recorder = ams->getSoundRecorder().lock();
 
 	if (wasRecordingSound && !recorder->isRecording())
@@ -345,7 +345,7 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	const int totalNumInputChannels = getTotalNumInputChannels();
 	const int totalNumOutputChannels = getTotalNumOutputChannels();
 	
-	auto server = mpc::Mpc::instance().getAudioMidiServices().lock()->getAudioServer();
+	auto server = mpc.getAudioMidiServices().lock()->getAudioServer();
 
 	if (!server->isRunning())
 	{

@@ -22,8 +22,8 @@
 using namespace std;
 using namespace moduru::lang;
 
-PadControl::PadControl(Rectangle <float> rect, std::weak_ptr<mpc::hardware::HwPad> pad, Image padhit, const String &componentName)
-	: VmpcComponent(componentName)
+PadControl::PadControl(mpc::Mpc& mpc, Rectangle <float> rect, std::weak_ptr<mpc::hardware::HwPad> pad, Image padhit, const String &componentName)
+	: VmpcComponent(componentName), mpc(mpc)
 {
 	this->pad = pad;
 	this->padhitImg = padhit;
@@ -61,10 +61,9 @@ void PadControl::filesDropped(const StringArray& files, int x, int y)
 	{
 		if (StrUtil::hasEnding(StrUtil::toLower(s.toStdString()), ".snd") || StrUtil::hasEnding(StrUtil::toLower(s.toStdString()), ".wav"))
 		{
-			auto& mpc = mpc::Mpc::instance();
 			auto sampler = mpc.getSampler().lock();
 
-			auto soundLoader = mpc::disk::SoundLoader(sampler->getSounds(), false);
+			auto soundLoader = mpc::disk::SoundLoader(mpc, sampler->getSounds(), false);
 			soundLoader.setPreview(false);
 			soundLoader.setPartOfProgram(false);
 			bool hasNotBeenLoadedAlready = true;

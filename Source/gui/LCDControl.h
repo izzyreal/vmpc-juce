@@ -7,6 +7,8 @@
 #include <vector>
 #include <memory>
 
+namespace mpc { class Mpc; }
+
 namespace mpc::lcdgui {
 	class LayeredScreen;
 }
@@ -18,6 +20,7 @@ class LCDControl
 {
 
 private:
+	mpc::Mpc& mpc;
 	std::weak_ptr<mpc::lcdgui::LayeredScreen> ls;
 	Image lcd;
 	Rectangle<int> dirtyRect;
@@ -41,7 +44,7 @@ public:
 	void timerCallback() override;
 
 public:
-	LCDControl(const String& componentName, std::weak_ptr<mpc::lcdgui::LayeredScreen> ls);
+	LCDControl(mpc::Mpc& mpc, const String& componentName, std::weak_ptr<mpc::lcdgui::LayeredScreen> ls);
 	void update(moduru::observer::Observable* o, nonstd::any msg) override;
 
 };

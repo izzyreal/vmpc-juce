@@ -5,10 +5,13 @@
 #include <vector>
 #include <memory>
 
+namespace mpc { class Mpc; }
+
 class InputCatcherControl
 	: public Component {
 
 private:
+	mpc::Mpc& mpc;
 	std::vector<int> pressedKeys;
 
 public:
@@ -18,6 +21,6 @@ public:
 	void focusLost(FocusChangeType cause) override;
 	
 public:
-	InputCatcherControl(const String& componentName);
+	InputCatcherControl(mpc::Mpc& mpc, const String& componentName);
 
 };

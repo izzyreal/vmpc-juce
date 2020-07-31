@@ -12,12 +12,12 @@
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 
-LCDControl::LCDControl(const String& componentName, std::weak_ptr<mpc::lcdgui::LayeredScreen> ls)
-	: VmpcComponent(componentName)
+LCDControl::LCDControl(mpc::Mpc& mpc, const String& componentName, std::weak_ptr<mpc::lcdgui::LayeredScreen> ls)
+	: VmpcComponent(componentName), mpc(mpc)
 {
 	this->ls = ls;
 	lcd = Image(Image::RGB, 496, 120, true);
-	auto othersScreen = std::dynamic_pointer_cast<OthersScreen>(Screens::getScreenComponent("others"));
+	auto othersScreen = std::dynamic_pointer_cast<OthersScreen>(mpc.screens->getScreenComponent("others"));
 	othersScreen->addObserver(this);
 }
 
@@ -49,7 +49,7 @@ void LCDControl::drawPixelsToImg()
 {
 	auto pixels = ls.lock()->getPixels();
 	
-	auto othersScreen = std::dynamic_pointer_cast<OthersScreen>(Screens::getScreenComponent("others"));
+	auto othersScreen = std::dynamic_pointer_cast<OthersScreen>(mpc.screens->getScreenComponent("others"));
 	auto contrast = othersScreen->getContrast();
 	
 	Colour c;

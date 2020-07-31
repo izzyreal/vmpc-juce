@@ -13,8 +13,8 @@
 
 using namespace mpc::controls;
 
-InputCatcherControl::InputCatcherControl(const String& componentName)
-	: Component(componentName)
+InputCatcherControl::InputCatcherControl(mpc::Mpc& mpc, const String& componentName)
+	: Component(componentName), mpc(mpc)
 {
 }
 
@@ -24,14 +24,14 @@ void InputCatcherControl::focusLost(FocusChangeType cause)
 	// internally considered not pressed when this component loses focus.
 	// In fact any buttons/keys could get stuck, so we clear everything.
 	MLOG("About to releaseAll");
-	auto controls = mpc::Mpc::instance().getControls().lock();
+	auto controls = mpc.getControls().lock();
 	controls->releaseAll();
 }
 
 void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
 
-	auto controls = mpc::Mpc::instance().getControls().lock();
-	auto hw = mpc::Mpc::instance().getHardware().lock();
+	auto controls = mpc.getControls().lock();
+	auto hw = mpc.getHardware().lock();
 
 	if (modifiers.isShiftDown() && !controls->isShiftPressed())
 	{
@@ -83,7 +83,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 	}
 
 	auto k = key.getKeyCode();
-	auto hw = mpc::Mpc::instance().getHardware().lock();
+	auto hw = mpc.getHardware().lock();
 	
 	if (k == KeyPress::leftKey)
 	{
@@ -122,7 +122,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 	}
 	else if (k == KeyPress::F4Key)
 	{
-		auto controls = mpc::Mpc::instance().getControls().lock();
+		auto controls = mpc.getControls().lock();
 		
 		if (controls->isAltPressed())
 		{
@@ -278,7 +278,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 
 	if (c == '-' || c == '_')
 	{
-		auto controls = mpc::Mpc::instance().getControls().lock();
+		auto controls = mpc.getControls().lock();
 		auto increment = -1;
 
 		if (controls->isShiftPressed())
@@ -300,7 +300,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 	}
 	else if (c == '+' || c == '=')
 	{
-		auto controls = mpc::Mpc::instance().getControls().lock();
+		auto controls = mpc.getControls().lock();
 		auto increment = 1;
 		if (controls->isShiftPressed())
 		{
@@ -350,7 +350,7 @@ bool InputCatcherControl::keyStateChanged(bool isKeyDown)
 		return false;
 	}
 
-	auto hw = mpc::Mpc::instance().getHardware().lock();
+	auto hw = mpc.getHardware().lock();
 
 	std::string padkeys1 = "ZXCVASDFBNM,GHJK";
 	std::string padkeys2 = "zxcvasdfbnm,ghjk";

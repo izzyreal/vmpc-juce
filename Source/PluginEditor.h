@@ -22,15 +22,14 @@
 #include "gui/KnobControl.hpp"
 #include "gui/ButtonControl.hpp"
 
-//==============================================================================
-/**
-*/
+namespace mpc { class Mpc; }
+
 class VmpcAudioProcessorEditor
 	: public AudioProcessorEditor
 {
 
 public:
-    VmpcAudioProcessorEditor (VmpcAudioProcessor&);
+    VmpcAudioProcessorEditor(VmpcAudioProcessor&);
     ~VmpcAudioProcessorEditor();
 
     void paint (Graphics&) override;
@@ -40,6 +39,7 @@ private:
 	void initialise();
 
 private:
+	mpc::Mpc& mpc;
 	Component::SafePointer<SplashScreen> mpcSplashScreen;
 	Label versionLabel;
     VmpcAudioProcessor& processor;
