@@ -85,7 +85,11 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 	auto k = key.getKeyCode();
 	auto hw = mpc.getHardware().lock();
 	
-	if (k == KeyPress::leftKey)
+	if (k == KeyPress::returnKey)
+	{
+		hw->getButton("enter").lock()->push();
+	}
+	else if (k == KeyPress::leftKey)
 	{
 		hw->getButton("left").lock()->push();
 		return true;
@@ -235,7 +239,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
     
 	for (int i = 0; i <= 9; i++)
 	{
-		if (key == KeyPress(std::to_string(i)[0], ModifierKeys::shiftModifier, 0) || key.getTextCharacter() == mappingUS[i]) {
+		if (key == KeyPress(std::to_string(i)[0], ModifierKeys::currentModifiers, 0) || key.getTextCharacter() == mappingUS[i]) {
 			hw->getButton(std::to_string(i)).lock()->push();
 			return true;
 		}
@@ -325,7 +329,6 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 
 bool InputCatcherControl::keyStateChanged(bool isKeyDown)
 {
-	
 	if (isKeyDown)
 	{
 		return false;
@@ -364,7 +367,12 @@ bool InputCatcherControl::keyStateChanged(bool isKeyDown)
 		}
 	}
 
-	if (k == KeyPress::F1Key)
+
+	if (k == KeyPress::returnKey)
+	{
+		hw->getButton("enter").lock()->release();
+	}
+	else if (k == KeyPress::F1Key)
 	{
 		hw->getButton("f1").lock()->release();
 		return true;
