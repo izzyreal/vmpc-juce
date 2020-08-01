@@ -172,7 +172,7 @@ void VmpcAudioProcessorEditor::initialise()
 	{
 		auto bgImgPath = mpc::Paths::resPath() + "/img/disclaimer.gif";
 		auto disclaimer = ImageFileFormat::loadFrom(File(bgImgPath));
-		mpcSplashScreen = new SplashScreen("Woah", disclaimer, true);
+		mpcSplashScreen = new SplashScreen("Disclaimer", disclaimer, true);
 		mpcSplashScreen->setWantsKeyboardFocus(false);
 		mpcSplashScreen->deleteAfterDelay(RelativeTime::seconds(8), true);
 		processor.shouldShowDisclaimer = false;
@@ -186,11 +186,6 @@ void VmpcAudioProcessorEditor::initialise()
 
 void VmpcAudioProcessorEditor::paint (Graphics& g)
 {
-	if (inputCatcher->isVisible())
-	{
-		inputCatcher->grabKeyboardFocus();
-	}
-
 	g.drawImageWithin(bgImg, 0, 0, getWidth(), getHeight(), RectanglePlacement(RectanglePlacement::centred));
 }
 
