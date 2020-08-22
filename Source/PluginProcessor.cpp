@@ -127,18 +127,16 @@ void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     auto seq = mpc.getSequencer().lock();
     bool wasPlaying = seq->isPlaying();
     
-	if (wasPlaying) {
+	if (wasPlaying)
 		seq->stop();
-	}
     
 	auto ams = mpc.getAudioMidiServices().lock();
 	auto server = ams->getAudioServer();
     server->setSampleRate(sampleRate);
     server->resizeBuffers(samplesPerBlock);
 	
-	if (wasPlaying) {
+	if (wasPlaying)
 		seq->play();
-	}
 
 	monoToStereoBuffer.clear();
 	monoToStereoBuffer.setSize(2, samplesPerBlock);
@@ -155,31 +153,23 @@ bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
 	return true;
 	auto outs = layouts.outputBuses.size();
 	if (layouts.inputBuses.size() > 1)
-	{
 		return false;
-	}
 
 	if (layouts.outputBuses.size() > 5)
-	{
 		return false;
-	}
 
 	// Mono input is anticipated, but outputs need to come in stereo pairs
 
 	for (auto& bus : layouts.inputBuses)
 	{
 		if (bus != AudioChannelSet::mono() && bus != AudioChannelSet::stereo())
-		{
 			return false;
-		}
 	}
 
 	for (auto& bus : layouts.outputBuses)
 	{
 		if (bus != AudioChannelSet::stereo())
-		{
 			return false;
-		}
 	}
 
     return true;
@@ -211,24 +201,28 @@ void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
 	}
 }
 
-void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages, int bufferSize) {
+void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages)
+{
 	auto midiOutMsgQueues = mpc.getMidiPorts().lock()->getReceivers();
-	for (auto& queue : midiOutMsgQueues) {
-		for (auto& msg : queue) {
-
+	for (auto& queue : midiOutMsgQueues)
+	{
+		for (auto& msg : queue)
+		{
 			juce::uint8 velo = (juce::uint8) msg.getData2();
 			if (velo == 0) continue;
 			auto jmsg = juce::MidiMessage::noteOn(msg.getChannel() + 1, msg.getData1(), juce::uint8(velo));
 			midiMessages.addEvent(jmsg, msg.bufferPos);
 		}
 
-		for (auto msg : queue) {
+		for (auto msg : queue)
+		{
 			auto velo = msg.getData2();
 			if (velo != 0) continue;
 			auto jmsg = juce::MidiMessage::noteOff(msg.getChannel() + 1, msg.getData1());
 			midiMessages.addEvent(jmsg, msg.bufferPos);
 		}
 	}
+
 	mpc.getMidiPorts().lock()->getReceivers()[0].clear();
 	mpc.getMidiPorts().lock()->getReceivers()[1].clear();
 }
@@ -364,15 +358,14 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	if (!server->isRealTime())
 	{
 		for (int i = 0; i < totalNumInputChannels; ++i)
-		{
 			buffer.clear(i, 0, buffer.getNumSamples());
-		}
+
 		return;
 	}
 
 	processTransport();
 	processMidiIn(midiMessages);
-	processMidiOut(midiMessages, buffer.getNumSamples());
+	processMidiOut(midiMessages);
 
 	auto chDataIn = buffer.getArrayOfReadPointers();
 	auto chDataOut = buffer.getArrayOfWritePointers();
@@ -392,9 +385,7 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	if (totalNumOutputChannels < 2)
 	{
 		for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-		{
 			buffer.clear(i, 0, buffer.getNumSamples());
-		}
 	}
 }
 

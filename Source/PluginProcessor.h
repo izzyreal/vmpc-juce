@@ -59,7 +59,7 @@ public:
 
 private:
 	void processMidiIn(MidiBuffer& midiMessages);
-	void processMidiOut(MidiBuffer& midiMessages, int bufferSize);
+	void processMidiOut(MidiBuffer& midiMessages);
 	void processTransport();
     void checkBouncing();
     void checkSoundRecorder();
