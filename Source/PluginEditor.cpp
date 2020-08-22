@@ -89,7 +89,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	}
 
 	ButtonControl::initRects();
-	std::vector<std::string> buttonLabels{ "left", "right", "up", "down", "rec", "overdub", "stop", "play", "playstart", "mainscreen", "prevstepevent", "nextstepevent",	"goto",	"prevbarstart",	"nextbarend", "tap", "next-seq",	"track-mute", "openwindow", "fulllevel", "sixteenlevels", "f1", "f2", "f3", "f4", "f5", "f6", "shift", "enter", "undoseq", "erase", "after", "banka", "bankb", "bankc", "bankd" };
+	std::vector<std::string> buttonLabels{ "left", "right", "up", "down", "rec", "overdub", "stop", "play", "play-start", "main-screen", "prev-step-event", "next-step-event",	"go-to", "prev-bar-start", "next-bar-end", "tap", "next-seq", "track-mute", "open-window", "full-level", "sixteen-levels", "f1", "f2", "f3", "f4", "f5", "f6", "shift", "enter", "undo-seq", "erase", "after", "bank-a", "bank-b", "bank-c", "bank-d" };
 	for (auto& l : buttonLabels) {
 		auto bc = new ButtonControl(*ButtonControl::rects[l], mpc.getHardware().lock()->getButton(l), l);
 		addAndMakeVisible(bc);

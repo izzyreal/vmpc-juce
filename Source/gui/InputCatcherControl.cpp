@@ -149,7 +149,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 	}
 	else if (k == KeyPress::escapeKey)
 	{
-		hw->getButton("mainscreen").lock()->push();
+		hw->getButton("main-screen").lock()->push();
 		return true;
 	}
 
@@ -175,37 +175,37 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 	}
 	else if (k == '\\')
 	{
-		hw->getButton("playstart").lock()->push();
+		hw->getButton("play-start").lock()->push();
 		return true;
 	}
 	else if (k == 'i' || k == 'I')
 	{
-        hw->getButton("openwindow").lock()->push();
+        hw->getButton("open-window").lock()->push();
         return true;
 	}
 	else if (k == 'q' || k == 'Q')
 	{
-        hw->getButton("prevstepevent").lock()->push();
+        hw->getButton("prev-step-event").lock()->push();
         return true;
 	}
     else if (k == 'w' || k == 'W')
 	{
-        hw->getButton("nextstepevent").lock()->push();
+        hw->getButton("next-step-event").lock()->push();
         return true;
     }
     else if (k == 'e' || k == 'E')
 	{
-        hw->getButton("goto").lock()->push();
+        hw->getButton("go-to").lock()->push();
         return true;
     }
     else if (k == 'r' || k == 'R')
 	{
-        hw->getButton("prevbarstart").lock()->push();
+        hw->getButton("prev-bar-start").lock()->push();
         return true;
     }
     else if (k == 't' || k == 'T')
 	{
-        hw->getButton("nextbarend").lock()->push();
+        hw->getButton("next-bar-end").lock()->push();
         return true;
     }
     else if (k == 'y' || k == 'Y')
@@ -215,12 +215,12 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
     }
     else if (k == 'o' || k == 'O')
 	{
-        hw->getButton("fulllevel").lock()->push();
+        hw->getButton("full-level").lock()->push();
         return true;
     }
     else if (k == 'p' || k == 'P')
 	{
-        hw->getButton("sixteenlevels").lock()->push();
+        hw->getButton("sixteen-levels").lock()->push();
         return true;
     }
     else if (k == '[')
@@ -259,22 +259,22 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 
 	if (k == KeyPress::homeKey)
 	{
-		hw->getButton("banka").lock()->push();
+		hw->getButton("bank-a").lock()->push();
 		return true;
 	}
 	else if (k == KeyPress::endKey)
 	{
-		hw->getButton("bankb").lock()->push();
+		hw->getButton("bank-b").lock()->push();
 		return true;
 	}
 	else if (k == KeyPress::insertKey)
 	{
-		hw->getButton("bankc").lock()->push();
+		hw->getButton("bank-c").lock()->push();
 		return true;
 	}
 	else if (k == KeyPress::deleteKey)
 	{
-		hw->getButton("bankd").lock()->push();
+		hw->getButton("bank-d").lock()->push();
 		return true;
 	}
 
@@ -425,11 +425,11 @@ bool InputCatcherControl::keyStateChanged(bool isKeyDown)
 	}
 	else if (k == '\\')
 	{
-		hw->getButton("playstart").lock()->release();
+		hw->getButton("play-start").lock()->release();
 		return true;
 	}
 	else if (k == 'e' || k == 'E') {
-		hw->getButton("goto").lock()->release();
+		hw->getButton("go-to").lock()->release();
 		return true;
 	}
 

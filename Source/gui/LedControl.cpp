@@ -197,84 +197,86 @@ void LedControl::setUndoSeq(bool b)
     undoSeqLed->setOn(b);
 }
 
-void LedControl::update(moduru::observer::Observable* o, nonstd::any arg) {
+void LedControl::update(moduru::observer::Observable* o, nonstd::any arg)
+{
 	string s = nonstd::any_cast<string>(arg);
-	if (s.compare("fulllevelon") == 0) {
+
+	if (s.compare("full-level-on") == 0) {
 		setFullLevel(true);
 	}
-	else if(s.compare("fullleveloff") == 0) {
+	else if(s.compare("full-level-off") == 0) {
 		setFullLevel(false);
 	}
-	else if (s.compare("sixteenlevelson") == 0) {
+	else if (s.compare("sixteen-levels-on") == 0) {
 		setSixteenLevels(true);
 	}
-	else if (s.compare("sixteenlevelsoff") == 0) {
+	else if (s.compare("sixteen-levels-off") == 0) {
 		setSixteenLevels(false);
 	}
-	else if (s.compare("nextseqon") == 0) {
+	else if (s.compare("next-seq-on") == 0) {
 		setNextSeq(true);
 	}
-	else if (s.compare("nextseqoff") == 0) {
+	else if (s.compare("next-seq-off") == 0) {
 		setNextSeq(false);
 	}
-	else if (s.compare("trackmuteon") == 0) {
+	else if (s.compare("track-mute-on") == 0) {
 		setTrackMute(true);
 	}
-	else if (s.compare("trackmuteoff") == 0) {
+	else if (s.compare("track-mute-off") == 0) {
 		setTrackMute(false);
 	}
-	else if (s.compare("padbankaon") == 0) {
+	else if (s.compare("pad-bank-a-on") == 0) {
 		setPadBankA(true);
 	}
-	else if (s.compare("padbankaoff") == 0) {
+	else if (s.compare("pad-bank-a-off") == 0) {
 		setPadBankA(false);
 	}
-	else if (s.compare("padbankbon") == 0) {
+	else if (s.compare("pad-bank-b-on") == 0) {
 		setPadBankB(true);
 	}
-	else if (s.compare("padbankboff") == 0) {
+	else if (s.compare("pad-bank-b-off") == 0) {
 		setPadBankB(false);
 	}
-	else if (s.compare("padbankcon") == 0) {
+	else if (s.compare("pad-bank-c-on") == 0) {
 		setPadBankC(true);
 	}
-	else if (s.compare("padbankcoff") == 0) {
+	else if (s.compare("pad-bank-c-off") == 0) {
 		setPadBankC(false);
 	}
-	else if (s.compare("padbankdon") == 0) {
+	else if (s.compare("pad-bank-d-on") == 0) {
 		setPadBankD(true);
 	}
-	else if (s.compare("padbankdoff") == 0) {
+	else if (s.compare("pad-bank-d-off") == 0) {
 		setPadBankD(false);
 	}
-	else if (s.compare("afteron") == 0) {
+	else if (s.compare("after-on") == 0) {
 		setAfter(true);
 	}
-	else if (s.compare("afteroff") == 0) {
+	else if (s.compare("after-off") == 0) {
 		setAfter(false);
 	}
-	else if (s.compare("undoseqon") == 0) {
+	else if (s.compare("undo-seq-on") == 0) {
 		setUndoSeq(true);
 	}
-	else if (s.compare("undoseqoff") == 0) {
+	else if (s.compare("undo-seq-off") == 0) {
 		setUndoSeq(false);
 	}
-	else if (s.compare("recon") == 0) {
+	else if (s.compare("rec-on") == 0) {
 		setRec(true);
 	}
-	else if (s.compare("recoff") == 0) {
+	else if (s.compare("rec-off") == 0) {
 		setRec(false);
 	}
-	else if (s.compare("overdubon") == 0) {
+	else if (s.compare("overdub-on") == 0) {
 		setOverDub(true);
 	}
-	else if (s.compare("overduboff") == 0) {
+	else if (s.compare("overdub-off") == 0) {
 		setOverDub(false);
 	}
-	else if (s.compare("playon") == 0) {
+	else if (s.compare("play-on") == 0) {
 		setPlay(true);
 	}
-	else if (s.compare("playoff") == 0) {
+	else if (s.compare("play-off") == 0) {
 		setPlay(false);
 	}
 }

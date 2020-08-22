@@ -189,17 +189,21 @@ void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
 	MidiBuffer::Iterator midiIterator(midiMessages);
 	juce::MidiMessage m;
 	int midiEventPos;
-	while (midiIterator.getNextEvent(m, midiEventPos)) {
+
+	while (midiIterator.getNextEvent(m, midiEventPos))
+	{
 		int timeStamp = m.getTimeStamp();
 		int velocity = m.getVelocity();
 
-		if (m.isNoteOn()) {
+		if (m.isNoteOn())
+		{
 			m.getRawData();
 			auto tootMsg = ShortMessage();
 			tootMsg.setMessage(ShortMessage::NOTE_ON, m.getChannel() - 1, m.getNoteNumber(), velocity);
 			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
 		}
-		else if (m.isNoteOff()) {
+		else if (m.isNoteOff())
+		{
 			auto tootMsg = ShortMessage();
 			tootMsg.setMessage(ShortMessage::NOTE_OFF, m.getChannel() - 1, m.getNoteNumber(), 0);
 			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
@@ -295,10 +299,7 @@ void VmpcAudioProcessor::checkBouncing()
 		}
 
 		for (auto& diskRecorder : ams->getDiskRecorders())
-		{
 			diskRecorder.lock()->start();
-		}
-
 	}
 	else if (!amsIsBouncing && wasBouncing)
 	{
