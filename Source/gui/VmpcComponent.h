@@ -18,7 +18,7 @@
 /*
 */
 class VmpcComponent
-	: public Component
+	: public juce::Component
 {
 public:
     VmpcComponent(const String& componentName = "")
@@ -28,6 +28,7 @@ public:
 
 	VmpcComponent()
 	{
+        setWantsKeyboardFocus(false);
 	}
 
 public:

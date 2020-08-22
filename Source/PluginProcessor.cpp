@@ -188,14 +188,20 @@ void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
 		if (m.isNoteOn())
 		{
 			m.getRawData();
-			auto tootMsg = ShortMessage();
+			ShortMessage tootMsg;
 			tootMsg.setMessage(ShortMessage::NOTE_ON, m.getChannel() - 1, m.getNoteNumber(), velocity);
 			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
 		}
 		else if (m.isNoteOff())
 		{
-			auto tootMsg = ShortMessage();
+			ShortMessage tootMsg;
 			tootMsg.setMessage(ShortMessage::NOTE_OFF, m.getChannel() - 1, m.getNoteNumber(), 0);
+			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
+		}
+		else if (m.isController())
+		{
+			ShortMessage tootMsg;
+			tootMsg.setMessage(ShortMessage::CONTROL_CHANGE, m.getChannel() - 1, m.getControllerNumber(), m.getControllerValue());
 			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
 		}
 	}

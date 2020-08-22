@@ -3,30 +3,32 @@
 
 #include <Logger.hpp>
 
-static inline void clampIndex(int& sliderIndex) {
-	if (sliderIndex < 0) {
+static inline void clampIndex(int& sliderIndex)
+{
+	if (sliderIndex < 0)
 		sliderIndex = 0;
-	}
-	else if (sliderIndex > 99) {
+	else if (sliderIndex > 99)
 		sliderIndex = 99;
-	}
 }
 
 SliderControl::SliderControl(std::weak_ptr<mpc::hardware::Slider> slider, int startIndex, const String &componentName)
 	: VmpcComponent(componentName)
 {
 	this->slider = slider;
+	slider.lock()->addObserver(this);
 	sliderIndex = startIndex;
 	sliderIndex = slider.lock()->getValue() / 1.27;
 	clampIndex(sliderIndex);
 }
 
-void SliderControl::mouseUp(const MouseEvent& event) {
+void SliderControl::mouseUp(const MouseEvent& event)
+{
 	lastDy = 0;
 	Component::mouseUp(event);
 }
 
-void SliderControl::mouseDrag(const MouseEvent& event) {
+void SliderControl::mouseDrag(const MouseEvent& event)
+{
 	auto dY = event.getDistanceFromDragStartY() - lastDy;
 	lastDy = event.getDistanceFromDragStartY();
 	slider.lock()->setValue(slider.lock()->getValue() + dY);
@@ -54,5 +56,15 @@ void SliderControl::paint(Graphics& g)
 	}
 }
 
-SliderControl::~SliderControl() {
+void SliderControl::update(moduru::observer::Observable* o, nonstd::any arg)
+{
+	auto newValue = nonstd::any_cast<int>(arg);
+	sliderIndex = newValue / 1.27;
+	clampIndex(sliderIndex);
+	repaint();
+}
+
+SliderControl::~SliderControl()
+{
+	slider.lock()->deleteObserver(this);
 }

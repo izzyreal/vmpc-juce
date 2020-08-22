@@ -8,7 +8,8 @@
 namespace mpc { class Mpc; }
 
 class InputCatcherControl
-	: public Component {
+	: public juce::Component
+{
 
 private:
 	mpc::Mpc& mpc;
