@@ -34,53 +34,30 @@ void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
 	auto hw = mpc.getHardware().lock();
 
 	if (modifiers.isShiftDown() && !controls->isShiftPressed())
-	{
 		hw->getButton("shift").lock()->push();
-	}
 	
 	if (!modifiers.isShiftDown() && controls->isShiftPressed())
-	{
 		hw->getButton("shift").lock()->release();
-	}
 	
 	if (modifiers.isCtrlDown() && !controls->isCtrlPressed())
-	{
 		controls->setCtrlPressed(true);
-	}
 	
 	if (!modifiers.isCtrlDown() && controls->isCtrlPressed())
-	{
 		controls->setCtrlPressed(false);
-	}
 	
 	if (modifiers.isAltDown() && !controls->isAltPressed())
-	{
 		controls->setAltPressed(true);
-	}
 	
 	if (!modifiers.isAltDown() && controls->isAltPressed())
-	{
 		controls->setAltPressed(false);
-	}
 }
 
 bool InputCatcherControl::keyPressed(const KeyPress &key)
 {
-	bool alreadyPressed = false;
-	
-	for (int i = 0; i < pressedKeys.size(); i++)
-	{
-		if (pressedKeys[i] == key.getKeyCode())
-		{
-			alreadyPressed = true;
-			break;
-		}
-	}
+	bool notPressed = find(begin(pressedKeys), end(pressedKeys), key.getKeyCode()) == end(pressedKeys);
 
-	if (!alreadyPressed)
-	{
+	if (notPressed)
 		pressedKeys.push_back(key.getKeyCode());
-	}
 
 	auto k = key.getKeyCode();
 	auto hw = mpc.getHardware().lock();
@@ -234,7 +211,6 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
         return true;
     }
 
-
     std::vector<char> mappingUS = {')', '!', '@', '#', '$', '%', '^', '&', '*', '(' };
     
 	for (int i = 0; i <= 9; i++)
@@ -286,19 +262,14 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 		auto increment = -1;
 
 		if (controls->isShiftPressed())
-		{
 			increment *= 10;
-		}
 		
 		if (controls->isAltPressed())
-		{
 			increment *= 10;
-		}
 
 		if (controls->isCtrlPressed())
-		{
 			increment *= 10;
-		}
+
 		hw->getDataWheel().lock()->turn(increment);
 		return true;
 	}
@@ -306,20 +277,16 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 	{
 		auto controls = mpc.getControls().lock();
 		auto increment = 1;
+
 		if (controls->isShiftPressed())
-		{
 			increment *= 10;
-		}
 
 		if (controls->isAltPressed())
-		{
 			increment *= 10;
-		}
 
 		if (controls->isCtrlPressed())
-		{
 			increment *= 10;
-		}
+
 		hw->getDataWheel().lock()->turn(increment);
 		return true;
 	}
@@ -330,9 +297,7 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 bool InputCatcherControl::keyStateChanged(bool isKeyDown)
 {
 	if (isKeyDown)
-	{
 		return false;
-	}
 
 	int k = -1;
 	
@@ -349,9 +314,7 @@ bool InputCatcherControl::keyStateChanged(bool isKeyDown)
 	}
 
 	if (k == -1)
-	{
 		return false;
-	}
 
 	auto hw = mpc.getHardware().lock();
 
@@ -430,6 +393,11 @@ bool InputCatcherControl::keyStateChanged(bool isKeyDown)
 	}
 	else if (k == 'e' || k == 'E') {
 		hw->getButton("go-to").lock()->release();
+		return true;
+	}
+	else if (k == 'y' || k == 'Y')
+	{
+		hw->getButton("tap").lock()->release();
 		return true;
 	}
 
