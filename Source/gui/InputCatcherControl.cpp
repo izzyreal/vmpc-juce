@@ -106,10 +106,8 @@ bool InputCatcherControl::keyPressed(const KeyPress &key)
 		auto controls = mpc.getControls().lock();
 		
 		if (controls->isAltPressed())
-		{
 			return true;
-		}
-
+		
 		hw->getButton("f4").lock()->push();
 
 		return true;

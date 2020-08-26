@@ -293,7 +293,7 @@ void VmpcAudioProcessor::checkBouncing()
 				server->setRealTime(false);
 			}
 		}
-		else
+		else if (directToDiskRecorderScreen->getRecord() != 4)
 		{
 			ams->getFrameSequencer().lock()->start(getSampleRate());
 		}

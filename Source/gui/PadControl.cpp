@@ -112,7 +112,7 @@ void PadControl::filesDropped(const StringArray& files, int x, int y)
 					return;
 				}
 
-				noteParameters->setSoundNumber(soundIndex);
+				noteParameters->setSoundIndex(soundIndex);
 				layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
 			}
 		}
