@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="toyOrS" name="vmpc" reportAppUsage="1" splashScreenColour="Dark"
-              projectType="audioplug" version="0.2.0.1" bundleIdentifier="nl.izmar.vmpc"
+              projectType="audioplug" version="0.2.0.2" bundleIdentifier="nl.izmar.vmpc"
               includeBinaryInAppConfig="1" cppLanguageStandard="17" companyCopyright="Izmar"
               buildVST="1" buildVST3="1" buildAU="1" buildAUv3="0" buildRTAS="0"
               buildAAX="0" buildStandalone="1" enableIAA="0" pluginName="vmpc"
