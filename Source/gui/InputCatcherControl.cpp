@@ -3,180 +3,217 @@
 #include <Mpc.hpp>
 
 #include <controls/Controls.hpp>
+
+#include <lcdgui/ScreenComponent.hpp>
+
 #include <hardware/Hardware.hpp>
 #include <hardware/DataWheel.hpp>
 #include <hardware/Button.hpp>
 #include <hardware/HwPad.hpp>
 
-//#include  "../resource.h"
-
 using namespace mpc::controls;
 
-InputCatcherControl::InputCatcherControl(const String& componentName)
-	: Component(componentName)
+InputCatcherControl::InputCatcherControl(mpc::Mpc& mpc, const String& componentName)
+	: Component(componentName), mpc(mpc)
 {
 }
 
-void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
-	//MLOG("ipc mod keys");
-	auto c = mpc::Mpc::instance().getControls().lock();
-	auto hw = mpc::Mpc::instance().getHardware().lock();
-	if (modifiers.isShiftDown() && !c->isShiftPressed()) {
-		hw->getButton("shift").lock()->push();
-	}
-	if (!modifiers.isShiftDown() && c->isShiftPressed()) {
-		hw->getButton("shift").lock()->release();
-	}
-	if (modifiers.isCtrlDown() && !c->isCtrlPressed()) {
-		c->setCtrlPressed(true);
-	}
-	if (!modifiers.isCtrlDown() && c->isCtrlPressed()) {
-		c->setCtrlPressed(false);
-	}
-	if (modifiers.isAltDown() && !c->isAltPressed()) {
-		c->setAltPressed(true);
-	}
-	if (!modifiers.isAltDown() && c->isAltPressed()) {
-		c->setAltPressed(false);
-	}
+void InputCatcherControl::focusLost(FocusChangeType cause)
+{
+	// We sometimes get a "stuck" isShiftPressed, so here we always make sure shift is
+	// internally considered not pressed when this component loses focus.
+	// In fact any buttons/keys could get stuck, so we clear everything.
+	MLOG("About to releaseAll");
+	auto controls = mpc.getControls().lock();
+	controls->releaseAll();
 }
 
-bool InputCatcherControl::keyPressed(const KeyPress &key) {
+void InputCatcherControl::modifierKeysChanged(const ModifierKeys& modifiers) {
 
-//	MLOG("\nkey press received, keycode        : " + std::to_string(key.getKeyCode()));
-//	MLOG("key press received, text character : " + std::to_string(key.getTextCharacter()));
-//	std::string foo;
-//	foo.push_back(key.getTextCharacter());
-//	MLOG("key press received, text character : " + foo);
-//	MLOG("key press received, description    : " + key.getTextDescription().toStdString());
+	auto controls = mpc.getControls().lock();
+	auto hw = mpc.getHardware().lock();
 
-	bool alreadyPressed = false;
-	for (int i = 0; i < pressedKeys.size(); i++) {
-		if (pressedKeys[i] == key.getKeyCode()) {
-			alreadyPressed = true;
-			break;
-		}
-	}
+	if (modifiers.isShiftDown() && !controls->isShiftPressed())
+		hw->getButton("shift").lock()->push();
+	
+	if (!modifiers.isShiftDown() && controls->isShiftPressed())
+		hw->getButton("shift").lock()->release();
+	
+	if (modifiers.isCtrlDown() && !controls->isCtrlPressed())
+		controls->setCtrlPressed(true);
+	
+	if (!modifiers.isCtrlDown() && controls->isCtrlPressed())
+		controls->setCtrlPressed(false);
+	
+	if (modifiers.isAltDown() && !controls->isAltPressed())
+		controls->setAltPressed(true);
+	
+	if (!modifiers.isAltDown() && controls->isAltPressed())
+		controls->setAltPressed(false);
+}
 
-	if (!alreadyPressed) pressedKeys.push_back(key.getKeyCode());
+bool InputCatcherControl::keyPressed(const KeyPress &key)
+{
+	bool notPressed = find(begin(pressedKeys), end(pressedKeys), key.getKeyCode()) == end(pressedKeys);
+
+	if (notPressed)
+		pressedKeys.push_back(key.getKeyCode());
 
 	auto k = key.getKeyCode();
-	auto hw = mpc::Mpc::instance().getHardware().lock();
-	if (k == KeyPress::leftKey) {
+	auto hw = mpc.getHardware().lock();
+	
+	if (k == KeyPress::returnKey)
+	{
+		hw->getButton("enter").lock()->push();
+	}
+	else if (k == KeyPress::leftKey)
+	{
 		hw->getButton("left").lock()->push();
 		return true;
 	}
-	else if (k == KeyPress::rightKey) {
+	else if (k == KeyPress::rightKey)
+	{
 		hw->getButton("right").lock()->push();
 		return true;
 	}
-	else if (k == KeyPress::upKey) {
+	else if (k == KeyPress::upKey)
+	{
 		hw->getButton("up").lock()->push();
 		return true;
 	}
-	else if (k == KeyPress::downKey) {
+	else if (k == KeyPress::downKey)
+	{
 		hw->getButton("down").lock()->push();
 		return true;
 	}
-	else if (k == KeyPress::F1Key) {
+	else if (k == KeyPress::F1Key)
+	{
 		hw->getButton("f1").lock()->push();
 		return true;
 	}
-	else if (k == KeyPress::F2Key) {
+	else if (k == KeyPress::F2Key)
+	{
 		hw->getButton("f2").lock()->push();
 		return true;
 	}
-	else if (k == KeyPress::F3Key) {
+	else if (k == KeyPress::F3Key)
+	{
 		hw->getButton("f3").lock()->push();
 		return true;
 	}
-	else if (k == KeyPress::F4Key) {
+	else if (k == KeyPress::F4Key)
+	{
+		auto controls = mpc.getControls().lock();
+		
+		if (controls->isAltPressed())
+			return true;
+		
 		hw->getButton("f4").lock()->push();
+
 		return true;
 	}
-	else if (k == KeyPress::F5Key) {
+	else if (k == KeyPress::F5Key)
+	{
 		hw->getButton("f5").lock()->push();
 		return true;
 	}
-	else if (k == KeyPress::F6Key) {
+	else if (k == KeyPress::F6Key)
+	{
 		hw->getButton("f6").lock()->push();
 		return true;
 	}
-	else if (k == KeyPress::escapeKey) {
-		hw->getButton("mainscreen").lock()->push();
+	else if (k == KeyPress::escapeKey)
+	{
+		hw->getButton("main-screen").lock()->push();
 		return true;
 	}
 
-	if (k == 'L' || k == 'l') {
+	if (k == 'L' || k == 'l')
+	{
 		hw->getButton("rec").lock()->push();
 		return true;
 	}
-	else if (k == ';') {
+	else if (k == ';')
+	{
 		hw->getButton("overdub").lock()->push();
 		return true;
 	}
-	else if (k == '\'') {
+	else if (k == '\'')
+	{
 		hw->getButton("stop").lock()->push();
 		return true;
 	}
-	else if (k == KeyPress::spaceKey) {
+	else if (k == KeyPress::spaceKey)
+	{
 		hw->getButton("play").lock()->push();
 		return true;
 	}
-	else if (k == '\\') {
-		hw->getButton("playstart").lock()->push();
+	else if (k == '\\')
+	{
+		hw->getButton("play-start").lock()->push();
 		return true;
 	}
-	else if (k == 'i' || k == 'I') {
-        hw->getButton("openwindow").lock()->push();
+	else if (k == 'i' || k == 'I')
+	{
+        hw->getButton("open-window").lock()->push();
         return true;
 	}
-	else if (k == 'q' || k == 'Q') {
-        hw->getButton("prevstepevent").lock()->push();
+	else if (k == 'q' || k == 'Q')
+	{
+        hw->getButton("prev-step-event").lock()->push();
         return true;
 	}
-    else if (k == 'w' || k == 'W') {
-        hw->getButton("nextstepevent").lock()->push();
+    else if (k == 'w' || k == 'W')
+	{
+        hw->getButton("next-step-event").lock()->push();
         return true;
     }
-    else if (k == 'e' || k == 'E') {
-        hw->getButton("goto").lock()->push();
+    else if (k == 'e' || k == 'E')
+	{
+        hw->getButton("go-to").lock()->push();
         return true;
     }
-    else if (k == 'r' || k == 'R') {
-        hw->getButton("prevbarstart").lock()->push();
+    else if (k == 'r' || k == 'R')
+	{
+        hw->getButton("prev-bar-start").lock()->push();
         return true;
     }
-    else if (k == 't' || k == 'T') {
-        hw->getButton("nextbarend").lock()->push();
+    else if (k == 't' || k == 'T')
+	{
+        hw->getButton("next-bar-end").lock()->push();
         return true;
     }
-    else if (k == 'y' || k == 'Y') {
+    else if (k == 'y' || k == 'Y')
+	{
         hw->getButton("tap").lock()->push();
         return true;
     }
-    else if (k == 'o' || k == 'O') {
-        hw->getButton("fulllevel").lock()->push();
+    else if (k == 'o' || k == 'O')
+	{
+        hw->getButton("full-level").lock()->push();
         return true;
     }
-    else if (k == 'p' || k == 'P') {
-        hw->getButton("sixteenlevels").lock()->push();
+    else if (k == 'p' || k == 'P')
+	{
+        hw->getButton("sixteen-levels").lock()->push();
         return true;
     }
-    else if (k == '[') {
-        hw->getButton("nextseq").lock()->push();
+    else if (k == '[')
+	{
+        hw->getButton("next-seq").lock()->push();
         return true;
     }
-    else if (k == ']') {
-        hw->getButton("trackmute").lock()->push();
+    else if (k == ']')
+	{
+        hw->getButton("track-mute").lock()->push();
         return true;
     }
-
 
     std::vector<char> mappingUS = {')', '!', '@', '#', '$', '%', '^', '&', '*', '(' };
     
-	for (int i = 0; i <= 9; i++) {
-		if (key == KeyPress(std::to_string(i)[0], ModifierKeys::shiftModifier, 0) || key.getTextCharacter() == mappingUS[i]) {
+	for (int i = 0; i <= 9; i++)
+	{
+		if (key == KeyPress(std::to_string(i)[0], ModifierKeys::currentModifiers, 0) || key.getTextCharacter() == mappingUS[i]) {
 			hw->getButton(std::to_string(i)).lock()->push();
 			return true;
 		}
@@ -184,47 +221,70 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 
 	std::string padkeys1 = "ZXCVASDFBNM,GHJK";
 	std::string padkeys2 = "zxcvasdfbnm,ghjk";
-	for (int i = 0; i < padkeys1.length(); i++) {
-		if (k == padkeys1[i] || k == padkeys2[i]) {
+	
+	for (int i = 0; i < padkeys1.length(); i++)
+	{
+		if (k == padkeys1[i] || k == padkeys2[i])
+		{
 			hw->getPad(i).lock()->push(127);
 			return true;
 		}
 	}
 
-	if (k == KeyPress::homeKey) {
-		hw->getButton("banka").lock()->push();
+	if (k == KeyPress::homeKey)
+	{
+		hw->getButton("bank-a").lock()->push();
 		return true;
 	}
-	else if (k == KeyPress::endKey) {
-		hw->getButton("bankb").lock()->push();
+	else if (k == KeyPress::endKey)
+	{
+		hw->getButton("bank-b").lock()->push();
 		return true;
 	}
-	else if (k == KeyPress::insertKey) {
-		hw->getButton("bankc").lock()->push();
+	else if (k == KeyPress::insertKey)
+	{
+		hw->getButton("bank-c").lock()->push();
 		return true;
 	}
-	else if (k == KeyPress::deleteKey) {
-		hw->getButton("bankd").lock()->push();
+	else if (k == KeyPress::deleteKey)
+	{
+		hw->getButton("bank-d").lock()->push();
 		return true;
 	}
 
 	int c = key.getTextCharacter();
 
-	if (c == '-' || c == '_') {
-		auto controls = mpc::Mpc::instance().getControls().lock();
+	if (c == '-' || c == '_')
+	{
+		auto controls = mpc.getControls().lock();
 		auto increment = -1;
-		if (controls->isShiftPressed()) increment *= 10;
-		if (controls->isAltPressed()) increment *= 10;
-		if (controls->isCtrlPressed()) increment *= 10;
+
+		if (controls->isShiftPressed())
+			increment *= 10;
+		
+		if (controls->isAltPressed())
+			increment *= 10;
+
+		if (controls->isCtrlPressed())
+			increment *= 10;
+
 		hw->getDataWheel().lock()->turn(increment);
 		return true;
 	}
-	else if (c == '+' || c == '=') {
-		auto controls = mpc::Mpc::instance().getControls().lock();
+	else if (c == '+' || c == '=')
+	{
+		auto controls = mpc.getControls().lock();
 		auto increment = 1;
-		if (controls->isShiftPressed()) increment *= 10;
-		if (controls->isAltPressed()) increment *= 10;
-		if (controls->isCtrlPressed()) increment *= 10;
+
+		if (controls->isShiftPressed())
+			increment *= 10;
+
+		if (controls->isAltPressed())
+			increment *= 10;
+
+		if (controls->isCtrlPressed())
+			increment *= 10;
+
 		hw->getDataWheel().lock()->turn(increment);
 		return true;
 	}
@@ -232,91 +292,112 @@ bool InputCatcherControl::keyPressed(const KeyPress &key) {
 	return false;
 }
 
-bool InputCatcherControl::keyStateChanged(bool isKeyDown) {
-	if (isKeyDown) return false;
+bool InputCatcherControl::keyStateChanged(bool isKeyDown)
+{
+	if (isKeyDown)
+		return false;
 
 	int k = -1;
-	for (int i = 0; i < pressedKeys.size(); i++) {
+	
+	for (int i = 0; i < pressedKeys.size(); i++)
+	{
 		int candidate = pressedKeys[i];
-		if (!KeyPress::isKeyCurrentlyDown(candidate)) {
+	
+		if (!KeyPress::isKeyCurrentlyDown(candidate))
+		{
 			k = candidate;
 			pressedKeys.erase(pressedKeys.begin() + i);
 			break;
 		}
 	}
-	if (k == -1) return false;
-	//MLOG("\nkey release received, keycode " + std::to_string(k));
-	auto hw = mpc::Mpc::instance().getHardware().lock();
+
+	if (k == -1)
+		return false;
+
+	auto hw = mpc.getHardware().lock();
 
 	std::string padkeys1 = "ZXCVASDFBNM,GHJK";
 	std::string padkeys2 = "zxcvasdfbnm,ghjk";
-	for (int i = 0; i < padkeys1.length(); i++) {
-		if (k == padkeys1[i] || k == padkeys2[i]) {
+
+	for (int i = 0; i < padkeys1.length(); i++)
+	{
+		if (k == padkeys1[i] || k == padkeys2[i])
+		{
 			hw->getPad(i).lock()->release();
 			return true;
 		}
 	}
 
-	if (k == KeyPress::F1Key) {
+
+	if (k == KeyPress::returnKey)
+	{
+		hw->getButton("enter").lock()->release();
+	}
+	else if (k == KeyPress::F1Key)
+	{
 		hw->getButton("f1").lock()->release();
 		return true;
 	}
-	else if (k == KeyPress::F2Key) {
+	else if (k == KeyPress::F2Key)
+	{
 		hw->getButton("f2").lock()->release();
 		return true;
 	}
-	else if (k == KeyPress::F3Key) {
+	else if (k == KeyPress::F3Key)
+	{
 		hw->getButton("f3").lock()->release();
 		return true;
 	}
-	else if (k == KeyPress::F4Key) {
+	else if (k == KeyPress::F4Key)
+	{
 		hw->getButton("f4").lock()->release();
 		return true;
 	}
-	else if (k == KeyPress::F5Key) {
+	else if (k == KeyPress::F5Key)
+	{
 		hw->getButton("f5").lock()->release();
 		return true;
 	}
-	else if (k == KeyPress::F6Key) {
+	else if (k == KeyPress::F6Key)
+	{
 		hw->getButton("f6").lock()->release();
 		return true;
 	}
 
-	if (k == 'L' || k == 'l') {
+	if (k == 'L' || k == 'l')
+	{
 		hw->getButton("rec").lock()->release();
 		return true;
 	}
-	else if (k == ';') {
+	else if (k == ';')
+	{
 		hw->getButton("overdub").lock()->release();
 		return true;
 	}
-	else if (k == '\'') {
+	else if (k == '\'')
+	{
 		hw->getButton("stop").lock()->release();
 		return true;
 	}
-	else if (k == KeyPress::spaceKey) {
+	else if (k == KeyPress::spaceKey)
+	{
 		hw->getButton("play").lock()->release();
 		return true;
 	}
-	else if (k == '\\') {
-		hw->getButton("playstart").lock()->release();
+	else if (k == '\\')
+	{
+		hw->getButton("play-start").lock()->release();
 		return true;
 	}
 	else if (k == 'e' || k == 'E') {
-		hw->getButton("goto").lock()->release();
+		hw->getButton("go-to").lock()->release();
+		return true;
+	}
+	else if (k == 'y' || k == 'Y')
+	{
+		hw->getButton("tap").lock()->release();
 		return true;
 	}
 
-
-	/*
-	auto label = kbMapping->getLabelFromKeyCode(c);
-	if (label.compare("") != 0) {
-		hw->getButton(label).lock()->release();
-		return true;
-	}
-	*/
 	return false;
-}
-
-InputCatcherControl::~InputCatcherControl() {
 }

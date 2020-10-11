@@ -20,7 +20,6 @@ public:
 	void mouseDrag(const MouseEvent& event) override;
 	void mouseUp(const MouseEvent& event) override;
 
-public:
 	void update(moduru::observer::Observable* o, nonstd::any arg) override;
 
 private:

@@ -17,17 +17,23 @@
 #include <audiomidi/MpcMidiPorts.hpp>
 #include <audiomidi/MpcMidiInput.hpp>
 
-#include <StartUp.hpp>
+#include <Paths.hpp>
 #include <sequencer/Sequencer.hpp>
 
-#include <ui/midisync/MidiSyncGui.hpp>
-#include <ui/vmpc/DirectToDiskRecorderGui.hpp>
+#include <lcdgui/Background.hpp>
+#include <lcdgui/Screens.hpp>
+#include <lcdgui/screens/window/VmpcDirectToDiskRecorderScreen.hpp>
+#include <lcdgui/screens/SyncScreen.hpp>
 
 // ctoot
 #include <audio/server/NonRealTimeAudioServer.hpp>
 #include <midi/core/ShortMessage.hpp>
 
 using namespace ctoot::midi::core;
+using namespace mpc::lcdgui;
+using namespace mpc::lcdgui::screens;
+using namespace mpc::lcdgui::screens::window;
+using namespace std;
 
 //==============================================================================
 VmpcAudioProcessor::VmpcAudioProcessor()
@@ -43,11 +49,10 @@ VmpcAudioProcessor::VmpcAudioProcessor()
 	struct tm* currentLocalTime = localtime(&currentTime);
 	auto timeString = string(asctime(currentLocalTime));
 
-	moduru::Logger::l.setPath(mpc::StartUp::logFilePath);
+	moduru::Logger::l.setPath(mpc::Paths::logFilePath());
 	moduru::Logger::l.log("\n\n-= vMPC2000XL v" + string(ProjectInfo::versionString) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
 
-	mpc::Mpc::instance().init(44100.f, 1, 5);
-	mpc::Mpc::instance().getLayeredScreen().lock()->openScreen("sequencer");
+	mpc.init(44100.f, 1, 5);
 }
 
 VmpcAudioProcessor::~VmpcAudioProcessor()
@@ -119,21 +124,19 @@ void VmpcAudioProcessor::changeProgramName (int index, const String& newName)
 //==============================================================================
 void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    auto seq = mpc::Mpc::instance().getSequencer().lock();
+    auto seq = mpc.getSequencer().lock();
     bool wasPlaying = seq->isPlaying();
     
-	if (wasPlaying) {
+	if (wasPlaying)
 		seq->stop();
-	}
     
-	auto ams = mpc::Mpc::instance().getAudioMidiServices().lock();
+	auto ams = mpc.getAudioMidiServices().lock();
 	auto server = ams->getAudioServer();
     server->setSampleRate(sampleRate);
     server->resizeBuffers(samplesPerBlock);
 	
-	if (wasPlaying) {
+	if (wasPlaying)
 		seq->play();
-	}
 
 	monoToStereoBuffer.clear();
 	monoToStereoBuffer.setSize(2, samplesPerBlock);
@@ -150,31 +153,23 @@ bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
 	return true;
 	auto outs = layouts.outputBuses.size();
 	if (layouts.inputBuses.size() > 1)
-	{
 		return false;
-	}
 
 	if (layouts.outputBuses.size() > 5)
-	{
 		return false;
-	}
 
 	// Mono input is anticipated, but outputs need to come in stereo pairs
 
 	for (auto& bus : layouts.inputBuses)
 	{
 		if (bus != AudioChannelSet::mono() && bus != AudioChannelSet::stereo())
-		{
 			return false;
-		}
 	}
 
 	for (auto& bus : layouts.outputBuses)
 	{
 		if (bus != AudioChannelSet::stereo())
-		{
 			return false;
-		}
 	}
 
     return true;
@@ -184,57 +179,79 @@ void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
 	MidiBuffer::Iterator midiIterator(midiMessages);
 	juce::MidiMessage m;
 	int midiEventPos;
-	while (midiIterator.getNextEvent(m, midiEventPos)) {
+
+	while (midiIterator.getNextEvent(m, midiEventPos))
+	{
 		int timeStamp = m.getTimeStamp();
 		int velocity = m.getVelocity();
 
-		if (m.isNoteOn()) {
+		if (m.isNoteOn())
+		{
 			m.getRawData();
-			auto tootMsg = ShortMessage();
+			ShortMessage tootMsg;
 			tootMsg.setMessage(ShortMessage::NOTE_ON, m.getChannel() - 1, m.getNoteNumber(), velocity);
-			mpc::Mpc::instance().getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
+			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
 		}
-		else if (m.isNoteOff()) {
-			auto tootMsg = ShortMessage();
+		else if (m.isNoteOff())
+		{
+			ShortMessage tootMsg;
 			tootMsg.setMessage(ShortMessage::NOTE_OFF, m.getChannel() - 1, m.getNoteNumber(), 0);
-			mpc::Mpc::instance().getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
+			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
+		}
+		else if (m.isController())
+		{
+			ShortMessage tootMsg;
+			tootMsg.setMessage(ShortMessage::CONTROL_CHANGE, m.getChannel() - 1, m.getControllerNumber(), m.getControllerValue());
+			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
 		}
 	}
 }
 
-void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages, int bufferSize) {
-	auto midiOutMsgQueues = mpc::Mpc::instance().getMidiPorts().lock()->getReceivers();
-	for (auto& queue : midiOutMsgQueues) {
-		for (auto& msg : queue) {
-
+void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages)
+{
+	auto midiOutMsgQueues = mpc.getMidiPorts().lock()->getReceivers();
+	for (auto& queue : midiOutMsgQueues)
+	{
+		for (auto& msg : queue)
+		{
 			juce::uint8 velo = (juce::uint8) msg.getData2();
 			if (velo == 0) continue;
 			auto jmsg = juce::MidiMessage::noteOn(msg.getChannel() + 1, msg.getData1(), juce::uint8(velo));
 			midiMessages.addEvent(jmsg, msg.bufferPos);
 		}
 
-		for (auto msg : queue) {
+		for (auto msg : queue)
+		{
 			auto velo = msg.getData2();
 			if (velo != 0) continue;
 			auto jmsg = juce::MidiMessage::noteOff(msg.getChannel() + 1, msg.getData1());
 			midiMessages.addEvent(jmsg, msg.bufferPos);
 		}
 	}
-	mpc::Mpc::instance().getMidiPorts().lock()->getReceivers()[0].clear();
-	mpc::Mpc::instance().getMidiPorts().lock()->getReceivers()[1].clear();
+
+	mpc.getMidiPorts().lock()->getReceivers()[0].clear();
+	mpc.getMidiPorts().lock()->getReceivers()[1].clear();
 }
 
-void VmpcAudioProcessor::processTransport() {
-	if (JUCEApplication::isStandaloneApp()) return;
-	auto msGui = mpc::Mpc::instance().getUis().lock()->getMidiSyncGui();
-	bool syncEnabled = msGui->getModeIn() == 1;
+void VmpcAudioProcessor::processTransport()
+{
+	if (JUCEApplication::isStandaloneApp())
+	{
+		return;
+	}
+	auto syncScreen = dynamic_pointer_cast<SyncScreen>(mpc.screens->getScreenComponent("sync"));
 
-	if (syncEnabled) {
+	bool syncEnabled = syncScreen->getModeIn() == 1;
+
+	if (syncEnabled)
+	{
 		AudioPlayHead::CurrentPositionInfo info;
 		getPlayHead()->getCurrentPosition(info);
 		double tempo = info.bpm;
-		if (tempo != m_Tempo || mpc::Mpc::instance().getSequencer().lock()->getTempo().toDouble() != tempo) {
-			mpc::Mpc::instance().getSequencer().lock()->setTempo(BCMath(tempo));
+		
+		if (tempo != m_Tempo || mpc.getSequencer().lock()->getTempo() != tempo)
+		{
+			mpc.getSequencer().lock()->setTempo(tempo);
 			m_Tempo = tempo;
 		}
 		
@@ -242,51 +259,56 @@ void VmpcAudioProcessor::processTransport() {
 
 		if (!wasPlaying && isPlaying)
 		{
-			mpc::Mpc::instance().getSequencer().lock()->playFromStart();
+			mpc.getSequencer().lock()->playFromStart();
 		}
 		
 		if (wasPlaying && !isPlaying) {
-			mpc::Mpc::instance().getSequencer().lock()->stop();
+			mpc.getSequencer().lock()->stop();
 		}
 		wasPlaying = isPlaying;
 	}
 }
 
-void VmpcAudioProcessor::checkBouncing() {
-	auto ams = mpc::Mpc::instance().getAudioMidiServices().lock();
+void VmpcAudioProcessor::checkBouncing()
+{
+	auto ams = mpc.getAudioMidiServices().lock();
 	auto server = ams->getAudioServer();
 	bool amsIsBouncing = ams->isBouncing();
+
+	auto directToDiskRecorderScreen = dynamic_pointer_cast<VmpcDirectToDiskRecorderScreen>(mpc.screens->getScreenComponent("vmpc-direct-to-disk-recorder"));
 
 	if (amsIsBouncing && !wasBouncing) {
 
 		wasBouncing = true;
-
-		auto directToDiskRecorderGui = mpc::Mpc::instance().getUis().lock()->getD2DRecorderGui();
-		if (directToDiskRecorderGui->isOffline()) {
+		
+		if (directToDiskRecorderScreen->isOffline())
+		{
 			vector<int> rates{ 44100, 48000, 88200 };
-			auto rate = rates[directToDiskRecorderGui->getSampleRate()];
+			auto rate = rates[directToDiskRecorderScreen->getSampleRate()];
 			ams->getFrameSequencer().lock()->start(rate);
-			if (server->isRealTime()) {
+			
+			if (server->isRealTime())
+			{
 				server->setSampleRate(rate);
 				server->setRealTime(false);
 			}
 		}
-		else {
+		else if (directToDiskRecorderScreen->getRecord() != 4)
+		{
 			ams->getFrameSequencer().lock()->start(getSampleRate());
 		}
 
-		for (auto& diskRecorder : ams->getDiskRecorders()) {
+		for (auto& diskRecorder : ams->getDiskRecorders())
 			diskRecorder.lock()->start();
-		}
-
 	}
-	else if (!amsIsBouncing && wasBouncing) {
-
+	else if (!amsIsBouncing && wasBouncing)
+	{
 		wasBouncing = false;
 
-		auto directToDiskRecorderGui = mpc::Mpc::instance().getUis().lock()->getD2DRecorderGui();
-		if (directToDiskRecorderGui->isOffline()) {
-			if (!server->isRealTime()) {
+		if (directToDiskRecorderScreen->isOffline())
+		{
+			if (!server->isRealTime())
+			{
 				server->setSampleRate(getSampleRate());
 				server->setRealTime(true);
 			}
@@ -294,29 +316,26 @@ void VmpcAudioProcessor::checkBouncing() {
 	}
 }
 
-void VmpcAudioProcessor::checkSoundRecorder() {
-	auto ams = mpc::Mpc::instance().getAudioMidiServices().lock();
+void VmpcAudioProcessor::checkSoundRecorder()
+{
+	auto ams = mpc.getAudioMidiServices().lock();
 	auto recorder = ams->getSoundRecorder().lock();
 
-	if (wasRecordingSound && !recorder->isRecording()) {
+	if (wasRecordingSound && !recorder->isRecording())
+	{
 		recorder->stop();
 		ams->stopSoundRecorder();
 	}
 
-	if (!wasRecordingSound && ams->isRecordingSound()) {
+	if (!wasRecordingSound && ams->isRecordingSound())
+	{
 		wasRecordingSound = true;
-		mpc::Mpc::instance().getLayeredScreen().lock()->getCurrentBackground()->setName("recording");
 		recorder->start();
 	}
-	else if (wasRecordingSound && !ams->isRecordingSound()) {
+	else if (wasRecordingSound && !ams->isRecordingSound())
+	{
 		wasRecordingSound = false;
 		recorder->stop();
-		mpc::Mpc::instance().getLayeredScreen().lock()->getCurrentBackground()->setName("sample");
-		auto components = mpc::Mpc::instance().getLayeredScreen().lock()->getLayer(0)->getAllLabelsAndFields();
-		for (auto& c : components) {
-			c.lock()->SetDirty();
-		}
-		mpc::Mpc::instance().getLayeredScreen().lock()->openScreen("keeporretry");
 	}
 }
 
@@ -327,11 +346,14 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	const int totalNumInputChannels = getTotalNumInputChannels();
 	const int totalNumOutputChannels = getTotalNumOutputChannels();
 	
-	auto server = mpc::Mpc::instance().getAudioMidiServices().lock()->getAudioServer();
+	auto server = mpc.getAudioMidiServices().lock()->getAudioServer();
 
-	if (!server->isRunning()) {
+	if (!server->isRunning())
+	{
 		for (int i = 0; i < totalNumInputChannels; ++i)
+		{
 			buffer.clear(i, 0, buffer.getNumSamples());
+		}
 		return;
 	}
 
@@ -339,30 +361,35 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	checkBouncing();
 	checkSoundRecorder();
 
-	if (!server->isRealTime()) {
+	if (!server->isRealTime())
+	{
 		for (int i = 0; i < totalNumInputChannels; ++i)
 			buffer.clear(i, 0, buffer.getNumSamples());
+
 		return;
 	}
 
 	processTransport();
 	processMidiIn(midiMessages);
-	processMidiOut(midiMessages, buffer.getNumSamples());
+	processMidiOut(midiMessages);
 
 	auto chDataIn = buffer.getArrayOfReadPointers();
 	auto chDataOut = buffer.getArrayOfWritePointers();
 
-	if (totalNumInputChannels == 1) {
+	if (totalNumInputChannels == 1)
+	{
 		monoToStereoBuffer.clear();
 		monoToStereoBuffer.copyFrom(0, 0, buffer.getReadPointer(0), buffer.getNumSamples());
 		monoToStereoBuffer.copyFrom(1, 0, buffer.getReadPointer(0), buffer.getNumSamples());
 		server->work(monoToStereoBuffer.getArrayOfReadPointers(), chDataOut, buffer.getNumSamples(), 2, totalNumOutputChannels);
 	}
-	else {
+	else
+	{
 		server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannels, totalNumOutputChannels);
 	}
 
-	if (totalNumOutputChannels < 2) {
+	if (totalNumOutputChannels < 2)
+	{
 		for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
 			buffer.clear(i, 0, buffer.getNumSamples());
 	}
@@ -383,7 +410,9 @@ AudioProcessorEditor* VmpcAudioProcessor::createEditor()
 void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
 	auto editor = getActiveEditor();
-	if (editor != nullptr) {
+
+	if (editor != nullptr)
+	{
 		auto w = editor->getWidth();
 		auto h = editor->getHeight();
 		std::unique_ptr<XmlElement> xml(new XmlElement("LastUIDimensions"));
@@ -398,8 +427,10 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
 	std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
 
-	if (xmlState.get() != nullptr) {
-		if (xmlState->hasTagName("LastUIDimensions")) {
+	if (xmlState.get() != nullptr)
+	{
+		if (xmlState->hasTagName("LastUIDimensions"))
+		{
 			auto w = xmlState->getIntAttribute("w", 1298 / 2);
 			auto h = xmlState->getIntAttribute("h", 994 / 2);
 			lastUIWidth = w;

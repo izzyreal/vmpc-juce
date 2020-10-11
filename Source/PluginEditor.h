@@ -22,14 +22,14 @@
 #include "gui/KnobControl.hpp"
 #include "gui/ButtonControl.hpp"
 
-//==============================================================================
-/**
-*/
-class VmpcAudioProcessorEditor  : public AudioProcessorEditor
+namespace mpc { class Mpc; }
+
+class VmpcAudioProcessorEditor
+	: public AudioProcessorEditor
 {
 
 public:
-    VmpcAudioProcessorEditor (VmpcAudioProcessor&);
+    VmpcAudioProcessorEditor(VmpcAudioProcessor&);
     ~VmpcAudioProcessorEditor();
 
     void paint (Graphics&) override;
@@ -39,6 +39,7 @@ private:
 	void initialise();
 
 private:
+	mpc::Mpc& mpc;
 	Component::SafePointer<SplashScreen> mpcSplashScreen;
 	Label versionLabel;
     VmpcAudioProcessor& processor;
@@ -61,11 +62,10 @@ private:
 	Image ledRedImg;
 	Image ledGreenImg;
 
-	bool initialFocusSet = false;
-
 	VmpcAudioProcessor& getProcessor() const
 	{
 		return static_cast<VmpcAudioProcessor&> (processor);
 	}
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcAudioProcessorEditor)
+
+	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcAudioProcessorEditor)
 };

@@ -577,6 +577,7 @@ public:
         Component::addAndMakeVisible (optionsButton);
         optionsButton.addListener (this);
         optionsButton.setTriggeredOnMouseDown (true);
+        optionsButton.setWantsKeyboardFocus(false);
        #endif
 
         pluginHolder.reset (new StandalonePluginHolder (settingsToUse, takeOwnershipOfSettings,

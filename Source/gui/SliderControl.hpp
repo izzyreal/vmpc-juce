@@ -4,14 +4,14 @@
 
 #include <memory>
 
-namespace mpc {
-	namespace hardware {
-		class Slider;
-	}
+#include <observer/Observer.hpp>
+
+namespace mpc::hardware {
+	class Slider;
 }
 
 class SliderControl
-	: public VmpcComponent
+	: public VmpcComponent, public moduru::observer::Observer
 	{
 
 private:
@@ -31,7 +31,8 @@ public:
 	void mouseDrag(const MouseEvent& event) override;
 	void mouseUp(const MouseEvent& event) override;
 
-public:
+	void update(moduru::observer::Observable* o, nonstd::any arg) override;
+
 	SliderControl(std::weak_ptr<mpc::hardware::Slider> slider, int startIndex, const String& componentName);
 	~SliderControl();
 
