@@ -1,6 +1,8 @@
 #pragma once
 
-#include <JuceHeader.h>
+#include "juce_graphics/juce_graphics.h"
+
+using namespace juce;
 
 namespace Helpers
 {

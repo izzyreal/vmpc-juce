@@ -1,9 +1,11 @@
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <juce_gui_basics/juce_gui_basics.h>
 
 #include <vector>
 #include <memory>
+
+using namespace juce;
 
 namespace mpc { class Mpc; }
 

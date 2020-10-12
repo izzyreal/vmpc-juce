@@ -1,5 +1,7 @@
 #pragma once
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "juce_graphics/juce_graphics.h"
+
+using namespace juce;
 
 class Constants {
 

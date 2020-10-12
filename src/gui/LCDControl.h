@@ -1,5 +1,4 @@
 #pragma once
-#include "../JuceLibraryCode/JuceHeader.h"
 #include "VmpcComponent.h"
 
 #include <observer/Observer.hpp>

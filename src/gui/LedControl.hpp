@@ -1,11 +1,11 @@
 #pragma once
-
-#include "../JuceLibraryCode/JuceHeader.h"
-
 #include "Led.hpp"
+#include "juce_graphics/juce_graphics.h"
+#include "juce_audio_processors/juce_audio_processors.h"
+
+using namespace juce;
 
 #include <observer/Observer.hpp>
-
 
 class LedControl
 	: public moduru::observer::Observer
