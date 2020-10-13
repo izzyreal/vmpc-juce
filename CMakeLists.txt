@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(vmpc2000xl VERSION 0.2.0)
+list(APPEND CMAKE_PREFIX_PATH "C:/Users/Izmar/git/JUCE/install")
 find_package(JUCE CONFIG REQUIRED)
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
@@ -14,7 +15,7 @@ juce_add_plugin(vmpc2000xl
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     PLUGIN_MANUFACTURER_CODE Izmr               # A four-character manufacturer id with at least one upper-case character
     PLUGIN_CODE 2kXL                            # A unique four-character plugin id with at least one upper-case character
-    FORMATS Standalone, VST3                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
+    FORMATS Standalone VST3                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
     PRODUCT_NAME "vmpc2000xl")        # The name of the final executable, which can differ from the target name
 
 set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/src")

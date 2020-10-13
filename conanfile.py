@@ -6,7 +6,7 @@ class Pkg(ConanFile):
     version = "0.1"
     settings = "os", "compiler", "arch", "build_type"
     generators = "cmake"
-    requires = ("mpc/0.1@izmar/dev", "ctoot/0.1@izmar/dev", "moduru/0.1@izmar/dev")
+    requires = ("juce/0.1@izmar/dev", "mpc/0.1@izmar/dev", "ctoot/0.1@izmar/dev", "moduru/0.1@izmar/dev")
     url = "https://github.com/izzyreal/vmpc-juce.git"
 	
     def build(self):
