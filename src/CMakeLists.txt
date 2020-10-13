@@ -3,11 +3,16 @@ project(vmpc2000xl VERSION 0.2.0)
 list(APPEND CMAKE_PREFIX_PATH "C:/Users/Izmar/git/JUCE/install")
 find_package(JUCE CONFIG REQUIRED)
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
+if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo_multi.cmake)
+    include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo_multi.cmake)
+else()
+    include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
+endif()
+
+conan_basic_setup(NO_OUTPUT_DIRS)
 
 juce_add_plugin(vmpc2000xl
-    ICON_BIG "src/resources/icon.png"
+    ICON_BIG "main/resources/icon.png"
     COMPANY_NAME Izmar
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
@@ -18,7 +23,7 @@ juce_add_plugin(vmpc2000xl
     FORMATS Standalone VST3                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
     PRODUCT_NAME "vmpc2000xl")        # The name of the final executable, which can differ from the target name
 
-set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/main")
 file(
         GLOB_RECURSE _source_list
         LIST_DIRECTORIES false
