@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(vmpc2000xl VERSION 0.2.0)
-list(APPEND CMAKE_PREFIX_PATH "C:/Users/Izmar/git/JUCE/install")
+
 find_package(JUCE CONFIG REQUIRED)
 juce_disable_default_flags()
 
@@ -47,6 +47,8 @@ target_compile_definitions(vmpc2000xl
 
 target_link_libraries(vmpc2000xl PRIVATE
     juce::juce_audio_utils mpc moduru ctoot)
+
+target_link_libraries(vmpc2000xl PUBLIC juce::juce_recommended_lto_flags)
 
 if(MSVC)
 	target_compile_options(vmpc2000xl PRIVATE "/MP")
