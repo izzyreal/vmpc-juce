@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(vmpc2000xl VERSION 0.2.0)
-
+include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 find_package(JUCE CONFIG REQUIRED)
 juce_disable_default_flags()
 
