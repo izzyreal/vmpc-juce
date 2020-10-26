@@ -3,6 +3,20 @@ project(vmpc2000xl VERSION 0.2.0)
 
 include(${CMAKE_CURRENT_BINARY_DIR}/conan_paths.cmake)
 
+macro(conan_target_link_libraries_keyword target)
+    if(CONAN_TARGETS)
+        target_link_libraries(${target} PUBLIC ${CONAN_TARGETS})
+    else()
+        target_link_libraries(${target} PUBLIC ${CONAN_LIBS})
+        foreach(_LIB ${CONAN_LIBS_RELEASE})
+            target_link_libraries(${target} PUBLIC optimized ${_LIB})
+        endforeach()
+        foreach(_LIB ${CONAN_LIBS_DEBUG})
+            target_link_libraries(${target} PUBLIC debug ${_LIB})
+        endforeach()
+    endif()
+endmacro()
+
 find_package(JUCE CONFIG REQUIRED)
 juce_disable_default_flags()
 
@@ -48,9 +62,11 @@ target_compile_definitions(vmpc2000xl
     JUCE_DISPLAY_SPLASH_SCREEN=0)
 
 target_link_libraries(vmpc2000xl PRIVATE
-    juce::juce_audio_utils mpc moduru ctoot)
+    juce::juce_audio_utils xinput)
 
-target_link_libraries(vmpc2000xl PUBLIC juce::juce_recommended_lto_flags)
+conan_target_link_libraries_keyword(vmpc2000xl)
+
+target_link_libraries(vmpc2000xl PRIVATE juce::juce_recommended_lto_flags)
 
 if(MSVC)
 	target_compile_options(vmpc2000xl PRIVATE "/MP")
