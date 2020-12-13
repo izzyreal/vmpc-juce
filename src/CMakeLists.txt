@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
-project(vmpc2000xl VERSION 0.2.0)
+
+set(VMPC_VERSION 0.2.0)
+
+project(vmpc2000xl VERSION ${VMPC_VERSION})
+
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/main/version.h "#pragma once\nnamespace version { static char* get(){ return \"${VMPC_VERSION}\";}}")
 
 include(${CMAKE_CURRENT_BINARY_DIR}/conan_paths.cmake)
 

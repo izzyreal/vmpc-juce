@@ -10,6 +10,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "version.h"
 
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audiomidi/DiskRecorder.hpp>
@@ -50,7 +51,7 @@ VmpcAudioProcessor::VmpcAudioProcessor()
 	auto timeString = string(asctime(currentLocalTime));
 
 	moduru::Logger::l.setPath(mpc::Paths::logFilePath());
-    moduru::Logger::l.log("\n\n-= vMPC2000XL v0.2.0 " + timeString.substr(0, timeString.length() - 1) + " =-\n");
+    moduru::Logger::l.log("\n\n-= vMPC2000XL v" + string(version::get()) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
 
 	mpc.init(44100.f, 1, 5);
 }

@@ -17,6 +17,7 @@
 #include <hardware/Led.hpp>
 #include <audiomidi/AudioMidiServices.hpp>
 #include <Paths.hpp>
+#include "version.h"
 
 using namespace std;
 
@@ -118,7 +119,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	lcd->setInputCatcher(inputCatcher);
 	addAndMakeVisible(lcd);
 
-	versionLabel.setText("v0.2.0", dontSendNotification);
+	versionLabel.setText(version::get(), dontSendNotification);
 	versionLabel.setColour(Label::textColourId, Colours::darkgrey);
 	addAndMakeVisible(versionLabel);
 
