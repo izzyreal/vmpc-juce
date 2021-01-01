@@ -67,7 +67,7 @@ target_compile_definitions(vmpc2000xl
     JUCE_DISPLAY_SPLASH_SCREEN=0)
 
 target_link_libraries(vmpc2000xl PRIVATE
-    juce::juce_audio_utils xinput)
+    juce::juce_audio_utils)
 
 conan_target_link_libraries_keyword(vmpc2000xl)
 
