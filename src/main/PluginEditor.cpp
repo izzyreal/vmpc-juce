@@ -27,10 +27,10 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	setWantsKeyboardFocus(false);
 	initialise();
 
-	inputCatcher = new InputCatcherControl(mpc, "inputcatcher");
-	inputCatcher->setSize(1298, 994);
-	inputCatcher->setWantsKeyboardFocus(true);
-	addAndMakeVisible(inputCatcher);
+	keyEventListener = new KeyEventListener();
+	keyEventListener->setSize(1298, 994);
+	keyEventListener->setWantsKeyboardFocus(true);
+	addAndMakeVisible(keyEventListener);
 
 	File f;
 
@@ -45,14 +45,12 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	dataWheelImg = ImageFileFormat::loadFrom(f);
 	dataWheel->setImage(dataWheelImg, 100);
 	addAndMakeVisible(dataWheel);
-	dataWheel->setInputCatcher(inputCatcher);
 
 	auto sliderImgPath = mpc::Paths::resPath() + "/img/sliders.png";
 	f = File(sliderImgPath);
 	sliderImg = ImageFileFormat::loadFrom(f);
 	slider = new SliderControl(mpc.getHardware().lock()->getSlider(), 0, "slider");
 	slider->setImage(sliderImg);
-	slider->setInputCatcher(inputCatcher);
 	addAndMakeVisible(slider);
 
 	auto recKnobImgPath = mpc::Paths::resPath() + "/img/recknobs.png";
@@ -61,7 +59,6 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	recKnob = new KnobControl(0, mpc.getHardware().lock()->getRecPot(), mpc.getAudioMidiServices().lock()->getRecordLevel(), "recknob");
 	recKnob->setImage(recKnobImg);
 	addAndMakeVisible(recKnob);
-	recKnob->setInputCatcher(inputCatcher);
 
 	auto volKnobImgPath = mpc::Paths::resPath() + "/img/volknobs.png";
 	f = File(volKnobImgPath);
@@ -69,7 +66,6 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	volKnob = new KnobControl(0, mpc.getHardware().lock()->getVolPot(), mpc.getAudioMidiServices().lock()->getMasterLevel(), "volknob");
 	volKnob->setImage(volKnobImg);
 	addAndMakeVisible(volKnob);
-	volKnob->setInputCatcher(inputCatcher);
 
 	auto padHitImgPath = mpc::Paths::resPath() + "/img/padhit.png";
 	f = File(padHitImgPath);
@@ -82,7 +78,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	f = File(ledGreenImgPath);
 	ledGreenImg = ImageFileFormat::loadFrom(f);
 
-	leds = new LedControl(ledGreenImg, ledRedImg, inputCatcher);
+	leds = new LedControl(ledGreenImg, ledRedImg);
 	leds->setPadBankA(true);
 	leds->addAndMakeVisible(this);
 	for (auto& l : mpc.getHardware().lock()->getLeds()) {
@@ -94,7 +90,6 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	for (auto& l : buttonLabels) {
 		auto bc = new ButtonControl(*ButtonControl::rects[l], mpc.getHardware().lock()->getButton(l), l);
 		addAndMakeVisible(bc);
-		bc->setInputCatcher(inputCatcher);
 		buttons.push_back(bc);
 	}
 
@@ -116,7 +111,6 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 
 	lcd = new LCDControl(mpc, "lcd", mpc.getLayeredScreen());
 	lcd->setSize(496, 120);
-	lcd->setInputCatcher(inputCatcher);
 	addAndMakeVisible(lcd);
 
 	versionLabel.setText(version::get(), dontSendNotification);
@@ -144,7 +138,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 
 VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
 {
-	delete inputCatcher;
+	delete keyEventListener;
 	mpcSplashScreen.deleteAndZero();
 	lcd->stopTimer();
 
@@ -196,7 +190,7 @@ void VmpcAudioProcessorEditor::resized()
 	getProcessor().lastUIHeight = getHeight();
 	double ratio = getWidth() / 1298.0;
 	auto scaleTransform = AffineTransform::scale(ratio);
-	inputCatcher->setBounds(0, 0, getWidth(), getHeight()); // don't transform! or kb events are partiallly gone
+	keyEventListener->setBounds(0, 0, getWidth(), getHeight()); // don't transform! or kb events are partiallly gone
 	dataWheel->setTransform(scaleTransform);
 	dataWheel->setBounds(Constants::DATAWHEEL_RECT()->getX(), Constants::DATAWHEEL_RECT()->getY(), dataWheel->getFrameWidth(), dataWheel->getFrameHeight());
 	slider->setTransform(scaleTransform);

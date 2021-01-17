@@ -56,6 +56,12 @@ file(
         "${_src_root_path}/*.h*"
 )
 
+foreach(_source IN ITEMS ${_source_list})
+    get_filename_component(_source_path "${_source}" PATH)
+    string(REPLACE "/" "\\" _source_path_msvc "${_source_path}")
+    source_group("${_source_path_msvc}" FILES "${_source}")
+endforeach()
+
 target_sources(vmpc2000xl PRIVATE
         ${_source_list})
 

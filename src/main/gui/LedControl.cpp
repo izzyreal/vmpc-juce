@@ -4,11 +4,10 @@
 
 using namespace std;
 
-LedControl::LedControl(Image ledGreen, Image ledRed, InputCatcherControl* ipc)
+LedControl::LedControl(Image ledGreen, Image ledRed)
 {
 	this->ledGreen = ledGreen;
 	this->ledRed = ledRed;
-	this->ipc = ipc;
 
 	int x, y;
 	int ledSize = 10;
@@ -55,31 +54,18 @@ LedControl::LedControl(Image ledGreen, Image ledRed, InputCatcherControl* ipc)
 	padBankD = Rectangle<float>(x, y, ledSize, ledSize);
 
 	fullLevelLed = new Led(ledGreen, fullLevel);
-	fullLevelLed->setInputCatcher(ipc);
 	sixteenLevelsLed = new Led(ledGreen, sixteenLevels);
-	sixteenLevelsLed->setInputCatcher(ipc);
 	nextSeqLed = new Led(ledGreen, nextSeq);
-	nextSeqLed->setInputCatcher(ipc);
 	trackMuteLed = new Led(ledGreen, trackMute);
-	trackMuteLed->setInputCatcher(ipc);
 	padBankALed = new Led(ledGreen, padBankA);
-	padBankALed->setInputCatcher(ipc);
 	padBankBLed = new Led(ledGreen, padBankB);
-	padBankBLed->setInputCatcher(ipc);
 	padBankCLed = new Led(ledGreen, padBankC);
-	padBankCLed->setInputCatcher(ipc);
 	padBankDLed = new Led(ledGreen, padBankD);
-	padBankDLed->setInputCatcher(ipc);
 	afterLed = new Led(ledGreen, after);
-	afterLed->setInputCatcher(ipc);
 	undoSeqLed = new Led(ledGreen, undoSeq);
-	undoSeqLed->setInputCatcher(ipc);
 	recLed = new Led(ledRed, rec);
-	recLed->setInputCatcher(ipc);
 	overDubLed = new Led(ledRed, overDub);
-	overDubLed->setInputCatcher(ipc);
-	playLed = new Led(ledGreen, play);	
-	playLed->setInputCatcher(ipc);
+	playLed = new Led(ledGreen, play);
 }
 
 void LedControl::addAndMakeVisible(AudioProcessorEditor* editor) {

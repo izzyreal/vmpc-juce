@@ -15,7 +15,7 @@
 
 #include "gui/DataWheelControl.h"
 #include "gui/LCDControl.h"
-#include "gui/InputCatcherControl.h"
+#include "gui/KeyEventListener.h"
 #include "gui/SliderControl.hpp"
 #include "gui/PadControl.hpp"
 #include "gui/LedControl.hpp"
@@ -51,7 +51,7 @@ private:
 	SliderControl* slider;
 	LCDControl* lcd;
 	LedControl* leds;
-	InputCatcherControl* inputCatcher;
+	KeyEventListener* keyEventListener;
 	std::vector<ButtonControl*> buttons;
 	std::vector<PadControl*> pads;
 

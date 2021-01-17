@@ -12,7 +12,6 @@ class LedControl
 {
 
 private:
-	InputCatcherControl* ipc = nullptr;
 	Image ledGreen;
 	Image ledRed;
 
@@ -71,7 +70,7 @@ public:
 	void update(moduru::observer::Observable* o, nonstd::any arg) override;
 
 public:
-	LedControl(Image ledGreen, Image ledRed, InputCatcherControl* ipc);
+	LedControl(Image ledGreen, Image ledRed);
 	~LedControl();
 
 };
