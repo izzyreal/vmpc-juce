@@ -36,15 +36,15 @@ using namespace mpc::lcdgui::screens;
 using namespace mpc::lcdgui::screens::window;
 using namespace std;
 
-//==============================================================================
 VmpcAudioProcessor::VmpcAudioProcessor()
      : AudioProcessor (BusesProperties()
-		 .withInput  ("RECORD IN",  AudioChannelSet::stereo(), false)
-		 .withOutput ("STEREO OUT", AudioChannelSet::stereo(), false)
+		 .withInput  ("RECORD IN",  AudioChannelSet::stereo(), true)
+		 .withOutput ("STEREO OUT", AudioChannelSet::stereo(), true)
 		 .withOutput("MIX OUT 1/2", AudioChannelSet::stereo(), false)
 		 .withOutput("MIX OUT 3/4", AudioChannelSet::stereo(), false)
 		 .withOutput("MIX OUT 5/6", AudioChannelSet::stereo(), false)
-		 .withOutput("MIX OUT 7/8", AudioChannelSet::stereo(), false))
+		 .withOutput("MIX OUT 7/8", AudioChannelSet::stereo(), false)
+)
 {
 	time_t currentTime = time(NULL);
 	struct tm* currentLocalTime = localtime(&currentTime);
@@ -177,35 +177,38 @@ bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
 }
 
 void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
-	MidiBuffer::Iterator midiIterator(midiMessages);
-	juce::MidiMessage m;
-	int midiEventPos;
-
-	while (midiIterator.getNextEvent(m, midiEventPos))
-	{
-		int timeStamp = m.getTimeStamp();
-		int velocity = m.getVelocity();
-
-		if (m.isNoteOn())
-		{
-			m.getRawData();
-			ShortMessage tootMsg;
-			tootMsg.setMessage(ShortMessage::NOTE_ON, m.getChannel() - 1, m.getNoteNumber(), velocity);
-			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
-		}
-		else if (m.isNoteOff())
-		{
-			ShortMessage tootMsg;
-			tootMsg.setMessage(ShortMessage::NOTE_OFF, m.getChannel() - 1, m.getNoteNumber(), 0);
-			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
-		}
-		else if (m.isController())
-		{
-			ShortMessage tootMsg;
-			tootMsg.setMessage(ShortMessage::CONTROL_CHANGE, m.getChannel() - 1, m.getControllerNumber(), m.getControllerValue());
-			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
-		}
-	}
+    
+    // Disabled because it causes a segfault in auval
+    
+//	MidiBuffer::Iterator midiIterator(midiMessages);
+//	juce::MidiMessage m;
+//	int midiEventPos;
+//
+//	while (midiIterator.getNextEvent(m, midiEventPos))
+//	{
+//		int timeStamp = m.getTimeStamp();
+//		int velocity = m.getVelocity();
+//
+//		if (m.isNoteOn())
+//		{
+//			m.getRawData();
+//			ShortMessage tootMsg;
+//			tootMsg.setMessage(ShortMessage::NOTE_ON, m.getChannel() - 1, m.getNoteNumber(), velocity);
+//			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
+//		}
+//		else if (m.isNoteOff())
+//		{
+//			ShortMessage tootMsg;
+//			tootMsg.setMessage(ShortMessage::NOTE_OFF, m.getChannel() - 1, m.getNoteNumber(), 0);
+//			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
+//		}
+//		else if (m.isController())
+//		{
+//			ShortMessage tootMsg;
+//			tootMsg.setMessage(ShortMessage::CONTROL_CHANGE, m.getChannel() - 1, m.getControllerNumber(), m.getControllerValue());
+//			mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
+//		}
+//	}
 }
 
 void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages)
@@ -343,7 +346,7 @@ void VmpcAudioProcessor::checkSoundRecorder()
 void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
 	ScopedNoDenormals noDenormals;
-\
+
 	const int totalNumInputChannels = getTotalNumInputChannels();
 	const int totalNumOutputChannels = getTotalNumOutputChannels();
 	
@@ -396,10 +399,9 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
 	}
 }
 
-//==============================================================================
 bool VmpcAudioProcessor::hasEditor() const
 {
-    return true; // (change this to false if you choose to not supply an editor)
+    return true;
 }
 
 AudioProcessorEditor* VmpcAudioProcessor::createEditor()
@@ -407,7 +409,6 @@ AudioProcessorEditor* VmpcAudioProcessor::createEditor()
     return new VmpcAudioProcessorEditor (*this);
 }
 
-//==============================================================================
 void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
 	auto editor = getActiveEditor();
@@ -440,8 +441,6 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 	}
 }
 
-//==============================================================================
-// This creates new instances of the plugin..
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new VmpcAudioProcessor();

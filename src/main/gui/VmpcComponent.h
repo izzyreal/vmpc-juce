@@ -31,17 +31,10 @@ public:
         setWantsKeyboardFocus(false);
 	}
 
-public:
-	void modifierKeysChanged(const ModifierKeys& modifiers) override { if (ipc != nullptr) ipc->modifierKeysChanged(modifiers); }
-
-public:
-	void setInputCatcher(InputCatcherControl* ipc) { this->ipc = ipc; }
-
     ~VmpcComponent()
     {
     }
 
 private:
-	InputCatcherControl* ipc = nullptr;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcComponent)
 };

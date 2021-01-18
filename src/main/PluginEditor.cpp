@@ -15,6 +15,7 @@
 
 #include <hardware/Hardware.hpp>
 #include <hardware/Led.hpp>
+#include <controls/Controls.hpp>
 #include <audiomidi/AudioMidiServices.hpp>
 #include <Paths.hpp>
 #include "version.h"
@@ -27,7 +28,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	setWantsKeyboardFocus(false);
 	initialise();
 
-	keyEventListener = new KeyEventListener();
+	keyEventListener = new KeyEventListener(mpc.getControls().lock()->getKeyEventHandler());
 	keyEventListener->setSize(1298, 994);
 	keyEventListener->setWantsKeyboardFocus(true);
 	addAndMakeVisible(keyEventListener);
@@ -117,6 +118,11 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	versionLabel.setColour(Label::textColourId, Colours::darkgrey);
 	addAndMakeVisible(versionLabel);
 
+    kbEditor = new KbEditor(mpc);
+    kbEditor->setSize(800, 800);
+    kbEditor->setTopLeftPosition(40, 40);
+    addAndMakeVisible(kbEditor);
+    
     setResizable(true, true);
 
 	setSize(p.lastUIWidth, p.lastUIHeight);
@@ -134,10 +140,13 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 		lcd->startPowerUpSequence();
 		processor.poweredUp = true;
 	}
+    
+    kbEditor->startTimer(25);
 }
 
 VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
 {
+    delete kbEditor;
 	delete keyEventListener;
 	mpcSplashScreen.deleteAndZero();
 	lcd->stopTimer();
@@ -215,4 +224,7 @@ void VmpcAudioProcessorEditor::resized()
 
 	versionLabel.setTransform(scaleTransform);
 	versionLabel.setBounds(1175, 118, 100, 20);
+    
+    kbEditor->setTransform(scaleTransform);
+    kbEditor->setBounds(40, 40, 800, 800);
 }

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 set(VMPC_VERSION 0.2.0)
+set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE INTERNAL "")
 
 project(vmpc2000xl VERSION ${VMPC_VERSION})
 
@@ -42,7 +43,7 @@ juce_add_plugin(vmpc2000xl
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     PLUGIN_MANUFACTURER_CODE Izmr               # A four-character manufacturer id with at least one upper-case character
     PLUGIN_CODE 2kXL                            # A unique four-character plugin id with at least one upper-case character
-    FORMATS Standalone VST3                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
+    FORMATS Standalone VST3 AU                 # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
     PRODUCT_NAME "vmpc2000xl")        # The name of the final executable, which can differ from the target name
 
 set(CMAKE_CXX_STANDARD 17)

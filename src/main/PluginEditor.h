@@ -21,6 +21,7 @@
 #include "gui/LedControl.hpp"
 #include "gui/KnobControl.hpp"
 #include "gui/ButtonControl.hpp"
+#include "gui/KbEditor.h"
 
 using namespace juce;
 
@@ -41,10 +42,11 @@ private:
 	void initialise();
 
 private:
+    VmpcAudioProcessor& processor;
 	mpc::Mpc& mpc;
 	Component::SafePointer<SplashScreen> mpcSplashScreen;
 	Label versionLabel;
-    VmpcAudioProcessor& processor;
+    KbEditor* kbEditor;
 	DataWheelControl* dataWheel;
 	KnobControl* recKnob;
 	KnobControl* volKnob;
