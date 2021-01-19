@@ -769,7 +769,8 @@ private:
                 notification.setColour (Label::textColourId, Colours::black);
 
                 settingsButton.addListener (settingsButtonListener);
-
+                notification.setWantsKeyboardFocus(false);
+                settingsButton.setWantsKeyboardFocus(false);
                 addAndMakeVisible (notification);
                 addAndMakeVisible (settingsButton);
             }
