@@ -32,7 +32,7 @@ class VmpcAudioProcessorEditor
 {
 
 public:
-    VmpcAudioProcessorEditor(VmpcAudioProcessor&);
+    explicit VmpcAudioProcessorEditor(VmpcAudioProcessor&);
     ~VmpcAudioProcessorEditor();
 
     void paint (Graphics&) override;

@@ -1,6 +1,8 @@
 #include "StandaloneFilter.h"
 #include "ConfigurationHelpers.h"
 
+#include <juce_audio_plugin_client/juce_audio_plugin_client.h>
+
 StandaloneFilterApp::StandaloneFilterApp()
 {
     juce::PluginHostType::jucePlugInClientCurrentWrapperType =

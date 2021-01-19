@@ -18,10 +18,10 @@ KbEditor::KbEditor(mpc::Mpc& mpc)
 void KbEditor::checkDirty()
 {
     auto kbEditorLcd = mpc.getKbEditor().lock();
-    vector<vector<bool>> pixels(400, vector<bool>(400));
     
-//	if (kbEditorLcd->IsDirty())
-//	{
+	if (kbEditorLcd->IsDirty())
+	{
+        vector<vector<bool>> pixels(400, vector<bool>(400));
         kbEditorLcd->Draw(&pixels);
         Colour c;
     
@@ -55,7 +55,7 @@ void KbEditor::checkDirty()
                 lcd.setPixelAt(x_x2 + 1, y_x2 + 1, c);
                 lcd.setPixelAt(x_x2, y_x2 + 1, c);
             }
-//        }
+        }
         
         repaint();
 	}

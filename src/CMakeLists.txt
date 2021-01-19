@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 set(VMPC_VERSION 0.2.0)
-set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE INTERNAL "")
+#set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE INTERNAL "")
 
 project(vmpc2000xl VERSION ${VMPC_VERSION})
 
@@ -63,13 +63,13 @@ foreach(_source IN ITEMS ${_source_list})
     source_group("${_source_path_msvc}" FILES "${_source}")
 endforeach()
 
-target_sources(vmpc2000xl PRIVATE
-        ${_source_list})
+target_sources(vmpc2000xl PRIVATE ${_source_list})
 
 target_compile_definitions(vmpc2000xl
     PUBLIC
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
+    JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
     JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_DISPLAY_SPLASH_SCREEN=0)
 
