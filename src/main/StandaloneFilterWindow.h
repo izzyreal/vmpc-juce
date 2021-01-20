@@ -4,6 +4,9 @@
 #include "juce_audio_devices/juce_audio_devices.h"
 #include "juce_audio_utils/juce_audio_utils.h"
 
+#include "PluginProcessor.h"
+#include <Mpc.hpp>
+
 namespace juce
 {
 class StandalonePluginHolder    : private AudioIODeviceCallback,
@@ -110,7 +113,9 @@ public:
 
     void openKeyboardScreen ()
     {
-        // TODO
+        auto vmpcAudioProcessor = dynamic_cast<VmpcAudioProcessor*>(processor.get());
+        auto& mpc = vmpcAudioProcessor->mpc;
+        mpc.getLayeredScreen().lock()->openScreen("vmpc-keyboard");
     }
 
     void startPlaying()
