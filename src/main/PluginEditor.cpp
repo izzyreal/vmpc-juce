@@ -1,13 +1,3 @@
-/*
-  ==============================================================================
-
-    This file was auto-generated!
-
-    It contains the basic framework code for a JUCE plugin editor.
-
-  ==============================================================================
-*/
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
@@ -42,6 +32,8 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     auto keyboardImgPath = mpc::Paths::resPath() + "/img/keyboard.png";
     f = File(keyboardImgPath);
     keyboardImg = ImageFileFormat::loadFrom(f);
+    
+    keyboardButton.setImages(false, true, true, keyboardImg, 0.5, Colours::transparentWhite, keyboardImg, 1.0, Colours::transparentWhite, keyboardImg, 0.25, Colours::transparentWhite);
     
 	dataWheel = new DataWheelControl(mpc.getHardware().lock()->getDataWheel(), "datawheel");
 	mpc.getHardware().lock()->getDataWheel().lock()->addObserver(dataWheel);
@@ -86,13 +78,18 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	leds = new LedControl(ledGreenImg, ledRedImg);
 	leds->setPadBankA(true);
 	leds->addAndMakeVisible(this);
-	for (auto& l : mpc.getHardware().lock()->getLeds()) {
+    
+	for (auto& l : mpc.getHardware().lock()->getLeds())
+    {
 		l->addObserver(leds);
-	}
+    }
 
 	ButtonControl::initRects();
-	std::vector<std::string> buttonLabels{ "left", "right", "up", "down", "rec", "overdub", "stop", "play", "play-start", "main-screen", "prev-step-event", "next-step-event",	"go-to", "prev-bar-start", "next-bar-end", "tap", "next-seq", "track-mute", "open-window", "full-level", "sixteen-levels", "f1", "f2", "f3", "f4", "f5", "f6", "shift", "enter", "undo-seq", "erase", "after", "bank-a", "bank-b", "bank-c", "bank-d" };
-	for (auto& l : buttonLabels) {
+
+    std::vector<std::string> buttonLabels{ "left", "right", "up", "down", "rec", "overdub", "stop", "play", "play-start", "main-screen", "prev-step-event", "next-step-event",	"go-to", "prev-bar-start", "next-bar-end", "tap", "next-seq", "track-mute", "open-window", "full-level", "sixteen-levels", "f1", "f2", "f3", "f4", "f5", "f6", "shift", "enter", "undo-seq", "erase", "after", "bank-a", "bank-b", "bank-c", "bank-d" };
+	
+    for (auto& l : buttonLabels)
+    {
 		auto bc = new ButtonControl(*ButtonControl::rects[l], mpc.getHardware().lock()->getButton(l), l);
 		addAndMakeVisible(bc);
 		buttons.push_back(bc);
@@ -103,14 +100,19 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	const int padOffsetX = 778;
 	const int padOffsetY = 397;
 	int padCounter = 0;
-	for (int j = 3; j >= 0; j--) {
-		for (int i = 0; i < 4; i++) {
+    
+	for (int j = 3; j >= 0; j--)
+    {
+		for (int i = 0; i < 4; i++)
+        {
 			int x1 = (padWidth + padSpacing) * i + padOffsetX + i;
 			int y1 = (padWidth + padSpacing) * j + padOffsetY;
 			Rectangle<float> rect(x1, y1, padWidth + i, padWidth);
-			auto pc = new PadControl(mpc, rect, mpc.getHardware().lock()->getPad(padCounter++), padHitImg, "pad");
+		
+            auto pc = new PadControl(mpc, rect, mpc.getHardware().lock()->getPad(padCounter++), padHitImg, "pad");
 			addAndMakeVisible(pc);
-			pads.push_back(pc);
+
+            pads.push_back(pc);
 		}
 	}
 
@@ -121,18 +123,28 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	versionLabel.setText(version::get(), dontSendNotification);
 	versionLabel.setColour(Label::textColourId, Colours::darkgrey);
 	addAndMakeVisible(versionLabel);
-
-    kbEditor = new KbEditor(mpc);
-    kbEditor->setSize(800, 800);
-    kbEditor->setTopLeftPosition(40, 40);
-//    addAndMakeVisible(kbEditor);
     
     setResizable(true, true);
 
 	setSize(p.lastUIWidth, p.lastUIHeight);
 	setResizeLimits(1298 / 2, 994 / 2, 1298, 994);
 	getConstrainer()->setFixedAspectRatio(1.305835010060362);
-
+    
+    keyboardButton.setBounds(p.lastUIWidth - 80, 10, 75, 30);
+    
+    class KbButtonListener : public Button::Listener {
+    public:
+        KbButtonListener(mpc::Mpc& _mpc) : mpc(_mpc) {}
+        mpc::Mpc& mpc;
+        void buttonClicked(Button*) override {
+            mpc.getLayeredScreen().lock()->openScreen("vmpc-keyboard");
+        }
+    };
+    
+    keyboardButton.addListener(new KbButtonListener(mpc));
+    keyboardButton.setWantsKeyboardFocus(false);
+    addAndMakeVisible(keyboardButton);
+    
 	lcd->drawPixelsToImg();
 	lcd->startTimer(25);
 	
@@ -144,13 +156,10 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 		lcd->startPowerUpSequence();
         vmpcAudioProcessor.poweredUp = true;
 	}
-    
-    kbEditor->startTimer(25);
 }
 
 VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
 {
-    delete kbEditor;
 	delete keyEventListener;
 	mpcSplashScreen.deleteAndZero();
 	lcd->stopTimer();
@@ -195,7 +204,6 @@ void VmpcAudioProcessorEditor::initialise()
 void VmpcAudioProcessorEditor::paint (Graphics& g)
 {
 	g.drawImageWithin(bgImg, 0, 0, getWidth(), getHeight(), RectanglePlacement(RectanglePlacement::centred));
-    g.drawImageWithin(keyboardImg, getWidth() - 80, 10, 70, 30, RectanglePlacement(RectanglePlacement::centred));
 }
 
 void VmpcAudioProcessorEditor::resized()
@@ -215,6 +223,10 @@ void VmpcAudioProcessorEditor::resized()
 	volKnob->setBounds(Constants::VOLKNOB_RECT()->getX(), Constants::VOLKNOB_RECT()->getY(), volKnobImg.getWidth(), volKnobImg.getHeight() / 100);
 	lcd->setTransform(scaleTransform);
 	lcd->setBounds(Constants::LCD_RECT()->getX(), Constants::LCD_RECT()->getY(), 496, 120);
+    
+    keyboardButton.setBounds(getWidth() - 80, 10, 75, 30);
+    lcd->setTransform(scaleTransform);
+    
 	for (auto& b : buttons) {
 		b->setTransform(scaleTransform);
 		b->setBounds();
@@ -229,7 +241,4 @@ void VmpcAudioProcessorEditor::resized()
 
 	versionLabel.setTransform(scaleTransform);
 	versionLabel.setBounds(1175, 118, 100, 20);
-    
-    kbEditor->setTransform(scaleTransform);
-    kbEditor->setBounds(40, 40, 800, 800);
 }

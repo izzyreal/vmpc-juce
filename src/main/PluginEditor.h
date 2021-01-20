@@ -1,13 +1,3 @@
-/*
-  ==============================================================================
-
-    This file was auto-generated!
-
-    It contains the basic framework code for a JUCE plugin editor.
-
-  ==============================================================================
-*/
-
 #pragma once
 
 #include "juce_gui_extra/juce_gui_extra.h"
@@ -21,7 +11,6 @@
 #include "gui/LedControl.hpp"
 #include "gui/KnobControl.hpp"
 #include "gui/ButtonControl.hpp"
-#include "gui/KbEditor.h"
 
 using namespace juce;
 
@@ -46,7 +35,6 @@ private:
 	mpc::Mpc& mpc;
 	Component::SafePointer<SplashScreen> mpcSplashScreen;
 	Label versionLabel;
-    KbEditor* kbEditor;
 	DataWheelControl* dataWheel;
 	KnobControl* recKnob;
 	KnobControl* volKnob;
@@ -66,6 +54,7 @@ private:
 	Image ledRedImg;
 	Image ledGreenImg;
     Image keyboardImg;
+    ImageButton keyboardButton;
 
 	VmpcAudioProcessor& getProcessor() const
 	{
