@@ -8,21 +8,21 @@ class DataWheelControl
 	, public moduru::observer::Observer
 {
 public:
-	DataWheelControl(std::weak_ptr<mpc::hardware::DataWheel> dataWheel, const String& componentName = "");
+	DataWheelControl(std::weak_ptr<mpc::hardware::DataWheel> dataWheel);
 
-	~DataWheelControl();
-	void setImage(Image image, int numFrames);
+	~DataWheelControl() override;
+	void setImage(juce::Image image, int numFrames);
 	int getFrameWidth() const { return frameWidth; }
 	int getFrameHeight() const { return frameHeight; }
-	void paint(Graphics& g) override;
+	void paint(juce::Graphics& g) override;
 
-	void mouseDrag(const MouseEvent& event) override;
-	void mouseUp(const MouseEvent& event) override;
+	void mouseDrag(const juce::MouseEvent& event) override;
+	void mouseUp(const juce::MouseEvent& event) override;
 
 	void update(moduru::observer::Observable* o, nonstd::any arg) override;
 
 private:
-	Image filmStripImage;
+    juce::Image filmStripImage;
 	int numFrames;
 	int frameWidth, frameHeight;
 

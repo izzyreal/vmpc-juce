@@ -1,6 +1,7 @@
 #include "KnobControl.hpp"
 #include <hardware/Pot.hpp>
 
+using namespace juce;
 
 static inline void clampIndex(int& knobIndex) {
 	if (knobIndex < 0) {
@@ -11,8 +12,7 @@ static inline void clampIndex(int& knobIndex) {
 	}
 }
 
-KnobControl::KnobControl(int type, std::weak_ptr<mpc::hardware::Pot> pot, int startIndex, const String &componentName)
-	: VmpcComponent(componentName)
+KnobControl::KnobControl(int type, std::weak_ptr<mpc::hardware::Pot> pot, int startIndex)
 {
 	this->knobs = knobs;
 	knobType = type;
@@ -54,7 +54,4 @@ void KnobControl::paint(Graphics& g)
 
 		g.drawImage(knobs, 0, 0, imageWidth, imageHeight, 0, knobIndex * frameHeight, frameWidth, frameHeight);
 	}
-}
-
-KnobControl::~KnobControl() {
 }

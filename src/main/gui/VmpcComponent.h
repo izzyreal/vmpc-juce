@@ -12,8 +12,6 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "InputCatcherControl.h"
-
 //==============================================================================
 /*
 */
@@ -21,11 +19,6 @@ class VmpcComponent
 	: public juce::Component
 {
 public:
-    VmpcComponent(const String& componentName = "")
-    {
-        setWantsKeyboardFocus(false);
-    }
-
 	VmpcComponent()
 	{
         setWantsKeyboardFocus(false);

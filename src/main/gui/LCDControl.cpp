@@ -9,11 +9,12 @@
 #include <Logger.hpp>
 #include <gui/BasicStructs.hpp>
 
+using namespace juce;
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 
-LCDControl::LCDControl(mpc::Mpc& mpc, const String& componentName, std::weak_ptr<mpc::lcdgui::LayeredScreen> ls)
-	: VmpcComponent(componentName), mpc(mpc)
+LCDControl::LCDControl(mpc::Mpc& mpc, std::weak_ptr<mpc::lcdgui::LayeredScreen> ls)
+	: mpc(mpc)
 {
 	this->ls = ls;
 	lcd = Image(Image::RGB, 496, 120, true);

@@ -2,24 +2,23 @@
 #include "VmpcComponent.h"
 
 class Led
-	: public VmpcComponent
+: public VmpcComponent
 {
-
+    
 private:
-	Image led;
-	
-	Rectangle<float> rect;
-	bool on = false;
-
+    juce::Image led;
+    
+    juce::Rectangle<float> rect;
+    bool on = false;
+    
 public:
-	void setOn(bool b);
-	void setBounds();
-
+    void setOn(bool b);
+    void setBounds();
+    
 public:
-	void paint(Graphics& g) override;
-
+    void paint(juce::Graphics& g) override;
+    
 public:
-	Led(Image led, Rectangle<float> rect);
-	~Led();
-
+    Led(juce::Image led, juce::Rectangle<float> rect);
+    
 };

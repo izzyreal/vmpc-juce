@@ -15,35 +15,36 @@ namespace mpc::hardware
 
 class PadControl
 	: public VmpcComponent
-	, public Timer
-	, public FileDragAndDropTarget
+	, public juce::Timer
+	, public juce::FileDragAndDropTarget
 	, public moduru::observer::Observer
 {
 
 private:
-	bool fading = false;
+    mpc::Mpc& mpc;
+    std::weak_ptr<mpc::hardware::HwPad> pad;
+    juce::Image padhitImg;
+    juce::Rectangle <float> rect;
+
+    bool fading = false;
 	bool pressed = false;
-	std::weak_ptr<mpc::hardware::HwPad> pad;
 	int padhitBrightness = 0;
 	int getVelo(int x, int y);
-	mpc::Mpc& mpc;
-	Image padhitImg;
-	Rectangle <float> rect;
 
 public:
-	void paint(Graphics& g) override;
-	void mouseDown(const MouseEvent& event) override;
-	void mouseUp(const MouseEvent& event) override;
-	void mouseDoubleClick(const MouseEvent& event) override;
+	void paint(juce::Graphics& g) override;
+	void mouseDown(const juce::MouseEvent& event) override;
+	void mouseUp(const juce::MouseEvent& event) override;
+	void mouseDoubleClick(const juce::MouseEvent& event) override;
 	void timerCallback() override;
-	bool isInterestedInFileDrag(const StringArray& files);
-	void filesDropped(const StringArray& files, int x, int y);
+    bool isInterestedInFileDrag(const juce::StringArray& files) override;
+    void filesDropped(const juce::StringArray& files, int x, int y) override;
 
 public:
 	void update(moduru::observer::Observable* o, nonstd::any arg) override;
 	void setBounds();
 
 public:
-	PadControl(mpc::Mpc& mpc, Rectangle<float> rect, std::weak_ptr<mpc::hardware::HwPad> pad, Image padhit, const String& componentName);
-	~PadControl();
+	PadControl(mpc::Mpc& mpc, juce::Rectangle<float> rect, std::weak_ptr<mpc::hardware::HwPad> pad, juce::Image padhit);
+	~PadControl() override;
 };

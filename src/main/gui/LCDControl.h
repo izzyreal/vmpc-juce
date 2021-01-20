@@ -14,15 +14,15 @@ namespace mpc::lcdgui {
 
 class LCDControl
 	: public VmpcComponent
-	, public Timer
+	, public juce::Timer
 	, public moduru::observer::Observer
 {
 
 private:
 	mpc::Mpc& mpc;
 	std::weak_ptr<mpc::lcdgui::LayeredScreen> ls;
-	Image lcd;
-	Rectangle<int> dirtyRect;
+	juce::Image lcd;
+    juce::Rectangle<int> dirtyRect;
 	bool showEmpty = true;
 	int showEmptyCount = 0;
 	bool showBlack = true;
@@ -39,11 +39,11 @@ public:
 	void skipPowerUpSequence();
 	void checkLsDirty();
 	void drawPixelsToImg();
-	void paint(Graphics& g) override;
+	void paint(juce::Graphics& g) override;
 	void timerCallback() override;
 
 public:
-	LCDControl(mpc::Mpc& mpc, const String& componentName, std::weak_ptr<mpc::lcdgui::LayeredScreen> ls);
+	LCDControl(mpc::Mpc& mpc, std::weak_ptr<mpc::lcdgui::LayeredScreen> ls);
 	void update(moduru::observer::Observable* o, nonstd::any msg) override;
 
 };

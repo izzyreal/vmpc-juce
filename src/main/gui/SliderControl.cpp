@@ -5,66 +5,66 @@
 
 static inline void clampIndex(int& sliderIndex)
 {
-	if (sliderIndex < 0)
-		sliderIndex = 0;
-	else if (sliderIndex > 99)
-		sliderIndex = 99;
+    if (sliderIndex < 0)
+        sliderIndex = 0;
+    else if (sliderIndex > 99)
+        sliderIndex = 99;
 }
 
-SliderControl::SliderControl(std::weak_ptr<mpc::hardware::Slider> slider, int startIndex, const String &componentName)
-	: VmpcComponent(componentName)
+SliderControl::SliderControl(std::weak_ptr<mpc::hardware::Slider> _slider, int startIndex)
+: slider (_slider)
 {
-	this->slider = slider;
-	slider.lock()->addObserver(this);
-	sliderIndex = startIndex;
-	sliderIndex = slider.lock()->getValue() / 1.27;
-	clampIndex(sliderIndex);
+    slider.lock()->addObserver(this);
+    sliderIndex = startIndex;
+    sliderIndex = slider.lock()->getValue() / 1.27;
+    clampIndex(sliderIndex);
 }
 
-void SliderControl::mouseUp(const MouseEvent& event)
+void SliderControl::mouseUp(const juce::MouseEvent& event)
 {
-	lastDy = 0;
-	Component::mouseUp(event);
+    lastDy = 0;
+    Component::mouseUp(event);
 }
 
-void SliderControl::mouseDrag(const MouseEvent& event)
+void SliderControl::mouseDrag(const juce::MouseEvent& event)
 {
-	auto dY = event.getDistanceFromDragStartY() - lastDy;
-	lastDy = event.getDistanceFromDragStartY();
-	slider.lock()->setValue(slider.lock()->getValue() + dY);
-	sliderIndex = slider.lock()->getValue() / 1.27;
-	clampIndex(sliderIndex);
-	repaint();
+    auto dY = event.getDistanceFromDragStartY() - lastDy;
+    lastDy = event.getDistanceFromDragStartY();
+    slider.lock()->setValue(slider.lock()->getValue() + dY);
+    sliderIndex = slider.lock()->getValue() / 1.27;
+    clampIndex(sliderIndex);
+    repaint();
 }
 
-void SliderControl::setImage(Image image)
+void SliderControl::setImage(juce::Image image)
 {
-	filmStripImage = image;
-	frameHeight = filmStripImage.getHeight() / 100;
-	frameWidth = filmStripImage.getWidth();
-	repaint();
+    filmStripImage = image;
+    frameHeight = filmStripImage.getHeight() / 100;
+    frameWidth = filmStripImage.getWidth();
+    repaint();
 }
 
-void SliderControl::paint(Graphics& g)
+void SliderControl::paint(juce::Graphics& g)
 {
-	if (filmStripImage.isValid())
-	{
-		int imageWidth = getWidth();
-		int imageHeight = getHeight();
+    if (filmStripImage.isValid())
+    {
+        int imageWidth = getWidth();
+        int imageHeight = getHeight();
 
-		g.drawImage(filmStripImage, 0, 0, imageWidth, imageHeight, 0, sliderIndex * frameHeight, frameWidth, frameHeight);
-	}
+        g.drawImage(filmStripImage, 0, 0, imageWidth, imageHeight, 0, sliderIndex * frameHeight, frameWidth, frameHeight);
+    }
 }
 
-void SliderControl::update(moduru::observer::Observable* o, nonstd::any arg)
+void SliderControl::update(moduru::observer::Observable*, nonstd::any arg)
 {
-	auto newValue = nonstd::any_cast<int>(arg);
-	sliderIndex = newValue / 1.27;
-	clampIndex(sliderIndex);
-	repaint();
+    auto newValue = nonstd::any_cast<int>(arg);
+    sliderIndex = newValue / 1.27;
+    clampIndex(sliderIndex);
+    repaint();
 }
 
 SliderControl::~SliderControl()
 {
-	slider.lock()->deleteObserver(this);
+    slider.lock()->deleteObserver(this);
 }
+

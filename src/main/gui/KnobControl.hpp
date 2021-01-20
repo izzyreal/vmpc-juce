@@ -3,35 +3,32 @@
 
 #include <memory>
 
-namespace mpc {
-	namespace hardware {
-		class Pot;
-	}
+namespace mpc::hardware {
+class Pot;
 }
 
 class KnobControl
-	: public VmpcComponent	
-	{
-
+: public VmpcComponent
+{
+    
 private:
-	std::weak_ptr<mpc::hardware::Pot> pot;
-	int knobIndex{ 0 };
-	int knobType{ 0 }; // 0 = rec, 1 = vol
-
+    std::weak_ptr<mpc::hardware::Pot> pot;
+    int knobIndex = 0;
+    int knobType = 0; // 0 = rec, 1 = vol
+    
 public:
-	void paint(Graphics& g) override;
-	void mouseDrag(const MouseEvent& event) override;
-	void mouseUp(const MouseEvent& event) override;
-
-	public:
-	void setImage(Image image);
-
+    void paint(juce::Graphics& g) override;
+    void mouseDrag(const juce::MouseEvent& event) override;
+    void mouseUp(const juce::MouseEvent& event) override;
+    
+public:
+    void setImage(juce::Image image);
+    
 private:
-	Image knobs;
-	int frameWidth, frameHeight, lastDy = 0;
-
+    juce::Image knobs;
+    int frameWidth, frameHeight, lastDy = 0;
+    
 public:
-	KnobControl(int type, std::weak_ptr<mpc::hardware::Pot> pot, int startIndex, const String& componentName);
-	~KnobControl();
-
+    KnobControl(int type, std::weak_ptr<mpc::hardware::Pot> pot, int startIndex);
+    
 };

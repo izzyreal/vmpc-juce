@@ -1,13 +1,13 @@
 #include "ButtonControl.hpp"
 #include <hardware/Button.hpp>
 
+using namespace juce;
 using namespace std;
 
-ButtonControl::ButtonControl(Rectangle<float> rect, std::weak_ptr<mpc::hardware::Button> button, const String& componentName)
-	: VmpcComponent(componentName)
+ButtonControl::ButtonControl(Rectangle<float> rect, std::weak_ptr<mpc::hardware::Button> button)
 {
-	this->button = button;
-	this->rect = rect;
+    this->button = button;
+    this->rect = rect;
 }
 
 std::unordered_map<std::string, Rectangle<float>*> ButtonControl::rects;
@@ -58,83 +58,63 @@ Rectangle<float> ButtonControl::up = Rectangle<float>(445, 581, 46, 38);
 Rectangle<float> ButtonControl::down = Rectangle<float>(445, 619, 46, 38);
 Rectangle<float> ButtonControl::right = Rectangle<float>(491, 581, 29, 76);
 
-void ButtonControl::initRects() {
-	if (rects.size() != 0) return;
-
-	rects.emplace("rec", &rec);
-	rects.emplace("overdub", &overdub);
-	rects.emplace("stop", &stop);
-	rects.emplace("play", &play);
-	rects.emplace("play-start", &playstart);
-	rects.emplace("main-screen", &mainscreen);
-	rects.emplace("prev-step-event", &prevstepevent);
-	rects.emplace("next-step-event", &nextstepevent);
-	rects.emplace("go-to", &gotoRect);
-	rects.emplace("prev-bar-start", &prevbarstart);
-	rects.emplace("next-bar-end", &nextbarend);
-	rects.emplace("tap", &taptemponoterepeat);
-	rects.emplace("next-seq", &nextseq);
-	rects.emplace("track-mute", &trackmute);
-	rects.emplace("open-window", &openwindow);
-	rects.emplace("full-level", &fulllevel);
-	rects.emplace("sixteen-levels", &sixteenlevels);
-	rects.emplace("f1", &f1);
-	rects.emplace("f2", &f2);
-	rects.emplace("f3", &f3);
-	rects.emplace("f4", &f4);
-	rects.emplace("f5", &f5);
-	rects.emplace("f6", &f6);
-	rects.emplace("shift", &shift);
-	rects.emplace("enter", &enter);
-	rects.emplace("undo-seq", &undoseq);
-	rects.emplace("erase", &erase);
-	rects.emplace("after", &notevariationafter);
-	rects.emplace("bank-a", &banka);
-	rects.emplace("bank-b", &bankb);
-	rects.emplace("bank-c", &bankc);
-	rects.emplace("bank-d", &bankd);
-	rects.emplace("left", &left);
-	rects.emplace("right", &right);
-	rects.emplace("up", &up);
-	rects.emplace("down", &down);
-
-	for (auto r : rects) {
-		auto rc = r.second;
-		r.second->setY(r.second->getY() + 55);
-	}
+void ButtonControl::initRects()
+{
+    if (rects.size() != 0)
+        return;
+    
+    rects.emplace("rec", &rec);
+    rects.emplace("overdub", &overdub);
+    rects.emplace("stop", &stop);
+    rects.emplace("play", &play);
+    rects.emplace("play-start", &playstart);
+    rects.emplace("main-screen", &mainscreen);
+    rects.emplace("prev-step-event", &prevstepevent);
+    rects.emplace("next-step-event", &nextstepevent);
+    rects.emplace("go-to", &gotoRect);
+    rects.emplace("prev-bar-start", &prevbarstart);
+    rects.emplace("next-bar-end", &nextbarend);
+    rects.emplace("tap", &taptemponoterepeat);
+    rects.emplace("next-seq", &nextseq);
+    rects.emplace("track-mute", &trackmute);
+    rects.emplace("open-window", &openwindow);
+    rects.emplace("full-level", &fulllevel);
+    rects.emplace("sixteen-levels", &sixteenlevels);
+    rects.emplace("f1", &f1);
+    rects.emplace("f2", &f2);
+    rects.emplace("f3", &f3);
+    rects.emplace("f4", &f4);
+    rects.emplace("f5", &f5);
+    rects.emplace("f6", &f6);
+    rects.emplace("shift", &shift);
+    rects.emplace("enter", &enter);
+    rects.emplace("undo-seq", &undoseq);
+    rects.emplace("erase", &erase);
+    rects.emplace("after", &notevariationafter);
+    rects.emplace("bank-a", &banka);
+    rects.emplace("bank-b", &bankb);
+    rects.emplace("bank-c", &bankc);
+    rects.emplace("bank-d", &bankd);
+    rects.emplace("left", &left);
+    rects.emplace("right", &right);
+    rects.emplace("up", &up);
+    rects.emplace("down", &down);
+    
+    for (auto r : rects) {
+        auto rc = r.second;
+        r.second->setY(r.second->getY() + 55);
+    }
 }
 
 void ButtonControl::setBounds() {
-	setSize(rect.getWidth(), rect.getHeight());
-	Component::setBounds(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
-}
-
-void ButtonControl::paint(Graphics& g) {
-	//g.drawRect(Rectangle<float>(0, 0, rect.getWidth(), rect.getHeight()));
-	//g.fillRect(Rectangle<float>(0, 0, rect.getWidth(), rect.getHeight()));
+    setSize(rect.getWidth(), rect.getHeight());
+    Component::setBounds(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
 }
 
 void ButtonControl::mouseDown(const MouseEvent& event) {
-	button.lock()->push();
-	//kbLabel->Hide(true);
+    button.lock()->push();
 }
 
 void ButtonControl::mouseUp(const MouseEvent& event) {
-	button.lock()->release();
-}
-
-//void ButtonControl::mouseOver(const MouseEvent& event) {
-	//if (mouseEntered) return;
-	//mouseEntered = true;
-	//kbLabel->Hide(false);
-//}
-
-/*
-void ButtonControl::OnMouseOut() {
-	mouseEntered = false;
-	kbLabel->Hide(true);
-}
-*/
-
-ButtonControl::~ButtonControl() {
+    button.lock()->release();
 }

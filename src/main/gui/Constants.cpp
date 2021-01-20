@@ -37,29 +37,3 @@ Rectangle<float>* Constants::SLIDER_RECT()
 
 }
 Rectangle<float> Constants::SLIDER_RECT_ = Rectangle<float>(33, 668, 128, 247);
-
-
-/*
-Rectangle<float>* Constants::PLUG_RECT()
-{
-    return &PLUG_RECT_;
-}
-Rectangle<float> Constants::PLUG_RECT_ = Rectangle<float>(0, 0, GUI_WIDTH, GUI_HEIGHT);
-
-IColor* Constants::TRANS_BLACK() {
-    return &TRANS_BLACK_;
-}
-IColor Constants::TRANS_BLACK_ = IColor(0, 0, 0, 0);
-
-IColor* Constants::LCD_HALF_ON()
-{
-	return &LCD_HALF_ON_;
-}
-IColor Constants::LCD_HALF_ON_ = IColor(255, 128, 154, 181);
-
-IColor* Constants::LCD_OFF()
-{
-	return &LCD_OFF_;
-}
-IColor Constants::LCD_OFF_ = IColor(255, 170, 248, 218);
-*/
