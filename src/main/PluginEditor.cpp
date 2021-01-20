@@ -23,7 +23,7 @@
 using namespace std;
 
 VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
-    : AudioProcessorEditor(&p), processor(p), mpc(p.mpc)
+    : AudioProcessorEditor(&p), vmpcAudioProcessor(p), mpc(p.mpc)
 {
 	setWantsKeyboardFocus(false);
 	initialise();
@@ -39,6 +39,10 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	f = File(bgImgPath);
 	bgImg = ImageFileFormat::loadFrom(f);
 
+    auto keyboardImgPath = mpc::Paths::resPath() + "/img/keyboard.png";
+    f = File(keyboardImgPath);
+    keyboardImg = ImageFileFormat::loadFrom(f);
+    
 	dataWheel = new DataWheelControl(mpc.getHardware().lock()->getDataWheel(), "datawheel");
 	mpc.getHardware().lock()->getDataWheel().lock()->addObserver(dataWheel);
 	auto dataWheelImgPath = mpc::Paths::resPath() + "/img/datawheels.png";
@@ -121,7 +125,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     kbEditor = new KbEditor(mpc);
     kbEditor->setSize(800, 800);
     kbEditor->setTopLeftPosition(40, 40);
-    addAndMakeVisible(kbEditor);
+//    addAndMakeVisible(kbEditor);
     
     setResizable(true, true);
 
@@ -132,13 +136,13 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	lcd->drawPixelsToImg();
 	lcd->startTimer(25);
 	
-	if (processor.poweredUp)
+	if (vmpcAudioProcessor.poweredUp)
 	{
 		lcd->skipPowerUpSequence();
 	}
 	else {
 		lcd->startPowerUpSequence();
-		processor.poweredUp = true;
+        vmpcAudioProcessor.poweredUp = true;
 	}
     
     kbEditor->startTimer(25);
@@ -172,14 +176,14 @@ VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
 
 void VmpcAudioProcessorEditor::initialise()
 {
-	if (processor.shouldShowDisclaimer)
+	if (vmpcAudioProcessor.shouldShowDisclaimer)
 	{
-		auto bgImgPath = mpc::Paths::resPath() + "/img/disclaimer.gif";
-		auto disclaimer = ImageFileFormat::loadFrom(File(bgImgPath));
-		mpcSplashScreen = new SplashScreen("Disclaimer", disclaimer, true);
+		auto disclaimerImgPath = mpc::Paths::resPath() + "/img/disclaimer.gif";
+		auto disclaimerImg = ImageFileFormat::loadFrom(File(disclaimerImgPath));
+		mpcSplashScreen = new SplashScreen("Disclaimer", disclaimerImg, true);
 		mpcSplashScreen->setWantsKeyboardFocus(false);
 		mpcSplashScreen->deleteAfterDelay(RelativeTime::seconds(8), true);
-		processor.shouldShowDisclaimer = false;
+        vmpcAudioProcessor.shouldShowDisclaimer = false;
 	}
 
 	if (TopLevelWindow::getNumTopLevelWindows() != 0 && TopLevelWindow::getTopLevelWindow(0) != nullptr)
@@ -191,13 +195,14 @@ void VmpcAudioProcessorEditor::initialise()
 void VmpcAudioProcessorEditor::paint (Graphics& g)
 {
 	g.drawImageWithin(bgImg, 0, 0, getWidth(), getHeight(), RectanglePlacement(RectanglePlacement::centred));
+    g.drawImageWithin(keyboardImg, getWidth() - 80, 10, 70, 30, RectanglePlacement(RectanglePlacement::centred));
 }
 
 void VmpcAudioProcessorEditor::resized()
 {
 	getProcessor().lastUIWidth = getWidth();
 	getProcessor().lastUIHeight = getHeight();
-	double ratio = getWidth() / 1298.0;
+    auto ratio = static_cast<float>(getWidth() / 1298.0);
 	auto scaleTransform = AffineTransform::scale(ratio);
 	keyEventListener->setBounds(0, 0, getWidth(), getHeight()); // don't transform! or kb events are partiallly gone
 	dataWheel->setTransform(scaleTransform);

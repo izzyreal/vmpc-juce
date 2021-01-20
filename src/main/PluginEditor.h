@@ -33,7 +33,7 @@ class VmpcAudioProcessorEditor
 
 public:
     explicit VmpcAudioProcessorEditor(VmpcAudioProcessor&);
-    ~VmpcAudioProcessorEditor();
+    ~VmpcAudioProcessorEditor() override;
 
     void paint (Graphics&) override;
     void resized() override;
@@ -42,7 +42,7 @@ private:
 	void initialise();
 
 private:
-    VmpcAudioProcessor& processor;
+    VmpcAudioProcessor& vmpcAudioProcessor;
 	mpc::Mpc& mpc;
 	Component::SafePointer<SplashScreen> mpcSplashScreen;
 	Label versionLabel;
@@ -65,6 +65,7 @@ private:
 	Image padHitImg;
 	Image ledRedImg;
 	Image ledGreenImg;
+    Image keyboardImg;
 
 	VmpcAudioProcessor& getProcessor() const
 	{
