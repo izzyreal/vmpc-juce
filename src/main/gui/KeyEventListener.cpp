@@ -27,6 +27,9 @@ bool KeyEventListener::keyPressed(const juce::KeyPress &key)
     auto screen = mpc.screens->get<VmpcKeyboardScreen>("vmpc-keyboard");
     auto desc = key.getTextDescription();
     
+    if (screen->isLearning())
+        return true;
+    
     if (desc.equalsIgnoreCase("cursor up"))
     {
         screen->up();
@@ -45,6 +48,16 @@ bool KeyEventListener::keyPressed(const juce::KeyPress &key)
     else if (desc.equalsIgnoreCase("f2"))
     {
         screen->function(1);
+        return true;
+    }
+    else if (desc.equalsIgnoreCase("f3"))
+    {
+        screen->function(2);
+        return true;
+    }
+    else if (desc.equalsIgnoreCase("f4"))
+    {
+        screen->function(3);
         return true;
     }
     else if (desc.equalsIgnoreCase("f5"))
