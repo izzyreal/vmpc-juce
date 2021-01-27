@@ -146,15 +146,6 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     
 	lcd->drawPixelsToImg();
 	lcd->startTimer(25);
-	
-	if (vmpcAudioProcessor.poweredUp)
-	{
-		lcd->skipPowerUpSequence();
-	}
-	else {
-		lcd->startPowerUpSequence();
-        vmpcAudioProcessor.poweredUp = true;
-	}
 }
 
 VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()

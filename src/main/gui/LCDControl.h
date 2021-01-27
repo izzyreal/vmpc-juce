@@ -23,20 +23,8 @@ private:
 	std::weak_ptr<mpc::lcdgui::LayeredScreen> ls;
 	juce::Image lcd;
     juce::Rectangle<int> dirtyRect;
-	bool showEmpty = true;
-	int showEmptyCount = 0;
-	bool showBlack = true;
-	int showBlackCount = 0;
-	bool showHalfBlack = true;
-	int showHalfBlackCount = 0;
-	bool showMPC2000XL = true;
-	int showMPC2000XLCount = 0;
-	bool poweringUp = false;
-	bool poweredUp = false;
 
 public:
-	void startPowerUpSequence();
-	void skipPowerUpSequence();
 	void checkLsDirty();
 	void drawPixelsToImg();
 	void paint(juce::Graphics& g) override;

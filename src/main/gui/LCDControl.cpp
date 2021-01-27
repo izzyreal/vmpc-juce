@@ -33,19 +33,6 @@ void LCDControl::update(moduru::observer::Observable* o, nonstd::any msg)
 	}
 }
 
-void LCDControl::startPowerUpSequence()
-{
-	poweringUp = true;
-}
-
-void LCDControl::skipPowerUpSequence()
-{
-	poweredUp = true;
-	ls.lock()->getFocusedLayer().lock()->getParent()->SetDirty();
-	drawPixelsToImg();
-	repaint();
-}
-
 void LCDControl::drawPixelsToImg()
 {
 	auto pixels = ls.lock()->getPixels();
@@ -103,83 +90,13 @@ void LCDControl::checkLsDirty()
 
 void LCDControl::timerCallback()
 {
-	if (!poweringUp && !poweredUp)
-	{
-		return;
-	}
-
 	static auto focus = getCurrentlyFocusedComponent();
+
 	if (focus != getCurrentlyFocusedComponent())
 	{
 		if (getCurrentlyFocusedComponent() != nullptr)
 			MLOG("focus: " + getCurrentlyFocusedComponent()->getName().toStdString());
 		focus = getCurrentlyFocusedComponent();
-	}
-
-	if (!poweredUp)
-	{
-		if (showEmpty)
-		{
-			if (showEmptyCount == 0)
-			{
-				ls.lock()->openScreen("empty");
-			}
-
-			showEmptyCount++;
-			
-			if (showEmptyCount == 5)
-			{
-				showEmpty = false;
-			}
-		}
-		else if (showBlack)
-		{
-			if (showBlackCount == 0)
-			{
-				ls.lock()->openScreen("black");
-			}
-
-			showBlackCount++;
-
-			if (showBlackCount == 5)
-			{
-				showBlack = false;
-			}
-		}
-		else if (showHalfBlack)
-		{
-			if (showHalfBlackCount == 0)
-			{
-				ls.lock()->openScreen("half-black");
-			}
-
-			showHalfBlackCount++;
-
-			if (showHalfBlackCount == 1)
-			{
-				showHalfBlack = false;
-			}
-		}
-		else if (showMPC2000XL)
-		{
-			if (showMPC2000XLCount == 0)
-			{
-				ls.lock()->openScreen("mpc2000xl");
-			}
-
-			showMPC2000XLCount++;
-
-			if (showMPC2000XLCount == 12)
-			{
-				showMPC2000XL = false;
-			}
-		}
-		else
-		{
-			poweringUp = false;
-			poweredUp = true;
-			ls.lock()->openScreen("sequencer");
-		}
 	}
 
 	checkLsDirty();
