@@ -6,7 +6,6 @@
 #include <lcdgui/screens/OthersScreen.hpp>
 #include "Constants.h"
 
-#include <Logger.hpp>
 #include <gui/BasicStructs.hpp>
 
 using namespace juce;
@@ -90,15 +89,6 @@ void LCDControl::checkLsDirty()
 
 void LCDControl::timerCallback()
 {
-	static auto focus = getCurrentlyFocusedComponent();
-
-	if (focus != getCurrentlyFocusedComponent())
-	{
-		if (getCurrentlyFocusedComponent() != nullptr)
-			MLOG("focus: " + getCurrentlyFocusedComponent()->getName().toStdString());
-		focus = getCurrentlyFocusedComponent();
-	}
-
 	checkLsDirty();
 }
 

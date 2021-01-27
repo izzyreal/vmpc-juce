@@ -15,6 +15,7 @@ using namespace std;
 KeyEventListener::KeyEventListener(mpc::Mpc& _mpc)
 : mpc (_mpc), keyEventHandler (mpc.getControls().lock()->getKeyEventHandler())
 {
+    setName("KeyEventListener");
 }
 
 bool KeyEventListener::keyPressed(const juce::KeyPress &key)
