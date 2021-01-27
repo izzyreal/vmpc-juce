@@ -69,6 +69,7 @@ target_sources(vmpc2000xl PRIVATE ${_source_list})
 
 target_compile_definitions(vmpc2000xl
     PUBLIC
+    JUCE_JACK=1
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
     JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
