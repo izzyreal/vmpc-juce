@@ -11,7 +11,7 @@ class VmpcAudioProcessor  : public AudioProcessor
 public:
     //==============================================================================
     VmpcAudioProcessor();
-    ~VmpcAudioProcessor();
+    ~VmpcAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
