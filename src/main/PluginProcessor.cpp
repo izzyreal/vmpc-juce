@@ -392,6 +392,7 @@ bool VmpcAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* VmpcAudioProcessor::createEditor()
 {
+    mpc.getLayeredScreen().lock()->setDirty();
     return new VmpcAudioProcessorEditor (*this);
 }
 
