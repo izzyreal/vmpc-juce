@@ -28,5 +28,7 @@ private:
 
 	int dataWheelIndex = 0;
 	int lastDy = 0;
+	double pixelCounter = 0;
+	double fineSensitivity = 0.06;
 	std::weak_ptr<mpc::hardware::DataWheel> dataWheel;
 };

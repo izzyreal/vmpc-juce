@@ -17,7 +17,23 @@ void DataWheelControl::mouseUp(const MouseEvent& event) {
 
 void DataWheelControl::mouseDrag(const MouseEvent& event) {
     auto dY = event.getDistanceFromDragStartY() - lastDy;
-    dataWheel.lock()->turn(dY);
+    
+    if (event.mods.isAnyModifierKeyDown())
+    {
+        pixelCounter += (dY * fineSensitivity);
+        auto candidate = static_cast<int>(pixelCounter);
+        if (candidate >= 1 || candidate <= -1)
+        {
+            pixelCounter -= candidate;
+            dataWheel.lock()->turn(candidate);
+        }
+
+    }
+    else
+    {
+        dataWheel.lock()->turn(dY);
+    }
+
     lastDy = event.getDistanceFromDragStartY();
 }
 
