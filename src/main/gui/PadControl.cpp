@@ -111,6 +111,12 @@ void PadControl::filesDropped(const StringArray& files, int x, int y)
                 }
 
                 noteParameters->setSoundIndex(soundIndex);
+                
+                if (sampler->getSound(soundIndex).lock()->isLoopEnabled())
+                {
+                    noteParameters->setVoiceOverlap(2);
+                }
+                
                 layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
             }
         }
