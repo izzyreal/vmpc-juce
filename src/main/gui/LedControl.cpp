@@ -62,7 +62,7 @@ LedControl::LedControl(Image ledGreen, Image ledRed)
 	padBankCLed = new Led(ledGreen, padBankC);
 	padBankDLed = new Led(ledGreen, padBankD);
 	afterLed = new Led(ledGreen, after);
-	undoSeqLed = new Led(ledGreen, undoSeq);
+	undoSeqLed = new Led(ledRed, undoSeq);
 	recLed = new Led(ledRed, rec);
 	overDubLed = new Led(ledRed, overDub);
 	playLed = new Led(ledGreen, play);
