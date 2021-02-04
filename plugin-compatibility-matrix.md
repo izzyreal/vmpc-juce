@@ -11,12 +11,6 @@ Long story short, using vMPC2000XL as a sampler, recording new sounds with it, d
 |    Reaper 6     | 1 stereo in (always monitoring)<br />5 stereo out |                                   |
 |    Cubase 10    |           0 stereo in<br />5 stereo out           |                                   |
 
-|     Windows     |                       VST3                        |
-| :-------------: | :-----------------------------------------------: |
-| Ableton Live 10 |           1 stereo in<br />5 stereo out           |
-|    Reaper 6     | 1 stereo in (always monitoring)<br />5 stereo out |
-|    Cubase 10    |           0 stereo in<br />5 stereo out           |
-
 |       Mac       |                              AU                              | VST3 |
 | :-------------: | :----------------------------------------------------------: | :--: |
 |   Logix Pro X   | 5 stereo out<br />1 stereo in (Side Chain in top right of plugin) |      |
