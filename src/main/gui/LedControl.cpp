@@ -1,14 +1,18 @@
 #include "LedControl.hpp"
 
+#include <Mpc.hpp>
+
+#include <controls/Controls.hpp>
+
+#include <sequencer/Sequencer.hpp>
+
 #include <string>
 
 using namespace std;
 
-LedControl::LedControl(Image ledGreen, Image ledRed)
+LedControl::LedControl(mpc::Mpc& _mpc, Image& _ledGreen, Image& _ledRed)
+: mpc (_mpc), ledGreen (_ledGreen), ledRed (_ledRed)
 {
-	this->ledGreen = ledGreen;
-	this->ledRed = ledRed;
-
 	int x, y;
 	int ledSize = 10;
 
@@ -181,6 +185,12 @@ void LedControl::setPlay(bool b)
 void LedControl::setUndoSeq(bool b)
 {
     undoSeqLed->setOn(b);
+}
+
+void LedControl::timerCallback()
+{
+    setOverDub(mpc.getControls().lock()->isOverDubPressed() || mpc.getSequencer().lock()->isOverDubbing());
+    setRec(mpc.getControls().lock()->isRecPressed() || mpc.getSequencer().lock()->isRecording());
 }
 
 void LedControl::update(moduru::observer::Observable* o, nonstd::any arg)

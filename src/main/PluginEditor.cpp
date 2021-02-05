@@ -74,7 +74,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 	f = File(ledGreenImgPath);
 	ledGreenImg = ImageFileFormat::loadFrom(f);
 
-	leds = new LedControl(ledGreenImg, ledRedImg);
+	leds = new LedControl(mpc, ledGreenImg, ledRedImg);
 	leds->setPadBankA(true);
 	leds->addAndMakeVisible(this);
     
@@ -146,6 +146,8 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     
 	lcd->drawPixelsToImg();
 	lcd->startTimer(25);
+    
+    leds->startTimer(25);
 }
 
 VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
