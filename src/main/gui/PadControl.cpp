@@ -69,13 +69,13 @@ void PadControl::filesDropped(const StringArray& files, int x, int y)
             auto compatiblePath = StrUtil::replaceAll(s.toStdString(), '\\', string("\\"));
             auto moduruFile = dynamic_pointer_cast<moduru::file::FsNode>(make_shared<moduru::file::File>(compatiblePath, nullptr));
 
-            mpc::disk::MpcFile file(moduruFile);
+            auto file = make_shared<mpc::disk::MpcFile>(moduruFile);
 
             auto layeredScreen = mpc.getLayeredScreen().lock();
 
             try
             {
-                hasNotBeenLoadedAlready = soundLoader.loadSound(&file) == -1;
+                hasNotBeenLoadedAlready = soundLoader.loadSound(file) == -1;
             }
             catch (const exception& exception)
             {
@@ -97,7 +97,7 @@ void PadControl::filesDropped(const StringArray& files, int x, int y)
                 auto mpcSoundPlayerChannel = mpc.getDrum(drumIndex);
 
                 auto programIndex = mpcSoundPlayerChannel->getProgram();
-                auto program = dynamic_pointer_cast<mpc::sampler::Program>(mpc.getSampler().lock()->getProgram(programIndex).lock());
+                auto program = mpc.getSampler().lock()->getProgram(programIndex).lock();
                 auto soundIndex = mpc.getSampler().lock()->getSoundCount() - 1;
                 auto programPad = program->getPad(padIndex);
                 auto padNote = programPad->getNote();
