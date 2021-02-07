@@ -160,19 +160,18 @@ VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
     delete lcd;
     
     for (auto& l : mpc.getHardware().lock()->getLeds())
-    {
         l->deleteObserver(leds);
-    }
+
     delete leds;
     delete recKnob;
     delete volKnob;
     delete slider;
-    for (auto& b : buttons) {
+
+    for (auto& b : buttons)
         delete b;
-    }
-    for (auto& p : pads) {
+    
+    for (auto& p : pads)
         delete p;
-    }
 }
 
 void VmpcAudioProcessorEditor::initialise()
