@@ -8,6 +8,10 @@
 #include <audiomidi/MpcMidiPorts.hpp>
 #include <audiomidi/MpcMidiInput.hpp>
 
+#include <file/aps/ApsParser.hpp>
+#include <disk/ApsLoader.hpp>
+#include <disk/AbstractDisk.hpp>
+
 #include <Paths.hpp>
 #include <sequencer/Sequencer.hpp>
 
@@ -20,10 +24,18 @@
 #include <audio/server/NonRealTimeAudioServer.hpp>
 #include <midi/core/ShortMessage.hpp>
 
+// moduru
+#include <lang/StrUtil.hpp>
+#include <file/FileUtil.hpp>
+
 using namespace ctoot::midi::core;
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 using namespace mpc::lcdgui::screens::window;
+using namespace mpc::file::aps;
+using namespace mpc::disk;
+using namespace moduru::lang;
+using namespace moduru::file;
 using namespace std;
 
 VmpcAudioProcessor::VmpcAudioProcessor()
@@ -398,33 +410,115 @@ AudioProcessorEditor* VmpcAudioProcessor::createEditor()
 
 void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
+    MLOG("getStateInformation");
     auto editor = getActiveEditor();
+
+    auto root = new XmlElement("root");
+    unique_ptr<XmlElement> xml(root);
+
+    auto juce_ui = new XmlElement("JUCE-UI");
+    root->addChildElement(juce_ui);
 
     if (editor != nullptr)
     {
         auto w = editor->getWidth();
         auto h = editor->getHeight();
-        std::unique_ptr<XmlElement> xml(new XmlElement("LastUIDimensions"));
-        xml->setAttribute("w", w);
-        xml->setAttribute("h", h);
-
-        copyXmlToBinary(*xml, destData);
+        juce_ui->setAttribute("w", w);
+        juce_ui->setAttribute("h", h);
     }
+    
+    auto layeredScreen = mpc.getLayeredScreen().lock();
+    
+    auto screen = layeredScreen->getCurrentScreenName();
+    auto focus = mpc.getLayeredScreen().lock()->getFocus();
+    auto soundIndex = mpc.getSampler().lock()->getSoundIndex();
+    
+    ApsParser apsParser(mpc, "stateinfo");
+
+    auto mpc_ui = new XmlElement("MPC-UI");
+    mpc_ui->setAttribute("screen", screen);
+    mpc_ui->setAttribute("focus", focus);
+    mpc_ui->setAttribute("soundIndex", soundIndex);
+    mpc_ui->setAttribute("currentDir", mpc.getDisk().lock()->getAbsolutePath());
+    
+    auto mpc_aps = new XmlElement("APS");
+    auto apsBytes = apsParser.getBytes();
+    
+    MemoryOutputStream encoded;
+    Base64::convertToBase64(encoded, &apsBytes[0], apsBytes.size());
+    MLOG("apsBytes size: " + to_string(apsBytes.size()));
+    mpc_aps->setAttribute("aps", encoded.toString());
+    mpc_aps->setAttribute("size", (int) apsBytes.size());
+    
+    root->addChildElement(mpc_ui);
+    root->addChildElement(mpc_aps);
+    copyXmlToBinary(*xml, destData);
 }
 
 void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
-
+    MLOG("setStateInformation");
+    unique_ptr<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+    
     if (xmlState.get() != nullptr)
     {
-        if (xmlState->hasTagName("LastUIDimensions"))
+        XmlElement* element = xmlState->getFirstChildElement();
+        do
         {
-            auto w = xmlState->getIntAttribute("w", 1298 / 2);
-            auto h = xmlState->getIntAttribute("h", 994 / 2);
-            lastUIWidth = w;
-            lastUIHeight = h;
+            MLOG(element->getTagName().toStdString());
+            if (element->getTagName().compare("JUCE-UI") == 0)
+            {
+                auto w = element->getIntAttribute("w", 1298 / 2);
+                auto h = element->getIntAttribute("h", 994 / 2);
+                lastUIWidth = w;
+                lastUIHeight = h;
+            }
+            else if (element->getTagName().compare("MPC-UI") == 0)
+            {
+                auto currentDir = element->getStringAttribute("currentDir").toStdString();
+                
+                // Be careful, hardcoded store. For now ok, but if stores become user configurable this needs
+                // to be dynamic.
+                auto storesPath = mpc::Paths::storesPath() + "MPC2000XL";
+                auto resPathIndex = currentDir.find(storesPath);
+                
+                if (resPathIndex != string::npos)
+                {
+                    auto trimmedCurrentDir = currentDir.substr(resPathIndex + storesPath.length());
+                    MLOG("currentDir: " + currentDir);
+                    MLOG("trimmedCurrentDir: " + trimmedCurrentDir);
+                    auto splitTrimmedDir = StrUtil::split(trimmedCurrentDir, FileUtil::getSeparator()[0]);
+                    
+                    for (auto& s : splitTrimmedDir)
+                    {
+                        MLOG("split: " + s);
+                        mpc.getDisk().lock()->moveForward(s);
+                        mpc.getDisk().lock()->initFiles();
+                    }
+                }
+                
+                mpc.getLayeredScreen().lock()->openScreen(element->getStringAttribute("screen").toStdString());
+                mpc.getLayeredScreen().lock()->setFocus(element->getStringAttribute("focus").toStdString());
+                mpc.getSampler().lock()->setSoundIndex(element->getIntAttribute("soundIndex"));
+            }
+            else if (element->getTagName().compare("APS") == 0)
+            {
+                MemoryOutputStream decoded;
+                Base64::convertFromBase64(decoded, element->getStringAttribute("aps"));
+                auto decodedData = (char*) (decoded.getData());
+                
+                vector<char> asCharVector(decodedData, decodedData + element->getIntAttribute("size"));
+                
+                MLOG("asCharVector size: " + to_string(asCharVector.size()));
+                
+                if (asCharVector.size() != 0)
+                {
+                    ApsParser apsParser(mpc, asCharVector, "auto-state-from-xml");
+                    ApsLoader::loadFromParsedAps(apsParser, mpc, true);
+                }
+            }
         }
+        while ( (element = element->getNextElement()) != nullptr);
     }
 }
 
@@ -432,4 +526,3 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new VmpcAudioProcessor();
 }
-
