@@ -9,7 +9,9 @@
 #include <audiomidi/MpcMidiInput.hpp>
 
 #include <file/aps/ApsParser.hpp>
+#include <file/all/AllParser.hpp>
 #include <disk/ApsLoader.hpp>
+#include <disk/AllLoader.hpp>
 #include <disk/AbstractDisk.hpp>
 
 #include <Paths.hpp>
@@ -33,28 +35,29 @@ using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 using namespace mpc::lcdgui::screens::window;
 using namespace mpc::file::aps;
+using namespace mpc::file::all;
 using namespace mpc::disk;
 using namespace moduru::lang;
 using namespace moduru::file;
 using namespace std;
 
 VmpcAudioProcessor::VmpcAudioProcessor()
-     : AudioProcessor (BusesProperties()
-         .withInput  ("RECORD IN",  AudioChannelSet::stereo(), true)
-         .withOutput ("STEREO OUT", AudioChannelSet::stereo(), true)
-         .withOutput("MIX OUT 1/2", AudioChannelSet::stereo(), false)
-         .withOutput("MIX OUT 3/4", AudioChannelSet::stereo(), false)
-         .withOutput("MIX OUT 5/6", AudioChannelSet::stereo(), false)
-         .withOutput("MIX OUT 7/8", AudioChannelSet::stereo(), false)
-)
+: AudioProcessor (BusesProperties()
+                  .withInput  ("RECORD IN",  AudioChannelSet::stereo(), true)
+                  .withOutput ("STEREO OUT", AudioChannelSet::stereo(), true)
+                  .withOutput("MIX OUT 1/2", AudioChannelSet::stereo(), false)
+                  .withOutput("MIX OUT 3/4", AudioChannelSet::stereo(), false)
+                  .withOutput("MIX OUT 5/6", AudioChannelSet::stereo(), false)
+                  .withOutput("MIX OUT 7/8", AudioChannelSet::stereo(), false)
+                  )
 {
     time_t currentTime = time(nullptr);
     struct tm* currentLocalTime = localtime(&currentTime);
     auto timeString = string(asctime(currentLocalTime));
-
+    
     moduru::Logger::l.setPath(mpc::Paths::logFilePath());
     moduru::Logger::l.log("\n\n-= vMPC2000XL v" + string(version::get()) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
-
+    
     mpc.init(44100.f, 1, 5);
 }
 
@@ -69,29 +72,29 @@ const String VmpcAudioProcessor::getName() const
 
 bool VmpcAudioProcessor::acceptsMidi() const
 {
-   #if JucePlugin_WantsMidiInput
+#if JucePlugin_WantsMidiInput
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 bool VmpcAudioProcessor::producesMidi() const
 {
-   #if JucePlugin_ProducesMidiOutput
+#if JucePlugin_ProducesMidiOutput
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 bool VmpcAudioProcessor::isMidiEffect() const
 {
-   #if JucePlugin_IsMidiEffect
+#if JucePlugin_IsMidiEffect
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 double VmpcAudioProcessor::getTailLengthSeconds() const
@@ -102,7 +105,7 @@ double VmpcAudioProcessor::getTailLengthSeconds() const
 int VmpcAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-                // so this should be at least 1, even if you're not really implementing programs.
+    // so this should be at least 1, even if you're not really implementing programs.
 }
 
 int VmpcAudioProcessor::getCurrentProgram()
@@ -139,7 +142,7 @@ void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     
     if (seqIsPlaying)
         seq->play();
-
+    
     monoToStereoBuffer.clear();
     monoToStereoBuffer.setSize(2, samplesPerBlock);
 }
@@ -154,29 +157,29 @@ bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
 {
     return true;
     /*
-    auto outs = layouts.outputBuses.size();
-    if (layouts.inputBuses.size() > 1)
-        return false;
-
-    if (layouts.outputBuses.size() > 5)
-        return false;
-
-    // Mono input is anticipated, but outputs need to come in stereo pairs
-
-    for (auto& bus : layouts.inputBuses)
-    {
-        if (bus != AudioChannelSet::mono() && bus != AudioChannelSet::stereo())
-            return false;
-    }
-
-    for (auto& bus : layouts.outputBuses)
-    {
-        if (bus != AudioChannelSet::stereo())
-            return false;
-    }
-
-    return true;
-    */
+     auto outs = layouts.outputBuses.size();
+     if (layouts.inputBuses.size() > 1)
+     return false;
+     
+     if (layouts.outputBuses.size() > 5)
+     return false;
+     
+     // Mono input is anticipated, but outputs need to come in stereo pairs
+     
+     for (auto& bus : layouts.inputBuses)
+     {
+     if (bus != AudioChannelSet::mono() && bus != AudioChannelSet::stereo())
+     return false;
+     }
+     
+     for (auto& bus : layouts.outputBuses)
+     {
+     if (bus != AudioChannelSet::stereo())
+     return false;
+     }
+     
+     return true;
+     */
 }
 
 void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
@@ -221,7 +224,7 @@ void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages)
             auto jmsg = juce::MidiMessage::noteOn(msg.getChannel() + 1, msg.getData1(), juce::uint8(velo));
             midiMessages.addEvent(jmsg, msg.bufferPos);
         }
-
+        
         for (auto msg : queue)
         {
             auto velo = msg.getData2();
@@ -230,7 +233,7 @@ void VmpcAudioProcessor::processMidiOut(MidiBuffer& midiMessages)
             midiMessages.addEvent(jmsg, msg.bufferPos);
         }
     }
-
+    
     mpc.getMidiPorts().lock()->getReceivers()[0].clear();
     mpc.getMidiPorts().lock()->getReceivers()[1].clear();
 }
@@ -241,10 +244,10 @@ void VmpcAudioProcessor::processTransport()
     {
         return;
     }
-    auto syncScreen = dynamic_pointer_cast<SyncScreen>(mpc.screens->getScreenComponent("sync"));
-
+    auto syncScreen = mpc.screens->get<SyncScreen>("sync");
+    
     bool syncEnabled = syncScreen->getModeIn() == 1;
-
+    
     if (syncEnabled)
     {
         AudioPlayHead::CurrentPositionInfo info;
@@ -258,7 +261,7 @@ void VmpcAudioProcessor::processTransport()
         }
         
         bool isPlaying = info.isPlaying;
-
+        
         if (!wasPlaying && isPlaying)
         {
             mpc.getSequencer().lock()->playFromStart();
@@ -276,11 +279,11 @@ void VmpcAudioProcessor::checkBouncing()
     auto ams = mpc.getAudioMidiServices().lock();
     auto server = ams->getAudioServer();
     bool amsIsBouncing = ams->isBouncing();
-
-    auto directToDiskRecorderScreen = dynamic_pointer_cast<VmpcDirectToDiskRecorderScreen>(mpc.screens->getScreenComponent("vmpc-direct-to-disk-recorder"));
-
+    
+    auto directToDiskRecorderScreen = mpc.screens->get<VmpcDirectToDiskRecorderScreen>("vmpc-direct-to-disk-recorder");
+    
     if (amsIsBouncing && !wasBouncing) {
-
+        
         wasBouncing = true;
         
         if (directToDiskRecorderScreen->isOffline())
@@ -299,14 +302,14 @@ void VmpcAudioProcessor::checkBouncing()
         {
             ams->getFrameSequencer().lock()->start(getSampleRate());
         }
-
+        
         for (auto& diskRecorder : ams->getDiskRecorders())
             diskRecorder.lock()->start();
     }
     else if (!amsIsBouncing && wasBouncing)
     {
         wasBouncing = false;
-
+        
         if (directToDiskRecorderScreen->isOffline())
         {
             if (!server->isRealTime())
@@ -322,13 +325,13 @@ void VmpcAudioProcessor::checkSoundRecorder()
 {
     auto ams = mpc.getAudioMidiServices().lock();
     auto recorder = ams->getSoundRecorder().lock();
-
+    
     if (wasRecordingSound && !recorder->isRecording())
     {
         recorder->stop();
         ams->stopSoundRecorder();
     }
-
+    
     if (!wasRecordingSound && ams->isRecordingSound())
     {
         wasRecordingSound = true;
@@ -344,12 +347,12 @@ void VmpcAudioProcessor::checkSoundRecorder()
 void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
     ScopedNoDenormals noDenormals;
-
+    
     const int totalNumInputChannels = getTotalNumInputChannels();
     const int totalNumOutputChannels = getTotalNumOutputChannels();
     
     auto server = mpc.getAudioMidiServices().lock()->getAudioServer();
-
+    
     if (!server->isRunning())
     {
         for (int i = 0; i < totalNumInputChannels; ++i)
@@ -358,26 +361,26 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
         }
         return;
     }
-
-
+    
+    
     checkBouncing();
     checkSoundRecorder();
-
+    
     if (!server->isRealTime())
     {
         for (int i = 0; i < totalNumInputChannels; ++i)
-            buffer.clear(i, 0, buffer.getNumSamples());
-
+        buffer.clear(i, 0, buffer.getNumSamples());
+        
         return;
     }
-
+    
     processTransport();
     processMidiIn(midiMessages);
     processMidiOut(midiMessages);
-
+    
     auto chDataIn = buffer.getArrayOfReadPointers();
     auto chDataOut = buffer.getArrayOfWritePointers();
-
+    
     if (totalNumInputChannels == 1)
     {
         monoToStereoBuffer.clear();
@@ -389,11 +392,11 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
     {
         server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannels, totalNumOutputChannels);
     }
-
+    
     if (totalNumOutputChannels < 2)
     {
         for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-            buffer.clear(i, 0, buffer.getNumSamples());
+        buffer.clear(i, 0, buffer.getNumSamples());
     }
 }
 
@@ -411,8 +414,9 @@ AudioProcessorEditor* VmpcAudioProcessor::createEditor()
 void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
     MLOG("getStateInformation");
+    
     auto editor = getActiveEditor();
-
+    
     auto root = new XmlElement("root");
     unique_ptr<XmlElement> xml(root);
 
@@ -428,30 +432,42 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
     }
     
     auto layeredScreen = mpc.getLayeredScreen().lock();
-    
+
     auto screen = layeredScreen->getCurrentScreenName();
     auto focus = mpc.getLayeredScreen().lock()->getFocus();
     auto soundIndex = mpc.getSampler().lock()->getSoundIndex();
     
-    ApsParser apsParser(mpc, "stateinfo");
-
     auto mpc_ui = new XmlElement("MPC-UI");
+    root->addChildElement(mpc_ui);
+
     mpc_ui->setAttribute("screen", screen);
     mpc_ui->setAttribute("focus", focus);
     mpc_ui->setAttribute("soundIndex", soundIndex);
     mpc_ui->setAttribute("currentDir", mpc.getDisk().lock()->getAbsolutePath());
-    
-    auto mpc_aps = new XmlElement("APS");
+
+    ApsParser apsParser(mpc, "stateinfo");
     auto apsBytes = apsParser.getBytes();
     
-    MemoryOutputStream encoded;
-    Base64::convertToBase64(encoded, &apsBytes[0], apsBytes.size());
-    MLOG("apsBytes size: " + to_string(apsBytes.size()));
-    mpc_aps->setAttribute("aps", encoded.toString());
-    mpc_aps->setAttribute("size", (int) apsBytes.size());
-    
-    root->addChildElement(mpc_ui);
+    MemoryOutputStream encodedAps;
+    Base64::convertToBase64(encodedAps, &apsBytes[0], apsBytes.size());
+
+    auto mpc_aps = new XmlElement("APS");
     root->addChildElement(mpc_aps);
+
+    mpc_aps->setAttribute("data", encodedAps.toString());
+    mpc_aps->setAttribute("size", (int) apsBytes.size());
+
+    AllParser allParser(mpc, "stateinfo");
+    auto allBytes = allParser.getBytes();
+
+    MemoryOutputStream encodedAll;
+    Base64::convertToBase64(encodedAll, &allBytes[0], allBytes.size());
+
+    auto mpc_all = new XmlElement("ALL");
+    root->addChildElement(mpc_all);
+    mpc_all->setAttribute("data", encodedAll.toString());
+    mpc_all->setAttribute("size", (int) allBytes.size());
+
     copyXmlToBinary(*xml, destData);
 }
 
@@ -460,12 +476,17 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
     MLOG("setStateInformation");
     unique_ptr<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
     
+    string screen = "";
+    string focus = "";
+    
+    int soundIndex = -1;
+    
     if (xmlState.get() != nullptr)
     {
         XmlElement* element = xmlState->getFirstChildElement();
         do
         {
-            MLOG(element->getTagName().toStdString());
+            MLOG("Processing " + element->getTagName().toStdString());
             if (element->getTagName().compare("JUCE-UI") == 0)
             {
                 auto w = element->getIntAttribute("w", 1298 / 2);
@@ -485,31 +506,28 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
                 if (resPathIndex != string::npos)
                 {
                     auto trimmedCurrentDir = currentDir.substr(resPathIndex + storesPath.length());
-                    MLOG("currentDir: " + currentDir);
-                    MLOG("trimmedCurrentDir: " + trimmedCurrentDir);
                     auto splitTrimmedDir = StrUtil::split(trimmedCurrentDir, FileUtil::getSeparator()[0]);
                     
                     for (auto& s : splitTrimmedDir)
                     {
-                        MLOG("split: " + s);
                         mpc.getDisk().lock()->moveForward(s);
                         mpc.getDisk().lock()->initFiles();
                     }
                 }
                 
-                mpc.getLayeredScreen().lock()->openScreen(element->getStringAttribute("screen").toStdString());
-                mpc.getLayeredScreen().lock()->setFocus(element->getStringAttribute("focus").toStdString());
-                mpc.getSampler().lock()->setSoundIndex(element->getIntAttribute("soundIndex"));
+                screen = element->getStringAttribute("screen").toStdString();
+                focus = element->getStringAttribute("focus").toStdString();
+                
+                soundIndex = element->getIntAttribute("soundIndex");
             }
+            // Depends on MPC-UI having already been processed!
             else if (element->getTagName().compare("APS") == 0)
             {
                 MemoryOutputStream decoded;
-                Base64::convertFromBase64(decoded, element->getStringAttribute("aps"));
+                Base64::convertFromBase64(decoded, element->getStringAttribute("data"));
                 auto decodedData = (char*) (decoded.getData());
                 
                 vector<char> asCharVector(decodedData, decodedData + element->getIntAttribute("size"));
-                
-                MLOG("asCharVector size: " + to_string(asCharVector.size()));
                 
                 if (asCharVector.size() != 0)
                 {
@@ -517,8 +535,31 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
                     ApsLoader::loadFromParsedAps(apsParser, mpc, true);
                 }
             }
+            else if (element->getTagName().compare("ALL") == 0)
+            {
+                MemoryOutputStream decoded;
+                Base64::convertFromBase64(decoded, element->getStringAttribute("data"));
+                auto decodedData = (char*) (decoded.getData());
+                
+                vector<char> asCharVector(decodedData, decodedData + element->getIntAttribute("size"));
+                
+                if (asCharVector.size() != 0)
+                {
+//                    AllParser allParser(mpc, asCharVector);
+//                    AllLoader::loadFromParsedAll(allParser, mpc, true);
+                }
+            }
         }
-        while ( (element = element->getNextElement()) != nullptr);
+        while ( (element = element->getNextElement()) != nullptr );
+                
+        mpc.getLayeredScreen().lock()->openScreen(screen);
+        
+        if (focus.length() > 0)
+            mpc.getLayeredScreen().lock()->setFocus(focus);
+        
+        mpc.getLayeredScreen().lock()->setDirty();
+        
+        mpc.getSampler().lock()->setSoundIndex(soundIndex);
     }
 }
 

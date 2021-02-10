@@ -12,16 +12,15 @@ using namespace juce;
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 
-LCDControl::LCDControl(mpc::Mpc& mpc, std::weak_ptr<mpc::lcdgui::LayeredScreen> ls)
-	: mpc(mpc)
+LCDControl::LCDControl(mpc::Mpc& _mpc, std::weak_ptr<mpc::lcdgui::LayeredScreen> _ls)
+	: mpc (_mpc), ls (_ls)
 {
-	this->ls = ls;
 	lcd = Image(Image::RGB, 496, 120, true);
-	auto othersScreen = std::dynamic_pointer_cast<OthersScreen>(mpc.screens->getScreenComponent("others"));
+	auto othersScreen = mpc.screens->get<OthersScreen>("others");
 	othersScreen->addObserver(this);
 }
 
-void LCDControl::update(moduru::observer::Observable* o, nonstd::any msg)
+void LCDControl::update(moduru::observer::Observable*, nonstd::any msg)
 {
 	auto message = nonstd::any_cast<std::string>(msg);
 
@@ -36,14 +35,14 @@ void LCDControl::drawPixelsToImg()
 {
 	auto pixels = ls.lock()->getPixels();
 	
-	auto othersScreen = std::dynamic_pointer_cast<OthersScreen>(mpc.screens->getScreenComponent("others"));
+	auto othersScreen = mpc.screens->get<OthersScreen>("others");
 	auto contrast = othersScreen->getContrast();
 	
 	Colour c;
 	
-	auto halfOn = Constants::LCD_HALF_ON.darker(contrast / 50.0);
-	auto on = Constants::LCD_ON.darker(contrast / 50.0);
-	auto off = Constants::LCD_OFF.brighter(contrast / 70.0);
+	auto halfOn = Constants::LCD_HALF_ON.darker(static_cast<int>(contrast * 0.02));
+    auto on = Constants::LCD_ON.darker(static_cast<int>(contrast * 0.02));
+	auto off = Constants::LCD_OFF.brighter(static_cast<int>(contrast * 0.01428));
 
 	const auto rectX = dirtyRect.getX();
 	const auto rectY = dirtyRect.getY();
