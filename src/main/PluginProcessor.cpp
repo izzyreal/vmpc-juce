@@ -447,6 +447,10 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
 
     ApsParser apsParser(mpc, "stateinfo");
     auto apsBytes = apsParser.getBytes();
+
+    // This will overwrite!
+    for (auto& s : mpc.getSampler().lock()->getSounds())
+        mpc.getDisk().lock()->writeSound(s);
     
     MemoryOutputStream encodedAps;
     Base64::convertToBase64(encodedAps, &apsBytes[0], apsBytes.size());
@@ -545,8 +549,8 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
                 
                 if (asCharVector.size() != 0)
                 {
-//                    AllParser allParser(mpc, asCharVector);
-//                    AllLoader::loadFromParsedAll(allParser, mpc, true);
+                    AllParser allParser(mpc, asCharVector);
+                    AllLoader(mpc, allParser, false);
                 }
             }
         }
