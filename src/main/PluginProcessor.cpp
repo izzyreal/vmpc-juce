@@ -2,6 +2,10 @@
 #include "PluginEditor.h"
 #include "version.h"
 
+#ifdef JUCE_STANDALONE_APPLICATION
+#include "PropertiesFileOptions.h"
+#endif
+
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audiomidi/DiskRecorder.hpp>
 #include <audiomidi/SoundRecorder.hpp>
@@ -419,10 +423,10 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
     
     auto root = new XmlElement("root");
     unique_ptr<XmlElement> xml(root);
-
+    
     auto juce_ui = new XmlElement("JUCE-UI");
     root->addChildElement(juce_ui);
-
+    
     if (editor != nullptr)
     {
         auto w = editor->getWidth();
@@ -432,46 +436,46 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
     }
     
     auto layeredScreen = mpc.getLayeredScreen().lock();
-
+    
     auto screen = layeredScreen->getCurrentScreenName();
     auto focus = mpc.getLayeredScreen().lock()->getFocus();
     auto soundIndex = mpc.getSampler().lock()->getSoundIndex();
     
     auto mpc_ui = new XmlElement("MPC-UI");
     root->addChildElement(mpc_ui);
-
+    
     mpc_ui->setAttribute("screen", screen);
     mpc_ui->setAttribute("focus", focus);
     mpc_ui->setAttribute("soundIndex", soundIndex);
     mpc_ui->setAttribute("currentDir", mpc.getDisk().lock()->getAbsolutePath());
-
+    
     ApsParser apsParser(mpc, "stateinfo");
     auto apsBytes = apsParser.getBytes();
-
+    
     // This will overwrite!
     for (auto& s : mpc.getSampler().lock()->getSounds())
         mpc.getDisk().lock()->writeSound(s);
     
     MemoryOutputStream encodedAps;
     Base64::convertToBase64(encodedAps, &apsBytes[0], apsBytes.size());
-
+    
     auto mpc_aps = new XmlElement("APS");
     root->addChildElement(mpc_aps);
-
+    
     mpc_aps->setAttribute("data", encodedAps.toString());
     mpc_aps->setAttribute("size", (int) apsBytes.size());
-
+    
     AllParser allParser(mpc, "stateinfo");
     auto allBytes = allParser.getBytes();
-
+    
     MemoryOutputStream encodedAll;
     Base64::convertToBase64(encodedAll, &allBytes[0], allBytes.size());
-
+    
     auto mpc_all = new XmlElement("ALL");
     root->addChildElement(mpc_all);
     mpc_all->setAttribute("data", encodedAll.toString());
     mpc_all->setAttribute("size", (int) allBytes.size());
-
+    
     copyXmlToBinary(*xml, destData);
 }
 
@@ -480,14 +484,42 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
     MLOG("setStateInformation");
     unique_ptr<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
     
-    string screen = "";
-    string focus = "";
-    
-    int soundIndex = -1;
-    
     if (xmlState.get() != nullptr)
     {
+#ifdef JUCE_STANDALONE_APPLICATION
+        auto result = AlertWindow::showYesNoCancelBox (
+                                                       AlertWindow::InfoIcon,
+                                                       "Continue previous VMPC2000XL session?",
+                                                       "An auto-saved previous session was found.",
+                                                       "Delete and start new session",
+                                                       "Ignore and start new session",
+                                                       "Continue session");
+                
+        switch (result)
+        {
+            case 0:
+                MLOG("Continuing auto-saved session");
+                break;
+            case 1:
+            {
+                MLOG("Deleting auto-saved session");
+                auto file = PropertiesFileOptions().getDefaultFile();
+                file.deleteFile();
+                return;
+                break;
+            }
+            case 2:
+                MLOG("Ignoring auto-saved session");
+                return;
+                break;
+        }
+#endif
+        string screen = "";
+        string focus = "";
+        int soundIndex = -1;
+        
         XmlElement* element = xmlState->getFirstChildElement();
+        
         do
         {
             MLOG("Processing " + element->getTagName().toStdString());
@@ -555,7 +587,7 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
             }
         }
         while ( (element = element->getNextElement()) != nullptr );
-                
+        
         mpc.getLayeredScreen().lock()->openScreen(screen);
         
         if (focus.length() > 0)
