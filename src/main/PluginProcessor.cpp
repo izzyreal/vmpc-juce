@@ -2,9 +2,7 @@
 #include "PluginEditor.h"
 #include "version.h"
 
-#ifdef JUCE_STANDALONE_APPLICATION
 #include "PropertiesFileOptions.h"
-#endif
 
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audiomidi/DiskRecorder.hpp>
@@ -426,35 +424,36 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
     
     auto vmpcAutoSaveScreen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
     
-#ifdef JUCE_STANDALONE_APPLICATION
-    if (vmpcAutoSaveScreen->getAutoSaveOnExit() == 0)
+    if (wrapperType == wrapperType_Standalone)
     {
-        // For now we will assume any call in standalone mode to getStateInformation
-        // is when VMPC2000XL exits.
-        return;
-    }
-    else if (vmpcAutoSaveScreen->getAutoSaveOnExit() == 1)
-    {
-        // The user wants to be asked.
-        auto result = AlertWindow::showOkCancelBox (
-                                                    AlertWindow::InfoIcon,
-                                                    "Auto-save this VMPC2000XL session?",
-                                                    "This will allow you to continue your work next time you start VMPC2000XL",
-                                                    "Don't save",
-                                                    "Save");
-        if (result)
+        if (vmpcAutoSaveScreen->getAutoSaveOnExit() == 0)
         {
-            MLOG("Not saving current session");
-            // Our work here is done
+            // For now we will assume any call in standalone mode to getStateInformation
+            // is when VMPC2000XL exits.
             return;
         }
-        else
+        else if (vmpcAutoSaveScreen->getAutoSaveOnExit() == 1)
         {
-            MLOG("Auto-saving session");
-            // We may continue the below routine.
+            // The user wants to be asked.
+            auto result = AlertWindow::showOkCancelBox (
+                                                        AlertWindow::InfoIcon,
+                                                        "Auto-save this VMPC2000XL session?",
+                                                        "This will allow you to continue your work next time you start VMPC2000XL",
+                                                        "Don't save",
+                                                        "Save");
+            if (result)
+            {
+                MLOG("Not saving current session");
+                // Our work here is done
+                return;
+            }
+            else
+            {
+                MLOG("Auto-saving session");
+                // We may continue the below routine.
+            }
         }
     }
-#endif
     
     auto editor = getActiveEditor();
     
@@ -540,57 +539,57 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
     
     if (xmlState.get() != nullptr)
     {
-#ifdef JUCE_STANDALONE_APPLICATION
-        
-        auto autoLoadOnStart = vmpcAutoSaveScreen->getAutoLoadOnStart();
-        
-        if (autoLoadOnStart == 0)
+        if (wrapperType == wrapperType_Standalone)
         {
-            // Auto-load on start is Disabled
-            return;
-        }
-        else if (autoLoadOnStart == 1)
-        {
-            // The user wants to be asked
-            auto result = AlertWindow::showYesNoCancelBox (
-                                                           AlertWindow::InfoIcon,
-                                                           "Continue previous VMPC2000XL session?",
-                                                           "An auto-saved previous session was found.",
-                                                           "Delete and start new session",
-                                                           "Ignore and start new session",
-                                                           "Continue session");
-            switch (result)
+            auto autoLoadOnStart = vmpcAutoSaveScreen->getAutoLoadOnStart();
+            
+            if (autoLoadOnStart == 0)
             {
-                case 0:
-                    MLOG("Continuing auto-saved session");
-                    // We may continue the below routine.
-                    break;
-                case 1:
+                // Auto-load on start is Disabled
+                return;
+            }
+            else if (autoLoadOnStart == 1)
+            {
+                // The user wants to be asked
+                auto result = AlertWindow::showYesNoCancelBox (
+                                                               AlertWindow::InfoIcon,
+                                                               "Continue previous VMPC2000XL session?",
+                                                               "An auto-saved previous session was found.",
+                                                               "Delete and start new session",
+                                                               "Ignore and start new session",
+                                                               "Continue session");
+                switch (result)
                 {
-                    MLOG("Deleting auto-saved session and starting anew");
-                    auto file = PropertiesFileOptions().getDefaultFile();
-                    file.deleteFile();
-                    
-                    // We ignore the fact that a previously saved session existed.
-                    return;
-                    
-                    break;
+                    case 0:
+                        MLOG("Continuing auto-saved session");
+                        // We may continue the below routine.
+                        break;
+                    case 1:
+                    {
+                        MLOG("Deleting auto-saved session and starting anew");
+                        auto file = PropertiesFileOptions().getDefaultFile();
+                        file.deleteFile();
+                        
+                        // We ignore the fact that a previously saved session existed.
+                        return;
+                        
+                        break;
+                    }
+                    case 2:
+                        MLOG("Ignoring auto-saved session");
+                        
+                        // We ignore the fact that a previously saved session exists.
+                        return;
+                        
+                        break;
                 }
-                case 2:
-                    MLOG("Ignoring auto-saved session");
-                    
-                    // We ignore the fact that a previously saved session exists.
-                    return;
-                    
-                    break;
+            }
+            else if (autoLoadOnStart == 2)
+            {
+                // The user always wants to load auto-saved sessions.
+                // We may continue the below routine.
             }
         }
-        else if (autoLoadOnStart == 2)
-        {
-            // The user always wants to load auto-saved sessions.
-            // We may continue the below routine.
-        }
-#endif
         
         auto juce_ui = xmlState->getChildByName("JUCE-UI");
         auto mpc_ui = xmlState->getChildByName("MPC-UI");
