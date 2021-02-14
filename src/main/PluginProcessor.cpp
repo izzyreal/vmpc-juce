@@ -2,8 +2,6 @@
 #include "PluginEditor.h"
 #include "version.h"
 
-#include "PropertiesFileOptions.h"
-
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audiomidi/DiskRecorder.hpp>
 #include <audiomidi/SoundRecorder.hpp>
@@ -551,37 +549,22 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
             else if (autoLoadOnStart == 1)
             {
                 // The user wants to be asked
-                auto result = AlertWindow::showYesNoCancelBox (
-                                                               AlertWindow::InfoIcon,
-                                                               "Continue previous VMPC2000XL session?",
-                                                               "An auto-saved previous session was found.",
-                                                               "Delete and start new session",
-                                                               "Ignore and start new session",
-                                                               "Continue session");
-                switch (result)
+                auto result = AlertWindow::showOkCancelBox (
+                                                            AlertWindow::InfoIcon,
+                                                            "Continue previous VMPC2000XL session?",
+                                                            "An auto-saved previous session was found.",
+                                                            "Forget and start new session",
+                                                            "Continue session");
+                if (result)
                 {
-                    case 0:
-                        MLOG("Continuing auto-saved session");
-                        // We may continue the below routine.
-                        break;
-                    case 1:
-                    {
-                        MLOG("Deleting auto-saved session and starting anew");
-                        auto file = PropertiesFileOptions().getDefaultFile();
-                        file.deleteFile();
-                        
-                        // We ignore the fact that a previously saved session existed.
-                        return;
-                        
-                        break;
-                    }
-                    case 2:
-                        MLOG("Ignoring auto-saved session");
-                        
-                        // We ignore the fact that a previously saved session exists.
-                        return;
-                        
-                        break;
+                    MLOG("Ignoring auto-saved session");
+                    // We ignore the fact that a previously saved session exists.
+                    return;
+                }
+                else
+                {
+                    MLOG("Continuing auto-saved session");
+                    // We may continue the below routine.
                 }
             }
             else if (autoLoadOnStart == 2)
