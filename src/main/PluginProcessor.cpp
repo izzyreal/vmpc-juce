@@ -14,6 +14,8 @@
 
 #include <file/aps/ApsParser.hpp>
 #include <file/all/AllParser.hpp>
+#include <file/sndwriter/SndWriter.hpp>
+#include <file/sndreader/SndReader.hpp>
 #include <disk/ApsLoader.hpp>
 #include <disk/AllLoader.hpp>
 #include <disk/AbstractDisk.hpp>
@@ -23,6 +25,7 @@
 
 #include <lcdgui/Background.hpp>
 #include <lcdgui/Screens.hpp>
+#include <lcdgui/screens/VmpcAutoSaveScreen.hpp>
 #include <lcdgui/screens/window/VmpcDirectToDiskRecorderScreen.hpp>
 #include <lcdgui/screens/SyncScreen.hpp>
 
@@ -40,6 +43,8 @@ using namespace mpc::lcdgui::screens;
 using namespace mpc::lcdgui::screens::window;
 using namespace mpc::file::aps;
 using namespace mpc::file::all;
+using namespace mpc::file::sndwriter;
+using namespace mpc::file::sndreader;
 using namespace mpc::disk;
 using namespace moduru::lang;
 using namespace moduru::file;
@@ -293,7 +298,7 @@ void VmpcAudioProcessor::checkBouncing()
         if (directToDiskRecorderScreen->isOffline())
         {
             vector<int> rates{ 44100, 48000, 88200 };
-            auto rate = rates[directToDiskRecorderScreen->getSampleRate()];
+            auto rate = rates[static_cast<size_t>(directToDiskRecorderScreen->getSampleRate())];
             ams->getFrameSequencer().lock()->start(rate);
             
             if (server->isRealTime())
@@ -304,7 +309,7 @@ void VmpcAudioProcessor::checkBouncing()
         }
         else if (directToDiskRecorderScreen->getRecord() != 4)
         {
-            ams->getFrameSequencer().lock()->start(getSampleRate());
+            ams->getFrameSequencer().lock()->start(static_cast<int>(getSampleRate()));
         }
         
         for (auto& diskRecorder : ams->getDiskRecorders())
@@ -318,7 +323,7 @@ void VmpcAudioProcessor::checkBouncing()
         {
             if (!server->isRealTime())
             {
-                server->setSampleRate(getSampleRate());
+                server->setSampleRate(static_cast<int>(getSampleRate()));
                 server->setRealTime(true);
             }
         }
@@ -419,6 +424,22 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
     MLOG("getStateInformation");
     
+    auto vmpcAutoSaveScreen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
+    
+#ifdef JUCE_STANDALONE_APPLICATION
+    if (vmpcAutoSaveScreen->getAutoSaveOnExit() == 0)
+    {
+        // For now we will assume any call in standalone mode to getStateInformation
+        // is when VMPC2000XL exits.
+        return;
+    }
+    else if (vmpcAutoSaveScreen->getAutoSaveOnExit() == 1)
+    {
+        // The user wants to be asked. Copy AlertDialog from setStateInformation.
+        // For now we will assume the user wants to go ahead and save.
+    }
+#endif
+    
     auto editor = getActiveEditor();
     
     auto root = new XmlElement("root");
@@ -451,15 +472,30 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
     
     ApsParser apsParser(mpc, "stateinfo");
     auto apsBytes = apsParser.getBytes();
+    auto sounds = mpc.getSampler().lock()->getSounds();
     
-    // This will overwrite!
-    for (auto& s : mpc.getSampler().lock()->getSounds())
-        mpc.getDisk().lock()->writeSound(s);
+    for (size_t i = 0; i < sounds.size(); i++)
+    {
+        auto elementName = "sound" + to_string(i);
+        auto soundElement = new XmlElement(elementName.c_str());
+        root->addChildElement(soundElement);
+        
+        auto sound = sounds[i].lock();
+        SndWriter sndWriter(sound.get());
+        auto data = sndWriter.getSndFileArray();
+        
+        MemoryOutputStream encodedSound;
+        Base64::convertToBase64(encodedSound, &data[0], data.size());
+        
+        soundElement->setAttribute("data", encodedSound.toString());
+        soundElement->setAttribute("size", (int) data.size());
+    }
+    
     
     MemoryOutputStream encodedAps;
     Base64::convertToBase64(encodedAps, &apsBytes[0], apsBytes.size());
     
-    auto mpc_aps = new XmlElement("APS");
+    auto mpc_aps = new XmlElement("MPC-APS");
     root->addChildElement(mpc_aps);
     
     mpc_aps->setAttribute("data", encodedAps.toString());
@@ -471,7 +507,7 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
     MemoryOutputStream encodedAll;
     Base64::convertToBase64(encodedAll, &allBytes[0], allBytes.size());
     
-    auto mpc_all = new XmlElement("ALL");
+    auto mpc_all = new XmlElement("MPC-ALL");
     root->addChildElement(mpc_all);
     mpc_all->setAttribute("data", encodedAll.toString());
     mpc_all->setAttribute("size", (int) allBytes.size());
@@ -484,118 +520,156 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
     MLOG("setStateInformation");
     unique_ptr<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
     
+    auto vmpcAutoSaveScreen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
+    
     if (xmlState.get() != nullptr)
     {
 #ifdef JUCE_STANDALONE_APPLICATION
-        auto result = AlertWindow::showYesNoCancelBox (
-                                                       AlertWindow::InfoIcon,
-                                                       "Continue previous VMPC2000XL session?",
-                                                       "An auto-saved previous session was found.",
-                                                       "Delete and start new session",
-                                                       "Ignore and start new session",
-                                                       "Continue session");
-                
-        switch (result)
+        
+        auto autoLoadOnStart = vmpcAutoSaveScreen->getAutoLoadOnStart();
+        
+        if (autoLoadOnStart == 0)
         {
-            case 0:
-                MLOG("Continuing auto-saved session");
-                break;
-            case 1:
+            // Auto-load on start is Disabled
+            return;
+        }
+        else if (autoLoadOnStart == 1)
+        {
+            // The user wants to be asked
+            auto result = AlertWindow::showYesNoCancelBox (
+                                                           AlertWindow::InfoIcon,
+                                                           "Continue previous VMPC2000XL session?",
+                                                           "An auto-saved previous session was found.",
+                                                           "Delete and start new session",
+                                                           "Ignore and start new session",
+                                                           "Continue session");
+            switch (result)
             {
-                MLOG("Deleting auto-saved session");
-                auto file = PropertiesFileOptions().getDefaultFile();
-                file.deleteFile();
-                return;
-                break;
+                case 0:
+                    MLOG("Continuing auto-saved session");
+                    // We may continue the below routine.
+                    break;
+                case 1:
+                {
+                    MLOG("Deleting auto-saved session and starting anew");
+                    auto file = PropertiesFileOptions().getDefaultFile();
+                    file.deleteFile();
+                    
+                    // We ignore the fact that a previously saved session existed.
+                    return;
+                    
+                    break;
+                }
+                case 2:
+                    MLOG("Ignoring auto-saved session");
+                    
+                    // We ignore the fact that a previously saved session exists.
+                    return;
+                    
+                    break;
             }
-            case 2:
-                MLOG("Ignoring auto-saved session");
-                return;
-                break;
+        }
+        else if (autoLoadOnStart == 2)
+        {
+            // The user always wants to load auto-saved sessions.
+            // We may continue the below routine.
         }
 #endif
-        string screen = "";
-        string focus = "";
-        int soundIndex = -1;
         
-        XmlElement* element = xmlState->getFirstChildElement();
+        auto juce_ui = xmlState->getChildByName("JUCE-UI");
+        auto mpc_ui = xmlState->getChildByName("MPC-UI");
+        auto mpc_aps = xmlState->getChildByName("MPC-APS");
+        auto mpc_all = xmlState->getChildByName("MPC-ALL");
         
-        do
+        lastUIWidth = juce_ui->getIntAttribute("w", 1298 / 2);
+        lastUIHeight = juce_ui->getIntAttribute("h", 994 / 2);
+        
+        auto currentDir = mpc_ui->getStringAttribute("currentDir").toStdString();
+        auto storesPath = mpc::Paths::storesPath() + "MPC2000XL";
+        auto resPathIndex = currentDir.find(storesPath);
+        
+        if (resPathIndex != string::npos)
         {
-            MLOG("Processing " + element->getTagName().toStdString());
-            if (element->getTagName().compare("JUCE-UI") == 0)
+            auto trimmedCurrentDir = currentDir.substr(resPathIndex + storesPath.length());
+            auto splitTrimmedDir = StrUtil::split(trimmedCurrentDir, FileUtil::getSeparator()[0]);
+            
+            for (auto& s : splitTrimmedDir)
             {
-                auto w = element->getIntAttribute("w", 1298 / 2);
-                auto h = element->getIntAttribute("h", 994 / 2);
-                lastUIWidth = w;
-                lastUIHeight = h;
-            }
-            else if (element->getTagName().compare("MPC-UI") == 0)
-            {
-                auto currentDir = element->getStringAttribute("currentDir").toStdString();
-                
-                // Be careful, hardcoded store. For now ok, but if stores become user configurable this needs
-                // to be dynamic.
-                auto storesPath = mpc::Paths::storesPath() + "MPC2000XL";
-                auto resPathIndex = currentDir.find(storesPath);
-                
-                if (resPathIndex != string::npos)
-                {
-                    auto trimmedCurrentDir = currentDir.substr(resPathIndex + storesPath.length());
-                    auto splitTrimmedDir = StrUtil::split(trimmedCurrentDir, FileUtil::getSeparator()[0]);
-                    
-                    for (auto& s : splitTrimmedDir)
-                    {
-                        mpc.getDisk().lock()->moveForward(s);
-                        mpc.getDisk().lock()->initFiles();
-                    }
-                }
-                
-                screen = element->getStringAttribute("screen").toStdString();
-                focus = element->getStringAttribute("focus").toStdString();
-                
-                soundIndex = element->getIntAttribute("soundIndex");
-            }
-            // Depends on MPC-UI having already been processed!
-            else if (element->getTagName().compare("APS") == 0)
-            {
-                MemoryOutputStream decoded;
-                Base64::convertFromBase64(decoded, element->getStringAttribute("data"));
-                auto decodedData = (char*) (decoded.getData());
-                
-                vector<char> asCharVector(decodedData, decodedData + element->getIntAttribute("size"));
-                
-                if (asCharVector.size() != 0)
-                {
-                    ApsParser apsParser(mpc, asCharVector, "auto-state-from-xml");
-                    ApsLoader::loadFromParsedAps(apsParser, mpc, true);
-                }
-            }
-            else if (element->getTagName().compare("ALL") == 0)
-            {
-                MemoryOutputStream decoded;
-                Base64::convertFromBase64(decoded, element->getStringAttribute("data"));
-                auto decodedData = (char*) (decoded.getData());
-                
-                vector<char> asCharVector(decodedData, decodedData + element->getIntAttribute("size"));
-                
-                if (asCharVector.size() != 0)
-                {
-                    AllParser allParser(mpc, asCharVector);
-                    AllLoader(mpc, allParser, false);
-                }
+                mpc.getDisk().lock()->moveForward(s);
+                mpc.getDisk().lock()->initFiles();
             }
         }
-        while ( (element = element->getNextElement()) != nullptr );
         
+        
+        auto decodeBase64 = [](XmlElement* element) {
+            MemoryOutputStream decoded;
+            Base64::convertFromBase64(decoded, element->getStringAttribute("data"));
+            auto decodedData = (char*) (decoded.getData());
+            return vector<char>(decodedData, decodedData + element->getIntAttribute("size"));
+        };
+        
+        vector<char> apsData = decodeBase64(mpc_aps);
+        vector<char> allData = decodeBase64(mpc_all);
+        
+        int counter = 0;
+        
+        auto candidateName = "sound" + to_string(counter);
+        auto candidate = xmlState->getChildByName(candidateName);
+        
+        while (candidate != nullptr)
+        {
+            auto sndData = decodeBase64(candidate);
+            SndReader sndReader(sndData);
+            
+            auto sound = mpc.getSampler().lock()->addSound(sndReader.getSampleRate()).lock();
+            sndReader.getSampleData(sound->getSampleData());
+                        
+            sound->setEnd(sndReader.getEnd());
+            sound->setMono(sndReader.isMono());
+            sound->setName(sndReader.getName());
+            sound->setTune(sndReader.getTune());
+            sound->setLevel(sndReader.getLevel());
+            sound->setStart(sndReader.getStart());
+            sound->setLoopTo(sound->getEnd() - sndReader.getLoopLength());
+            sound->setBeatCount(sndReader.getNumberOfBeats());
+            sound->setLoopEnabled(sndReader.isLoopEnabled());
+            sound->setMemoryIndex(counter);
+            
+            counter++;
+            
+            candidateName = "sound" + to_string(counter);
+            candidate = xmlState->getChildByName(candidateName);
+        }
+        
+        ApsParser apsParser(mpc, apsData, "auto-state-from-xml");
+        
+        // We don't want the APS loader to attempt to load the sounds
+        // from the file system. We load them manually from the
+        // decode project state.
+        auto withoutSounds = true;
+        
+        // We don't need popups to appear in the LCD UI.
+        auto headless = true;
+        
+        ApsLoader::loadFromParsedAps(apsParser, mpc, withoutSounds, headless);
+        
+        if (allData.size() != 0)
+        {
+            AllParser allParser(mpc, allData);
+            AllLoader(mpc, allParser, false);
+        }
+        
+        auto screen = mpc_ui->getStringAttribute("screen").toStdString();
         mpc.getLayeredScreen().lock()->openScreen(screen);
+        
+        auto focus = mpc_ui->getStringAttribute("focus").toStdString();
         
         if (focus.length() > 0)
             mpc.getLayeredScreen().lock()->setFocus(focus);
         
         mpc.getLayeredScreen().lock()->setDirty();
         
-        mpc.getSampler().lock()->setSoundIndex(soundIndex);
+        mpc.getSampler().lock()->setSoundIndex(mpc_ui->getIntAttribute("soundIndex"));
     }
 }
 
