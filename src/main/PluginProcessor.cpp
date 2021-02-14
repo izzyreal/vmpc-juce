@@ -435,8 +435,24 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
     }
     else if (vmpcAutoSaveScreen->getAutoSaveOnExit() == 1)
     {
-        // The user wants to be asked. Copy AlertDialog from setStateInformation.
-        // For now we will assume the user wants to go ahead and save.
+        // The user wants to be asked.
+        auto result = AlertWindow::showOkCancelBox (
+                                                    AlertWindow::InfoIcon,
+                                                    "Auto-save this VMPC2000XL session?",
+                                                    "This will allow you to continue your work next time you start VMPC2000XL",
+                                                    "Don't save",
+                                                    "Save");
+        if (result)
+        {
+            MLOG("Not saving current session");
+            // Our work here is done
+            return;
+        }
+        else
+        {
+            MLOG("Auto-saving session");
+            // We may continue the below routine.
+        }
     }
 #endif
     
@@ -623,7 +639,7 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
             
             auto sound = mpc.getSampler().lock()->addSound(sndReader.getSampleRate()).lock();
             sndReader.getSampleData(sound->getSampleData());
-                        
+            
             sound->setEnd(sndReader.getEnd());
             sound->setMono(sndReader.isMono());
             sound->setName(sndReader.getName());
