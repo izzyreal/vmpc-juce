@@ -3,6 +3,7 @@ from conans import ConanFile, CMake
 class Pkg(ConanFile):
     name = "vmpc-juce"
     description = "JUCE implementation of vMPC2000XL, an Akai MPC2000XL emulator"
+    license = "GPL-3.0"
     version = "0.1"
     settings = "os", "compiler", "arch", "build_type"
     generators = "cmake", "cmake_paths"
