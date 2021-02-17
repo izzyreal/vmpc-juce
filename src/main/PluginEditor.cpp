@@ -1,5 +1,6 @@
-#include "PluginProcessor.h"
 #include "PluginEditor.h"
+
+#include "PluginProcessor.h"
 
 #include "gui/Constants.h"
 
@@ -16,7 +17,6 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 {
     setWantsKeyboardFocus(false);
     initialise();
-    
     keyEventListener = new KeyEventListener(mpc);
     keyEventListener->setSize(1298, 994);
     keyEventListener->setWantsKeyboardFocus(true);
@@ -33,6 +33,12 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     keyboardImg = ImageFileFormat::loadFrom(f);
     
     keyboardButton.setImages(false, true, true, keyboardImg, 0.5, Colours::transparentWhite, keyboardImg, 1.0, Colours::transparentWhite, keyboardImg, 0.25, Colours::transparentWhite);
+    
+    auto resetWindowSizeImgPath = mpc::Paths::resPath() + "/img/reset-window-size.png";
+    f = File(resetWindowSizeImgPath);
+    resetWindowSizeImg = ImageFileFormat::loadFrom(f);
+    
+    resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, Colours::transparentWhite, resetWindowSizeImg, 1.0, Colours::transparentWhite, resetWindowSizeImg, 0.25, Colours::transparentWhite);
     
     dataWheel = new DataWheelControl(mpc.getHardware().lock()->getDataWheel());
     mpc.getHardware().lock()->getDataWheel().lock()->addObserver(dataWheel);
@@ -123,13 +129,8 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     versionLabel.setColour(Label::textColourId, Colours::darkgrey);
     addAndMakeVisible(versionLabel);
     
-    setResizable(true, true);
-    
-    setSize(p.lastUIWidth, p.lastUIHeight);
-    setResizeLimits(1298 / 2, 994 / 2, 1298, 994);
-    getConstrainer()->setFixedAspectRatio(1.305835010060362);
-    
-    keyboardButton.setBounds(p.lastUIWidth - 80, 10, 75, 30);
+    //
+    keyboardButton.setTooltip("Configure computer keyboard");
     
     class KbButtonListener : public Button::Listener {
     public:
@@ -143,7 +144,31 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     keyboardButton.addListener(new KbButtonListener(mpc));
     keyboardButton.setWantsKeyboardFocus(false);
     addAndMakeVisible(keyboardButton);
+
+    //
+    resetWindowSizeButton.setTooltip("Reset window size");
+
+    class ResetButtonListener : public Button::Listener {
+    public:
+        ResetButtonListener(mpc::Mpc& _mpc, AudioProcessorEditor* __this) : mpc(_mpc), _this(__this) {}
+        mpc::Mpc& mpc;
+        AudioProcessorEditor* _this;
+        void buttonClicked(Button*) override {
+            _this->setSize(1298 / 2, 994 /2);
+        }
+    };
     
+    resetWindowSizeButton.addListener(new ResetButtonListener(mpc, this));
+    resetWindowSizeButton.setWantsKeyboardFocus(false);
+    addAndMakeVisible(resetWindowSizeButton);
+
+    setResizable(true, true);
+    
+    setSize(p.lastUIWidth, p.lastUIHeight);
+    setResizeLimits(1298 / 2, 994 / 2, 1298, 994);
+    getConstrainer()->setFixedAspectRatio(1.305835010060362);
+    
+    //
     lcd->drawPixelsToImg();
     lcd->startTimer(25);
     
@@ -214,7 +239,12 @@ void VmpcAudioProcessorEditor::resized()
     lcd->setTransform(scaleTransform);
     lcd->setBounds(Constants::LCD_RECT()->getX(), Constants::LCD_RECT()->getY(), 496, 120);
     
-    keyboardButton.setBounds(getWidth() - 80, 10, 75, 30);
+    keyboardButton.setBounds(1298 - (100 +  10), 10, 100, 50);
+    keyboardButton.setTransform(scaleTransform);
+
+    resetWindowSizeButton.setBounds(1298 - (145 + 20), 13, 45, 45);
+    resetWindowSizeButton.setTransform(scaleTransform);
+
     lcd->setTransform(scaleTransform);
     
     for (auto& b : buttons)

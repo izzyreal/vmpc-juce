@@ -33,6 +33,8 @@ private:
 private:
     VmpcAudioProcessor& vmpcAudioProcessor;
     mpc::Mpc& mpc;
+    TooltipWindow tooltipWindow { this, 300 };
+
     Component::SafePointer<SplashScreen> mpcSplashScreen;
     Label versionLabel;
     DataWheelControl* dataWheel;
@@ -54,7 +56,9 @@ private:
     Image ledRedImg;
     Image ledGreenImg;
     Image keyboardImg;
+    Image resetWindowSizeImg;
     ImageButton keyboardButton;
+    ImageButton resetWindowSizeButton;
     
     VmpcAudioProcessor& getProcessor() const
     {
