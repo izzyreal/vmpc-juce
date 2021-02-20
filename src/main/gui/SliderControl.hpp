@@ -3,14 +3,12 @@
 
 #include <memory>
 
-#include <observer/Observer.hpp>
-
 namespace mpc::hardware {
 class Slider;
 }
 
 class SliderControl
-: public VmpcComponent, public moduru::observer::Observer
+: public VmpcComponent, public juce::Timer
 {
     
 private:
@@ -30,10 +28,7 @@ public:
     void mouseDrag(const juce::MouseEvent& event) override;
     void mouseUp(const juce::MouseEvent& event) override;
     
-    void update(moduru::observer::Observable* o, nonstd::any arg) override;
+    void timerCallback() override;
     
     SliderControl(std::weak_ptr<mpc::hardware::Slider> slider, int startIndex);
-    
-    ~SliderControl() override;
-    
 };

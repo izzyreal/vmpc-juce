@@ -14,9 +14,8 @@ static inline void clampIndex(int& sliderIndex)
 SliderControl::SliderControl(std::weak_ptr<mpc::hardware::Slider> _slider, int startIndex)
 : slider (_slider)
 {
-    slider.lock()->addObserver(this);
     sliderIndex = startIndex;
-    sliderIndex = slider.lock()->getValue() / 1.27;
+    sliderIndex = static_cast<int>(slider.lock()->getValue() / 1.27);
     clampIndex(sliderIndex);
 }
 
@@ -31,7 +30,7 @@ void SliderControl::mouseDrag(const juce::MouseEvent& event)
     auto dY = event.getDistanceFromDragStartY() - lastDy;
     lastDy = event.getDistanceFromDragStartY();
     slider.lock()->setValue(slider.lock()->getValue() + dY);
-    sliderIndex = slider.lock()->getValue() / 1.27;
+    sliderIndex = static_cast<int>(slider.lock()->getValue() / 1.27);
     clampIndex(sliderIndex);
     repaint();
 }
@@ -55,16 +54,15 @@ void SliderControl::paint(juce::Graphics& g)
     }
 }
 
-void SliderControl::update(moduru::observer::Observable*, nonstd::any arg)
+void SliderControl::timerCallback()
 {
-    auto newValue = nonstd::any_cast<int>(arg);
-    sliderIndex = newValue / 1.27;
+    auto newValue = slider.lock()->getValue();
+    auto candidateSliderIndex = static_cast<int>(newValue / 1.27);
+    
+    if (candidateSliderIndex == sliderIndex)
+        return;
+    
+    sliderIndex = candidateSliderIndex;
     clampIndex(sliderIndex);
     repaint();
 }
-
-SliderControl::~SliderControl()
-{
-    slider.lock()->deleteObserver(this);
-}
-

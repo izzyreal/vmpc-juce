@@ -85,9 +85,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     leds->addAndMakeVisible(this);
     
     for (auto& l : mpc.getHardware().lock()->getLeds())
-    {
         l->addObserver(leds);
-    }
     
     ButtonControl::initRects();
     
@@ -173,6 +171,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     lcd->startTimer(25);
     
     leds->startTimer(25);
+    slider->startTimer(25);
 }
 
 VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
