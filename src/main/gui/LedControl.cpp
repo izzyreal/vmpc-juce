@@ -189,11 +189,17 @@ void LedControl::setUndoSeq(bool b)
 
 void LedControl::timerCallback()
 {
-    setOverDub(mpc.getControls().lock()->isOverDubPressed() || mpc.getSequencer().lock()->isOverDubbing());
-    setRec(mpc.getControls().lock()->isRecPressed() || mpc.getSequencer().lock()->isRecording());
+    setUndoSeq(mpc.getSequencer().lock()->isUndoSeqAvailable());
+    setPlay(mpc.getSequencer().lock()->isPlaying());
+    
+    setOverDub(mpc.getControls().lock()->isOverDubPressed() ||
+               mpc.getSequencer().lock()->isOverDubbing());
+    
+    setRec(mpc.getControls().lock()->isRecPressed() ||
+           mpc.getSequencer().lock()->isRecording());
 }
 
-void LedControl::update(moduru::observer::Observable* o, nonstd::any arg)
+void LedControl::update(moduru::observer::Observable*, nonstd::any arg)
 {
 	string s = nonstd::any_cast<string>(arg);
 
