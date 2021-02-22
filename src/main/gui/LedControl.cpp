@@ -191,6 +191,7 @@ void LedControl::timerCallback()
 {
     setOverDub(mpc.getControls().lock()->isOverDubPressed() || mpc.getSequencer().lock()->isOverDubbing());
     setRec(mpc.getControls().lock()->isRecPressed() || mpc.getSequencer().lock()->isRecording());
+	setPlay(mpc.getSequencer().lock()->isPlaying());
 }
 
 void LedControl::update(moduru::observer::Observable* o, nonstd::any arg)
@@ -268,12 +269,6 @@ void LedControl::update(moduru::observer::Observable* o, nonstd::any arg)
 	}
 	else if (s.compare("overdub-off") == 0) {
 		setOverDub(false);
-	}
-	else if (s.compare("play-on") == 0) {
-		setPlay(true);
-	}
-	else if (s.compare("play-off") == 0) {
-		setPlay(false);
 	}
 }
 
