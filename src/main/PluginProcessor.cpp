@@ -579,6 +579,14 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
         auto mpc_aps = xmlState->getChildByName("MPC-APS");
         auto mpc_all = xmlState->getChildByName("MPC-ALL");
         
+        if (juce_ui == nullptr ||
+            mpc_ui == nullptr ||
+            mpc_aps == nullptr ||
+            mpc_all == nullptr)
+        {
+            return;
+        }
+
         lastUIWidth = juce_ui->getIntAttribute("w", 1298 / 2);
         lastUIHeight = juce_ui->getIntAttribute("h", 994 / 2);
         
