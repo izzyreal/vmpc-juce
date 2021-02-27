@@ -660,10 +660,7 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
         ApsLoader::loadFromParsedAps(apsParser, mpc, withoutSounds, headless);
         
         if (allData.size() != 0)
-        {
-            AllParser allParser(mpc, allData);
-            AllLoader(mpc, allParser, false);
-        }
+            AllLoader::loadEverythingFromAllParser(mpc, AllParser(mpc, allData));
         
         auto screen = mpc_ui->getStringAttribute("screen").toStdString();
         mpc.getLayeredScreen().lock()->openScreen(screen);
