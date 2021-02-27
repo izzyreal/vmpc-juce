@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-set(VMPC_VERSION 0.3.0.7)
+set(VMPC_VERSION 0.3.0.8)
 
 if(DEFINED ENV{APPLE_M1})
   set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE INTERNAL "")
