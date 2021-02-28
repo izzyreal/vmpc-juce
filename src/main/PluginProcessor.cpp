@@ -628,14 +628,13 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
             SndReader sndReader(sndData);
             
             auto sound = mpc.getSampler().lock()->addSound(sndReader.getSampleRate()).lock();
-            sndReader.getSampleData(sound->getSampleData());
-            
-            sound->setEnd(sndReader.getEnd());
             sound->setMono(sndReader.isMono());
+            sndReader.writeSampleData(sound->getSampleData());
             sound->setName(sndReader.getName());
             sound->setTune(sndReader.getTune());
             sound->setLevel(sndReader.getLevel());
             sound->setStart(sndReader.getStart());
+            sound->setEnd(sndReader.getEnd());
             sound->setLoopTo(sound->getEnd() - sndReader.getLoopLength());
             sound->setBeatCount(sndReader.getNumberOfBeats());
             sound->setLoopEnabled(sndReader.isLoopEnabled());
