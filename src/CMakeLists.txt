@@ -51,10 +51,12 @@ juce_add_plugin(vmpc2000xl
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT TRUE
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
-    PLUGIN_MANUFACTURER_CODE Izmr               # A four-character manufacturer id with at least one upper-case character
-    PLUGIN_CODE 2kXL                            # A unique four-character plugin id with at least one upper-case character
-    FORMATS Standalone VST3 AU                 # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
-    PRODUCT_NAME "vmpc2000xl")        # The name of the final executable, which can differ from the target name
+    PLUGIN_MANUFACTURER_CODE Izmr
+    PLUGIN_CODE 2kXL
+    MICROPHONE_PERMISSION_ENABLED TRUE
+    MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
+    FORMATS Standalone VST3 AU
+    PRODUCT_NAME "VMPC2000XL")
 
 set(CMAKE_CXX_STANDARD 17)
 set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/main")
