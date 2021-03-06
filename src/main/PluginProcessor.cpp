@@ -558,7 +558,14 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
                 if (result)
                 {
                     MLOG("Ignoring auto-saved session");
-                    // We ignore the fact that a previously saved session exists.
+                    // We ignore the fact that a previously saved session exists,
+                    // but we restore the user's window size.
+                    auto juce_ui = xmlState->getChildByName("JUCE-UI");
+                    if (juce_ui != nullptr)
+                    {
+                        lastUIWidth = juce_ui->getIntAttribute("w", 1298 / 2);
+                        lastUIHeight = juce_ui->getIntAttribute("h", 994 / 2);
+                    }
                     return;
                 }
                 else
