@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-set(VMPC_VERSION 0.3.0.8)
+set(VMPC_VERSION 0.3.1)
 
 if(DEFINED ENV{APPLE_M1})
   set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE INTERNAL "")
@@ -10,8 +10,8 @@ if(APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE INTERNAL "Minimum OS X deployment version")
 endif()
 
-#set (JUCE_ENABLE_MODULE_SOURCE_GROUPS ON)
-#set_property(GLOBAL PROPERTY USE_FOLDERS YES)
+set (JUCE_ENABLE_MODULE_SOURCE_GROUPS ON)
+set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 project(vmpc2000xl VERSION ${VMPC_VERSION})
 
@@ -55,7 +55,7 @@ juce_add_plugin(vmpc2000xl
     PLUGIN_CODE 2kXL
     MICROPHONE_PERMISSION_ENABLED TRUE
     MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
-    FORMATS LV2
+    FORMATS LV2 VST3 AU Standalone
     PRODUCT_NAME "VMPC2000XL")
 
 set(CMAKE_CXX_STANDARD 17)
@@ -79,8 +79,9 @@ target_sources(vmpc2000xl PRIVATE ${_source_list})
 
 target_compile_definitions(vmpc2000xl
     PUBLIC
-    JucePlugin_LV2URI="http://www.izmar.nl"
+    JucePlugin_LV2URI="http://www.izmar.nl/VMPC2000XL"
     JUCE_JACK=1
+    JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
     JUCE_VST3_CAN_REPLACE_VST2=0
