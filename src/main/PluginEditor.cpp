@@ -24,17 +24,17 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     
     File f;
     
-    auto bgImgPath = mpc::Paths::resPath() + "/img/bg.png";
+    auto bgImgPath = mpc::Paths::imgPath() + "bg.png";
     f = File(bgImgPath);
     bgImg = ImageFileFormat::loadFrom(f);
     
-    auto keyboardImgPath = mpc::Paths::resPath() + "/img/keyboard.png";
+    auto keyboardImgPath = mpc::Paths::imgPath() + "keyboard.png";
     f = File(keyboardImgPath);
     keyboardImg = ImageFileFormat::loadFrom(f);
     
     keyboardButton.setImages(false, true, true, keyboardImg, 0.5, Colours::transparentWhite, keyboardImg, 1.0, Colours::transparentWhite, keyboardImg, 0.25, Colours::transparentWhite);
     
-    auto resetWindowSizeImgPath = mpc::Paths::resPath() + "/img/reset-window-size.png";
+    auto resetWindowSizeImgPath = mpc::Paths::imgPath() + "reset-window-size.png";
     f = File(resetWindowSizeImgPath);
     resetWindowSizeImg = ImageFileFormat::loadFrom(f);
     
@@ -42,41 +42,42 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     
     dataWheel = new DataWheelControl(mpc.getHardware().lock()->getDataWheel());
     mpc.getHardware().lock()->getDataWheel().lock()->addObserver(dataWheel);
-    auto dataWheelImgPath = mpc::Paths::resPath() + "/img/datawheels.png";
+    auto dataWheelImgPath = mpc::Paths::imgPath() + "datawheels.png";
     f = File(dataWheelImgPath);
     dataWheelImg = ImageFileFormat::loadFrom(f);
     dataWheel->setImage(dataWheelImg, 100);
     addAndMakeVisible(dataWheel);
     
-    auto sliderImgPath = mpc::Paths::resPath() + "/img/sliders.png";
+    auto sliderImgPath = mpc::Paths::imgPath() + "sliders.png";
     f = File(sliderImgPath);
     sliderImg = ImageFileFormat::loadFrom(f);
     slider = new SliderControl(mpc.getHardware().lock()->getSlider(), 0);
     slider->setImage(sliderImg);
     addAndMakeVisible(slider);
     
-    auto recKnobImgPath = mpc::Paths::resPath() + "/img/recknobs.png";
+    auto recKnobImgPath = mpc::Paths::imgPath() + "recknobs.png";
     f = File(recKnobImgPath);
     recKnobImg = ImageFileFormat::loadFrom(f);
     recKnob = new KnobControl(0, mpc.getHardware().lock()->getRecPot(), mpc.getAudioMidiServices().lock()->getRecordLevel());
     recKnob->setImage(recKnobImg);
     addAndMakeVisible(recKnob);
     
-    auto volKnobImgPath = mpc::Paths::resPath() + "/img/volknobs.png";
+    auto volKnobImgPath = mpc::Paths::imgPath() + "volknobs.png";
     f = File(volKnobImgPath);
     volKnobImg = ImageFileFormat::loadFrom(f);
     volKnob = new KnobControl(0, mpc.getHardware().lock()->getVolPot(), mpc.getAudioMidiServices().lock()->getMasterLevel());
     volKnob->setImage(volKnobImg);
     addAndMakeVisible(volKnob);
     
-    auto padHitImgPath = mpc::Paths::resPath() + "/img/padhit.png";
+    auto padHitImgPath = mpc::Paths::imgPath() + "padhit.png";
     f = File(padHitImgPath);
     padHitImg = ImageFileFormat::loadFrom(f);
     
-    auto ledRedImgPath = mpc::Paths::resPath() + "/img/led_red.png";
+    auto ledRedImgPath = mpc::Paths::imgPath() + "led_red.png";
     f = File(ledRedImgPath);
     ledRedImg = ImageFileFormat::loadFrom(f);
-    auto ledGreenImgPath = mpc::Paths::resPath() + "/img/led_green.png";
+    
+    auto ledGreenImgPath = mpc::Paths::imgPath() + "led_green.png";
     f = File(ledGreenImgPath);
     ledGreenImg = ImageFileFormat::loadFrom(f);
     
@@ -202,7 +203,7 @@ void VmpcAudioProcessorEditor::initialise()
 {
     if (vmpcAudioProcessor.shouldShowDisclaimer)
     {
-        auto disclaimerImgPath = mpc::Paths::resPath() + "/img/disclaimer.gif";
+        auto disclaimerImgPath = mpc::Paths::imgPath() + "disclaimer.gif";
         auto disclaimerImg = ImageFileFormat::loadFrom(File(disclaimerImgPath));
         mpcSplashScreen = new SplashScreen("Disclaimer", disclaimerImg, true);
         mpcSplashScreen->setWantsKeyboardFocus(false);
