@@ -97,6 +97,25 @@ conan_target_link_libraries_keyword(vmpc2000xl)
 
 target_link_libraries(vmpc2000xl PRIVATE juce::juce_recommended_lto_flags)
 
+
+# Bundle resources
+set(_rsrc_root_path "${CMAKE_CURRENT_SOURCE_DIR}/../resources")
+
+file(
+        GLOB_RECURSE _resource_list
+        LIST_DIRECTORIES false
+        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${_rsrc_root_path}/*.png"
+)
+
+foreach(_resource IN ITEMS ${_resource_list})
+    message("========== Adding resource =========")
+    message("${_resource}")
+    target_sources(vmpc2000xl PUBLIC ${_resource})
+    set_source_files_properties(${_resource} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+endforeach()
+# End of bundle resources
+
 if(MSVC)
 	target_compile_options(vmpc2000xl PRIVATE "/MP")
 endif()
