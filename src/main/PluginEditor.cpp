@@ -24,7 +24,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     
     File f;
     
-    auto bgImgPath = mpc::Paths::imgPath() + "bg.png";
+    auto bgImgPath = mpc::Paths::imgPath() + "bg.jpg";
     f = File(bgImgPath);
     bgImg = ImageFileFormat::loadFrom(f);
     
@@ -42,27 +42,27 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     
     dataWheel = new DataWheelControl(mpc.getHardware().lock()->getDataWheel());
     mpc.getHardware().lock()->getDataWheel().lock()->addObserver(dataWheel);
-    auto dataWheelImgPath = mpc::Paths::imgPath() + "datawheels.png";
+    auto dataWheelImgPath = mpc::Paths::imgPath() + "datawheels.jpg";
     f = File(dataWheelImgPath);
     dataWheelImg = ImageFileFormat::loadFrom(f);
     dataWheel->setImage(dataWheelImg, 100);
     addAndMakeVisible(dataWheel);
     
-    auto sliderImgPath = mpc::Paths::imgPath() + "sliders.png";
+    auto sliderImgPath = mpc::Paths::imgPath() + "sliders.jpg";
     f = File(sliderImgPath);
     sliderImg = ImageFileFormat::loadFrom(f);
     slider = new SliderControl(mpc.getHardware().lock()->getSlider(), 0);
     slider->setImage(sliderImg);
     addAndMakeVisible(slider);
     
-    auto recKnobImgPath = mpc::Paths::imgPath() + "recknobs.png";
+    auto recKnobImgPath = mpc::Paths::imgPath() + "recknobs.jpg";
     f = File(recKnobImgPath);
     recKnobImg = ImageFileFormat::loadFrom(f);
     recKnob = new KnobControl(0, mpc.getHardware().lock()->getRecPot(), mpc.getAudioMidiServices().lock()->getRecordLevel());
     recKnob->setImage(recKnobImg);
     addAndMakeVisible(recKnob);
     
-    auto volKnobImgPath = mpc::Paths::imgPath() + "volknobs.png";
+    auto volKnobImgPath = mpc::Paths::imgPath() + "volknobs.jpg";
     f = File(volKnobImgPath);
     volKnobImg = ImageFileFormat::loadFrom(f);
     volKnob = new KnobControl(0, mpc.getHardware().lock()->getVolPot(), mpc.getAudioMidiServices().lock()->getMasterLevel());
@@ -230,12 +230,16 @@ void VmpcAudioProcessorEditor::resized()
     keyEventListener->setBounds(0, 0, getWidth(), getHeight()); // don't transform! or kb events are partiallly gone
     dataWheel->setTransform(scaleTransform);
     dataWheel->setBounds(Constants::DATAWHEEL_RECT()->getX(), Constants::DATAWHEEL_RECT()->getY(), dataWheel->getFrameWidth(), dataWheel->getFrameHeight());
+    
     slider->setTransform(scaleTransform);
-    slider->setBounds(Constants::SLIDER_RECT()->getX(), Constants::SLIDER_RECT()->getY(), sliderImg.getWidth(), sliderImg.getHeight() * 0.01);
+    slider->setBounds(Constants::SLIDER_RECT()->getX(), Constants::SLIDER_RECT()->getY(), sliderImg.getWidth() / 2, sliderImg.getHeight() * 0.01 * 0.5);
+    
     recKnob->setTransform(scaleTransform);
-    recKnob->setBounds(Constants::RECKNOB_RECT()->getX(), Constants::RECKNOB_RECT()->getY(), recKnobImg.getWidth(), recKnobImg.getHeight() * 0.01);
+    recKnob->setBounds(Constants::RECKNOB_RECT()->getX(), Constants::RECKNOB_RECT()->getY(), recKnobImg.getWidth() / 2, recKnobImg.getHeight() * 0.01 * 0.5);
+
     volKnob->setTransform(scaleTransform);
-    volKnob->setBounds(Constants::VOLKNOB_RECT()->getX(), Constants::VOLKNOB_RECT()->getY(), volKnobImg.getWidth(), volKnobImg.getHeight() * 0.01);
+    volKnob->setBounds(Constants::VOLKNOB_RECT()->getX(), Constants::VOLKNOB_RECT()->getY(), volKnobImg.getWidth() / 2, volKnobImg.getHeight() * 0.01 * 0.5);
+
     lcd->setTransform(scaleTransform);
     lcd->setBounds(Constants::LCD_RECT()->getX(), Constants::LCD_RECT()->getY(), 496, 120);
     
