@@ -1,100 +1,30 @@
-function(_vmpc_bundle_resources target_name)
-    _bundle_mpc(${target_name})
-    _bundle_img(${target_name})
+function(_vmpc_bundle_resources _target_name)
+  # mpc
+  _bundle(${_target_name} ../../mpc/resources/screens json screens)
+  _bundle(${_target_name} ../../mpc/resources/screens/bg bmp screens/bg)
+  _bundle(${_target_name} ../../mpc/resources/fonts fnt fonts)
+  _bundle(${_target_name} ../../mpc/resources/fonts bmp fonts)
+  _bundle(${_target_name} ../../mpc/resources/audio wav audio)
+  
+  # vmpc-juce
+  _bundle(${_target_name} ../resources/img jpg img)
+  _bundle(${_target_name} ../resources/img png img)
+  _bundle(${_target_name} ../resources/img gif img)
 endfunction()
 
-function(_bundle_img target_name)
-    set(_rsrc_root_path "${CMAKE_CURRENT_SOURCE_DIR}/../resources/img")
+function(_bundle _target_name _src_sub_dir _extension _group)
+  set(_rsrc_root_path "${CMAKE_CURRENT_SOURCE_DIR}/${_src_sub_dir}")
 
-    file(
-        GLOB_RECURSE _resource_list
-        LIST_DIRECTORIES false
-        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${_rsrc_root_path}/*.gif"
-        "${_rsrc_root_path}/*.png"
-        "${_rsrc_root_path}/*.jpg"
+  file(
+    GLOB_RECURSE _resource_list
+    LIST_DIRECTORIES false
+    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${_rsrc_root_path}/*.${_extension}"
     )
 
-    foreach(_resource IN ITEMS ${_resource_list})
-        set_source_files_properties(${_resource} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/img)
-	source_group("Resources/img" FILES "${_resource}")
-        target_sources(${target_name} PUBLIC ${_resource})
-    endforeach()
-endfunction()
-
-function(_bundle_mpc target_name)
-    _bundle_fonts(${target_name})
-    _bundle_screens(${target_name})
-    _bundle_screens_bg(${target_name})
-    _bundle_audio(${target_name})
-endfunction()
-
-function(_bundle_fonts target_name)
-    set(_rsrc_root_path "${CMAKE_CURRENT_SOURCE_DIR}/../../mpc/resources/fonts")
-
-    file(
-        GLOB_RECURSE _resource_list
-        LIST_DIRECTORIES false
-        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${_rsrc_root_path}/*.fnt"
-        "${_rsrc_root_path}/*.bmp"
-    )
-
-    foreach(_resource IN ITEMS ${_resource_list})
-        set_source_files_properties(${_resource} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/fonts")
-	source_group("Resources/fonts" FILES "${_resource}")
-        target_sources(${target_name} PUBLIC ${_resource})
-    endforeach()
-endfunction()
-
-function(_bundle_screens target_name)
-    set(_rsrc_root_path "${CMAKE_CURRENT_SOURCE_DIR}/../../mpc/resources/screens")
-
-    file(
-        GLOB_RECURSE _resource_list
-        LIST_DIRECTORIES false
-        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${_rsrc_root_path}/*.json"
-    )
-
-    foreach(_resource IN ITEMS ${_resource_list})
-        set_source_files_properties(${_resource} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/
-screens")
-	source_group("Resources/screens" FILES "${_resource}")
-        target_sources(${target_name} PUBLIC ${_resource})
-    endforeach()
-endfunction()
-
-function(_bundle_screens_bg target_name)
-    set(_rsrc_root_path "${CMAKE_CURRENT_SOURCE_DIR}/../../mpc/resources/screens/bg")
-
-    file(
-        GLOB_RECURSE _resource_list
-        LIST_DIRECTORIES false
-        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${_rsrc_root_path}/*.bmp"
-    )
-
-    foreach(_resource IN ITEMS ${_resource_list})
-        set_source_files_properties(${_resource} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/screens/bg")
-	source_group("Resources/screens/bg" FILES "${_resource}")
-        target_sources(${target_name} PUBLIC ${_resource})
-    endforeach()
-endfunction()
-
-function(_bundle_audio target_name)
-    set(_rsrc_root_path "${CMAKE_CURRENT_SOURCE_DIR}/../../mpc/resources/audio")
-
-    file(
-        GLOB_RECURSE _resource_list
-        LIST_DIRECTORIES false
-        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${_rsrc_root_path}/*.wav"
-    )
-
-    foreach(_resource IN ITEMS ${_resource_list})
-        set_source_files_properties(${_resource} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/audio")
-	source_group("Resources/audio" FILES "${_resource}")
-        target_sources(${target_name} PUBLIC ${_resource})
-    endforeach()
+  foreach(_resource IN ITEMS ${_resource_list})
+    set_source_files_properties(${_resource} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/${_group}")
+    source_group("Resources/${_group}" FILES "${_resource}")
+    target_sources(${_target_name} PUBLIC ${_resource})
+  endforeach()  
 endfunction()
