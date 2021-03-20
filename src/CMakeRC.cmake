@@ -33,6 +33,7 @@ if(_CMRC_GENERATE_MODE)
 endif()
 
 set(_version 2.0.0)
+set(CMAKE_CXX_FLAGS "-fPIC")
 
 cmake_minimum_required(VERSION 3.3)
 include(CMakeParseArguments)
