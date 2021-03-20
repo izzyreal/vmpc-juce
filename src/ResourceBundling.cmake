@@ -1,30 +1,32 @@
-function(_vmpc_bundle_resources _target_name)
-  # mpc
-  _bundle(${_target_name} ../../mpc/resources/screens json screens)
-  _bundle(${_target_name} ../../mpc/resources/screens/bg bmp screens/bg)
-  _bundle(${_target_name} ../../mpc/resources/fonts fnt fonts)
-  _bundle(${_target_name} ../../mpc/resources/fonts bmp fonts)
-  _bundle(${_target_name} ../../mpc/resources/audio wav audio)
+include(CMakeRC.cmake)
+
+set(_vmpc_juce_resources_root ${CMAKE_CURRENT_LIST_DIR}/../resources)
+
+function(_bundle_vmpc_juce_resources _target_name)
+  set(total_list "")
+
+  _add_resource_files(${_target_name} ${_vmpc_juce_resources_root} img jpg "${total_list}")
+  _add_resource_files(${_target_name} ${_vmpc_juce_resources_root} img png "${total_list}")
+  _add_resource_files(${_target_name} ${_vmpc_juce_resources_root} img gif "${total_list}")
   
-  # vmpc-juce
-  _bundle(${_target_name} ../resources/img jpg img)
-  _bundle(${_target_name} ../resources/img png img)
-  _bundle(${_target_name} ../resources/img gif img)
+  cmrc_add_resource_library(
+    vmpc_juce_resources
+    ALIAS vmpcjuce::rc
+    NAMESPACE vmpcjuce
+    WHENCE ${_vmpc_juce_resources_root}
+    ${total_list}
+    )
+  target_link_libraries(${_target_name} PUBLIC vmpcjuce::rc)
 endfunction()
 
-function(_bundle _target_name _src_sub_dir _extension _group)
-  set(_rsrc_root_path "${CMAKE_CURRENT_SOURCE_DIR}/${_src_sub_dir}")
-
+function(_add_resource_files _target_name _rsrc_root_path _sub_dir _extension _total_list)
   file(
-    GLOB_RECURSE _resource_list
+    GLOB _list
     LIST_DIRECTORIES false
-    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${_rsrc_root_path}/*.${_extension}"
+    RELATIVE "${CMAKE_CURRENT_LIST_DIR}"
+    "${_rsrc_root_path}/${_sub_dir}/*.${_extension}"
     )
 
-  foreach(_resource IN ITEMS ${_resource_list})
-    set_source_files_properties(${_resource} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/${_group}")
-    source_group("Resources/${_group}" FILES "${_resource}")
-    target_sources(${_target_name} PUBLIC ${_resource})
-  endforeach()  
+  list (APPEND _total_list ${_list})
+  set (total_list ${_total_list} PARENT_SCOPE)
 endfunction()

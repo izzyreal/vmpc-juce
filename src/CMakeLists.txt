@@ -99,7 +99,7 @@ conan_target_link_libraries_keyword(vmpc2000xl)
 
 target_link_libraries(vmpc2000xl PRIVATE juce::juce_recommended_lto_flags)
 
-_vmpc_bundle_resources(vmpc2000xl)
+_bundle_vmpc_juce_resources(vmpc2000xl)
 
 if(MSVC)
 	target_compile_options(vmpc2000xl PRIVATE "/MP")

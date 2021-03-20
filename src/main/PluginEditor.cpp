@@ -10,7 +10,20 @@
 #include <Paths.hpp>
 #include "version.h"
 
+#include <cmrc/cmrc.hpp>
+#include <string_view>
+
+CMRC_DECLARE(vmpcjuce);
+
 using namespace std;
+
+Image loadImage(string path)
+{
+    auto fs = cmrc::vmpcjuce::get_filesystem();
+    auto file = fs.open(path.c_str());
+    auto stream = MemoryInputStream(string_view(file.begin(), file.size()).data(), file.size(), true);
+    return ImageFileFormat::loadFrom(stream);
+}
 
 VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 : AudioProcessorEditor(&p), vmpcAudioProcessor(p), mpc(p.mpc)
@@ -21,65 +34,41 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     keyEventListener->setSize(1298, 994);
     keyEventListener->setWantsKeyboardFocus(true);
     addAndMakeVisible(keyEventListener);
-    
-    File f;
-    
-    auto bgImgPath = mpc::Paths::imgPath() + "bg.jpg";
-    f = File(bgImgPath);
-    bgImg = ImageFileFormat::loadFrom(f);
-    
-    auto keyboardImgPath = mpc::Paths::imgPath() + "keyboard.png";
-    f = File(keyboardImgPath);
-    keyboardImg = ImageFileFormat::loadFrom(f);
+        
+    bgImg = loadImage("img/bg.jpg");
+    keyboardImg = loadImage("img/keyboard.png");
     
     keyboardButton.setImages(false, true, true, keyboardImg, 0.5, Colours::transparentWhite, keyboardImg, 1.0, Colours::transparentWhite, keyboardImg, 0.25, Colours::transparentWhite);
     
-    auto resetWindowSizeImgPath = mpc::Paths::imgPath() + "reset-window-size.png";
-    f = File(resetWindowSizeImgPath);
-    resetWindowSizeImg = ImageFileFormat::loadFrom(f);
+    resetWindowSizeImg = loadImage("img/reset-window-size.png");
     
     resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, Colours::transparentWhite, resetWindowSizeImg, 1.0, Colours::transparentWhite, resetWindowSizeImg, 0.25, Colours::transparentWhite);
     
     dataWheel = new DataWheelControl(mpc.getHardware().lock()->getDataWheel());
     mpc.getHardware().lock()->getDataWheel().lock()->addObserver(dataWheel);
-    auto dataWheelImgPath = mpc::Paths::imgPath() + "datawheels.jpg";
-    f = File(dataWheelImgPath);
-    dataWheelImg = ImageFileFormat::loadFrom(f);
+    dataWheelImg = loadImage("img/datawheels.jpg");
     dataWheel->setImage(dataWheelImg, 100);
     addAndMakeVisible(dataWheel);
     
-    auto sliderImgPath = mpc::Paths::imgPath() + "sliders.jpg";
-    f = File(sliderImgPath);
-    sliderImg = ImageFileFormat::loadFrom(f);
+    sliderImg = loadImage("img/sliders.jpg");
     slider = new SliderControl(mpc.getHardware().lock()->getSlider(), 0);
     slider->setImage(sliderImg);
     addAndMakeVisible(slider);
     
-    auto recKnobImgPath = mpc::Paths::imgPath() + "recknobs.jpg";
-    f = File(recKnobImgPath);
-    recKnobImg = ImageFileFormat::loadFrom(f);
+    recKnobImg = loadImage("img/recknobs.jpg");
     recKnob = new KnobControl(0, mpc.getHardware().lock()->getRecPot(), mpc.getAudioMidiServices().lock()->getRecordLevel());
     recKnob->setImage(recKnobImg);
     addAndMakeVisible(recKnob);
     
-    auto volKnobImgPath = mpc::Paths::imgPath() + "volknobs.jpg";
-    f = File(volKnobImgPath);
-    volKnobImg = ImageFileFormat::loadFrom(f);
+    volKnobImg = loadImage("img/volknobs.jpg");
     volKnob = new KnobControl(0, mpc.getHardware().lock()->getVolPot(), mpc.getAudioMidiServices().lock()->getMasterLevel());
     volKnob->setImage(volKnobImg);
     addAndMakeVisible(volKnob);
     
-    auto padHitImgPath = mpc::Paths::imgPath() + "padhit.png";
-    f = File(padHitImgPath);
-    padHitImg = ImageFileFormat::loadFrom(f);
-    
-    auto ledRedImgPath = mpc::Paths::imgPath() + "led_red.png";
-    f = File(ledRedImgPath);
-    ledRedImg = ImageFileFormat::loadFrom(f);
-    
-    auto ledGreenImgPath = mpc::Paths::imgPath() + "led_green.png";
-    f = File(ledGreenImgPath);
-    ledGreenImg = ImageFileFormat::loadFrom(f);
+    padHitImg = loadImage("img/padhit.png");
+
+    ledRedImg = loadImage("img/led_red.png");
+    ledGreenImg = loadImage("img/led_green.png");
     
     leds = new LedControl(mpc, ledGreenImg, ledRedImg);
     leds->setPadBankA(true);
@@ -94,7 +83,8 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     
     for (auto& l : buttonLabels)
     {
-        auto bc = new ButtonControl(*ButtonControl::rects[l], mpc.getHardware().lock()->getButton(l));
+        auto bc = new ButtonControl(*ButtonControl::rects[l],
+                                    mpc.getHardware().lock()->getButton(l));
         addAndMakeVisible(bc);
         buttons.push_back(bc);
     }
