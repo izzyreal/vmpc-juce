@@ -10,7 +10,20 @@
 #include <Paths.hpp>
 #include "version.h"
 
+#include <cmrc/cmrc.hpp>
+#include <string_view>
+
+CMRC_DECLARE(vmpcjuce);
+
 using namespace std;
+
+Image loadImage(string path)
+{
+    auto fs = cmrc::vmpcjuce::get_filesystem();
+    auto file = fs.open(path.c_str());
+    auto stream = MemoryInputStream(string_view(file.begin(), file.size()).data(), file.size(), true);
+    return ImageFileFormat::loadFrom(stream);
+}
 
 VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 : AudioProcessorEditor(&p), vmpcAudioProcessor(p), mpc(p.mpc)
@@ -21,64 +34,41 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     keyEventListener->setSize(1298, 994);
     keyEventListener->setWantsKeyboardFocus(true);
     addAndMakeVisible(keyEventListener);
-    
-    File f;
-    
-    auto bgImgPath = mpc::Paths::resPath() + "/img/bg.png";
-    f = File(bgImgPath);
-    bgImg = ImageFileFormat::loadFrom(f);
-    
-    auto keyboardImgPath = mpc::Paths::resPath() + "/img/keyboard.png";
-    f = File(keyboardImgPath);
-    keyboardImg = ImageFileFormat::loadFrom(f);
+        
+    bgImg = loadImage("img/bg.jpg");
+    keyboardImg = loadImage("img/keyboard.png");
     
     keyboardButton.setImages(false, true, true, keyboardImg, 0.5, Colours::transparentWhite, keyboardImg, 1.0, Colours::transparentWhite, keyboardImg, 0.25, Colours::transparentWhite);
     
-    auto resetWindowSizeImgPath = mpc::Paths::resPath() + "/img/reset-window-size.png";
-    f = File(resetWindowSizeImgPath);
-    resetWindowSizeImg = ImageFileFormat::loadFrom(f);
+    resetWindowSizeImg = loadImage("img/reset-window-size.png");
     
     resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, Colours::transparentWhite, resetWindowSizeImg, 1.0, Colours::transparentWhite, resetWindowSizeImg, 0.25, Colours::transparentWhite);
     
     dataWheel = new DataWheelControl(mpc.getHardware().lock()->getDataWheel());
     mpc.getHardware().lock()->getDataWheel().lock()->addObserver(dataWheel);
-    auto dataWheelImgPath = mpc::Paths::resPath() + "/img/datawheels.png";
-    f = File(dataWheelImgPath);
-    dataWheelImg = ImageFileFormat::loadFrom(f);
+    dataWheelImg = loadImage("img/datawheels.jpg");
     dataWheel->setImage(dataWheelImg, 100);
     addAndMakeVisible(dataWheel);
     
-    auto sliderImgPath = mpc::Paths::resPath() + "/img/sliders.png";
-    f = File(sliderImgPath);
-    sliderImg = ImageFileFormat::loadFrom(f);
+    sliderImg = loadImage("img/sliders.jpg");
     slider = new SliderControl(mpc.getHardware().lock()->getSlider(), 0);
     slider->setImage(sliderImg);
     addAndMakeVisible(slider);
     
-    auto recKnobImgPath = mpc::Paths::resPath() + "/img/recknobs.png";
-    f = File(recKnobImgPath);
-    recKnobImg = ImageFileFormat::loadFrom(f);
+    recKnobImg = loadImage("img/recknobs.jpg");
     recKnob = new KnobControl(0, mpc.getHardware().lock()->getRecPot(), mpc.getAudioMidiServices().lock()->getRecordLevel());
     recKnob->setImage(recKnobImg);
     addAndMakeVisible(recKnob);
     
-    auto volKnobImgPath = mpc::Paths::resPath() + "/img/volknobs.png";
-    f = File(volKnobImgPath);
-    volKnobImg = ImageFileFormat::loadFrom(f);
+    volKnobImg = loadImage("img/volknobs.jpg");
     volKnob = new KnobControl(0, mpc.getHardware().lock()->getVolPot(), mpc.getAudioMidiServices().lock()->getMasterLevel());
     volKnob->setImage(volKnobImg);
     addAndMakeVisible(volKnob);
     
-    auto padHitImgPath = mpc::Paths::resPath() + "/img/padhit.png";
-    f = File(padHitImgPath);
-    padHitImg = ImageFileFormat::loadFrom(f);
-    
-    auto ledRedImgPath = mpc::Paths::resPath() + "/img/led_red.png";
-    f = File(ledRedImgPath);
-    ledRedImg = ImageFileFormat::loadFrom(f);
-    auto ledGreenImgPath = mpc::Paths::resPath() + "/img/led_green.png";
-    f = File(ledGreenImgPath);
-    ledGreenImg = ImageFileFormat::loadFrom(f);
+    padHitImg = loadImage("img/padhit.png");
+
+    ledRedImg = loadImage("img/led_red.png");
+    ledGreenImg = loadImage("img/led_green.png");
     
     leds = new LedControl(mpc, ledGreenImg, ledRedImg);
     leds->setPadBankA(true);
@@ -93,7 +83,8 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     
     for (auto& l : buttonLabels)
     {
-        auto bc = new ButtonControl(*ButtonControl::rects[l], mpc.getHardware().lock()->getButton(l));
+        auto bc = new ButtonControl(*ButtonControl::rects[l],
+                                    mpc.getHardware().lock()->getButton(l));
         addAndMakeVisible(bc);
         buttons.push_back(bc);
     }
@@ -202,7 +193,7 @@ void VmpcAudioProcessorEditor::initialise()
 {
     if (vmpcAudioProcessor.shouldShowDisclaimer)
     {
-        auto disclaimerImgPath = mpc::Paths::resPath() + "/img/disclaimer.gif";
+        auto disclaimerImgPath = mpc::Paths::imgPath() + "disclaimer.gif";
         auto disclaimerImg = ImageFileFormat::loadFrom(File(disclaimerImgPath));
         mpcSplashScreen = new SplashScreen("Disclaimer", disclaimerImg, true);
         mpcSplashScreen->setWantsKeyboardFocus(false);
@@ -229,12 +220,16 @@ void VmpcAudioProcessorEditor::resized()
     keyEventListener->setBounds(0, 0, getWidth(), getHeight()); // don't transform! or kb events are partiallly gone
     dataWheel->setTransform(scaleTransform);
     dataWheel->setBounds(Constants::DATAWHEEL_RECT()->getX(), Constants::DATAWHEEL_RECT()->getY(), dataWheel->getFrameWidth(), dataWheel->getFrameHeight());
+    
     slider->setTransform(scaleTransform);
-    slider->setBounds(Constants::SLIDER_RECT()->getX(), Constants::SLIDER_RECT()->getY(), sliderImg.getWidth(), sliderImg.getHeight() * 0.01);
+    slider->setBounds(Constants::SLIDER_RECT()->getX(), Constants::SLIDER_RECT()->getY(), sliderImg.getWidth() / 2, sliderImg.getHeight() * 0.01 * 0.5);
+    
     recKnob->setTransform(scaleTransform);
-    recKnob->setBounds(Constants::RECKNOB_RECT()->getX(), Constants::RECKNOB_RECT()->getY(), recKnobImg.getWidth(), recKnobImg.getHeight() * 0.01);
+    recKnob->setBounds(Constants::RECKNOB_RECT()->getX(), Constants::RECKNOB_RECT()->getY(), recKnobImg.getWidth() / 2, recKnobImg.getHeight() * 0.01 * 0.5);
+
     volKnob->setTransform(scaleTransform);
-    volKnob->setBounds(Constants::VOLKNOB_RECT()->getX(), Constants::VOLKNOB_RECT()->getY(), volKnobImg.getWidth(), volKnobImg.getHeight() * 0.01);
+    volKnob->setBounds(Constants::VOLKNOB_RECT()->getX(), Constants::VOLKNOB_RECT()->getY(), volKnobImg.getWidth() / 2, volKnobImg.getHeight() * 0.01 * 0.5);
+
     lcd->setTransform(scaleTransform);
     lcd->setBounds(Constants::LCD_RECT()->getX(), Constants::LCD_RECT()->getY(), 496, 120);
     

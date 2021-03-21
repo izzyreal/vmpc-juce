@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
+include(ResourceBundling.cmake)
+
 set(VMPC_VERSION 0.3.1)
 
 if(DEFINED ENV{APPLE_M1})
@@ -96,6 +98,8 @@ target_link_libraries(vmpc2000xl PRIVATE
 conan_target_link_libraries_keyword(vmpc2000xl)
 
 target_link_libraries(vmpc2000xl PRIVATE juce::juce_recommended_lto_flags)
+
+_bundle_vmpc_juce_resources(vmpc2000xl)
 
 if(MSVC)
 	target_compile_options(vmpc2000xl PRIVATE "/MP")
