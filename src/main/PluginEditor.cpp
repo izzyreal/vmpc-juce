@@ -21,7 +21,8 @@ Image loadImage(string path)
 {
     auto fs = cmrc::vmpcjuce::get_filesystem();
     auto file = fs.open(path.c_str());
-    auto stream = MemoryInputStream(string_view(file.begin(), file.size()).data(), file.size(), true);
+    auto data = string_view(file.begin(), file.size()).data();
+    auto stream = MemoryInputStream(data, file.size(), true);
     return ImageFileFormat::loadFrom(stream);
 }
 

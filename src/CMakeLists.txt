@@ -3,9 +3,10 @@ cmake_minimum_required(VERSION 3.13)
 include(ResourceBundling.cmake)
 
 set(VMPC_VERSION 0.3.1)
+set(CMAKE_CXX_STANDARD 17)
 
 if(DEFINED ENV{APPLE_M1})
-  set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE INTERNAL "")
+    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE INTERNAL "")
 endif()
 
 if(APPLE)
@@ -60,7 +61,6 @@ juce_add_plugin(vmpc2000xl
     FORMATS LV2 VST3 AU Standalone
     PRODUCT_NAME "VMPC2000XL")
 
-set(CMAKE_CXX_STANDARD 17)
 set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/main")
 file(
         GLOB_RECURSE _source_list
