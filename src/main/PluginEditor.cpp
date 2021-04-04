@@ -194,8 +194,7 @@ void VmpcAudioProcessorEditor::initialise()
 {
     if (vmpcAudioProcessor.shouldShowDisclaimer)
     {
-        auto disclaimerImgPath = mpc::Paths::imgPath() + "disclaimer.gif";
-        auto disclaimerImg = ImageFileFormat::loadFrom(File(disclaimerImgPath));
+        auto disclaimerImg = loadImage("img/disclaimer.gif");
         mpcSplashScreen = new SplashScreen("Disclaimer", disclaimerImg, true);
         mpcSplashScreen->setWantsKeyboardFocus(false);
         mpcSplashScreen->deleteAfterDelay(RelativeTime::seconds(8), true);
