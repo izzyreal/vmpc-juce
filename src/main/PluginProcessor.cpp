@@ -418,8 +418,6 @@ AudioProcessorEditor* VmpcAudioProcessor::createEditor()
 
 void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
-    MLOG("getStateInformation");
-    
     auto vmpcAutoSaveScreen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
     
     if (wrapperType == wrapperType_Standalone)
@@ -441,13 +439,13 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
                                                         "Save");
             if (result)
             {
-                MLOG("Not saving current session");
+                // MLOG("Not saving current session");
                 // Our work here is done
                 return;
             }
             else
             {
-                MLOG("Auto-saving session");
+                // MLOG("Auto-saving session");
                 // We may continue the below routine.
             }
         }
@@ -530,7 +528,7 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
 
 void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    MLOG("setStateInformation");
+    // MLOG("setStateInformation");
     unique_ptr<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
     
     auto vmpcAutoSaveScreen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
@@ -557,7 +555,7 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
                                                             "Continue session");
                 if (result)
                 {
-                    MLOG("Ignoring auto-saved session");
+                    // MLOG("Ignoring auto-saved session");
                     // We ignore the fact that a previously saved session exists,
                     // but we restore the user's window size.
                     auto juce_ui = xmlState->getChildByName("JUCE-UI");
@@ -570,7 +568,7 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
                 }
                 else
                 {
-                    MLOG("Continuing auto-saved session");
+                    // MLOG("Continuing auto-saved session");
                     // We may continue the below routine.
                 }
             }
