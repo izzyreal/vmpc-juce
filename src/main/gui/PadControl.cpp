@@ -2,17 +2,23 @@
 #include <hardware/HwPad.hpp>
 
 #include <Mpc.hpp>
+
 #include <sequencer/Sequencer.hpp>
 #include <sequencer/Track.hpp>
+
 #include <sampler/Sampler.hpp>
 #include <sampler/Pad.hpp>
 #include <sampler/NoteParameters.hpp>
+
 #include <disk/SoundLoader.hpp>
 #include <disk/MpcFile.hpp>
+
+#include <lcdgui/screens/dialog2/PopupScreen.hpp>
 
 #include <mpc/MpcSoundPlayerChannel.hpp>
 
 #include <file/File.hpp>
+#include <file/FileUtil.hpp>
 #include <lang/StrUtil.hpp>
 
 #include <Logger.hpp>
@@ -21,6 +27,7 @@
 
 using namespace juce;
 using namespace mpc::disk;
+using namespace mpc::lcdgui::screens::dialog2;
 using namespace moduru::lang;
 using namespace std;
 
@@ -62,7 +69,6 @@ void PadControl::filesDropped(const StringArray& files, int, int)
 
             auto soundLoader = SoundLoader(mpc, sampler->getSounds(), false);
             soundLoader.setPreview(false);
-            soundLoader.setShowPopup(true);
 
             auto compatiblePath = StrUtil::replaceAll(s.toStdString(), '\\', string("\\"));
             auto moduruFile = dynamic_pointer_cast<moduru::file::FsNode>(make_shared<moduru::file::File>(compatiblePath, nullptr));
@@ -70,7 +76,7 @@ void PadControl::filesDropped(const StringArray& files, int, int)
             auto file = make_shared<mpc::disk::MpcFile>(moduruFile);
 
             auto layeredScreen = mpc.getLayeredScreen().lock();
-
+            
             SoundLoaderResult result;
             
             try
@@ -85,8 +91,19 @@ void PadControl::filesDropped(const StringArray& files, int, int)
                 return;
             }
 
-            if (result.existingIndex == -1)
+            if (result.success && result.existingIndex == -1)
             {
+                
+                auto popupScreen = mpc.screens->get<PopupScreen>("popup");
+                auto currentScreen = layeredScreen->getCurrentScreenName();
+                auto soundFileName = StrUtil::toUpper(moduruFile->getNameWithoutExtension());
+                auto ext = moduru::file::FileUtil::splitName(moduruFile->getName())[1];
+                
+                popupScreen->setText("LOADING " + StrUtil::padRight(soundFileName, " ", 16) + "." + ext);
+                
+                layeredScreen->openScreen("popup");
+                popupScreen->returnToScreenAfterMilliSeconds(currentScreen, min(soundLoader.getSize() / 400, 300));
+                
                 auto drumIndex = mpc.getSequencer().lock()->getActiveTrack().lock()->getBus() - 1;
                 
                 if (drumIndex == -1)
@@ -112,7 +129,6 @@ void PadControl::filesDropped(const StringArray& files, int, int)
                 }
 
                 noteParameters->setSoundIndex(soundIndex);
-                layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
             }
         }
     }
