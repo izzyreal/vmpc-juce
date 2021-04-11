@@ -12,13 +12,11 @@ static inline void clampIndex(int& knobIndex) {
 	}
 }
 
-KnobControl::KnobControl(int type, std::weak_ptr<mpc::hardware::Pot> pot, int startIndex)
+KnobControl::KnobControl(int type, std::weak_ptr<mpc::hardware::Pot> _pot)
+: pot (_pot),
+knobType (type),
+knobIndex(_pot.lock()->getValue())
 {
-	this->knobs = knobs;
-	knobType = type;
-	knobIndex = startIndex;
-	this->pot = pot;
-	knobIndex = pot.lock()->getValue();
 	clampIndex(knobIndex);
 	repaint();
 }
@@ -54,4 +52,14 @@ void KnobControl::paint(Graphics& g)
 
 		g.drawImage(knobs, 0, 0, imageWidth, imageHeight, 0, knobIndex * frameHeight, frameWidth, frameHeight);
 	}
+}
+
+void KnobControl::mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails& wheel)
+{
+    auto p = pot.lock();
+    mouseWheelControllable.processWheelEvent(wheel, [&](int increment) {     p->setValue(p->getValue() + increment);
+        knobIndex = p->getValue();
+        clampIndex(knobIndex);
+        repaint();
+    });
 }
