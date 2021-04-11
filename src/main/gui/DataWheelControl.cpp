@@ -10,12 +10,14 @@ DataWheelControl::DataWheelControl(weak_ptr<mpc::hardware::DataWheel> _dataWheel
 {
 }
 
-void DataWheelControl::mouseUp(const MouseEvent& event) {
+void DataWheelControl::mouseUp(const MouseEvent& event)
+{
     lastDy = 0;
     Component::mouseUp(event);
 }
 
-void DataWheelControl::mouseDrag(const MouseEvent& event) {
+void DataWheelControl::mouseDrag(const MouseEvent& event)
+{
     auto dY = event.getDistanceFromDragStartY() - lastDy;
     
     if (dY == 0)
@@ -40,18 +42,22 @@ void DataWheelControl::mouseDrag(const MouseEvent& event) {
     lastDy = event.getDistanceFromDragStartY();
 }
 
-static inline void clampIndex(int& dataWheelIndex) {
-    if (dataWheelIndex < 0) {
+static inline void clampIndex(int& dataWheelIndex)
+{
+    if (dataWheelIndex < 0)
+    {
         while (dataWheelIndex < 0)
             dataWheelIndex += 100;
     }
-    else if (dataWheelIndex > 99) {
+    else if (dataWheelIndex > 99)
+    {
         while (dataWheelIndex > 99)
             dataWheelIndex -= 100;
     }
 }
 
-void DataWheelControl::update(moduru::observer::Observable* o, nonstd::any arg) {
+void DataWheelControl::update(moduru::observer::Observable*, nonstd::any arg)
+{
     int increment = nonstd::any_cast<int>(arg);
     dataWheelIndex += increment;
     clampIndex(dataWheelIndex);
@@ -81,4 +87,13 @@ void DataWheelControl::paint(Graphics& g)
         
         g.drawImage(filmStripImage, 0, 0, imageWidth, imageHeight, 0, dataWheelIndex * frameHeight, frameWidth, frameHeight);
     }
+}
+
+void DataWheelControl::mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails& wheel)
+{
+    auto x = wheel.deltaX;
+    auto y = wheel.deltaY;
+    
+    MLOG("\nDelta x: " + to_string(x));
+    MLOG("Delta y: " + to_string(y));
 }

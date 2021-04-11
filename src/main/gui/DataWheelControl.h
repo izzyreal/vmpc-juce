@@ -16,8 +16,9 @@ public:
 	int getFrameHeight() const { return frameHeight; }
 	void paint(juce::Graphics& g) override;
 
-	void mouseDrag(const juce::MouseEvent& event) override;
-	void mouseUp(const juce::MouseEvent& event) override;
+	void mouseDrag(const juce::MouseEvent&) override;
+	void mouseUp(const juce::MouseEvent&) override;
+    void mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails&) override;
 
 	void update(moduru::observer::Observable* o, nonstd::any arg) override;
 
