@@ -634,7 +634,7 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
             
             auto sound = mpc.getSampler().lock()->addSound(sndReader.getSampleRate()).lock();
             sound->setMono(sndReader.isMono());
-            sndReader.writeSampleData(sound->getSampleData());
+            sndReader.readData(*sound->getSampleData());
             sound->setName(sndReader.getName());
             sound->setTune(sndReader.getTune());
             sound->setLevel(sndReader.getLevel());
