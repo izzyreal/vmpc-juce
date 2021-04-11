@@ -52,17 +52,17 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     addAndMakeVisible(dataWheel);
     
     sliderImg = loadImage("img/sliders.jpg");
-    slider = new SliderControl(mpc.getHardware().lock()->getSlider(), 0);
+    slider = new SliderControl(mpc.getHardware().lock()->getSlider());
     slider->setImage(sliderImg);
     addAndMakeVisible(slider);
     
     recKnobImg = loadImage("img/recknobs.jpg");
-    recKnob = new KnobControl(0, mpc.getHardware().lock()->getRecPot(), mpc.getAudioMidiServices().lock()->getRecordLevel());
+    recKnob = new KnobControl(0, mpc.getHardware().lock()->getRecPot());
     recKnob->setImage(recKnobImg);
     addAndMakeVisible(recKnob);
     
     volKnobImg = loadImage("img/volknobs.jpg");
-    volKnob = new KnobControl(0, mpc.getHardware().lock()->getVolPot(), mpc.getAudioMidiServices().lock()->getMasterLevel());
+    volKnob = new KnobControl(0, mpc.getHardware().lock()->getVolPot());
     volKnob->setImage(volKnobImg);
     addAndMakeVisible(volKnob);
     

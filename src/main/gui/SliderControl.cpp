@@ -11,11 +11,9 @@ static inline void clampIndex(int& sliderIndex)
         sliderIndex = 99;
 }
 
-SliderControl::SliderControl(std::weak_ptr<mpc::hardware::Slider> _slider, int startIndex)
-: slider (_slider)
+SliderControl::SliderControl(std::weak_ptr<mpc::hardware::Slider> _slider)
+: slider (_slider), sliderIndex (static_cast<int>(_slider.lock()->getValue() / 1.27))
 {
-    sliderIndex = startIndex;
-    sliderIndex = static_cast<int>(slider.lock()->getValue() / 1.27);
     clampIndex(sliderIndex);
 }
 
@@ -65,4 +63,14 @@ void SliderControl::timerCallback()
     sliderIndex = candidateSliderIndex;
     clampIndex(sliderIndex);
     repaint();
+}
+
+void SliderControl::mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails& wheel)
+{
+    auto s = slider.lock();
+    mouseWheelControllable.processWheelEvent(wheel, [&](int increment) {     s->setValue(s->getValue() + increment);
+        sliderIndex = static_cast<int>(s->getValue() / 1.27);
+        clampIndex(sliderIndex);
+        repaint();
+    });
 }

@@ -1,6 +1,8 @@
 #pragma once
 #include "VmpcComponent.h"
 
+#include "MouseWheelControllable.hpp"
+
 #include <memory>
 
 namespace mpc::hardware {
@@ -12,15 +14,17 @@ class KnobControl
 {
     
 private:
+    MouseWheelControllable mouseWheelControllable;
     std::weak_ptr<mpc::hardware::Pot> pot;
-    int knobIndex = 0;
     int knobType = 0; // 0 = rec, 1 = vol
-    
+    int knobIndex = 0;
+
 public:
     void paint(juce::Graphics& g) override;
     void mouseDrag(const juce::MouseEvent& event) override;
     void mouseUp(const juce::MouseEvent& event) override;
-    
+    void mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails&) override;
+
 public:
     void setImage(juce::Image image);
     
@@ -29,6 +33,6 @@ private:
     int frameWidth, frameHeight, lastDy = 0;
     
 public:
-    KnobControl(int type, std::weak_ptr<mpc::hardware::Pot> pot, int startIndex);
+    KnobControl(int type, std::weak_ptr<mpc::hardware::Pot> pot);
     
 };

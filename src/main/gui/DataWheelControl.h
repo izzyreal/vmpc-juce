@@ -3,6 +3,8 @@
 #include <observer/Observer.hpp>
 #include <hardware/DataWheel.hpp>
 
+#include "MouseWheelControllable.hpp"
+
 class DataWheelControl 
 	: public VmpcComponent
 	, public moduru::observer::Observer
@@ -23,6 +25,7 @@ public:
 	void update(moduru::observer::Observable* o, nonstd::any arg) override;
 
 private:
+    MouseWheelControllable mouseWheelControllable;
     juce::Image filmStripImage;
 	int numFrames;
 	int frameWidth, frameHeight;

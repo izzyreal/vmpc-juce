@@ -91,31 +91,6 @@ void DataWheelControl::paint(Graphics& g)
 
 void DataWheelControl::mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails& wheel)
 {
-    static double acc = 0.0;
-    static const double THRESHOLD = 0.1;
-    
-    auto y = wheel.deltaY;
-    
-    acc += y;
-    
-    auto increment = 0;
-    
-    if (acc > THRESHOLD)
-    {
-        increment = 1;
-        
-        while (acc > THRESHOLD)
-            acc -= THRESHOLD;
-    }
-    else if (abs(acc) > THRESHOLD)
-    {
-        increment = -1;
-        
-        while (abs(acc) > THRESHOLD)
-            acc += THRESHOLD;
-    }
-
-    if (increment == 0) return;
-    
-    dataWheel.lock()->turn(increment);
+    auto dw = dataWheel.lock();
+    mouseWheelControllable.processWheelEvent(wheel, [&dw](int increment) { dw->turn(increment); });
 }
