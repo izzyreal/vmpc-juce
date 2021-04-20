@@ -418,6 +418,22 @@ AudioProcessorEditor* VmpcAudioProcessor::createEditor()
 
 void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
+    auto editor = getActiveEditor();
+    
+    auto root = new XmlElement("root");
+    unique_ptr<XmlElement> xml(root);
+    
+    auto juce_ui = new XmlElement("JUCE-UI");
+    root->addChildElement(juce_ui);
+    
+    if (editor != nullptr)
+    {
+        auto w = editor->getWidth();
+        auto h = editor->getHeight();
+        juce_ui->setAttribute("w", w);
+        juce_ui->setAttribute("h", h);
+    }
+ 
     auto vmpcAutoSaveScreen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
     
     if (wrapperType == wrapperType_Standalone)
@@ -449,22 +465,6 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
                 // We may continue the below routine.
             }
         }
-    }
-    
-    auto editor = getActiveEditor();
-    
-    auto root = new XmlElement("root");
-    unique_ptr<XmlElement> xml(root);
-    
-    auto juce_ui = new XmlElement("JUCE-UI");
-    root->addChildElement(juce_ui);
-    
-    if (editor != nullptr)
-    {
-        auto w = editor->getWidth();
-        auto h = editor->getHeight();
-        juce_ui->setAttribute("w", w);
-        juce_ui->setAttribute("h", h);
     }
     
     auto layeredScreen = mpc.getLayeredScreen().lock();
@@ -501,7 +501,6 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
         soundElement->setAttribute("data", encodedSound.toString());
         soundElement->setAttribute("size", (int) data.size());
     }
-    
     
     MemoryOutputStream encodedAps;
     Base64::convertToBase64(encodedAps, &apsBytes[0], apsBytes.size());
@@ -580,37 +579,33 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
         }
         
         auto juce_ui = xmlState->getChildByName("JUCE-UI");
-        auto mpc_ui = xmlState->getChildByName("MPC-UI");
-        auto mpc_aps = xmlState->getChildByName("MPC-APS");
-        auto mpc_all = xmlState->getChildByName("MPC-ALL");
         
-        if (juce_ui == nullptr ||
-            mpc_ui == nullptr ||
-            mpc_aps == nullptr ||
-            mpc_all == nullptr)
+        if (juce_ui != nullptr)
         {
-            return;
+            lastUIWidth = juce_ui->getIntAttribute("w", 1298 / 2);
+            lastUIHeight = juce_ui->getIntAttribute("h", 994 / 2);
         }
+        
+        auto mpc_ui = xmlState->getChildByName("MPC-UI");
 
-        lastUIWidth = juce_ui->getIntAttribute("w", 1298 / 2);
-        lastUIHeight = juce_ui->getIntAttribute("h", 994 / 2);
-        
-        auto currentDir = mpc_ui->getStringAttribute("currentDir").toStdString();
-        auto storesPath = mpc::Paths::storesPath() + "MPC2000XL";
-        auto resPathIndex = currentDir.find(storesPath);
-        
-        if (resPathIndex != string::npos)
+        if (mpc_ui != nullptr)
         {
-            auto trimmedCurrentDir = currentDir.substr(resPathIndex + storesPath.length());
-            auto splitTrimmedDir = StrUtil::split(trimmedCurrentDir, FileUtil::getSeparator()[0]);
+            auto currentDir = mpc_ui->getStringAttribute("currentDir").toStdString();
+            auto storesPath = mpc::Paths::storesPath() + "MPC2000XL";
+            auto resPathIndex = currentDir.find(storesPath);
             
-            for (auto& s : splitTrimmedDir)
+            if (resPathIndex != string::npos)
             {
-                mpc.getDisk().lock()->moveForward(s);
-                mpc.getDisk().lock()->initFiles();
+                auto trimmedCurrentDir = currentDir.substr(resPathIndex + storesPath.length());
+                auto splitTrimmedDir = StrUtil::split(trimmedCurrentDir, FileUtil::getSeparator()[0]);
+                
+                for (auto& s : splitTrimmedDir)
+                {
+                    mpc.getDisk().lock()->moveForward(s);
+                    mpc.getDisk().lock()->initFiles();
+                }
             }
         }
-        
         
         auto decodeBase64 = [](XmlElement* element) {
             MemoryOutputStream decoded;
@@ -619,67 +614,79 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
             return vector<char>(decodedData, decodedData + element->getIntAttribute("size"));
         };
         
-        vector<char> apsData = decodeBase64(mpc_aps);
-        vector<char> allData = decodeBase64(mpc_all);
-        
-        int counter = 0;
-        
-        auto candidateName = "sound" + to_string(counter);
-        auto candidate = xmlState->getChildByName(candidateName);
-        
-        while (candidate != nullptr)
+        auto mpc_aps = xmlState->getChildByName("MPC-APS");
+
+        if (mpc_aps != nullptr)
         {
-            auto sndData = decodeBase64(candidate);
-            SndReader sndReader(sndData);
+            vector<char> apsData = decodeBase64(mpc_aps);
+            if (apsData.size() > 0)
+            {
+                ApsParser apsParser(mpc, apsData, "auto-state-from-xml");
+                // We don't want the APS loader to attempt to load the sounds
+                // from the file system. We load them manually from the
+                // decode project state.
+                auto withoutSounds = true;
+                
+                // We don't need popups to appear in the LCD UI.
+                auto headless = true;
+                
+                ApsLoader::loadFromParsedAps(apsParser, mpc, withoutSounds, headless);
+            }
             
-            auto sound = mpc.getSampler().lock()->addSound(sndReader.getSampleRate()).lock();
-            sound->setMono(sndReader.isMono());
-            sndReader.readData(*sound->getSampleData());
-            sound->setName(sndReader.getName());
-            sound->setTune(sndReader.getTune());
-            sound->setLevel(sndReader.getLevel());
-            sound->setStart(sndReader.getStart());
-            sound->setEnd(sndReader.getEnd());
-            sound->setLoopTo(sound->getEnd() - sndReader.getLoopLength());
-            sound->setBeatCount(sndReader.getNumberOfBeats());
-            sound->setLoopEnabled(sndReader.isLoopEnabled());
-            sound->setMemoryIndex(counter);
+            int counter = 0;
             
-            counter++;
+            auto candidateName = "sound" + to_string(counter);
+            auto candidate = xmlState->getChildByName(candidateName);
             
-            candidateName = "sound" + to_string(counter);
-            candidate = xmlState->getChildByName(candidateName);
+            while (candidate != nullptr)
+            {
+                auto sndData = decodeBase64(candidate);
+                SndReader sndReader(sndData);
+                
+                auto sound = mpc.getSampler().lock()->addSound(sndReader.getSampleRate()).lock();
+                sound->setMono(sndReader.isMono());
+                sndReader.readData(*sound->getSampleData());
+                sound->setName(sndReader.getName());
+                sound->setTune(sndReader.getTune());
+                sound->setLevel(sndReader.getLevel());
+                sound->setStart(sndReader.getStart());
+                sound->setEnd(sndReader.getEnd());
+                sound->setLoopTo(sound->getEnd() - sndReader.getLoopLength());
+                sound->setBeatCount(sndReader.getNumberOfBeats());
+                sound->setLoopEnabled(sndReader.isLoopEnabled());
+                sound->setMemoryIndex(counter);
+                
+                counter++;
+                
+                candidateName = "sound" + to_string(counter);
+                candidate = xmlState->getChildByName(candidateName);
+            }
         }
         
-        ApsParser apsParser(mpc, apsData, "auto-state-from-xml");
-        
-        // We don't want the APS loader to attempt to load the sounds
-        // from the file system. We load them manually from the
-        // decode project state.
-        auto withoutSounds = true;
-        
-        // We don't need popups to appear in the LCD UI.
-        auto headless = true;
-        
-        ApsLoader::loadFromParsedAps(apsParser, mpc, withoutSounds, headless);
-        
-        if (allData.size() != 0)
+        auto mpc_all = xmlState->getChildByName("MPC-ALL");
+
+        if (mpc_all != nullptr)
         {
-            AllParser allParser(mpc, allData);
-            AllLoader::loadEverythingFromAllParser(mpc, allParser);
+            vector<char> allData = decodeBase64(mpc_all);
+            
+            if (allData.size() > 0)
+            {
+                AllParser allParser(mpc, allData);
+                AllLoader::loadEverythingFromAllParser(mpc, allParser);
+            }
+            
+            auto screen = mpc_ui->getStringAttribute("screen").toStdString();
+            mpc.getLayeredScreen().lock()->openScreen(screen);
+            
+            auto focus = mpc_ui->getStringAttribute("focus").toStdString();
+            
+            if (focus.length() > 0)
+                mpc.getLayeredScreen().lock()->setFocus(focus);
+            
+            mpc.getLayeredScreen().lock()->setDirty();
+            
+            mpc.getSampler().lock()->setSoundIndex(mpc_ui->getIntAttribute("soundIndex"));
         }
-        
-        auto screen = mpc_ui->getStringAttribute("screen").toStdString();
-        mpc.getLayeredScreen().lock()->openScreen(screen);
-        
-        auto focus = mpc_ui->getStringAttribute("focus").toStdString();
-        
-        if (focus.length() > 0)
-            mpc.getLayeredScreen().lock()->setFocus(focus);
-        
-        mpc.getLayeredScreen().lock()->setDirty();
-        
-        mpc.getSampler().lock()->setSoundIndex(mpc_ui->getIntAttribute("soundIndex"));
     }
 }
 
