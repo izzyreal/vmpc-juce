@@ -95,6 +95,12 @@ target_link_libraries(vmpc2000xl PRIVATE
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags)
 
+if (UNIX AND NOT APPLE)
+    include(FindPkgConfig)
+    pkg_search_module(udisks2 REQUIRED udisks2)
+    target_link_libraries(vmpc2000xl PRIVATE ${udisks2_LIBRARIES})
+endif()
+
 conan_target_link_libraries_keyword(vmpc2000xl)
 
 target_link_libraries(vmpc2000xl PRIVATE juce::juce_recommended_lto_flags)
