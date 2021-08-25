@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 include(ResourceBundling.cmake)
 
-set(VMPC_VERSION 0.4.0.5)
+set(VMPC_VERSION 0.4.0.6)
 set(CMAKE_CXX_STANDARD 17)
 
 if(DEFINED ENV{APPLE_M1})
@@ -17,6 +17,8 @@ set (JUCE_ENABLE_MODULE_SOURCE_GROUPS ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 project(vmpc2000xl VERSION ${VMPC_VERSION})
+
+add_definitions(-DJUCE_MODAL_LOOPS_PERMITTED)
 
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/main/version.h "#pragma once\nnamespace version { static char* get(){ return \"${VMPC_VERSION}\";}}")
 
