@@ -102,7 +102,7 @@ void PadControl::filesDropped(const StringArray& files, int, int)
                 popupScreen->setText("LOADING " + StrUtil::padRight(soundFileName, " ", 16) + "." + ext);
                 
                 layeredScreen->openScreen("popup");
-                popupScreen->returnToScreenAfterMilliSeconds(currentScreen, min(soundLoader.getSize() / 400, 300));
+                popupScreen->returnToScreenAfterMilliSeconds(currentScreen, 300);
                 
                 auto drumIndex = mpc.getSequencer().lock()->getActiveTrack().lock()->getBus() - 1;
                 
