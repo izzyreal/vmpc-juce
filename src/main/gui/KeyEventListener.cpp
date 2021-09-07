@@ -15,8 +15,11 @@ KeyEventListener::KeyEventListener(mpc::Mpc& _mpc)
     setName("KeyEventListener");
 }
 
-bool KeyEventListener::keyPressed(const juce::KeyPress&)
-{
+bool KeyEventListener::keyPressed(const juce::KeyPress& k)
+{    
+    if (k.getTextDescription().toStdString() == "command + Q")
+        return false;
+    
     return true;
 }
 
