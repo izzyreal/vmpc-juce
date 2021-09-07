@@ -452,7 +452,9 @@ void VmpcAudioProcessor::getStateInformation (MemoryBlock& destData)
                                                         "Auto-save this VMPC2000XL session?",
                                                         "This will allow you to continue your work next time you start VMPC2000XL",
                                                         "Don't save",
-                                                        "Save");
+                                                        "Save",
+                                                        nullptr,
+                                                        nullptr);
             if (result)
             {
                 // MLOG("Not saving current session");
@@ -551,7 +553,9 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
                                                             "Continue previous VMPC2000XL session?",
                                                             "An auto-saved previous session was found.",
                                                             "Forget and start new session",
-                                                            "Continue session");
+                                                            "Continue session",
+                                                            nullptr,
+                                                            nullptr);
                 if (result)
                 {
                     // MLOG("Ignoring auto-saved session");
