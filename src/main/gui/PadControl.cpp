@@ -31,7 +31,7 @@ using namespace mpc::lcdgui::screens::dialog2;
 using namespace moduru::lang;
 using namespace std;
 
-PadControl::PadControl(mpc::Mpc& _mpc, Rectangle <float> _rect, std::weak_ptr<mpc::hardware::HwPad> _pad, Image _padHitImg)
+PadControl::PadControl(mpc::Mpc& _mpc, juce::Rectangle<float> _rect, std::weak_ptr<mpc::hardware::HwPad> _pad, Image _padHitImg)
     : mpc(_mpc), pad(_pad), padhitImg (_padHitImg), rect (_rect)
 {
     pad.lock()->addObserver(this);
