@@ -71,9 +71,8 @@ void PadControl::filesDropped(const StringArray& files, int, int)
             soundLoader.setPreview(false);
 
             auto compatiblePath = StrUtil::replaceAll(s.toStdString(), '\\', string("\\"));
-            auto moduruFile = dynamic_pointer_cast<moduru::file::FsNode>(make_shared<moduru::file::File>(compatiblePath, nullptr));
-
-            auto file = make_shared<mpc::disk::MpcFile>(moduruFile);
+            
+            auto file = make_shared<mpc::disk::MpcFile>(fs::path(compatiblePath));
 
             auto layeredScreen = mpc.getLayeredScreen().lock();
             
@@ -85,7 +84,7 @@ void PadControl::filesDropped(const StringArray& files, int, int)
             }
             catch (const exception& exception)
             {
-                MLOG("A problem occurred when trying to load " + moduruFile->getName() + ": " + string(exception.what()));
+                MLOG("A problem occurred when trying to load " + compatiblePath + ": " + string(exception.what()));
                 MLOG(result.errorMessage);
                 layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
                 return;
@@ -96,8 +95,8 @@ void PadControl::filesDropped(const StringArray& files, int, int)
                 
                 auto popupScreen = mpc.screens->get<PopupScreen>("popup");
                 auto currentScreen = layeredScreen->getCurrentScreenName();
-                auto soundFileName = StrUtil::toUpper(moduruFile->getNameWithoutExtension());
-                auto ext = moduru::file::FileUtil::splitName(moduruFile->getName())[1];
+                auto soundFileName = StrUtil::toUpper(file->getNameWithoutExtension());
+                auto ext = file->getExtension();
                 
                 popupScreen->setText("LOADING " + StrUtil::padRight(soundFileName, " ", 16) + "." + ext);
                 
