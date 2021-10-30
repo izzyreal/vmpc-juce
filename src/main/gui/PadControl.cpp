@@ -17,8 +17,6 @@
 
 #include <mpc/MpcSoundPlayerChannel.hpp>
 
-#include <file/File.hpp>
-#include <file/FileUtil.hpp>
 #include <lang/StrUtil.hpp>
 
 #include <Logger.hpp>
