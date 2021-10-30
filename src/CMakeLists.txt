@@ -21,6 +21,7 @@ project(vmpc2000xl VERSION ${VMPC_VERSION})
 add_definitions(-DJUCE_MODAL_LOOPS_PERMITTED)
 
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/main/version.h "#pragma once\nnamespace version { static char* get(){ return \"${VMPC_VERSION}\";}}")
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 
 include(${CMAKE_CURRENT_BINARY_DIR}/conan_paths.cmake)
 
