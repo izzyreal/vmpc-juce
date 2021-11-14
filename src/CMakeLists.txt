@@ -20,7 +20,7 @@ project(vmpc2000xl VERSION ${VMPC_VERSION})
 
 add_definitions(-DJUCE_MODAL_LOOPS_PERMITTED)
 
-file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/main/version.h "#pragma once\nnamespace version { static char* get(){ return \"${VMPC_VERSION}\";}}")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/main/version.h "#pragma once\nnamespace version { static char const* get(){ return \"${VMPC_VERSION}\";}}")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 
 include(${CMAKE_CURRENT_BINARY_DIR}/conan_paths.cmake)
@@ -84,7 +84,6 @@ target_sources(vmpc2000xl PRIVATE ${_source_list})
 
 target_compile_definitions(vmpc2000xl
     PUBLIC
-    JucePlugin_LV2URI="http://www.izmar.nl/VMPC2000XL"
     JUCE_JACK=1
     JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
     JUCE_WEB_BROWSER=0
@@ -102,6 +101,8 @@ if (UNIX AND NOT APPLE)
     include(FindPkgConfig)
     pkg_search_module(udisks2 REQUIRED udisks2)
     target_link_libraries(vmpc2000xl PRIVATE ${udisks2_LIBRARIES})
+    target_compile_definitions(vmpc2000xl_LV2 PRIVATE
+        JucePlugin_LV2URI="http://www.izmar.nl/VMPC2000XL")
 endif()
 
 conan_target_link_libraries_keyword(vmpc2000xl)
