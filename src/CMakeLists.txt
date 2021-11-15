@@ -25,20 +25,6 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 
 include(${CMAKE_CURRENT_BINARY_DIR}/conan_paths.cmake)
 
-macro(conan_target_link_libraries_keyword target)
-    if(CONAN_TARGETS)
-        target_link_libraries(${target} PUBLIC ${CONAN_TARGETS})
-    else()
-        target_link_libraries(${target} PUBLIC ${CONAN_LIBS})
-        foreach(_LIB ${CONAN_LIBS_RELEASE})
-            target_link_libraries(${target} PUBLIC optimized ${_LIB})
-        endforeach()
-        foreach(_LIB ${CONAN_LIBS_DEBUG})
-            target_link_libraries(${target} PUBLIC debug ${_LIB})
-        endforeach()
-    endif()
-endmacro()
-
 find_package(JUCE CONFIG REQUIRED)
 juce_disable_default_flags()
 
@@ -105,7 +91,7 @@ if (UNIX AND NOT APPLE)
         JucePlugin_LV2URI="http://www.izmar.nl/VMPC2000XL")
 endif()
 
-conan_target_link_libraries_keyword(vmpc2000xl)
+target_link_libraries(vmpc2000xl PUBLIC ${CONAN_LIBS})
 
 target_link_libraries(vmpc2000xl PRIVATE juce::juce_recommended_lto_flags)
 
