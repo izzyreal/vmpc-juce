@@ -18,7 +18,7 @@ void DataWheelControl::mouseUp(const MouseEvent& event)
 
 void DataWheelControl::mouseDrag(const MouseEvent& event)
 {
-    auto dY = event.getDistanceFromDragStartY() - lastDy;
+    auto dY = -(event.getDistanceFromDragStartY() - lastDy);
     
     if (dY == 0)
         return;

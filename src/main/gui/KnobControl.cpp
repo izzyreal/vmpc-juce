@@ -35,7 +35,7 @@ void KnobControl::mouseUp(const MouseEvent& event) {
 }
 
 void KnobControl::mouseDrag(const MouseEvent& event) {
-	auto dY = event.getDistanceFromDragStartY() - lastDy;
+	auto dY = -(event.getDistanceFromDragStartY() - lastDy);
 	lastDy = event.getDistanceFromDragStartY();
 	pot.lock()->setValue(pot.lock()->getValue() + dY);
 	knobIndex = pot.lock()->getValue();
