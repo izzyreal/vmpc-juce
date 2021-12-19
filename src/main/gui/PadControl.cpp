@@ -76,9 +76,11 @@ void PadControl::filesDropped(const StringArray& files, int, int)
             
             SoundLoaderResult result;
             
+            bool shouldBeConverted = true;
+
             try
             {
-                soundLoader.loadSound(file, result);
+                soundLoader.loadSound(file, result, shouldBeConverted);
             }
             catch (const exception& exception)
             {
