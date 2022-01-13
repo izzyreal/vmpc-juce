@@ -13,6 +13,7 @@
 #include <disk/SoundLoader.hpp>
 #include <disk/MpcFile.hpp>
 
+#include <lcdgui/screens/window/VmpcConvertAndLoadWavScreen.hpp>
 #include <lcdgui/screens/dialog2/PopupScreen.hpp>
 
 #include <mpc/MpcSoundPlayerChannel.hpp>
@@ -25,12 +26,12 @@
 
 using namespace juce;
 using namespace mpc::disk;
+using namespace mpc::lcdgui::screens::window;
 using namespace mpc::lcdgui::screens::dialog2;
 using namespace moduru::lang;
-using namespace std;
 
 PadControl::PadControl(mpc::Mpc& _mpc, juce::Rectangle<float> _rect, std::weak_ptr<mpc::hardware::HwPad> _pad, Image _padHitImg)
-    : mpc(_mpc), pad(_pad), padhitImg (_padHitImg), rect (_rect)
+: mpc(_mpc), pad(_pad), padhitImg (_padHitImg), rect (_rect)
 {
     pad.lock()->addObserver(this);
 }
@@ -41,7 +42,7 @@ bool PadControl::isInterestedInFileDrag(const StringArray& files)
     {
         return false;
     }
-
+    
     for (auto& s : files)
     {
         if (StrUtil::hasEnding(StrUtil::toLower(s.toStdString()), ".snd") || StrUtil::hasEnding(StrUtil::toLower(s.toStdString()), ".wav"))
@@ -52,84 +53,109 @@ bool PadControl::isInterestedInFileDrag(const StringArray& files)
     return false;
 }
 
-void PadControl::filesDropped(const StringArray& files, int, int)
+void PadControl::loadFile(const String path, bool shouldBeConverted, std::string screenToReturnTo)
 {
-    if (files.size() != 1)
-        return;
-
     const auto padIndex = pad.lock()->getIndex();
-
-    for (auto& s : files)
+    
+    if (StrUtil::hasEnding(StrUtil::toLower(path.toStdString()), ".snd") || StrUtil::hasEnding(StrUtil::toLower(path.toStdString()), ".wav"))
     {
-        if (StrUtil::hasEnding(StrUtil::toLower(s.toStdString()), ".snd") || StrUtil::hasEnding(StrUtil::toLower(s.toStdString()), ".wav"))
+        auto sampler = mpc.getSampler().lock();
+        
+        auto soundLoader = SoundLoader(mpc, sampler->getSounds(), false);
+        soundLoader.setPreview(false);
+        
+        auto compatiblePath = StrUtil::replaceAll(path.toStdString(), '\\', std::string("\\"));
+        
+        auto file = std::make_shared<mpc::disk::MpcFile>(fs::path(compatiblePath));
+        
+        auto layeredScreen = mpc.getLayeredScreen().lock();
+        
+        SoundLoaderResult result;
+        
+        try
         {
-            auto sampler = mpc.getSampler().lock();
+            soundLoader.loadSound(file, result, shouldBeConverted);
+        }
+        catch (const std::exception& exception)
+        {
+            MLOG("A problem occurred when trying to load " + compatiblePath + ": " + std::string(exception.what()));
+            MLOG(result.errorMessage);
+            layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
+            return;
+        }
+        
+        auto popupScreen = mpc.screens->get<PopupScreen>("popup");
 
-            auto soundLoader = SoundLoader(mpc, sampler->getSounds(), false);
-            soundLoader.setPreview(false);
-
-            auto compatiblePath = StrUtil::replaceAll(s.toStdString(), '\\', string("\\"));
+        if (!result.success)
+        {
+            sampler->deleteSound(sampler->getPreviewSound());
             
-            auto file = make_shared<mpc::disk::MpcFile>(fs::path(compatiblePath));
-
-            auto layeredScreen = mpc.getLayeredScreen().lock();
-            
-            SoundLoaderResult result;
-            
-            bool shouldBeConverted = true;
-
-            try
-            {
-                soundLoader.loadSound(file, result, shouldBeConverted);
+            if (result.canBeConverted) {
+                auto loadRoutine = [&, path, screenToReturnTo, layeredScreen]() {
+                    const bool shouldBeConverted2 = true;
+                    loadFile(path, shouldBeConverted2, screenToReturnTo);
+                };
+                
+                auto convertAndLoadWavScreen = mpc.screens->get<VmpcConvertAndLoadWavScreen>("vmpc-convert-and-load-wav");
+                convertAndLoadWavScreen->setLoadRoutine(loadRoutine);
+                layeredScreen->openScreen("vmpc-convert-and-load-wav");
+            } else {
+                layeredScreen->openScreen("popup");
+                popupScreen->setText(result.errorMessage);
+                popupScreen->returnToScreenAfterMilliSeconds("load", 500);
             }
-            catch (const exception& exception)
+            
+            return;
+        }
+        
+        if (result.existingIndex == -1)
+        {
+            auto soundFileName = StrUtil::toUpper(file->getNameWithoutExtension());
+            auto ext = file->getExtension();
+            
+            popupScreen->setText("LOADING " + StrUtil::padRight(soundFileName, " ", 16) + "." + ext);
+            
+            layeredScreen->openScreen("popup");
+            popupScreen->returnToScreenAfterMilliSeconds(screenToReturnTo, 300);
+            
+            auto drumIndex = mpc.getSequencer().lock()->getActiveTrack().lock()->getBus() - 1;
+            
+            if (drumIndex == -1)
             {
-                MLOG("A problem occurred when trying to load " + compatiblePath + ": " + string(exception.what()));
-                MLOG(result.errorMessage);
+                layeredScreen->openScreen(screenToReturnTo);
+                return;
+            }
+            
+            auto mpcSoundPlayerChannel = mpc.getDrum(drumIndex);
+            
+            auto programIndex = mpcSoundPlayerChannel->getProgram();
+            auto program = mpc.getSampler().lock()->getProgram(programIndex).lock();
+            auto soundIndex = mpc.getSampler().lock()->getSoundCount() - 1;
+            auto programPad = program->getPad(padIndex);
+            auto padNote = programPad->getNote();
+            
+            auto noteParameters = dynamic_cast<mpc::sampler::NoteParameters*>(program->getNoteParameters(padNote));
+            
+            if (noteParameters == nullptr)
+            {
                 layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
                 return;
             }
-
-            if (result.success && result.existingIndex == -1)
-            {
-                
-                auto popupScreen = mpc.screens->get<PopupScreen>("popup");
-                auto currentScreen = layeredScreen->getCurrentScreenName();
-                auto soundFileName = StrUtil::toUpper(file->getNameWithoutExtension());
-                auto ext = file->getExtension();
-                
-                popupScreen->setText("LOADING " + StrUtil::padRight(soundFileName, " ", 16) + "." + ext);
-                
-                layeredScreen->openScreen("popup");
-                popupScreen->returnToScreenAfterMilliSeconds(currentScreen, 300);
-                
-                auto drumIndex = mpc.getSequencer().lock()->getActiveTrack().lock()->getBus() - 1;
-                
-                if (drumIndex == -1)
-                {
-                    layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
-                    return;
-                }
-
-                auto mpcSoundPlayerChannel = mpc.getDrum(drumIndex);
-
-                auto programIndex = mpcSoundPlayerChannel->getProgram();
-                auto program = mpc.getSampler().lock()->getProgram(programIndex).lock();
-                auto soundIndex = mpc.getSampler().lock()->getSoundCount() - 1;
-                auto programPad = program->getPad(padIndex);
-                auto padNote = programPad->getNote();
-                
-                auto noteParameters = dynamic_cast<mpc::sampler::NoteParameters*>(program->getNoteParameters(padNote));
-
-                if (noteParameters == nullptr)
-                {
-                    layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
-                    return;
-                }
-
-                noteParameters->setSoundIndex(soundIndex);
-            }
+            
+            noteParameters->setSoundIndex(soundIndex);
         }
+    }
+}
+
+void PadControl::filesDropped(const StringArray& files, int, int)
+{
+    if (files.size() != 1) return;
+    
+    const bool shouldBeConverted = false;
+    std::string screenToReturnTo = mpc.getLayeredScreen().lock()->getCurrentScreenName();
+    
+    for (auto& f : files) {
+        loadFile(f, shouldBeConverted, screenToReturnTo);
     }
 }
 
@@ -139,7 +165,7 @@ void PadControl::timerCallback()
     {
         padhitBrightness -= 20;
     }
-
+    
     if (padhitBrightness < 0)
     {
         padhitBrightness = 0;
@@ -156,7 +182,7 @@ void PadControl::timerCallback()
 void PadControl::update(moduru::observer::Observable*, nonstd::any arg)
 {
     int velocity = nonstd::any_cast<int>(arg);
-
+    
     if (velocity == 255)
     {
         fading = true;
