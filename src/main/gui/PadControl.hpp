@@ -29,8 +29,10 @@ private:
     bool fading = false;
 	bool pressed = false;
 	int padhitBrightness = 0;
-	int getVelo(int x, int y);
 
+    int getVelo(int x, int y);
+    void loadFile(const juce::String path, bool shouldBeConverted, std::string screenToReturnTo);
+    
 public:
 	void paint(juce::Graphics& g) override;
 	void mouseDown(const juce::MouseEvent& event) override;
