@@ -47,6 +47,12 @@ bool PadControl::isInterestedInFileDrag(const StringArray& files)
     {
         if (StrUtil::hasEnding(StrUtil::toLower(s.toStdString()), ".snd") || StrUtil::hasEnding(StrUtil::toLower(s.toStdString()), ".wav"))
         {
+            if (padhitBrightness == 0) {
+                fading = true;
+                padhitBrightness = 152;
+                repaint();
+                startTimer(100);
+            }
             return true;
         }
     }
