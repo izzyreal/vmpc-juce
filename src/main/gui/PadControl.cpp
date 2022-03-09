@@ -94,7 +94,7 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
 
         if (!result.success)
         {
-            sampler->deleteSound(sampler->getPreviewSound());
+            if (result.soundWasAdded) sampler->deleteSound(sampler->getPreviewSound());
             
             if (result.canBeConverted) {
                 auto loadRoutine = [&, path, screenToReturnTo, layeredScreen]() {
