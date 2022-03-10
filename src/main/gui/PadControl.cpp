@@ -117,6 +117,8 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
         if (result.existingIndex == -1)
         {
             auto soundFileName = StrUtil::toUpper(file->getNameWithoutExtension());
+            if (soundFileName.length() >= 16) soundFileName = soundFileName.substr(0, 16);
+            
             auto ext = file->getExtension();
             
             popupScreen->setText("LOADING " + StrUtil::padRight(soundFileName, " ", 16) + "." + ext);
