@@ -14,7 +14,7 @@ conan remote add jfrog-izmar https://izmar.jfrog.io/artifactory/api/conan/dev
 git clone https://github.com/izzyreal/vmpc-juce
 cd vmpc-juce
 md build && cd build
-conan install .. && conan build ..
+conan install .. --build missing && conan build ..
 ```
 
 This will build a self-contained standalone desktop executable for Linux, MacOS or Windows.
