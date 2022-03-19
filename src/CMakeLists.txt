@@ -71,11 +71,16 @@ target_sources(vmpc2000xl PRIVATE ${_source_list})
 target_compile_definitions(vmpc2000xl
     PUBLIC
     JUCE_JACK=1
-    JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=0
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
     JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_DISPLAY_SPLASH_SCREEN=0)
+
+if (IOS)
+  target_compile_definitions(vmpc2000xl PUBLIC JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=0)
+else()
+  target_compile_definitions(vmpc2000xl PUBLIC JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1)  
+endif()
 
 target_link_libraries(vmpc2000xl PRIVATE
     juce::juce_audio_utils
@@ -87,8 +92,7 @@ if (UNIX AND NOT APPLE)
     include(FindPkgConfig)
     pkg_search_module(udisks2 REQUIRED udisks2)
     target_link_libraries(vmpc2000xl PRIVATE ${udisks2_LIBRARIES})
-    target_compile_definitions(vmpc2000xl_LV2 PRIVATE
-        JucePlugin_LV2URI="http://www.izmar.nl/VMPC2000XL")
+    target_compile_definitions(vmpc2000xl_LV2 PRIVATE JucePlugin_LV2URI="http://www.izmar.nl/VMPC2000XL")
 endif()
 
 target_link_libraries(vmpc2000xl PUBLIC ${CONAN_LIBS})
