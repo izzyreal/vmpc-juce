@@ -148,8 +148,10 @@ void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     if (seqIsPlaying)
         seq->play();
     
-    monoToStereoBuffer.clear();
-    monoToStereoBuffer.setSize(2, samplesPerBlock);
+    monoToStereoBufferIn.clear();
+    monoToStereoBufferIn.setSize(2, samplesPerBlock);
+  monoToStereoBufferOut.clear();
+  monoToStereoBufferOut.setSize(2, samplesPerBlock);
 }
 
 void VmpcAudioProcessor::releaseResources()
@@ -161,13 +163,12 @@ void VmpcAudioProcessor::releaseResources()
 bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
     return true;
-    /*
-     auto outs = layouts.outputBuses.size();
-     if (layouts.inputBuses.size() > 1)
-     return false;
+
+//     if (layouts.inputBuses.size() > 1)
+//     return false;
      
-     if (layouts.outputBuses.size() > 5)
-     return false;
+//     if (layouts.outputBuses.size() > 5)
+//     return false;
      
      // Mono input is anticipated, but outputs need to come in stereo pairs
      
@@ -184,7 +185,6 @@ bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
      }
      
      return true;
-     */
 }
 
 void VmpcAudioProcessor::processMidiIn(MidiBuffer& midiMessages) {
@@ -385,23 +385,34 @@ void VmpcAudioProcessor::processBlock(AudioSampleBuffer& buffer, MidiBuffer& mid
     
     auto chDataIn = buffer.getArrayOfReadPointers();
     auto chDataOut = buffer.getArrayOfWritePointers();
+  int totalNumInputChannelsFinal = totalNumInputChannels;
+  int totalNumOutputChannelsFinal = totalNumOutputChannels;
     
-    if (totalNumInputChannels == 1)
+  if (totalNumInputChannels == 1)
     {
-        monoToStereoBuffer.clear();
-        monoToStereoBuffer.copyFrom(0, 0, buffer.getReadPointer(0), buffer.getNumSamples());
-        monoToStereoBuffer.copyFrom(1, 0, buffer.getReadPointer(0), buffer.getNumSamples());
-        server->work(monoToStereoBuffer.getArrayOfReadPointers(), chDataOut, buffer.getNumSamples(), 2, totalNumOutputChannels);
+        monoToStereoBufferIn.clear();
+        monoToStereoBufferIn.copyFrom(0, 0, buffer.getReadPointer(0), buffer.getNumSamples());
+        monoToStereoBufferIn.copyFrom(1, 0, buffer.getReadPointer(0), buffer.getNumSamples());
+        chDataIn = monoToStereoBufferIn.getArrayOfReadPointers();
+      totalNumInputChannelsFinal = 2;
     }
-    else
+  
+    if (totalNumOutputChannels == 1)
     {
-        server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannels, totalNumOutputChannels);
+      monoToStereoBufferOut.clear();
+      chDataOut = monoToStereoBufferOut.getArrayOfWritePointers();
+      totalNumOutputChannelsFinal = 2;
     }
     
-    if (totalNumOutputChannels < 2)
+  server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannelsFinal, totalNumOutputChannelsFinal);
+    
+    if (totalNumOutputChannels < 1)
     {
-        for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear(i, 0, buffer.getNumSamples());
+      buffer.clear();
+    }
+    else if (totalNumOutputChannels == 1)
+    {
+      buffer.copyFrom(0, 0, monoToStereoBufferOut.getReadPointer(0), buffer.getNumSamples());
     }
 }
 

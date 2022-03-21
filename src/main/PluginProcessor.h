@@ -53,7 +53,8 @@ private:
     void checkBouncing();
     void checkSoundRecorder();
 
-    AudioSampleBuffer monoToStereoBuffer;
+    AudioSampleBuffer monoToStereoBufferIn;
+  AudioSampleBuffer monoToStereoBufferOut;
 	double m_Tempo = 0;
     bool wasPlaying = false;
     bool wasBouncing = false;
