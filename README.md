@@ -13,7 +13,7 @@ Once you have these tools installed, run the following commands:
 conan remote add jfrog-izmar https://izmar.jfrog.io/artifactory/api/conan/dev
 git clone https://github.com/izzyreal/vmpc-juce
 cd vmpc-juce
-md build && cd build
+mkdir build && cd build
 conan install .. --build missing && conan build ..
 ```
 

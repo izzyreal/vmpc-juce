@@ -17,5 +17,5 @@ class Pkg(ConanFile):
         cmake.configure(source_folder="src")
         if platform == "linux":
             self.run('cmake --build . --target vmpc2000xl_Standalone vmpc2000xl_LV2')
-        else
+        else:
             self.run('cmake --build . --target vmpc2000xl_Standalone vmpc2000xl_VST3')
