@@ -1,4 +1,5 @@
 from conans import ConanFile, CMake
+from sys import platform
 
 class Pkg(ConanFile):
     name = "vmpc-juce"
@@ -14,4 +15,7 @@ class Pkg(ConanFile):
     def build(self):
         cmake = CMake(self)
         cmake.configure(source_folder="src")
-        self.run('cmake --build . --target vmpc2000xl_Standalone')
+        if platform == "linux":
+            self.run('cmake --build . --target vmpc2000xl_Standalone vmpc2000xl_LV2')
+        else
+            self.run('cmake --build . --target vmpc2000xl_Standalone vmpc2000xl_VST3')
