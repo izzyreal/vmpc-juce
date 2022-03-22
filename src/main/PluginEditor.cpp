@@ -82,7 +82,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
         
     for (auto& l : mpc.getHardware().lock()->getButtonLabels())
     {
-        auto bc = new ButtonControl(*ButtonControl::rects[l],
+        auto bc = new ButtonControl(ButtonControl::rects[l]->expanded(10),
                                     mpc.getHardware().lock()->getButton(l));
         addAndMakeVisible(bc);
         buttons.push_back(bc);
