@@ -63,7 +63,7 @@ public:
     void setUndoSeq(bool b);
     
 public:
-    void addAndMakeVisible(AudioProcessorEditor* editor);
+    void addAndMakeVisible(juce::Component* parent);
     void setTransform(AffineTransform transform);
     void setBounds();
     

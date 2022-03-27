@@ -72,21 +72,21 @@ LedControl::LedControl(mpc::Mpc& _mpc, Image& _ledGreen, Image& _ledRed)
 	playLed = new Led(ledGreen, play);
 }
 
-void LedControl::addAndMakeVisible(AudioProcessorEditor* editor) {
-	editor->addAndMakeVisible(padBankALed);
-	editor->addAndMakeVisible(fullLevelLed);
-	editor->addAndMakeVisible(sixteenLevelsLed);
-	editor->addAndMakeVisible(nextSeqLed);
-	editor->addAndMakeVisible(trackMuteLed);
-	editor->addAndMakeVisible(padBankALed);
-	editor->addAndMakeVisible(padBankBLed);
-	editor->addAndMakeVisible(padBankCLed);
-	editor->addAndMakeVisible(padBankDLed);
-	editor->addAndMakeVisible(afterLed);
-	editor->addAndMakeVisible(undoSeqLed);
-	editor->addAndMakeVisible(recLed);
-	editor->addAndMakeVisible(overDubLed);
-	editor->addAndMakeVisible(playLed);
+void LedControl::addAndMakeVisible(juce::Component* parent) {
+	parent->addAndMakeVisible(padBankALed);
+	parent->addAndMakeVisible(fullLevelLed);
+	parent->addAndMakeVisible(sixteenLevelsLed);
+	parent->addAndMakeVisible(nextSeqLed);
+	parent->addAndMakeVisible(trackMuteLed);
+	parent->addAndMakeVisible(padBankALed);
+	parent->addAndMakeVisible(padBankBLed);
+	parent->addAndMakeVisible(padBankCLed);
+	parent->addAndMakeVisible(padBankDLed);
+	parent->addAndMakeVisible(afterLed);
+	parent->addAndMakeVisible(undoSeqLed);
+	parent->addAndMakeVisible(recLed);
+	parent->addAndMakeVisible(overDubLed);
+	parent->addAndMakeVisible(playLed);
 }
 
 void LedControl::setTransform(AffineTransform transform) {

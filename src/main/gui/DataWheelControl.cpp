@@ -13,7 +13,7 @@ DataWheelControl::DataWheelControl(weak_ptr<mpc::hardware::DataWheel> _dataWheel
 void DataWheelControl::mouseUp(const MouseEvent& event)
 {
     lastDy = 0;
-    Component::mouseUp(event);
+    getParentComponent()->mouseUp(event);
 }
 
 void DataWheelControl::mouseDrag(const MouseEvent& event)
@@ -40,7 +40,7 @@ void DataWheelControl::mouseDrag(const MouseEvent& event)
     }
 
     lastDy = event.getDistanceFromDragStartY();
-}
+  }
 
 static inline void clampIndex(int& dataWheelIndex)
 {
