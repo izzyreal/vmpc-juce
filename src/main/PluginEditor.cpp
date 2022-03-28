@@ -100,6 +100,7 @@ void VmpcAudioProcessorEditor::resized()
   } else {
     getProcessor().lastUIWidth = getWidth();
     getProcessor().lastUIHeight = getHeight();
+    viewport.setBounds(0, 0, getWidth(), getHeight());
     viewport.getViewedComponent()->setBounds(0, 0, getWidth(), getHeight());
   }
 }

@@ -105,6 +105,52 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
   leds->startTimer(25);
   slider->startTimer(25);
   
+  keyboardImg = ResourceUtil::loadImage("img/keyboard.png");
+  
+  auto transparentWhite = juce::Colours::transparentWhite;
+  
+  keyboardButton.setImages(false, true, true, keyboardImg, 0.5, transparentWhite, keyboardImg, 1.0, transparentWhite, keyboardImg, 0.25, transparentWhite);
+  
+  resetWindowSizeImg = ResourceUtil::loadImage("img/reset-window-size.png");
+  
+  resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, transparentWhite, resetWindowSizeImg, 1.0, transparentWhite, resetWindowSizeImg, 0.25, transparentWhite);
+  
+  versionLabel.setText(version::get(), juce::dontSendNotification);
+  versionLabel.setColour(juce::Label::textColourId, juce::Colours::darkgrey);
+  addAndMakeVisible(versionLabel);
+  
+  keyboardButton.setTooltip("Configure computer keyboard");
+  
+  class KbButtonListener : public juce::Button::Listener {
+  public:
+    KbButtonListener(mpc::Mpc& _mpc) : mpc(_mpc) {}
+    mpc::Mpc& mpc;
+    void buttonClicked(juce::Button*) override {
+      mpc.getLayeredScreen().lock()->openScreen("vmpc-keyboard");
+    }
+  };
+  
+  keyboardButton.addListener(new KbButtonListener(mpc));
+  keyboardButton.setWantsKeyboardFocus(false);
+  addAndMakeVisible(keyboardButton);
+  
+  resetWindowSizeButton.setTooltip("Reset window size");
+  
+  class ResetButtonListener : public juce::Button::Listener {
+  public:
+    ResetButtonListener(mpc::Mpc& _mpc, Component* __this) : mpc(_mpc), _this(__this) {}
+    mpc::Mpc& mpc;
+    Component* _this;
+    void buttonClicked(juce::Button*) override {
+      _this->getParentComponent()->getParentComponent()->getParentComponent()->setSize(1298 / 2, 994 /2);
+    }
+  };
+  
+  if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS) {
+    resetWindowSizeButton.addListener(new ResetButtonListener(mpc, this));
+    resetWindowSizeButton.setWantsKeyboardFocus(false);
+    addAndMakeVisible(resetWindowSizeButton);
+  }
 }
 
 ContentComponent::~ContentComponent()
@@ -273,53 +319,6 @@ void ContentComponent::mouseDrag(const juce::MouseEvent& e) {
       setBounds(new_x, new_y, new_w, new_h);
     }
   }
-  
-  keyboardImg = ResourceUtil::loadImage("img/keyboard.png");
-  
-  auto transparentWhite = juce::Colours::transparentWhite;
-  
-  keyboardButton.setImages(false, true, true, keyboardImg, 0.5, transparentWhite, keyboardImg, 1.0, transparentWhite, keyboardImg, 0.25, transparentWhite);
-  
-  resetWindowSizeImg = ResourceUtil::loadImage("img/reset-window-size.png");
-  
-  resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, transparentWhite, resetWindowSizeImg, 1.0, transparentWhite, resetWindowSizeImg, 0.25, transparentWhite);
-  
-  versionLabel.setText(version::get(), juce::dontSendNotification);
-  versionLabel.setColour(juce::Label::textColourId, juce::Colours::darkgrey);
-  addAndMakeVisible(versionLabel);
-  
-  keyboardButton.setTooltip("Configure computer keyboard");
-  
-  class KbButtonListener : public juce::Button::Listener {
-  public:
-    KbButtonListener(mpc::Mpc& _mpc) : mpc(_mpc) {}
-    mpc::Mpc& mpc;
-    void buttonClicked(juce::Button*) override {
-      mpc.getLayeredScreen().lock()->openScreen("vmpc-keyboard");
-    }
-  };
-  
-  keyboardButton.addListener(new KbButtonListener(mpc));
-  keyboardButton.setWantsKeyboardFocus(false);
-  addAndMakeVisible(keyboardButton);
-  
-  resetWindowSizeButton.setTooltip("Reset window size");
-  
-  class ResetButtonListener : public juce::Button::Listener {
-  public:
-    ResetButtonListener(mpc::Mpc& _mpc, Component* __this) : mpc(_mpc), _this(__this) {}
-    mpc::Mpc& mpc;
-    Component* _this;
-    void buttonClicked(juce::Button*) override {
-      _this->getParentComponent()->setSize(1298 / 2, 994 /2);
-    }
-  };
-  
-  if (juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS) {
-    resetWindowSizeButton.addListener(new ResetButtonListener(mpc, this));
-    resetWindowSizeButton.setWantsKeyboardFocus(false);
-    addAndMakeVisible(resetWindowSizeButton);
-  }
 }
 
 void ContentComponent::resized()
@@ -359,7 +358,7 @@ void ContentComponent::resized()
   keyboardButton.setBounds(1298 - (100 +  10), 10, 100, 50);
   keyboardButton.setTransform(scaleTransform);
   
-  if (juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS) {
+  if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS) {
     resetWindowSizeButton.setBounds(1298 - (145 + 20), 13, 45, 45);
     resetWindowSizeButton.setTransform(scaleTransform);
   }

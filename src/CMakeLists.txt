@@ -47,7 +47,7 @@ juce_add_plugin(vmpc2000xl
     PLUGIN_CODE 2kXL
     MICROPHONE_PERMISSION_ENABLED TRUE
     MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
-    FORMATS LV2 VST3 AU AUv3 Standalone
+    FORMATS LV2 VST3 AU Standalone $<IF:$<IOS>,AUv3,>
     PRODUCT_NAME "VMPC2000XL")
 
 set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/main")
