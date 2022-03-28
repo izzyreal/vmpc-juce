@@ -1,6 +1,7 @@
 #pragma once
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "Background.h"
 #include "DataWheelControl.h"
 #include "LCDControl.h"
 #include "ButtonControl.hpp"
@@ -17,12 +18,12 @@ namespace mpc::controls {
 class KeyEventHandler;
 }
 
-class KeyEventListener
+class ContentComponent
 : public juce::Component
 {
 public:
-  KeyEventListener(mpc::Mpc&);
-  ~KeyEventListener() override;
+  ContentComponent(mpc::Mpc&);
+  ~ContentComponent() override;
   
   bool keyPressed(const juce::KeyPress &key) override;
   bool keyEvent(const juce::KeyEvent &keyEvent) override;
@@ -56,6 +57,7 @@ private:
   juce::ImageButton keyboardButton;
   juce::ImageButton resetWindowSizeButton;
 
+  Background* background;
   DataWheelControl* dataWheel;
   LCDControl* lcd;
   std::vector<ButtonControl*> buttons;

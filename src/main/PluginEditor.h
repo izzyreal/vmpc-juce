@@ -3,14 +3,12 @@
 #include "juce_gui_extra/juce_gui_extra.h"
 #include "PluginProcessor.h"
 
-#include "gui/KeyEventListener.h"
-
-using namespace juce;
+#include "gui/ContentComponent.h"
 
 namespace mpc { class Mpc; }
 
 class VmpcAudioProcessorEditor
-: public AudioProcessorEditor
+: public juce::AudioProcessorEditor
 {
   
 public:
@@ -26,12 +24,12 @@ private:
   VmpcAudioProcessor& vmpcAudioProcessor;
   mpc::Mpc& mpc;
   
-  Viewport viewport;
+  juce::Viewport viewport;
   
-  TooltipWindow tooltipWindow { this, 300 };
-  Component::SafePointer<SplashScreen> mpcSplashScreen;
+  juce::TooltipWindow tooltipWindow { this, 300 };
+  Component::SafePointer<juce::SplashScreen> mpcSplashScreen;
 
-  Image bgImg;
+  juce::Image bgImg;
   
   VmpcAudioProcessor& getProcessor() const
   {

@@ -1,5 +1,6 @@
-#include "KeyEventListener.h"
+#include "ContentComponent.h"
 #include "Constants.h"
+#include "../ResourceUtil.h"
 
 #include <Mpc.hpp>
 
@@ -18,22 +19,18 @@
 
 CMRC_DECLARE(vmpcjuce);
 
-juce::Image loadImage2(std::string path)
-{
-  auto fs = cmrc::vmpcjuce::get_filesystem();
-  auto file = fs.open(path.c_str());
-  auto data = std::string_view(file.begin(), file.size()).data();
-  auto stream = juce::MemoryInputStream(data, file.size(), true);
-  return juce::ImageFileFormat::loadFrom(stream);
-}
-
-KeyEventListener::KeyEventListener(mpc::Mpc& _mpc)
+ContentComponent::ContentComponent(mpc::Mpc& _mpc)
 : mpc (_mpc), keyEventHandler (mpc.getControls().lock()->getKeyEventHandler())
 {
-  setName("KeyEventListener");
+  setName("ContentComponent");
+  setWantsKeyboardFocus(true);
+  
+  background = new Background();
+  addAndMakeVisible(background);
+  
   dataWheel = new DataWheelControl(mpc.getHardware().lock()->getDataWheel());
   mpc.getHardware().lock()->getDataWheel().lock()->addObserver(dataWheel);
-  dataWheelImg = loadImage2("img/datawheels.jpg");
+  dataWheelImg = ResourceUtil::loadImage("img/datawheels.jpg");
   dataWheel->setImage(dataWheelImg, 100);
   addAndMakeVisible(dataWheel);
   
@@ -60,7 +57,7 @@ KeyEventListener::KeyEventListener(mpc::Mpc& _mpc)
   const int padOffsetY = 397;
   int padCounter = 0;
   
-  padHitImg = loadImage2("img/padhit.png");
+  padHitImg = ResourceUtil::loadImage("img/padhit.png");
   
   for (int j = 3; j >= 0; j--)
   {
@@ -68,7 +65,7 @@ KeyEventListener::KeyEventListener(mpc::Mpc& _mpc)
     {
       int x1 = (padWidth + padSpacing) * i + padOffsetX + i;
       int y1 = (padWidth + padSpacing) * j + padOffsetY;
-      Rectangle<float> rect(x1, y1, padWidth + i, padWidth);
+      juce::Rectangle<float> rect(x1, y1, padWidth + i, padWidth);
       
       auto pc = new PadControl(mpc, rect, mpc.getHardware().lock()->getPad(padCounter++), padHitImg);
       addAndMakeVisible(pc);
@@ -77,23 +74,23 @@ KeyEventListener::KeyEventListener(mpc::Mpc& _mpc)
     }
   }
   
-  sliderImg = loadImage2("img/sliders.jpg");
+  sliderImg = ResourceUtil::loadImage("img/sliders.jpg");
   slider = new SliderControl(mpc.getHardware().lock()->getSlider());
   slider->setImage(sliderImg);
   addAndMakeVisible(slider);
   
-  recKnobImg = loadImage2("img/recknobs.jpg");
+  recKnobImg = ResourceUtil::loadImage("img/recknobs.jpg");
   recKnob = new KnobControl(0, mpc.getHardware().lock()->getRecPot());
   recKnob->setImage(recKnobImg);
   addAndMakeVisible(recKnob);
   
-  volKnobImg = loadImage2("img/volknobs.jpg");
+  volKnobImg = ResourceUtil::loadImage("img/volknobs.jpg");
   volKnob = new KnobControl(0, mpc.getHardware().lock()->getVolPot());
   volKnob->setImage(volKnobImg);
   addAndMakeVisible(volKnob);
   
-  ledRedImg = loadImage2("img/led_red.png");
-  ledGreenImg = loadImage2("img/led_green.png");
+  ledRedImg = ResourceUtil::loadImage("img/led_red.png");
+  ledGreenImg = ResourceUtil::loadImage("img/led_green.png");
   
   leds = new LedControl(mpc, ledGreenImg, ledRedImg);
   leds->setPadBankA(true);
@@ -110,7 +107,7 @@ KeyEventListener::KeyEventListener(mpc::Mpc& _mpc)
   
 }
 
-KeyEventListener::~KeyEventListener()
+ContentComponent::~ContentComponent()
 {
   delete dataWheel;
   
@@ -127,9 +124,10 @@ KeyEventListener::~KeyEventListener()
   delete recKnob;
   delete volKnob;
   delete slider;
+  delete background;
 }
 
-bool KeyEventListener::keyPressed(const juce::KeyPress& k)
+bool ContentComponent::keyPressed(const juce::KeyPress& k)
 {
   if (k.getTextDescription().toStdString() == "command + Q")
     return false;
@@ -137,13 +135,13 @@ bool KeyEventListener::keyPressed(const juce::KeyPress& k)
   return true;
 }
 
-bool KeyEventListener::keyEvent(const juce::KeyEvent &keyEvent)
+bool ContentComponent::keyEvent(const juce::KeyEvent &keyEvent)
 {
   keyEventHandler.lock()->handle(mpc::controls::KeyEvent(keyEvent.rawKeyCode, keyEvent.keyDown));
   return true;
 }
 
-void KeyEventListener::mouseDown(const juce::MouseEvent& e) {
+void ContentComponent::mouseDown(const juce::MouseEvent& e) {
   bool exists = false;
   for (auto& s : sources) {
     if (s->getIndex() == e.source.getIndex()) { exists = true; break; }
@@ -162,7 +160,7 @@ void KeyEventListener::mouseDown(const juce::MouseEvent& e) {
   }
 }
 
-void KeyEventListener::mouseUp(const juce::MouseEvent& e)
+void ContentComponent::mouseUp(const juce::MouseEvent& e)
 {
   for (int i = 0; i < sources.size(); i++) {
     if (sources[i]->getIndex() == e.source.getIndex()) {
@@ -175,20 +173,21 @@ void KeyEventListener::mouseUp(const juce::MouseEvent& e)
   }
 }
 
-void KeyEventListener::mouseDrag(const juce::MouseEvent& e) {
+void ContentComponent::mouseDrag(const juce::MouseEvent& e) {
   
   auto thisSource = e.source;
   auto cur_pos1 = thisSource.getScreenPosition();
-  auto content = getParentComponent();
   
   if (sources.size() == 1) {
     auto translation_x = prevSingleX != -1.f ? (cur_pos1.getX() - prevSingleX) : 0.f;
     auto translation_y = prevSingleY != -1.f ? (cur_pos1.getY() - prevSingleY) : 0.f;
     prevSingleX = cur_pos1.getX();
     prevSingleY = cur_pos1.getY();
-    auto newX = content->getX() + translation_x;
-    auto newY = content->getY() + translation_y;
-    content->setBounds(newX, newY, content->getWidth(), content->getHeight());
+    auto newX = getX() + translation_x;
+    auto newY = getY() + translation_y;
+    auto w = getWidth();
+    auto h = getHeight();
+    setBounds(newX, newY, getWidth(), getHeight());
   }
   else if (sources.size() == 2) {
     
@@ -212,19 +211,19 @@ void KeyEventListener::mouseDrag(const juce::MouseEvent& e) {
     
     auto scale = prevDistance != -1 ? (cur_distance / prevDistance) : 1.0f;
     prevDistance = cur_distance;
-    auto new_w = content->getWidth() * scale;
+    auto new_w = getWidth() * scale;
     auto ratio = 1298.0 / 994.0;
     auto new_h = new_w / ratio;
     
-    auto contentScale = content->getWidth() / 1298.0;
+    auto contentScale = getWidth() / 1298.0;
     auto screen_pinch_cx = (cur_pos1.getX() + cur_pos2.getX()) / 2;
-    auto current_x = content->getX();
+    auto current_x = getX();
     auto current_content_pinch_cx = (screen_pinch_cx * contentScale) - current_x;
     auto new_content_pinch_cx = current_content_pinch_cx * scale;
     auto new_x = (screen_pinch_cx * contentScale) - new_content_pinch_cx;
     
     auto screen_pinch_cy = (cur_pos1.getY() + cur_pos2.getY()) / 2;
-    auto current_y = content->getY();
+    auto current_y = getY();
     auto current_content_pinch_cy = (screen_pinch_cy * contentScale) - current_y;
     auto new_content_pinch_cy = current_content_pinch_cy * scale;
     auto new_y = (screen_pinch_cy * contentScale) - new_content_pinch_cy;
@@ -260,29 +259,31 @@ void KeyEventListener::mouseDrag(const juce::MouseEvent& e) {
         return;
       }
       
-      content->setBounds(new_x, new_y, new_w, new_h);
+      setBounds(new_x, new_y, new_w, new_h);
     }
   }
   
-  keyboardImg = loadImage2("img/keyboard.png");
+  keyboardImg = ResourceUtil::loadImage("img/keyboard.png");
   
-  keyboardButton.setImages(false, true, true, keyboardImg, 0.5, Colours::transparentWhite, keyboardImg, 1.0, Colours::transparentWhite, keyboardImg, 0.25, Colours::transparentWhite);
+  auto transparentWhite = juce::Colours::transparentWhite;
   
-  resetWindowSizeImg = loadImage2("img/reset-window-size.png");
+  keyboardButton.setImages(false, true, true, keyboardImg, 0.5, transparentWhite, keyboardImg, 1.0, transparentWhite, keyboardImg, 0.25, transparentWhite);
   
-  resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, Colours::transparentWhite, resetWindowSizeImg, 1.0, Colours::transparentWhite, resetWindowSizeImg, 0.25, Colours::transparentWhite);
+  resetWindowSizeImg = ResourceUtil::loadImage("img/reset-window-size.png");
   
-  versionLabel.setText(version::get(), dontSendNotification);
-  versionLabel.setColour(Label::textColourId, Colours::darkgrey);
+  resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, transparentWhite, resetWindowSizeImg, 1.0, transparentWhite, resetWindowSizeImg, 0.25, transparentWhite);
+  
+  versionLabel.setText(version::get(), juce::dontSendNotification);
+  versionLabel.setColour(juce::Label::textColourId, juce::Colours::darkgrey);
   addAndMakeVisible(versionLabel);
   
   keyboardButton.setTooltip("Configure computer keyboard");
   
-  class KbButtonListener : public Button::Listener {
+  class KbButtonListener : public juce::Button::Listener {
   public:
     KbButtonListener(mpc::Mpc& _mpc) : mpc(_mpc) {}
     mpc::Mpc& mpc;
-    void buttonClicked(Button*) override {
+    void buttonClicked(juce::Button*) override {
       mpc.getLayeredScreen().lock()->openScreen("vmpc-keyboard");
     }
   };
@@ -293,12 +294,12 @@ void KeyEventListener::mouseDrag(const juce::MouseEvent& e) {
   
   resetWindowSizeButton.setTooltip("Reset window size");
   
-  class ResetButtonListener : public Button::Listener {
+  class ResetButtonListener : public juce::Button::Listener {
   public:
     ResetButtonListener(mpc::Mpc& _mpc, Component* __this) : mpc(_mpc), _this(__this) {}
     mpc::Mpc& mpc;
     Component* _this;
-    void buttonClicked(Button*) override {
+    void buttonClicked(juce::Button*) override {
       _this->getParentComponent()->setSize(1298 / 2, 994 /2);
     }
   };
@@ -308,14 +309,15 @@ void KeyEventListener::mouseDrag(const juce::MouseEvent& e) {
   //  addAndMakeVisible(resetWindowSizeButton);
 }
 
-void KeyEventListener::resized()
+void ContentComponent::resized()
 {
   auto scale = static_cast<float>(getWidth() / 1298.0);
   auto scaleTransform = juce::AffineTransform::scale(scale);
+  background->setSize(getWidth(), getHeight());
   dataWheel->setTransform(scaleTransform);
-  dataWheel->setBounds(Constants::DATAWHEEL_RECT()->getX(), Constants::DATAWHEEL_RECT()->getY(), dataWheel->getFrameWidth(), dataWheel->getFrameHeight());
+  dataWheel->setBounds(Constants::DATAWHEEL_RECT().getX(), Constants::DATAWHEEL_RECT().getY(), dataWheel->getFrameWidth(), dataWheel->getFrameHeight());
   lcd->setTransform(scaleTransform);
-  lcd->setBounds(Constants::LCD_RECT()->getX(), Constants::LCD_RECT()->getY(), 496, 120);
+  lcd->setBounds(Constants::LCD_RECT().getX(), Constants::LCD_RECT().getY(), 496, 120);
   
   for (auto& b : buttons)
   {
@@ -333,13 +335,13 @@ void KeyEventListener::resized()
   leds->setBounds();
   
   slider->setTransform(scaleTransform);
-  slider->setBounds(Constants::SLIDER_RECT()->getX(), Constants::SLIDER_RECT()->getY(), sliderImg.getWidth() / 2, sliderImg.getHeight() * 0.01 * 0.5);
+  slider->setBounds(Constants::SLIDER_RECT().getX(), Constants::SLIDER_RECT().getY(), sliderImg.getWidth() / 2, sliderImg.getHeight() * 0.01 * 0.5);
   
   recKnob->setTransform(scaleTransform);
-  recKnob->setBounds(Constants::RECKNOB_RECT()->getX(), Constants::RECKNOB_RECT()->getY(), recKnobImg.getWidth() / 2, recKnobImg.getHeight() * 0.01 * 0.5);
+  recKnob->setBounds(Constants::RECKNOB_RECT().getX(), Constants::RECKNOB_RECT().getY(), recKnobImg.getWidth() / 2, recKnobImg.getHeight() * 0.01 * 0.5);
   
   volKnob->setTransform(scaleTransform);
-  volKnob->setBounds(Constants::VOLKNOB_RECT()->getX(), Constants::VOLKNOB_RECT()->getY(), volKnobImg.getWidth() / 2, volKnobImg.getHeight() * 0.01 * 0.5);
+  volKnob->setBounds(Constants::VOLKNOB_RECT().getX(), Constants::VOLKNOB_RECT().getY(), volKnobImg.getWidth() / 2, volKnobImg.getHeight() * 0.01 * 0.5);
   
   keyboardButton.setBounds(1298 - (100 +  10), 10, 100, 50);
   keyboardButton.setTransform(scaleTransform);

@@ -8,9 +8,7 @@
 
 #include <string>
 
-using namespace std;
-
-LedControl::LedControl(mpc::Mpc& _mpc, Image& _ledGreen, Image& _ledRed)
+LedControl::LedControl(mpc::Mpc& _mpc, juce::Image& _ledGreen, juce::Image& _ledRed)
 : mpc (_mpc), ledGreen (_ledGreen), ledRed (_ledRed)
 {
 	int x, y;
@@ -19,43 +17,43 @@ LedControl::LedControl(mpc::Mpc& _mpc, Image& _ledGreen, Image& _ledRed)
 	x = 874;
 	y = 216;
 
-	sixteenLevels = Rectangle<float>(x, y, ledSize, ledSize);
+	sixteenLevels = juce::Rectangle<float>(x, y, ledSize, ledSize);
 	x = 791;
 	y = 298;
-	nextSeq = Rectangle<float>(x, y, ledSize, ledSize);
+	nextSeq = juce::Rectangle<float>(x, y, ledSize, ledSize);
 	x = 875;
 	y = 298;
-	trackMute = Rectangle<float>(x, y, ledSize, ledSize);
+	trackMute = juce::Rectangle<float>(x, y, ledSize, ledSize);
 	x = 103;
 	y = 601;
-	after = Rectangle<float>(x, y, ledSize, ledSize);
+	after = juce::Rectangle<float>(x, y, ledSize, ledSize);
 	x = 226;
 	y = 686;
-	undoSeq = Rectangle<float>(x, y, ledSize, ledSize);
+	undoSeq = juce::Rectangle<float>(x, y, ledSize, ledSize);
 	x = 214;
 	y = 833;
-	rec = Rectangle<float>(x, y, ledSize, ledSize);
+	rec = juce::Rectangle<float>(x, y, ledSize, ledSize);
 	x = 294;
 	y = 833;
-	overDub = Rectangle<float>(x, y, ledSize, ledSize);
+	overDub = juce::Rectangle<float>(x, y, ledSize, ledSize);
 	x = 451;
 	y = 830;
-	play = Rectangle<float>(x, y, ledSize, ledSize);
+	play = juce::Rectangle<float>(x, y, ledSize, ledSize);
 	x = 791;
 	y = 216;
-	fullLevel = Rectangle<float>(x, y, ledSize, ledSize);
+	fullLevel = juce::Rectangle<float>(x, y, ledSize, ledSize);
 	x = 958;
 	y = 298;
-	padBankA = Rectangle<float>(x, y, ledSize, ledSize);
+	padBankA = juce::Rectangle<float>(x, y, ledSize, ledSize);
 	x = 1041;
 	y = 298;
-	padBankB = Rectangle<float>(x, y, ledSize, ledSize);
+	padBankB = juce::Rectangle<float>(x, y, ledSize, ledSize);
 	x = 1124;
 	y = 297;
-	padBankC = Rectangle<float>(x, y, ledSize, ledSize);
+	padBankC = juce::Rectangle<float>(x, y, ledSize, ledSize);
 	x = 1206;
 	y = 296;
-	padBankD = Rectangle<float>(x, y, ledSize, ledSize);
+	padBankD = juce::Rectangle<float>(x, y, ledSize, ledSize);
 
 	fullLevelLed = new Led(ledGreen, fullLevel);
 	sixteenLevelsLed = new Led(ledGreen, sixteenLevels);
@@ -89,7 +87,7 @@ void LedControl::addAndMakeVisible(juce::Component* parent) {
 	parent->addAndMakeVisible(playLed);
 }
 
-void LedControl::setTransform(AffineTransform transform) {
+void LedControl::setTransform(juce::AffineTransform transform) {
 	fullLevelLed->setTransform(transform);
 	sixteenLevelsLed->setTransform(transform);
 	nextSeqLed->setTransform(transform);
@@ -201,7 +199,7 @@ void LedControl::timerCallback()
 
 void LedControl::update(moduru::observer::Observable*, nonstd::any arg)
 {
-	string s = nonstd::any_cast<string>(arg);
+	auto s = nonstd::any_cast<std::string>(arg);
 
 	if (s.compare("full-level-on") == 0) {
 		setFullLevel(true);

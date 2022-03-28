@@ -2,21 +2,18 @@
 
 #include <Logger.hpp>
 
-using namespace juce;
-using namespace std;
-
-DataWheelControl::DataWheelControl(weak_ptr<mpc::hardware::DataWheel> _dataWheel)
+DataWheelControl::DataWheelControl(std::weak_ptr<mpc::hardware::DataWheel> _dataWheel)
 :	numFrames(0), frameWidth(0), frameHeight(0), dataWheel (_dataWheel)
 {
 }
 
-void DataWheelControl::mouseUp(const MouseEvent& event)
+void DataWheelControl::mouseUp(const juce::MouseEvent& event)
 {
     lastDy = 0;
     getParentComponent()->mouseUp(event);
 }
 
-void DataWheelControl::mouseDrag(const MouseEvent& event)
+void DataWheelControl::mouseDrag(const juce::MouseEvent& event)
 {
     auto dY = -(event.getDistanceFromDragStartY() - lastDy);
     
@@ -64,7 +61,7 @@ void DataWheelControl::update(moduru::observer::Observable*, nonstd::any arg)
     repaint();
 }
 
-void DataWheelControl::setImage(Image image, int numFrames_)
+void DataWheelControl::setImage(juce::Image image, int numFrames_)
 {
     filmStripImage = image;
     numFrames = numFrames_;
@@ -78,7 +75,7 @@ DataWheelControl::~DataWheelControl()
     dataWheel.lock()->deleteObserver(this);
 }
 
-void DataWheelControl::paint(Graphics& g)
+void DataWheelControl::paint(juce::Graphics& g)
 {
     if (filmStripImage.isValid())
     {

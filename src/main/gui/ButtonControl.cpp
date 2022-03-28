@@ -1,61 +1,59 @@
 #include "ButtonControl.hpp"
 #include <hardware/Button.hpp>
 
-using namespace juce;
-using namespace std;
-
-ButtonControl::ButtonControl(Rectangle<int> _rect, weak_ptr<mpc::hardware::Button> _button)
+ButtonControl::ButtonControl(juce::Rectangle<int> _rect, std::weak_ptr<mpc::hardware::Button> _button)
 : rect (_rect), button (_button)
 {
 }
 
-unordered_map<string, Rectangle<int>*> ButtonControl::rects;
-Rectangle<int> ButtonControl::undoseq = Rectangle<int>(212, 652, mw, mh);
-Rectangle<int> ButtonControl::erase = Rectangle<int>(291, 651, mw, mh);
-Rectangle<int> ButtonControl::rec = Rectangle<int>(208, 808, bw, bh);
-Rectangle<int> ButtonControl::overdub = Rectangle<int>(288, 806, bw, bh);
-Rectangle<int> ButtonControl::stop = Rectangle<int>(367, 804, bw, bh);
-Rectangle<int> ButtonControl::play = Rectangle<int>(446, 802, bw, bh);
-Rectangle<int> ButtonControl::playstart = Rectangle<int>(525, 800, bw, bh);
-Rectangle<int> ButtonControl::mainscreen = Rectangle<int>(382, 307, mw, mh);
-Rectangle<int> ButtonControl::openwindow = Rectangle<int>(510, 308, mw, mh);
-Rectangle<int> ButtonControl::taptemponoterepeat = Rectangle<int>(247, 556, bw, bh);
-Rectangle<int> ButtonControl::prevstepevent = Rectangle<int>(212, 723, mw, mh);
-Rectangle<int> ButtonControl::nextstepevent = Rectangle<int>(292, 721, mw, mh);
-Rectangle<int> ButtonControl::gotoRect = Rectangle<int>(372, 719, mw, mh);
-Rectangle<int> ButtonControl::prevbarstart = Rectangle<int>(450, 716, mw, mh);
-Rectangle<int> ButtonControl::nextbarend = Rectangle<int>(528, 718, mw, mh);
-Rectangle<int> ButtonControl::f1 = Rectangle<int>(144, 262, smw, smh);
-Rectangle<int> ButtonControl::f2 = Rectangle<int>(225, 261, smw, smh);
-Rectangle<int> ButtonControl::f3 = Rectangle<int>(310, 263, smw, smh);
-Rectangle<int> ButtonControl::f4 = Rectangle<int>(394, 263, smw, smh);
-Rectangle<int> ButtonControl::f5 = Rectangle<int>(474, 261, smw, smh);
-Rectangle<int> ButtonControl::f6 = Rectangle<int>(554, 262, smw, smh);
-Rectangle<int> ButtonControl::notevariationafter = Rectangle<int>(88, 568, mw, mh);
-Rectangle<int> ButtonControl::rect0 = Rectangle<int>(170, 460, smw, smh);
-Rectangle<int> ButtonControl::rect1 = Rectangle<int>(91, 413, smw, smh);
-Rectangle<int> ButtonControl::rect2 = Rectangle<int>(174, 414, smw, smh);
-Rectangle<int> ButtonControl::rect3 = Rectangle<int>(253, 415, smw, smh);
-Rectangle<int> ButtonControl::rect4 = Rectangle<int>(91, 365, smw, smh);
-Rectangle<int> ButtonControl::rect5 = Rectangle<int>(173, 364, smw, smh);
-Rectangle<int> ButtonControl::rect6 = Rectangle<int>(253, 365, smw, smh);
-Rectangle<int> ButtonControl::rect7 = Rectangle<int>(88, 315, smw, smh);
-Rectangle<int> ButtonControl::rect8 = Rectangle<int>(170, 315, smw, smh);
-Rectangle<int> ButtonControl::rect9 = Rectangle<int>(251, 315, smw, smh);
-Rectangle<int> ButtonControl::shift = Rectangle<int>(90, 462, smw, smh);
-Rectangle<int> ButtonControl::enter = Rectangle<int>(253, 460, smw, smh);
-Rectangle<int> ButtonControl::banka = Rectangle<int>(942, 259, mw, mh);
-Rectangle<int> ButtonControl::bankb = Rectangle<int>(1026, 260, mw, mh);
-Rectangle<int> ButtonControl::bankc = Rectangle<int>(1110, 257, mw, mh);
-Rectangle<int> ButtonControl::bankd = Rectangle<int>(1192, 258, mw, mh);
-Rectangle<int> ButtonControl::fulllevel = Rectangle<int>(777, 178, mw, mh);
-Rectangle<int> ButtonControl::sixteenlevels = Rectangle<int>(861, 180, mw, mh);
-Rectangle<int> ButtonControl::nextseq = Rectangle<int>(778, 263, mw, mh);
-Rectangle<int> ButtonControl::trackmute = Rectangle<int>(860, 261, mw, mh);
-Rectangle<int> ButtonControl::left = Rectangle<int>(416, 581, 29, 76);
-Rectangle<int> ButtonControl::up = Rectangle<int>(445, 581, 46, 38);
-Rectangle<int> ButtonControl::down = Rectangle<int>(445, 619, 46, 38);
-Rectangle<int> ButtonControl::right = Rectangle<int>(491, 581, 29, 76);
+std::unordered_map<std::string, juce::Rectangle<int>*> ButtonControl::rects;
+
+juce::Rectangle<int> ButtonControl::undoseq = juce::Rectangle<int>(212, 652, mw, mh);
+juce::Rectangle<int> ButtonControl::erase = juce::Rectangle<int>(291, 651, mw, mh);
+juce::Rectangle<int> ButtonControl::rec = juce::Rectangle<int>(208, 808, bw, bh);
+juce::Rectangle<int> ButtonControl::overdub = juce::Rectangle<int>(288, 806, bw, bh);
+juce::Rectangle<int> ButtonControl::stop = juce::Rectangle<int>(367, 804, bw, bh);
+juce::Rectangle<int> ButtonControl::play = juce::Rectangle<int>(446, 802, bw, bh);
+juce::Rectangle<int> ButtonControl::playstart = juce::Rectangle<int>(525, 800, bw, bh);
+juce::Rectangle<int> ButtonControl::mainscreen = juce::Rectangle<int>(382, 307, mw, mh);
+juce::Rectangle<int> ButtonControl::openwindow = juce::Rectangle<int>(510, 308, mw, mh);
+juce::Rectangle<int> ButtonControl::taptemponoterepeat = juce::Rectangle<int>(247, 556, bw, bh);
+juce::Rectangle<int> ButtonControl::prevstepevent = juce::Rectangle<int>(212, 723, mw, mh);
+juce::Rectangle<int> ButtonControl::nextstepevent = juce::Rectangle<int>(292, 721, mw, mh);
+juce::Rectangle<int> ButtonControl::gotoRect = juce::Rectangle<int>(372, 719, mw, mh);
+juce::Rectangle<int> ButtonControl::prevbarstart = juce::Rectangle<int>(450, 716, mw, mh);
+juce::Rectangle<int> ButtonControl::nextbarend = juce::Rectangle<int>(528, 718, mw, mh);
+juce::Rectangle<int> ButtonControl::f1 = juce::Rectangle<int>(144, 262, smw, smh);
+juce::Rectangle<int> ButtonControl::f2 = juce::Rectangle<int>(225, 261, smw, smh);
+juce::Rectangle<int> ButtonControl::f3 = juce::Rectangle<int>(310, 263, smw, smh);
+juce::Rectangle<int> ButtonControl::f4 = juce::Rectangle<int>(394, 263, smw, smh);
+juce::Rectangle<int> ButtonControl::f5 = juce::Rectangle<int>(474, 261, smw, smh);
+juce::Rectangle<int> ButtonControl::f6 = juce::Rectangle<int>(554, 262, smw, smh);
+juce::Rectangle<int> ButtonControl::notevariationafter = juce::Rectangle<int>(88, 568, mw, mh);
+juce::Rectangle<int> ButtonControl::rect0 = juce::Rectangle<int>(170, 460, smw, smh);
+juce::Rectangle<int> ButtonControl::rect1 = juce::Rectangle<int>(91, 413, smw, smh);
+juce::Rectangle<int> ButtonControl::rect2 = juce::Rectangle<int>(174, 414, smw, smh);
+juce::Rectangle<int> ButtonControl::rect3 = juce::Rectangle<int>(253, 415, smw, smh);
+juce::Rectangle<int> ButtonControl::rect4 = juce::Rectangle<int>(91, 365, smw, smh);
+juce::Rectangle<int> ButtonControl::rect5 = juce::Rectangle<int>(173, 364, smw, smh);
+juce::Rectangle<int> ButtonControl::rect6 = juce::Rectangle<int>(253, 365, smw, smh);
+juce::Rectangle<int> ButtonControl::rect7 = juce::Rectangle<int>(88, 315, smw, smh);
+juce::Rectangle<int> ButtonControl::rect8 = juce::Rectangle<int>(170, 315, smw, smh);
+juce::Rectangle<int> ButtonControl::rect9 = juce::Rectangle<int>(251, 315, smw, smh);
+juce::Rectangle<int> ButtonControl::shift = juce::Rectangle<int>(90, 462, smw, smh);
+juce::Rectangle<int> ButtonControl::enter = juce::Rectangle<int>(253, 460, smw, smh);
+juce::Rectangle<int> ButtonControl::banka = juce::Rectangle<int>(942, 259, mw, mh);
+juce::Rectangle<int> ButtonControl::bankb = juce::Rectangle<int>(1026, 260, mw, mh);
+juce::Rectangle<int> ButtonControl::bankc = juce::Rectangle<int>(1110, 257, mw, mh);
+juce::Rectangle<int> ButtonControl::bankd = juce::Rectangle<int>(1192, 258, mw, mh);
+juce::Rectangle<int> ButtonControl::fulllevel = juce::Rectangle<int>(777, 178, mw, mh);
+juce::Rectangle<int> ButtonControl::sixteenlevels = juce::Rectangle<int>(861, 180, mw, mh);
+juce::Rectangle<int> ButtonControl::nextseq = juce::Rectangle<int>(778, 263, mw, mh);
+juce::Rectangle<int> ButtonControl::trackmute = juce::Rectangle<int>(860, 261, mw, mh);
+juce::Rectangle<int> ButtonControl::left = juce::Rectangle<int>(416, 581, 29, 76);
+juce::Rectangle<int> ButtonControl::up = juce::Rectangle<int>(445, 581, 46, 38);
+juce::Rectangle<int> ButtonControl::down = juce::Rectangle<int>(445, 619, 46, 38);
+juce::Rectangle<int> ButtonControl::right = juce::Rectangle<int>(491, 581, 29, 76);
 
 void ButtonControl::initRects()
 {
@@ -115,16 +113,15 @@ void ButtonControl::initRects()
 
 void ButtonControl::setBounds()
 {
-    setSize(rect.getWidth(), rect.getHeight());
-    Component::setBounds(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+  Component::setBounds(rect);
 }
 
-void ButtonControl::mouseDown(const MouseEvent&)
+void ButtonControl::mouseDown(const juce::MouseEvent&)
 {
     button.lock()->push();
 }
 
-void ButtonControl::mouseUp(const MouseEvent&)
+void ButtonControl::mouseUp(const juce::MouseEvent&)
 {
     button.lock()->release();
 }

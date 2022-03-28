@@ -1,8 +1,6 @@
 #include "KnobControl.hpp"
 #include <hardware/Pot.hpp>
 
-using namespace juce;
-
 static inline void clampIndex(int& knobIndex) {
 	if (knobIndex < 0) {
 		knobIndex = 0;
@@ -21,7 +19,7 @@ knobIndex(_pot.lock()->getValue())
 	repaint();
 }
 
-void KnobControl::setImage(Image image)
+void KnobControl::setImage(juce::Image image)
 {
 	knobs = image;
 	frameHeight = knobs.getHeight() / 100;
@@ -29,12 +27,12 @@ void KnobControl::setImage(Image image)
 	repaint();
 }
 
-void KnobControl::mouseUp(const MouseEvent& event) {
+void KnobControl::mouseUp(const juce::MouseEvent& event) {
 	lastDy = 0;
 	Component::mouseUp(event);
 }
 
-void KnobControl::mouseDrag(const MouseEvent& event) {
+void KnobControl::mouseDrag(const juce::MouseEvent& event) {
 	auto dY = -(event.getDistanceFromDragStartY() - lastDy);
 	lastDy = event.getDistanceFromDragStartY();
 	pot.lock()->setValue(pot.lock()->getValue() + dY);
@@ -43,7 +41,7 @@ void KnobControl::mouseDrag(const MouseEvent& event) {
 	repaint();
 }
 
-void KnobControl::paint(Graphics& g)
+void KnobControl::paint(juce::Graphics& g)
 {
 	if (knobs.isValid())
 	{

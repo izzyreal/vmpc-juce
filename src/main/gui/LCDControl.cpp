@@ -8,14 +8,13 @@
 
 #include <gui/BasicStructs.hpp>
 
-using namespace juce;
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 
 LCDControl::LCDControl(mpc::Mpc& _mpc, std::weak_ptr<mpc::lcdgui::LayeredScreen> _ls)
 	: mpc (_mpc), ls (_ls)
 {
-	lcd = Image(Image::RGB, 496, 120, true);
+	lcd = juce::Image(juce::Image::RGB, 496, 120, true);
 	auto othersScreen = mpc.screens->get<OthersScreen>("others");
 	othersScreen->addObserver(this);
 }
@@ -38,10 +37,10 @@ void LCDControl::drawPixelsToImg()
 	auto othersScreen = mpc.screens->get<OthersScreen>("others");
 	auto contrast = othersScreen->getContrast();
 	
-	Colour c;
+  juce::Colour c;
 	
 	auto halfOn = Constants::LCD_HALF_ON.darker(static_cast<int>(contrast * 0.02));
-    auto on = Constants::LCD_ON.darker(static_cast<int>(contrast * 0.02));
+  auto on = Constants::LCD_ON.darker(static_cast<int>(contrast * 0.02));
 	auto off = Constants::LCD_OFF.brighter(static_cast<int>(contrast * 0.01428));
 
 	const auto rectX = dirtyRect.getX();
@@ -71,7 +70,7 @@ void LCDControl::drawPixelsToImg()
 			lcd.setPixelAt(x_x2, y_x2 + 1, c);
 		}
 	}
-	dirtyRect = Rectangle<int>();
+	dirtyRect = juce::Rectangle<int>();
 }
 
 void LCDControl::checkLsDirty()
@@ -79,7 +78,7 @@ void LCDControl::checkLsDirty()
 	if (ls.lock()->IsDirty())
 	{
 		auto dirtyArea = ls.lock()->getDirtyArea();
-		dirtyRect = Rectangle<int>(dirtyArea.L, dirtyArea.T, dirtyArea.W(), dirtyArea.H());
+		dirtyRect = juce::Rectangle<int>(dirtyArea.L, dirtyArea.T, dirtyArea.W(), dirtyArea.H());
 		ls.lock()->Draw();
 		drawPixelsToImg();
 		repaint();
@@ -91,7 +90,7 @@ void LCDControl::timerCallback()
 	checkLsDirty();
 }
 
-void LCDControl::paint(Graphics& g)
+void LCDControl::paint(juce::Graphics& g)
 {
 	g.drawImageAt(lcd, 0, 0);
 }

@@ -3,35 +3,33 @@
 #include "juce_graphics/juce_graphics.h"
 #include "juce_audio_processors/juce_audio_processors.h"
 
-using namespace juce;
-
 #include <observer/Observer.hpp>
 
 namespace mpc { class Mpc; }
 
 class LedControl
-: public Timer
+: public juce::Timer
 , public moduru::observer::Observer
 {
     
 private:
     mpc::Mpc& mpc;
-    Image ledGreen;
-    Image ledRed;
+    juce::Image ledGreen;
+    juce::Image ledRed;
     
-    Rectangle<float> fullLevel{};
-    Rectangle<float> sixteenLevels{};
-    Rectangle<float> nextSeq{};
-    Rectangle<float> trackMute{};
-    Rectangle<float> padBankA{};
-    Rectangle<float> padBankB{};
-    Rectangle<float> padBankC{};
-    Rectangle<float> padBankD{};
-    Rectangle<float> after{};
-    Rectangle<float> undoSeq{};
-    Rectangle<float> rec{};
-    Rectangle<float> overDub{};
-    Rectangle<float> play{};
+    juce::Rectangle<float> fullLevel{};
+    juce::Rectangle<float> sixteenLevels{};
+    juce::Rectangle<float> nextSeq{};
+    juce::Rectangle<float> trackMute{};
+    juce::Rectangle<float> padBankA{};
+    juce::Rectangle<float> padBankB{};
+    juce::Rectangle<float> padBankC{};
+    juce::Rectangle<float> padBankD{};
+    juce::Rectangle<float> after{};
+    juce::Rectangle<float> undoSeq{};
+    juce::Rectangle<float> rec{};
+    juce::Rectangle<float> overDub{};
+    juce::Rectangle<float> play{};
     
     Led* fullLevelLed;
     Led* sixteenLevelsLed;
@@ -64,14 +62,14 @@ public:
     
 public:
     void addAndMakeVisible(juce::Component* parent);
-    void setTransform(AffineTransform transform);
+    void setTransform(juce::AffineTransform transform);
     void setBounds();
     
     void update(moduru::observer::Observable* o, nonstd::any arg) override;
     
     void timerCallback() override;
     
-    LedControl(mpc::Mpc&, Image& ledGreen, Image& ledRed);
+    LedControl(mpc::Mpc&, juce::Image& ledGreen, juce::Image& ledRed);
     ~LedControl() override;
     
 };
