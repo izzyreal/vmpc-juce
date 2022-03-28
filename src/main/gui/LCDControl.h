@@ -29,6 +29,12 @@ public:
 	void drawPixelsToImg();
 	void paint(juce::Graphics& g) override;
 	void timerCallback() override;
+  void mouseDown(const juce::MouseEvent& e) override {
+    getParentComponent()->mouseDown(e);
+  }
+  void mouseDrag(const juce::MouseEvent& e) override {
+    getParentComponent()->mouseDrag(e);
+  }
 
 public:
 	LCDControl(mpc::Mpc& mpc, std::weak_ptr<mpc::lcdgui::LayeredScreen> ls);
