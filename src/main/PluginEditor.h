@@ -27,7 +27,7 @@ private:
   juce::Viewport viewport;
   
   juce::TooltipWindow tooltipWindow { this, 300 };
-  Component::SafePointer<juce::SplashScreen> mpcSplashScreen;
+  Component::SafePointer<juce::SplashScreen> vmpcSplashScreen;
 
   juce::Image bgImg;
   

@@ -2,7 +2,7 @@
 
 #include "PluginProcessor.h"
 
-#include "gui/Constants.h"
+#include "ResourceUtil.h"
 
 #include <hardware/Hardware.hpp>
 #include <audiomidi/AudioMidiServices.hpp>
@@ -12,7 +12,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 : AudioProcessorEditor(&p), vmpcAudioProcessor(p), mpc(p.mpc)
 {
   
-  vmpcAudioProcessor.shouldShowDisclaimer = false;
+  vmpcAudioProcessor.shouldShowDisclaimer = true;
 
   auto content = new ContentComponent(mpc);
   
@@ -39,18 +39,44 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 
 VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
 {
-  mpcSplashScreen.deleteAndZero();
+  vmpcSplashScreen.deleteAndZero();
 }
 
 void VmpcAudioProcessorEditor::initialise()
 {
   if (vmpcAudioProcessor.shouldShowDisclaimer)
   {
-//    auto disclaimerImg = loadImage("img/disclaimer.gif");
-//    mpcSplashScreen = new juce::SplashScreen("Disclaimer", disclaimerImg, true);
-//    mpcSplashScreen->setWantsKeyboardFocus(false);
-//    mpcSplashScreen->deleteAfterDelay(juce::RelativeTime::seconds(8), true);
-//    vmpcAudioProcessor.shouldShowDisclaimer = false;
+    auto disclaimerImg = ResourceUtil::loadImage("img/disclaimer.gif");
+    
+    auto userArea = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
+    int width  = userArea.getWidth();
+    
+    
+    if (width > disclaimerImg.getWidth() * 2)
+      width = disclaimerImg.getWidth() * 2;
+      
+    auto height = width * ((float) disclaimerImg.getHeight() / disclaimerImg.getWidth());
+    auto x = userArea.getCentreX() - (width / 2.f);
+    auto y = userArea.getCentreY() - (height / 2.f);
+    
+    class VmpcSplashScreen : public juce::SplashScreen {
+    public:
+      juce::Image _img;
+      VmpcSplashScreen(juce::String title, juce::Image& img, int x, int y, int w, int h): juce::SplashScreen(title, x, y, true), _img(img) {
+        setBounds(x, y, w, h);
+      }
+      void paint(juce::Graphics& g) override {
+        if (getWidth() >= _img.getWidth() * 2) g.setImageResamplingQuality(juce::Graphics::lowResamplingQuality);
+        g.setOpacity (1.0f);
+        g.drawImage (_img, getLocalBounds().toFloat(), juce::RectanglePlacement (juce::RectanglePlacement::fillDestination));
+      }
+    };
+
+    vmpcSplashScreen = new VmpcSplashScreen("Disclaimer", disclaimerImg, x, y, width, height);
+    
+    vmpcSplashScreen->setWantsKeyboardFocus(false);
+    vmpcSplashScreen->deleteAfterDelay(juce::RelativeTime::seconds(8), true);
+    vmpcAudioProcessor.shouldShowDisclaimer = false;
   }
   
   if (juce::TopLevelWindow::getNumTopLevelWindows() != 0 &&
