@@ -11,9 +11,6 @@
 VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 : AudioProcessorEditor(&p), vmpcAudioProcessor(p), mpc(p.mpc)
 {
-  
-  vmpcAudioProcessor.shouldShowDisclaimer = true;
-
   auto content = new ContentComponent(mpc);
   
   const bool deleteContentWhenNotUsedAnymore = true;
@@ -26,15 +23,14 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
   
   initialise();
   
-  //  setResizable(true, true);
-  //  setResizeLimits(1298 / 2, 994 / 2, 1298, 994);
-  //  getConstrainer()->setFixedAspectRatio(1.305835010060362);
-  
-  //
-  auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
-  
-  if (primaryDisplay != nullptr)
-    setBounds(primaryDisplay->userArea);
+  if (juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS) {
+    auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
+    if (primaryDisplay != nullptr) setBounds(primaryDisplay->userArea);
+  } else {
+    setResizable(true, true);
+    setResizeLimits(1298 / 2, 994 / 2, 1298, 994);
+    getConstrainer()->setFixedAspectRatio(1.305835010060362);
+  }
 }
 
 VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
@@ -51,10 +47,9 @@ void VmpcAudioProcessorEditor::initialise()
     auto userArea = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
     int width  = userArea.getWidth();
     
-    
     if (width > disclaimerImg.getWidth() * 2)
       width = disclaimerImg.getWidth() * 2;
-      
+    
     auto height = width * ((float) disclaimerImg.getHeight() / disclaimerImg.getWidth());
     auto x = userArea.getCentreX() - (width / 2.f);
     auto y = userArea.getCentreY() - (height / 2.f);
@@ -71,7 +66,7 @@ void VmpcAudioProcessorEditor::initialise()
         g.drawImage (_img, getLocalBounds().toFloat(), juce::RectanglePlacement (juce::RectanglePlacement::fillDestination));
       }
     };
-
+    
     vmpcSplashScreen = new VmpcSplashScreen("Disclaimer", disclaimerImg, x, y, width, height);
     
     vmpcSplashScreen->setWantsKeyboardFocus(false);
@@ -86,20 +81,25 @@ void VmpcAudioProcessorEditor::initialise()
 
 void VmpcAudioProcessorEditor::resized()
 {
-  auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
-  
-  if (primaryDisplay != nullptr) {
-    auto area = primaryDisplay->userArea;
-    setSize(area.getWidth(), area.getHeight());
-    viewport.setBounds(primaryDisplay->userArea);
-    
-    auto portrait = area.getWidth() < area.getHeight();
-    auto ratio = 1298.0 / 994.0;
-    
-    if (portrait) {
-      viewport.getViewedComponent()->setBounds(0, 0, area.getHeight() * ratio, area.getHeight());
-    } else {
-      viewport.getViewedComponent()->setBounds(0, 0, area.getWidth(), getWidth() / ratio);
+  if (juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS) {
+    auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
+    if (primaryDisplay != nullptr) {
+      auto area = primaryDisplay->userArea;
+      setSize(area.getWidth(), area.getHeight());
+      viewport.setBounds(primaryDisplay->userArea);
+      
+      auto portrait = area.getWidth() < area.getHeight();
+      auto ratio = 1298.0 / 994.0;
+      
+      if (portrait) {
+        viewport.getViewedComponent()->setBounds(0, 0, area.getHeight() * ratio, area.getHeight());
+      } else {
+        viewport.getViewedComponent()->setBounds(0, 0, area.getWidth(), getWidth() / ratio);
+      }
     }
+  } else {
+    getProcessor().lastUIWidth = getWidth();
+    getProcessor().lastUIHeight = getHeight();
+    viewport.getViewedComponent()->setBounds(0, 0, getWidth(), getHeight());
   }
 }

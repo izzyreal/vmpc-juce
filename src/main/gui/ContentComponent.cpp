@@ -198,11 +198,22 @@ void ContentComponent::mouseDrag(const juce::MouseEvent& e) {
     
     std::shared_ptr<juce::MouseInputSource> thatSource;
     
-    for (auto& s : sources) {
+    for (int i = 0; i < sources.size(); i++) {
+      auto s = sources[i];
       if (s->getIndex() != thisSource.getIndex()) {
+        if (!s->isDragging()) {
+          sources.erase(sources.begin() + i);
+          i--;
+          continue;
+        }
         thatSource = s;
         break;
       }
+    }
+    
+    if (!thatSource) {
+      mouseDrag(e);
+      return;
     }
     
     auto cur_pos2 = thatSource->getScreenPosition();
@@ -304,9 +315,11 @@ void ContentComponent::mouseDrag(const juce::MouseEvent& e) {
     }
   };
   
-  resetWindowSizeButton.addListener(new ResetButtonListener(mpc, this));
-  resetWindowSizeButton.setWantsKeyboardFocus(false);
-  //  addAndMakeVisible(resetWindowSizeButton);
+  if (juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS) {
+    resetWindowSizeButton.addListener(new ResetButtonListener(mpc, this));
+    resetWindowSizeButton.setWantsKeyboardFocus(false);
+    addAndMakeVisible(resetWindowSizeButton);
+  }
 }
 
 void ContentComponent::resized()
@@ -345,9 +358,11 @@ void ContentComponent::resized()
   
   keyboardButton.setBounds(1298 - (100 +  10), 10, 100, 50);
   keyboardButton.setTransform(scaleTransform);
-  //
-  //  resetWindowSizeButton.setBounds(1298 - (145 + 20), 13, 45, 45);
-  //  resetWindowSizeButton.setTransform(scaleTransform);
+  
+  if (juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS) {
+    resetWindowSizeButton.setBounds(1298 - (145 + 20), 13, 45, 45);
+    resetWindowSizeButton.setTransform(scaleTransform);
+  }
   
   versionLabel.setTransform(scaleTransform);
   versionLabel.setBounds(1175, 118, 100, 20);
