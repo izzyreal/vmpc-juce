@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 include(ResourceBundling.cmake)
 
-set(VMPC_VERSION 0.4.3)
+set(VMPC_VERSION 0.4.4)
 set(CMAKE_CXX_STANDARD 17)
 
 if(DEFINED ENV{APPLE_M1})
