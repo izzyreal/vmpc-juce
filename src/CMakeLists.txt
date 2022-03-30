@@ -36,7 +36,14 @@ endif()
 
 conan_basic_setup(NO_OUTPUT_DIRS)
 
+
+
 juce_add_plugin(vmpc2000xl
+    
+    # Relevant to iOS only
+    REQUIRES_FULL_SCREEN TRUE
+
+    # Relevant to all builds
     ICON_BIG "main/resources/icon.png"
     COMPANY_NAME Izmar
     IS_SYNTH TRUE
@@ -47,7 +54,7 @@ juce_add_plugin(vmpc2000xl
     PLUGIN_CODE 2kXL
     MICROPHONE_PERMISSION_ENABLED TRUE
     MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
-    FORMATS LV2 VST3 AU Standalone $<IF:$<IOS>,AUv3,>
+    FORMATS LV2 VST3 AU AUv3 Standalone
     PRODUCT_NAME "VMPC2000XL")
 
 set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/main")
