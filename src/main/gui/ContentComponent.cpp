@@ -17,12 +17,14 @@
 
 #include "../version.h"
 
+#include <raw_keyboard_input/raw_keyboard_input.h>
+
 CMRC_DECLARE(vmpcjuce);
 
 ContentComponent::ContentComponent(mpc::Mpc& _mpc)
 : mpc (_mpc), keyEventHandler (mpc.getControls().lock()->getKeyEventHandler())
 {
-  keyboard = new MacOsKeyboard();
+  keyboard = KeyboardFactory::instance();
   keyboard->onKeyDownFn = [&](int keyCode){ keyEvent(juce::KeyEvent(keyCode, true)); };
   keyboard->onKeyUpFn = [&](int keyCode){ keyEvent(juce::KeyEvent(keyCode, false)); };
   

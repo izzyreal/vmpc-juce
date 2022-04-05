@@ -10,9 +10,9 @@
 #include "LedControl.hpp"
 #include "KnobControl.hpp"
 
-#include <raw_keyboard_input/raw_keyboard_input.h>
-
 #include <vector>
+
+class Keyboard;
 
 namespace mpc { class Mpc; }
 

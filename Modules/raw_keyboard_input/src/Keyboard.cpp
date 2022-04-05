@@ -16,3 +16,11 @@ void Keyboard::removePresedKey(int keyCode)
   if (isKeyDown(keyCode)) pressedKeys.erase(keyCode);
   if (onKeyUpFn) onKeyUpFn(keyCode);
 }
+
+void Keyboard::allKeysUp()
+{
+  for (auto keyCode : pressedKeys)
+    onKeyUpFn(keyCode);
+  
+  pressedKeys.clear();
+}

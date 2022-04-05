@@ -4,8 +4,9 @@
 #include <functional>
 
 class Keyboard {
-public:
+public:  
   bool isKeyDown(int keyCode);
+  void allKeysUp();
   
   std::function<void(int)> onKeyDownFn;
   std::function<void(int)> onKeyUpFn;
