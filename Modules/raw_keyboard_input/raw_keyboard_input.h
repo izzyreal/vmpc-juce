@@ -15,4 +15,5 @@
 
 #endif
 
+#include "src/Keyboard.h"
 #include "src/MacOsKeyboard.h"

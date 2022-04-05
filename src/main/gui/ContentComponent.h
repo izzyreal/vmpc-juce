@@ -10,6 +10,8 @@
 #include "LedControl.hpp"
 #include "KnobControl.hpp"
 
+#include <raw_keyboard_input/raw_keyboard_input.h>
+
 #include <vector>
 
 namespace mpc { class Mpc; }
@@ -60,6 +62,9 @@ private:
   Background* background;
   DataWheelControl* dataWheel;
   LCDControl* lcd;
+  
+  Keyboard* keyboard;
+  
   std::vector<ButtonControl*> buttons;
   std::vector<PadControl*> pads;
 

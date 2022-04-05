@@ -22,6 +22,10 @@ CMRC_DECLARE(vmpcjuce);
 ContentComponent::ContentComponent(mpc::Mpc& _mpc)
 : mpc (_mpc), keyEventHandler (mpc.getControls().lock()->getKeyEventHandler())
 {
+  keyboard = new MacOsKeyboard();
+  keyboard->onKeyDownFn = [&](int keyCode){ keyEvent(juce::KeyEvent(keyCode, true)); };
+  keyboard->onKeyUpFn = [&](int keyCode){ keyEvent(juce::KeyEvent(keyCode, false)); };
+  
   setName("ContentComponent");
   setWantsKeyboardFocus(true);
   
@@ -155,6 +159,8 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
 
 ContentComponent::~ContentComponent()
 {
+  delete keyboard;
+  
   delete dataWheel;
   
   lcd->stopTimer();
