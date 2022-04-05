@@ -8,9 +8,12 @@
 #include <audiomidi/AudioMidiServices.hpp>
 #include <Paths.hpp>
 
+#include <raw_keyboard_input/raw_keyboard_input.h>
+
 VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 : AudioProcessorEditor(&p), vmpcAudioProcessor(p), mpc(p.mpc)
 {
+  Foobaru().foo();
   auto content = new ContentComponent(mpc);
   
   const bool deleteContentWhenNotUsedAnymore = true;
