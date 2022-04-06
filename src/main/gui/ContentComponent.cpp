@@ -157,6 +157,17 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
     resetWindowSizeButton.setWantsKeyboardFocus(false);
     addAndMakeVisible(resetWindowSizeButton);
   }
+
+  startTimer(10);
+}
+
+void ContentComponent::timerCallback()
+{
+    auto peer = getPeer();
+    if (peer != nullptr) {
+        keyboard->peer = getPeer();
+        stopTimer();
+    }
 }
 
 ContentComponent::~ContentComponent()

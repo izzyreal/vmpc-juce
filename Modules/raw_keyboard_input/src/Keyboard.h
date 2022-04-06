@@ -3,8 +3,11 @@
 #include <set>
 #include <functional>
 
+namespace juce { class ComponentPeer; }
+
 class Keyboard {
-public:  
+public:
+	juce::ComponentPeer* peer = nullptr;
   bool isKeyDown(int keyCode);
   void allKeysUp();
   
