@@ -14,15 +14,18 @@ MacOsKeyboard::~MacOsKeyboard()
 
 void MacOsKeyboard::installMonitor()
 {
+  if (thisses.size() > 1)
+    return;
+  
   keyDownMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown
                                                          handler:^NSEvent*(NSEvent* event) {
-    addPressedKey([event keyCode]);
+    processKeyEvent([event keyCode], true);
     return event;
   }];
   
   keyUpMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyUp
                                                        handler:^NSEvent*(NSEvent* event) {
-    removePresedKey([event keyCode]);
+    processKeyEvent([event keyCode], false);
     return event;
   }];
   
@@ -32,44 +35,44 @@ void MacOsKeyboard::installMonitor()
     
     if (code == 0x3A || code == 0x3D) {
       if ([event modifierFlags] & NSEventModifierFlagOption) {
-        addPressedKey(code);
+        processKeyEvent(code, true);
       } else {
-        removePresedKey(code);
+        processKeyEvent(code, false);
       }
     }
     else if (code == 0x38 || code == 0x3C) {
       if ([event modifierFlags] & NSEventModifierFlagShift) {
-        addPressedKey(code);
+        processKeyEvent(code, true);
       } else {
-        removePresedKey(code);
+        processKeyEvent(code, false);
       }
     }
     else if (code == 0x3B || code == 0x3E) {
       if ([event modifierFlags] & NSEventModifierFlagControl) {
-        addPressedKey(code);
+        processKeyEvent(code, true);
       } else {
-        removePresedKey(code);
+        processKeyEvent(code, false);
       }
     }
     else if (code == 0x36 || code == 0x37) {
       if ([event modifierFlags] & NSEventModifierFlagCommand) {
-        addPressedKey(code);
+        processKeyEvent(code, true);
       } else {
-        removePresedKey(code);
+        processKeyEvent(code, false);
       }
     }
     else if (code == 0x3F) {
       if ([event modifierFlags] & NSEventModifierFlagFunction) {
-        addPressedKey(code);
+        processKeyEvent(code, true);
       } else {
-        removePresedKey(code);
+        processKeyEvent(code, false);
       }
     }
     else if (code == 0x39) {
       if ([event modifierFlags] & NSEventModifierFlagCapsLock) {
-        addPressedKey(code);
+        processKeyEvent(code, true);
       } else {
-        removePresedKey(code);
+        processKeyEvent(code, false);
       }
     }
     

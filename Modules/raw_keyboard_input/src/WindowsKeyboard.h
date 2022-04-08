@@ -3,20 +3,12 @@
 
 #include <Windows.h>
 
-#include <set>
-
-#include <juce_gui_basics/juce_gui_basics.h>
-
-class WindowsKeyboard : public Keyboard, public juce::Timer {
+class WindowsKeyboard : public Keyboard {
 public:
   WindowsKeyboard();
   ~WindowsKeyboard();
-
-  void timerCallback() override;
-
+  
 private:
-	static std::set<WindowsKeyboard*> thisses;
-	static LRESULT CALLBACK keyHandler2(int keyCode, WPARAM w, LPARAM l);
-
+	static LRESULT CALLBACK keyHandler(int keyCode, WPARAM w, LPARAM l);
 
 };

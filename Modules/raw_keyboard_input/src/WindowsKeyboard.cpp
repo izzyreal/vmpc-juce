@@ -2,8 +2,6 @@
 
 #include <functional>
 
-std::set<WindowsKeyboard*> WindowsKeyboard::thisses;
-
 union KeyInfo
 {
 	// LPARAM
@@ -20,51 +18,22 @@ union KeyInfo
 	};
 };
 
-LRESULT CALLBACK WindowsKeyboard::keyHandler2(int keyCode, WPARAM w, LPARAM l) {
+LRESULT CALLBACK WindowsKeyboard::keyHandler(int keyCode, WPARAM w, LPARAM l) {
 	KeyInfo i;
 	i.lParam = l;
 	
-	juce::ComponentPeer* focusedPeer = nullptr;
-
-	for (int i = 0; i < juce::ComponentPeer::getNumPeers(); i++)
-		if (juce::ComponentPeer::getPeer(i)->isFocused()) {
-			focusedPeer = juce::ComponentPeer::getPeer(i);
-		}
-
-	if (focusedPeer != nullptr) {
-		for (auto t : thisses) {
-			if (t->peer == focusedPeer) {
-				if (i.nTrans == 0)
-					t->addPressedKey(w);
-				else
-					t->removePresedKey(w);
-			}
-		}
-	}
-	else {
-		return CallNextHookEx(nullptr, keyCode, w, l);
-	}
-
-	return 0;
+  if (!proccesKeyEvent(w, i.nTrans == 0))
+  		return CallNextHookEx(nullptr, keyCode, w, l);
+	
+  return 0;
 }
 
 WindowsKeyboard::WindowsKeyboard()
 {
-	startTimer(10);
-	thisses.emplace(this);
-	SetWindowsHookA(WH_KEYBOARD, (HOOKPROC) keyHandler2);
+	SetWindowsHookA(WH_KEYBOARD, (HOOKPROC) keyHandler);
 }
 
 WindowsKeyboard::~WindowsKeyboard()
 {
-	thisses.erase(this);
-}
-
-void WindowsKeyboard::timerCallback()
-{
-	auto _peer = getPeer();
-	if (_peer != nullptr) {
-		peer = _peer;
-		stopTimer();
-	}
+  // remove hook
 }

@@ -7,8 +7,14 @@
 
 namespace juce { class ComponentPeer; }
 
-class Keyboard : public juce::Component{
+class Keyboard : public juce::Component, public juce::Timer {
+
 public:
+  Keyboard();
+  ~Keyboard() override;
+  
+  void timerCallback() override;
+
   juce::ComponentPeer* peer = nullptr;
   bool isKeyDown(int keyCode);
   void allKeysUp();
@@ -17,6 +23,10 @@ public:
   std::function<void(int)> onKeyUpFn;
 
 protected:
+  static std::set<Keyboard*> thisses;
+
+  juce::ComponentPeer* getFocusedPeer();
+  bool processKeyEvent(int keyCode, bool isKeyDown);
   void addPressedKey(int keyCode);
   void removePresedKey(int keyCode);
 
