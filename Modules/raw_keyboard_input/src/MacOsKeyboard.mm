@@ -19,13 +19,13 @@ void MacOsKeyboard::installMonitor()
   
   keyDownMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyDown
                                                          handler:^NSEvent*(NSEvent* event) {
-    processKeyEvent([event keyCode], true);
+    Keyboard::processKeyEvent([event keyCode], true);
     return event;
   }];
   
   keyUpMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskKeyUp
                                                        handler:^NSEvent*(NSEvent* event) {
-    processKeyEvent([event keyCode], false);
+    Keyboard::processKeyEvent([event keyCode], false);
     return event;
   }];
   
@@ -35,44 +35,44 @@ void MacOsKeyboard::installMonitor()
     
     if (code == 0x3A || code == 0x3D) {
       if ([event modifierFlags] & NSEventModifierFlagOption) {
-        processKeyEvent(code, true);
+        Keyboard::processKeyEvent(code, true);
       } else {
-        processKeyEvent(code, false);
+        Keyboard::processKeyEvent(code, false);
       }
     }
     else if (code == 0x38 || code == 0x3C) {
       if ([event modifierFlags] & NSEventModifierFlagShift) {
-        processKeyEvent(code, true);
+        Keyboard::processKeyEvent(code, true);
       } else {
-        processKeyEvent(code, false);
+        Keyboard::processKeyEvent(code, false);
       }
     }
     else if (code == 0x3B || code == 0x3E) {
       if ([event modifierFlags] & NSEventModifierFlagControl) {
-        processKeyEvent(code, true);
+        Keyboard::processKeyEvent(code, true);
       } else {
-        processKeyEvent(code, false);
+        Keyboard::processKeyEvent(code, false);
       }
     }
     else if (code == 0x36 || code == 0x37) {
       if ([event modifierFlags] & NSEventModifierFlagCommand) {
-        processKeyEvent(code, true);
+        Keyboard::processKeyEvent(code, true);
       } else {
-        processKeyEvent(code, false);
+        Keyboard::processKeyEvent(code, false);
       }
     }
     else if (code == 0x3F) {
       if ([event modifierFlags] & NSEventModifierFlagFunction) {
-        processKeyEvent(code, true);
+        Keyboard::processKeyEvent(code, true);
       } else {
-        processKeyEvent(code, false);
+        Keyboard::processKeyEvent(code, false);
       }
     }
     else if (code == 0x39) {
       if ([event modifierFlags] & NSEventModifierFlagCapsLock) {
-        processKeyEvent(code, true);
+        Keyboard::processKeyEvent(code, true);
       } else {
-        processKeyEvent(code, false);
+        Keyboard::processKeyEvent(code, false);
       }
     }
     
