@@ -50,6 +50,7 @@ LRESULT CALLBACK WindowsKeyboard::keyHandler2(int keyCode, WPARAM w, LPARAM l) {
 
 WindowsKeyboard::WindowsKeyboard()
 {
+	startTimer(10);
 	thisses.emplace(this);
 	SetWindowsHookA(WH_KEYBOARD, (HOOKPROC) keyHandler2);
 }
@@ -57,4 +58,13 @@ WindowsKeyboard::WindowsKeyboard()
 WindowsKeyboard::~WindowsKeyboard()
 {
 	thisses.erase(this);
+}
+
+void WindowsKeyboard::timerCallback()
+{
+	auto _peer = getPeer();
+	if (_peer != nullptr) {
+		peer = _peer;
+		stopTimer();
+	}
 }

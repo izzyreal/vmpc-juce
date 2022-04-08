@@ -7,10 +7,12 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-class WindowsKeyboard : public Keyboard {
+class WindowsKeyboard : public Keyboard, public juce::Timer {
 public:
   WindowsKeyboard();
   ~WindowsKeyboard();
+
+  void timerCallback() override;
 
 private:
 	static std::set<WindowsKeyboard*> thisses;

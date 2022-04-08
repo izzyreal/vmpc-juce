@@ -21,7 +21,7 @@ class KeyEventHandler;
 }
 
 class ContentComponent
-: public juce::Component, juce::Timer
+: public juce::Component
 {
 public:
   ContentComponent(mpc::Mpc&);
@@ -33,7 +33,6 @@ public:
   void mouseUp(const juce::MouseEvent& e) override;
   void mouseDrag(const juce::MouseEvent& e) override;
   void resized() override;
-  void timerCallback() override;
   
 private:
   mpc::Mpc& mpc;

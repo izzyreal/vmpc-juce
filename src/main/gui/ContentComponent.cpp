@@ -28,6 +28,8 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
   keyboard->onKeyDownFn = [&](int keyCode){ keyEvent(juce::KeyEvent(keyCode, true)); };
   keyboard->onKeyUpFn = [&](int keyCode){ keyEvent(juce::KeyEvent(keyCode, false)); };
   
+  addAndMakeVisible(keyboard);
+
   setName("ContentComponent");
   setWantsKeyboardFocus(true);
   
@@ -158,16 +160,6 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
     addAndMakeVisible(resetWindowSizeButton);
   }
 
-  startTimer(10);
-}
-
-void ContentComponent::timerCallback()
-{
-    auto peer = getPeer();
-    if (peer != nullptr) {
-        keyboard->peer = getPeer();
-        stopTimer();
-    }
 }
 
 ContentComponent::~ContentComponent()
