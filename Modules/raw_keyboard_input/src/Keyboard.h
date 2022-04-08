@@ -16,6 +16,9 @@ public:
   void timerCallback() override;
 
   juce::ComponentPeer* peer = nullptr;
+  
+  static bool processKeyEvent(int keyCode, bool isKeyDown);
+
   bool isKeyDown(int keyCode);
   void allKeysUp();
   
@@ -25,8 +28,8 @@ public:
 protected:
   static std::set<Keyboard*> thisses;
 
-  juce::ComponentPeer* getFocusedPeer();
-  bool processKeyEvent(int keyCode, bool isKeyDown);
+  static juce::ComponentPeer* getFocusedPeer();
+  
   void addPressedKey(int keyCode);
   void removePresedKey(int keyCode);
 

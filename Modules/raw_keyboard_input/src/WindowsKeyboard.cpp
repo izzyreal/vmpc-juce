@@ -22,7 +22,7 @@ LRESULT CALLBACK WindowsKeyboard::keyHandler(int keyCode, WPARAM w, LPARAM l) {
 	KeyInfo i;
 	i.lParam = l;
 	
-  if (!proccesKeyEvent(w, i.nTrans == 0))
+  if (!Keyboard::processKeyEvent(w, i.nTrans == 0))
   		return CallNextHookEx(nullptr, keyCode, w, l);
 	
   return 0;
