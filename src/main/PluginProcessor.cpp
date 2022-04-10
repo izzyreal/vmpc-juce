@@ -48,7 +48,11 @@ using namespace moduru::lang;
 using namespace moduru::file;
 
 VmpcAudioProcessor::VmpcAudioProcessor()
-: AudioProcessor (BusesProperties()
+: AudioProcessor (juce::PluginHostType::jucePlugInClientCurrentWrapperType == juce::AudioProcessor::wrapperType_AudioUnitv3 ?
+                  BusesProperties()
+                  .withOutput("STEREO OUT", juce::AudioChannelSet::stereo(), true)
+                  :
+                  BusesProperties()
                   .withInput("RECORD IN",  juce::AudioChannelSet::stereo(), true)
                   .withOutput("STEREO OUT", juce::AudioChannelSet::stereo(), true)
                   .withOutput("MIX OUT 1/2", juce::AudioChannelSet::stereo(), false)
