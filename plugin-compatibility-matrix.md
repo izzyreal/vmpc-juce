@@ -13,7 +13,7 @@ Long story short, using VMPC2000XL as a sampler, recording new sounds with it, d
 
 
 
-|     Windows     |                    VST3 Audio                     |             VST3 MIDI             |
+|   Windows 10    |                    VST3 Audio                     |             VST3 MIDI             |
 | :-------------: | :-----------------------------------------------: | :-------------------------------: |
 | Ableton Live 10 |           1 stereo in<br />5 stereo out           | 16 channels in<br />1 channel out |
 |    Reaper 6     | 1 stereo in (always monitoring)<br />5 stereo out |                                   |
@@ -21,12 +21,13 @@ Long story short, using VMPC2000XL as a sampler, recording new sounds with it, d
 
 
 
-|       Mac       |                              AU                              | VST3 |
-| :-------------: | :----------------------------------------------------------: | :--: |
-|   Logix Pro X   | 5 stereo out<br />1 stereo in (Side Chain in top right of plugin) |      |
-| Ableton Live 10 |                5 stereo out<br />1 stereo in                 |      |
-|    Reaper 6     |                                                              |      |
-|    Cubase 10    |                                                              |      |
+|      macOS      |                              AU                              |                        AUv3                        | VST3 |
+| :-------------: | :----------------------------------------------------------: | :------------------------------------------------: | ---- |
+|  Logix Pro (X)  | 1 stereo in (Side Chain in top right of plugin)<br />5 stereo out | 0 stereo in<br />1 stereo out<br />only MIDI input |      |
+| Ableton Live 10 |                1 stereo in<br />5 stereo out                 |                unsupported by Live                 |      |
+|   GarageBand    |                                                              | 0 stereo in<br />1 stereo out<br />only MIDI input |      |
+|    Cubase 10    |                                                              |                                                    |      |
+|    Reaper 6     |                                                              |                                                    |      |
 
 **Supported features**
 
