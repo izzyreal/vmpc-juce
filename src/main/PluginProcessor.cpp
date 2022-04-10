@@ -87,6 +87,7 @@ bool VmpcAudioProcessor::acceptsMidi() const
 
 bool VmpcAudioProcessor::producesMidi() const
 {
+  if (wrapperType == wrapperType_AudioUnitv3) return false;
 #if JucePlugin_ProducesMidiOutput
   return true;
 #else
