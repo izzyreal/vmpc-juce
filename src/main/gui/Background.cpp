@@ -4,6 +4,7 @@
 Background::Background()
 {
   img = ResourceUtil::loadImage("img/bg.jpg");
+  setBufferedToImage(true);
 }
 
 void Background::paint(juce::Graphics& g)
