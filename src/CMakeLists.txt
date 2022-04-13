@@ -36,12 +36,11 @@ endif()
 
 conan_basic_setup(NO_OUTPUT_DIRS)
 
-
-
 juce_add_plugin(vmpc2000xl
     
     # Relevant to iOS only
     REQUIRES_FULL_SCREEN TRUE
+    BACKGROUND_AUDIO_ENABLED TRUE
 
     # Relevant to all builds
     ICON_BIG "main/resources/icon.png"
