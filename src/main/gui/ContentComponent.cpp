@@ -24,13 +24,11 @@ CMRC_DECLARE(vmpcjuce);
 ContentComponent::ContentComponent(mpc::Mpc& _mpc)
 : mpc (_mpc), keyEventHandler (mpc.getControls().lock()->getKeyEventHandler())
 {
-  keyboard = KeyboardFactory::instance();
+  keyboard = KeyboardFactory::instance(this);
 
   keyboard->onKeyDownFn = [&](int keyCode){ keyEvent(juce::KeyEvent(keyCode, true)); };
   keyboard->onKeyUpFn = [&](int keyCode){ keyEvent(juce::KeyEvent(keyCode, false)); };
   
-  addAndMakeVisible(keyboard);
-
   setWantsKeyboardFocus(true);
   
   background = new Background();

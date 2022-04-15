@@ -1,9 +1,11 @@
 #pragma once
 #include "Keyboard.h"
 
+namespace juce { class Component; }
+
 class MacOsKeyboard : public Keyboard {
 public:
-  MacOsKeyboard();
+  explicit MacOsKeyboard(juce::Component* parent);
   ~MacOsKeyboard();
 
 private:

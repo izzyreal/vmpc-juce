@@ -6,13 +6,13 @@
 #include "WindowsKeyboard.h"
 #endif
 
-Keyboard* KeyboardFactory::instance()
+Keyboard* KeyboardFactory::instance(juce::Component* parent)
 {
 #if  defined (__APPLE__)
-  return new MacOsKeyboard();
+  return new MacOsKeyboard(parent);
 #elif defined (_WIN32)
-  return new WindowsKeyboard();
+  return new WindowsKeyboard(parent);
 #else
-  return new Keyboard();
+  return new Keyboard(parent);
 #endif
 }

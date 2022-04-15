@@ -2,7 +2,7 @@
 #include <Foundation/Foundation.h>
 #include <AppKit/AppKit.h>
 
-MacOsKeyboard::MacOsKeyboard()
+MacOsKeyboard::MacOsKeyboard(juce::Component* parent) : Keyboard(parent)
 {
   installMonitor();
 }

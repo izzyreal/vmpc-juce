@@ -3,9 +3,11 @@
 
 #include <Windows.h>
 
+namespace juce { class Component; }
+
 class WindowsKeyboard : public Keyboard {
 public:
-  WindowsKeyboard();
+  explicit WindowsKeyboard(juce::Component* parent);
   ~WindowsKeyboard();
   
 private:

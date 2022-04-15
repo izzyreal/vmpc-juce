@@ -28,7 +28,7 @@ LRESULT CALLBACK WindowsKeyboard::keyHandler(int keyCode, WPARAM w, LPARAM l) {
   return 0;
 }
 
-WindowsKeyboard::WindowsKeyboard()
+WindowsKeyboard::WindowsKeyboard(juce::Component* parent) : Keyboard(parent)
 {
 	SetWindowsHookA(WH_KEYBOARD, (HOOKPROC) keyHandler);
 }

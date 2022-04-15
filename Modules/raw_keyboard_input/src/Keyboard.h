@@ -1,16 +1,17 @@
 #pragma once
 
+#include <juce_gui_basics/juce_gui_basics.h>
+
 #include <set>
 #include <functional>
-
-#include <juce_gui_basics/juce_gui_basics.h>
+#include <mutex>
 
 namespace juce { class ComponentPeer; }
 
-class Keyboard : public juce::Component, public juce::Timer {
+class Keyboard : public juce::Timer {
 
 public:
-  Keyboard();
+  Keyboard(juce::Component* parent);
   ~Keyboard() override;
   
   void timerCallback() override;
@@ -34,6 +35,8 @@ protected:
   void removePresedKey(int keyCode);
 
 private:
+  std::recursive_mutex pressedKeysMutex;
+  juce::Component* parent;
   std::set<int> pressedKeys;
   
 };
