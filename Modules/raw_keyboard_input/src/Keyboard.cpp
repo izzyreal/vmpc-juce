@@ -5,7 +5,7 @@ std::set<Keyboard*> Keyboard::thisses;
 Keyboard::Keyboard(juce::Component* parent) : parent(parent)
 {
   thisses.emplace(this);
-  startTimer(10);
+  startTimer(1);
 }
 
 Keyboard::~Keyboard()
@@ -16,10 +16,10 @@ Keyboard::~Keyboard()
 bool Keyboard::processKeyEvent(int keyCode, bool isKeyDown)
 {
   auto focusedPeer = getFocusedPeer();
-    
+
   if (focusedPeer == nullptr)
     return false;
-  
+
   for (auto t : thisses) {
     if (t->peer == focusedPeer) {
       if (isKeyDown)
@@ -28,7 +28,7 @@ bool Keyboard::processKeyEvent(int keyCode, bool isKeyDown)
         t->removePresedKey(keyCode);
     }
   }
-  
+
   return true;
 }
 
@@ -44,11 +44,13 @@ juce::ComponentPeer* Keyboard::getFocusedPeer()
 
 void Keyboard::timerCallback()
 {
-  auto _peer = parent->getPeer();
-  if (_peer != nullptr) {
-    peer = _peer;
-    stopTimer();
-  }
+    if (peer == nullptr) {
+        auto _peer = parent->getPeer();
+        if (_peer != nullptr) {
+            peer = _peer;
+            stopTimer();
+        }
+    }
 }
 
 bool Keyboard::isKeyDown(int keyCode)
@@ -67,19 +69,19 @@ void Keyboard::addPressedKey(int keyCode)
 void Keyboard::removePresedKey(int keyCode)
 {
   std::lock_guard<std::recursive_mutex> lock(pressedKeysMutex);
-  
+
   if (pressedKeys.count(keyCode) == 1)
     pressedKeys.erase(keyCode);
-  
+
   if (onKeyUpFn) onKeyUpFn(keyCode);
 }
 
 void Keyboard::allKeysUp()
 {
   std::lock_guard<std::recursive_mutex> lock(pressedKeysMutex);
-  
+
   for (auto keyCode : pressedKeys)
     onKeyUpFn(keyCode);
-  
+
   pressedKeys.clear();
 }

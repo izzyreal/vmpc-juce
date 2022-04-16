@@ -17,19 +17,21 @@
 
 /* Basic usage *\
 
-MyComponent::MyComponent()
+MyComponent::MyComponent() // extends juce::Component
 {
-  keyboard = KeyboardFactory::instance();
+  // We need access to the ComponentPeer in order to distinguish
+  // between multiple instances in a DAW, so we pass the holder of
+  // the Keyboard instance to the factory method.
+
+  keyboard = KeyboardFactory::instance(this);
 
   // Optionally install callbacks
+
   keyboard->onKeyDownFn = [&](int keyCode){ keyEvent(juce::KeyEvent(keyCode, true)); };
   keyboard->onKeyUpFn = [&](int keyCode){ keyEvent(juce::KeyEvent(keyCode, false)); };
 
-  // We need access to the ComponentPeer in order to distinguish
-  // between multiple instances in a DAW.
-  addAndMakeVisible(keyboard);
-
   // or call this in a juce::Timer instead
+
   keyboard->isKeyDown(keyCode);
 }
 

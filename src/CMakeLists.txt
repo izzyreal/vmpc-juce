@@ -98,7 +98,7 @@ target_link_libraries(vmpc2000xl PRIVATE
 if (UNIX AND NOT APPLE)
     include(FindPkgConfig)
     pkg_search_module(udisks2 REQUIRED udisks2)
-    target_link_libraries(vmpc2000xl PRIVATE ${udisks2_LIBRARIES})
+    target_link_libraries(vmpc2000xl PRIVATE ${udisks2_LIBRARIES} X11)
     target_compile_definitions(vmpc2000xl_LV2 PRIVATE JucePlugin_LV2URI="http://www.izmar.nl/VMPC2000XL")
 endif()
 
