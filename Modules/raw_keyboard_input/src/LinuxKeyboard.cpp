@@ -4,8 +4,9 @@
 
 LinuxKeyboard::LinuxKeyboard(juce::Component* parent) : Keyboard(parent)
 {
-    eventLoop = new std::thread([&](){
-        while (true) {
+    running = true;
+    eventLoop = new std::thread([this](){
+        while (this->running) {
         if (display == nullptr)
         {
             auto xWindowSystem = juce::XWindowSystem::getInstanceWithoutCreating();
@@ -44,5 +45,8 @@ void LinuxKeyboard::timerCallback()
 
 LinuxKeyboard::~LinuxKeyboard()
 {
-  // remove hook
+  running = false;
+  while (!eventLoop->joinable())
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  eventLoop->join();
 }

@@ -18,4 +18,5 @@ private:
     char prev_keymap[32];
     std::thread* eventLoop;
     Display* display = nullptr;
+    bool running = false;
 };
