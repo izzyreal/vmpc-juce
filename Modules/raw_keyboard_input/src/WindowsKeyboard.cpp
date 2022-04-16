@@ -30,10 +30,10 @@ LRESULT CALLBACK WindowsKeyboard::keyHandler(int keyCode, WPARAM w, LPARAM l) {
 
 WindowsKeyboard::WindowsKeyboard(juce::Component* parent) : Keyboard(parent)
 {
-	SetWindowsHookA(WH_KEYBOARD, (HOOKPROC) keyHandler);
+	hook = SetWindowsHookA(WH_KEYBOARD, (HOOKPROC) keyHandler);
 }
 
 WindowsKeyboard::~WindowsKeyboard()
 {
-  // remove hook
+  UnhookWindowsHookEx(hook);
 }

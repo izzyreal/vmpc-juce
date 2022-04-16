@@ -12,5 +12,6 @@ public:
   
 private:
 	static LRESULT CALLBACK keyHandler(int keyCode, WPARAM w, LPARAM l);
-
+  HHOOK hook;
+  
 };
