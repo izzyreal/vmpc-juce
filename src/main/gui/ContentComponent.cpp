@@ -17,12 +17,23 @@
 
 #include "../version.h"
 
+#include <raw_keyboard_input/raw_keyboard_input.h>
+
 CMRC_DECLARE(vmpcjuce);
 
 ContentComponent::ContentComponent(mpc::Mpc& _mpc)
 : mpc (_mpc), keyEventHandler (mpc.getControls().lock()->getKeyEventHandler())
 {
-  setName("ContentComponent");
+  keyboard = KeyboardFactory::instance(this);
+
+  keyboard->onKeyDownFn = [&](int keyCode){
+    keyEventHandler.lock()->handle(mpc::controls::KeyEvent(keyCode, true));
+  };
+  
+  keyboard->onKeyUpFn = [&](int keyCode){
+    keyEventHandler.lock()->handle(mpc::controls::KeyEvent(keyCode, false));
+  };
+  
   setWantsKeyboardFocus(true);
   
   background = new Background();
@@ -151,10 +162,13 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
     resetWindowSizeButton.setWantsKeyboardFocus(false);
     addAndMakeVisible(resetWindowSizeButton);
   }
+
 }
 
 ContentComponent::~ContentComponent()
 {
+  delete keyboard;
+  
   delete dataWheel;
   
   lcd->stopTimer();
@@ -178,12 +192,6 @@ bool ContentComponent::keyPressed(const juce::KeyPress& k)
   if (k.getTextDescription().toStdString() == "command + Q")
     return false;
   
-  return true;
-}
-
-bool ContentComponent::keyEvent(const juce::KeyEvent &keyEvent)
-{
-  keyEventHandler.lock()->handle(mpc::controls::KeyEvent(keyEvent.rawKeyCode, keyEvent.keyDown));
   return true;
 }
 

@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
+include(../CPM.cmake)
+
 include(ResourceBundling.cmake)
 
 set(VMPC_VERSION 0.4.4)
@@ -26,6 +28,9 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 include(${CMAKE_CURRENT_BINARY_DIR}/conan_paths.cmake)
 
 find_package(JUCE CONFIG REQUIRED)
+
+CPMAddPackage("gh:izzyreal/juce-raw-keyboard-input-module#main")
+
 juce_disable_default_flags()
 
 if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo_multi.cmake)
@@ -92,12 +97,13 @@ target_link_libraries(vmpc2000xl PRIVATE
     juce::juce_audio_utils
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
-    juce::juce_recommended_warning_flags)
+    juce::juce_recommended_warning_flags
+    raw_keyboard_input)
 
 if (UNIX AND NOT APPLE)
     include(FindPkgConfig)
     pkg_search_module(udisks2 REQUIRED udisks2)
-    target_link_libraries(vmpc2000xl PRIVATE ${udisks2_LIBRARIES})
+    target_link_libraries(vmpc2000xl PRIVATE ${udisks2_LIBRARIES} X11)
     target_compile_definitions(vmpc2000xl_LV2 PRIVATE JucePlugin_LV2URI="http://www.izmar.nl/VMPC2000XL")
 endif()
 

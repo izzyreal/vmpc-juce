@@ -12,6 +12,8 @@
 
 #include <vector>
 
+class Keyboard;
+
 namespace mpc { class Mpc; }
 
 namespace mpc::controls {
@@ -26,7 +28,6 @@ public:
   ~ContentComponent() override;
   
   bool keyPressed(const juce::KeyPress &key) override;
-  bool keyEvent(const juce::KeyEvent &keyEvent) override;
   void mouseDown(const juce::MouseEvent& e) override;
   void mouseUp(const juce::MouseEvent& e) override;
   void mouseDrag(const juce::MouseEvent& e) override;
@@ -60,6 +61,9 @@ private:
   Background* background;
   DataWheelControl* dataWheel;
   LCDControl* lcd;
+  
+  Keyboard* keyboard;
+  
   std::vector<ButtonControl*> buttons;
   std::vector<PadControl*> pads;
 
