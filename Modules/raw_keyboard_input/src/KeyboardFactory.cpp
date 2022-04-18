@@ -1,7 +1,10 @@
 #include "KeyboardFactory.h"
 #include "Keyboard.h"
 #if  defined (__APPLE__)
+#include <TargetConditionals.h>
+#ifndef TARGET_OS_IPHONE
 #include "MacOsKeyboard.h"
+#endif
 #elif defined (_WIN32)
 #include "WindowsKeyboard.h"
 #elif defined (__linux__)
@@ -11,7 +14,12 @@
 Keyboard* KeyboardFactory::instance(juce::Component* parent)
 {
 #if  defined (__APPLE__)
+#include <TargetConditionals.h>
+#ifdef TARGET_OS_IPHONE
+  return new Keyboard(parent);
+#else
   return new MacOsKeyboard(parent);
+#endif
 #elif defined (_WIN32)
   return new WindowsKeyboard(parent);
 #elif defined (__linux__)
