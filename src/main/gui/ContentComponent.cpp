@@ -26,8 +26,13 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
 {
   keyboard = KeyboardFactory::instance(this);
 
-  keyboard->onKeyDownFn = [&](int keyCode){ keyEvent(juce::KeyEvent(keyCode, true)); };
-  keyboard->onKeyUpFn = [&](int keyCode){ keyEvent(juce::KeyEvent(keyCode, false)); };
+  keyboard->onKeyDownFn = [&](int keyCode){
+    keyEventHandler.lock()->handle(mpc::controls::KeyEvent(keyCode, true));
+  };
+  
+  keyboard->onKeyUpFn = [&](int keyCode){
+    keyEventHandler.lock()->handle(mpc::controls::KeyEvent(keyCode, false));
+  };
   
   setWantsKeyboardFocus(true);
   
@@ -187,12 +192,6 @@ bool ContentComponent::keyPressed(const juce::KeyPress& k)
   if (k.getTextDescription().toStdString() == "command + Q")
     return false;
   
-  return true;
-}
-
-bool ContentComponent::keyEvent(const juce::KeyEvent &keyEvent)
-{
-  keyEventHandler.lock()->handle(mpc::controls::KeyEvent(keyEvent.rawKeyCode, keyEvent.keyDown));
   return true;
 }
 

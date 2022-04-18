@@ -28,7 +28,6 @@ public:
   ~ContentComponent() override;
   
   bool keyPressed(const juce::KeyPress &key) override;
-  bool keyEvent(const juce::KeyEvent &keyEvent) override;
   void mouseDown(const juce::MouseEvent& e) override;
   void mouseUp(const juce::MouseEvent& e) override;
   void mouseDrag(const juce::MouseEvent& e) override;
