@@ -21,7 +21,7 @@ class KeyEventHandler;
 }
 
 class ContentComponent
-: public juce::Component
+: public juce::Component, juce::FocusChangeListener
 {
 public:
   ContentComponent(mpc::Mpc&);
@@ -32,6 +32,7 @@ public:
   void mouseUp(const juce::MouseEvent& e) override;
   void mouseDrag(const juce::MouseEvent& e) override;
   void resized() override;
+  void globalFocusChanged(juce::Component*) override;
   
 private:
   mpc::Mpc& mpc;

@@ -163,6 +163,7 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
     addAndMakeVisible(resetWindowSizeButton);
   }
 
+  juce::Desktop::getInstance().addFocusChangeListener(this);
 }
 
 ContentComponent::~ContentComponent()
@@ -373,4 +374,9 @@ void ContentComponent::resized()
   
   versionLabel.setTransform(scaleTransform);
   versionLabel.setBounds(1175, 118, 100, 20);
+}
+
+void ContentComponent::globalFocusChanged(juce::Component*)
+{
+  keyboard->allKeysUp();
 }
