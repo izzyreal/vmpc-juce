@@ -53,11 +53,14 @@ private:
   juce::Image ledGreenImg;
   juce::Image keyboardImg;
   juce::Image resetWindowSizeImg;
+  juce::Image importImg;
+  juce::FileChooser* fileChooser = nullptr;
 
   juce::Label versionLabel;
 
   juce::ImageButton keyboardButton;
   juce::ImageButton resetWindowSizeButton;
+  juce::ImageButton importButton;
 
   Background* background;
   DataWheelControl* dataWheel;

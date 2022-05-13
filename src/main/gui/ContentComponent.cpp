@@ -4,6 +4,9 @@
 
 #include <Mpc.hpp>
 
+#include <disk/AbstractDisk.hpp>
+#include <disk/MpcFile.hpp>
+
 #include <controls/Controls.hpp>
 #include <controls/KeyEvent.hpp>
 #include <controls/KeyEventHandler.hpp>
@@ -22,7 +25,16 @@ CMRC_DECLARE(vmpcjuce);
 ContentComponent::ContentComponent(mpc::Mpc& _mpc)
 : mpc (_mpc), keyEventHandler (mpc.getControls().lock()->getKeyEventHandler())
 {
-
+  keyboard = KeyboardFactory::instance(this);
+  
+  keyboard->onKeyDownFn = [&](int keyCode){
+    keyEventHandler.lock()->handle(mpc::controls::KeyEvent(keyCode, true));
+  };
+  
+  keyboard->onKeyUpFn = [&](int keyCode){
+    keyEventHandler.lock()->handle(mpc::controls::KeyEvent(keyCode, false));
+  };
+  
   setWantsKeyboardFocus(true);
 
   background = new Background();
@@ -112,51 +124,69 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
 
   resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, transparentWhite, resetWindowSizeImg, 1.0, transparentWhite, resetWindowSizeImg, 0.25, transparentWhite);
 
+  importImg = ResourceUtil::loadImage("img/import.png");
+  
+  importButton.setImages(false, true, true, importImg, 0.5, transparentWhite, importImg, 1.0, transparentWhite, importImg, 0.25, transparentWhite);
+  
+  importButton.setTooltip("Import files or folders");
+  
+  fileChooser = new juce::FileChooser("Choose files to import", juce::File(), "*.all;*.snd;*.aps;*.pgm;*.mid;*.wav", true, true, this);
+
+  importButton.onClick = [&](){
+    typedef juce::FileBrowserComponent flags;
+    auto chooserFlags = flags::canSelectFiles /*| flags::canSelectDirectories */ | flags::canSelectMultipleItems | flags::openMode;
+    fileChooser->launchAsync(chooserFlags, [&_mpc](const juce::FileChooser& chooser){
+      for (auto& f : chooser.getURLResults()) {
+        
+        auto is = f.createInputStream(juce::URL::InputStreamOptions (juce::URL::ParameterHandling::inAddress)
+                                      .withConnectionTimeoutMs (1000)
+                                      .withNumRedirectsToFollow (0));
+        
+        if (is->getNumBytesRemaining() > 0 && is->getNumBytesRemaining() < 100 * 1024 * 1024) {
+          std::vector<char> data;
+          while (!is->isExhausted()) {
+            data.emplace_back(is->readByte());
+          }
+          if (data.size() > 0) {
+            auto newFile = _mpc.getDisk().lock()->newFile(f.getFileName().toStdString());
+            newFile->setFileData(data);
+          }
+        }
+      }
+    });
+  };
+  addAndMakeVisible(importButton);
+  
   versionLabel.setText(version::get(), juce::dontSendNotification);
   versionLabel.setColour(juce::Label::textColourId, juce::Colours::darkgrey);
   addAndMakeVisible(versionLabel);
 
   keyboardButton.setTooltip("Configure computer keyboard");
-
-  class KbButtonListener : public juce::Button::Listener {
-  public:
-    KbButtonListener(mpc::Mpc& _mpc) : mpc(_mpc) {}
-    mpc::Mpc& mpc;
-    void buttonClicked(juce::Button*) override {
-      mpc.getLayeredScreen().lock()->openScreen("vmpc-keyboard");
-    }
+  keyboardButton.onClick = [&]() {
+    mpc.getLayeredScreen().lock()->openScreen("vmpc-keyboard");
   };
-
-  keyboardButton.addListener(new KbButtonListener(mpc));
+  
   keyboardButton.setWantsKeyboardFocus(false);
   addAndMakeVisible(keyboardButton);
 
-  resetWindowSizeButton.setTooltip("Reset window size");
-
-  class ResetButtonListener : public juce::Button::Listener {
-  public:
-    ResetButtonListener(mpc::Mpc& _mpc, Component* __this) : mpc(_mpc), _this(__this) {}
-    mpc::Mpc& mpc;
-    Component* _this;
-    void buttonClicked(juce::Button*) override {
-      _this->getParentComponent()->getParentComponent()->getParentComponent()->setSize(1298 / 2, 994 /2);
-    }
-  };
-
-  if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS) {
-    resetWindowSizeButton.addListener(new ResetButtonListener(mpc, this));
+  if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS)
+  {
+      resetWindowSizeButton.setTooltip("Reset window size");
+      resetWindowSizeButton.onClick = [&](){
+      getParentComponent()->getParentComponent()->getParentComponent()->setSize(1298 / 2, 994 /2);
+    };
     resetWindowSizeButton.setWantsKeyboardFocus(false);
     addAndMakeVisible(resetWindowSizeButton);
   }
-
+  
   juce::Desktop::getInstance().addFocusChangeListener(this);
 }
 
 ContentComponent::~ContentComponent()
 {
   juce::Desktop::getInstance().removeFocusChangeListener(this);
+  delete fileChooser;
   delete keyboard;
-
   delete dataWheel;
 
   lcd->stopTimer();
@@ -354,8 +384,11 @@ void ContentComponent::resized()
   keyboardButton.setBounds(1298 - (100 +  10), 10, 100, 50);
   keyboardButton.setTransform(scaleTransform);
 
+  importButton.setBounds(1298 - (145 +  20), 10, 50, 50);
+  importButton.setTransform(scaleTransform);
+  
   if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS) {
-    resetWindowSizeButton.setBounds(1298 - (145 + 20), 13, 45, 45);
+    resetWindowSizeButton.setBounds(1298 - (190 + 30), 13, 45, 45);
     resetWindowSizeButton.setTransform(scaleTransform);
   }
 
