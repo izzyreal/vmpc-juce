@@ -110,9 +110,6 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
   for (auto& l : mpc.getHardware().lock()->getLeds())
     l->addObserver(leds);
   
-  for (auto& l : mpc.getHardware().lock()->getLeds())
-    l->deleteObserver(leds);
-  
   leds->startTimer(25);
   slider->startTimer(25);
   
