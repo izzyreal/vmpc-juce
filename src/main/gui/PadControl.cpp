@@ -61,8 +61,6 @@ bool PadControl::isInterestedInFileDrag(const StringArray& files)
 
 void PadControl::loadFile(const String path, bool shouldBeConverted, std::string screenToReturnTo)
 {
-    const auto padIndex = pad.lock()->getIndex();
-    
     if (StrUtil::hasEnding(StrUtil::toLower(path.toStdString()), ".snd") || StrUtil::hasEnding(StrUtil::toLower(path.toStdString()), ".wav"))
     {
         auto sampler = mpc.getSampler().lock();
@@ -139,6 +137,7 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
             auto programIndex = mpcSoundPlayerChannel->getProgram();
             auto program = mpc.getSampler().lock()->getProgram(programIndex).lock();
             auto soundIndex = mpc.getSampler().lock()->getSoundCount() - 1;
+            auto padIndex = pad.lock()->getIndex() + (mpc.getBank() * 16);
             auto programPad = program->getPad(padIndex);
             auto padNote = programPad->getNote();
             
