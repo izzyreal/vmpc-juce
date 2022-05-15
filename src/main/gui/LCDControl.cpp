@@ -36,12 +36,12 @@ void LCDControl::drawPixelsToImg()
 	
 	auto othersScreen = mpc.screens->get<OthersScreen>("others");
 	auto contrast = othersScreen->getContrast();
-	
+
   juce::Colour c;
 	
-	auto halfOn = Constants::LCD_HALF_ON.darker(static_cast<int>(contrast * 0.02));
-  auto on = Constants::LCD_ON.darker(static_cast<int>(contrast * 0.02));
-	auto off = Constants::LCD_OFF.brighter(static_cast<int>(contrast * 0.01428));
+	auto halfOn = Constants::LCD_HALF_ON.darker(static_cast<float>(contrast * 0.02));
+  auto on = Constants::LCD_ON.darker(static_cast<float>(contrast * 0.02));
+	auto off = Constants::LCD_OFF.brighter(static_cast<float>(contrast * 0.01428));
 
 	const auto rectX = dirtyRect.getX();
 	const auto rectY = dirtyRect.getY();
