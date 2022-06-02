@@ -42,7 +42,7 @@ file(
         "${_src_root_path}/*.h*"
 )
 
-
+CPMAddPackage("gh:fltk/fltk#master")
 
 foreach(_source IN ITEMS ${_source_list})
     get_filename_component(_source_path "${_source}" PATH)
@@ -58,7 +58,10 @@ if (UNIX AND NOT APPLE)
     target_link_libraries(vmpc-fltk PRIVATE ${udisks2_LIBRARIES} X11)
 endif()
 
+
+target_link_libraries(vmpc-fltk PUBLIC fltk)
 target_link_libraries(vmpc-fltk PUBLIC ${CONAN_LIBS})
+target_include_directories(vmpc-fltk PUBLIC ${fltk_SOURCE_DIR})
 
 if(MSVC)
 	target_compile_options(vmpc-fltk PRIVATE "/MP")
