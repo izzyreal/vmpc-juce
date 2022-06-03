@@ -4,7 +4,9 @@
 
 class KeyboardHandler : Fl_Input
 {
-	//mpc::Mpc& mpc;
-	KeyboardHandler(mpc::Mpc& mpc);
+public:
+	KeyboardHandler(mpc::Mpc& _mpcRef);
+private:
+	mpc& _mpcRef;
 };
 
