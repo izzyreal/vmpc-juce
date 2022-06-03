@@ -42,7 +42,12 @@ file(
         "${_src_root_path}/*.h*"
 )
 
-CPMAddPackage("gh:fltk/fltk#master")
+CPMAddPackage(
+    NAME fltk
+    GIT_TAG branch-1.3
+    GITHUB_REPOSITORY fltk/fltk
+    OPTIONS "FLTK_BUILD_TEST OFF"
+)
 
 foreach(_source IN ITEMS ${_source_list})
     get_filename_component(_source_path "${_source}" PATH)
@@ -51,6 +56,10 @@ foreach(_source IN ITEMS ${_source_list})
 endforeach()
 
 add_executable(vmpc-fltk ${_source_list})
+
+if (APPLE)
+    target_link_libraries(vmpc-fltk PUBLIC "-framework Cocoa")
+endif()
 
 if (UNIX AND NOT APPLE)
     include(FindPkgConfig)
@@ -62,6 +71,7 @@ endif()
 target_link_libraries(vmpc-fltk PUBLIC fltk)
 target_link_libraries(vmpc-fltk PUBLIC ${CONAN_LIBS})
 target_include_directories(vmpc-fltk PUBLIC ${fltk_SOURCE_DIR})
+target_include_directories(vmpc-fltk PUBLIC ${fltk_BINARY_DIR})
 
 if(MSVC)
 	target_compile_options(vmpc-fltk PRIVATE "/MP")
