@@ -15,17 +15,16 @@
 #include <lcdgui/Screens.hpp>
 #include <lcdgui/screens/OthersScreen.hpp>
 
-#include <gui/BasicStructs.hpp>
+//#include <gui/BasicStructs.hpp>
 #include <iostream>
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 
-void drawScreen(void*) {
+void drawScreen(void* mpcPtr) {
+	mpc::Mpc* mpc = (mpc::Mpc*) mpcPtr;
 	puts("TICK");
-	mpc::Mpc mpc;
-	mpc.init(44100, 1, 1);
-	auto pixels = mpc.getLayeredScreen().lock()->getPixels();
+	auto pixels = mpc->getLayeredScreen().lock()->getPixels();
 	for (int y = 0; y < 60; y++) {
 		for (int x = 0; x < 248; x++) {
 			if ((*pixels)[x][y]) {
@@ -37,12 +36,13 @@ void drawScreen(void*) {
 			fl_point(x, y);
 		}
 	}
-	std::cout << "test loop" << std::endl;
-	Fl::repeat_timeout(1.0, drawScreen);
+	//std::cout << "test loop" << std::endl;
+	Fl::repeat_timeout(1.0, drawScreen, &mpc);
 }
 
 int main(int argc, char** argv) {
-
+	mpc::Mpc mpc;
+	mpc.init(44100, 1, 1);
 	Fl_Window* window = new Fl_Window(1000, 1000);
 	Fl_Box* box = new Fl_Box(10, 10, 250, 70);
 	//window->fullscreen();
@@ -53,6 +53,7 @@ int main(int argc, char** argv) {
 
 	window->end();
 	window->show(argc, argv);
+	//Fl::add_timeout(1.0, initialise, &mpcPtr);
 	Fl::add_timeout(1.0, drawScreen);
 	return Fl::run();
 }
