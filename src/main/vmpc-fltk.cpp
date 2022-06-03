@@ -63,7 +63,7 @@ int keyhandler(int event) {
 int main(int argc, char** argv) {
 	Mpc mpc;
 	mpc.init(44100, 1, 1);
-	mpc.getControls().lock()->getKeyEventHandler();
+	//mpc.getControls().lock()->getKeyEventHandler();
 
 	KeyboardHandler keyboardHandler(mpc);
 	//mpc.getLayeredScreen().lock()->openScreen("sequencer");
