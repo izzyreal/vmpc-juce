@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
 	window->show(argc, argv);
 	//Fl::add_timeout(1.0, initialise, &mpc);
 	Fl::add_timeout(1.0, drawScreen, &mpc);
-	Fl::add_handler(keyhandler);
+	//Fl::add_handler(keyhandler);
 	Fl::add_system_handler(keyhandler, &mpcPtr2);
 	return Fl::run();
 }
