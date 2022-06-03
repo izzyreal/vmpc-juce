@@ -7,6 +7,6 @@ class KeyboardHandler : Fl_Input
 public:
 	KeyboardHandler(mpc::Mpc& _mpcRef);
 private:
-	mpc& _mpcRef;
+	Mpc& _mpcRef;
 };
 
