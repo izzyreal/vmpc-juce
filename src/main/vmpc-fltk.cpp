@@ -1,14 +1,16 @@
+#define WIN32
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Box.H>
 #include <Fl/Fl_Image.H>
+#include <FL/fl_draw.H>
 #include <Fl/Fl_Shared_Image.H>
 #include <FL/Fl_BMP_Image.H>
 #include <Fl/Fl_RGB_Image.H>
 #include <Fl/Fl_PNG_Image.H>
 
 #include <Mpc.hpp>
-#include "mpc-screens.h"
+//#include "mpc-screens.h"
 
 #include <lcdgui/LayeredScreen.hpp>
 #include <lcdgui/Layer.hpp>
@@ -20,6 +22,7 @@
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
+using namespace mpc;
 
 void drawScreen(void* mpcPtr) {
 	mpc::Mpc* mpc = (mpc::Mpc*) mpcPtr;
@@ -41,8 +44,9 @@ void drawScreen(void* mpcPtr) {
 }
 
 int main(int argc, char** argv) {
-	mpc::Mpc mpc;
+	Mpc mpc;
 	mpc.init(44100, 1, 1);
+	mpc.getLayeredScreen().lock()->openScreen("sequencer");
 	Fl_Window* window = new Fl_Window(1000, 1000);
 	Fl_Box* box = new Fl_Box(10, 10, 250, 70);
 	//window->fullscreen();
@@ -53,7 +57,7 @@ int main(int argc, char** argv) {
 
 	window->end();
 	window->show(argc, argv);
-	//Fl::add_timeout(1.0, initialise, &mpcPtr);
-	Fl::add_timeout(1.0, drawScreen);
+	//Fl::add_timeout(1.0, initialise, &mpc);
+	Fl::add_timeout(1.0, drawScreen, &mpc);
 	return Fl::run();
 }
