@@ -12,9 +12,6 @@
 #include "KeyboardHandler.h"
 
 #include <Mpc.hpp>
-#include <controls/Controls.hpp>
-#include <controls/KeyEventHandler.hpp>
-#include <controls/KeyEvent.hpp>
 //#include "mpc-screens.h"
 
 #include <lcdgui/LayeredScreen.hpp>
@@ -30,6 +27,8 @@ using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 using namespace mpc;
 
+Fl_Widget* inputWidget;
+
 void drawScreen(void* mpcPtr) {
 	mpc::Mpc* mpc = (mpc::Mpc*)mpcPtr;
 	auto ls = mpc->getLayeredScreen().lock();
@@ -41,23 +40,35 @@ void drawScreen(void* mpcPtr) {
 				fl_color(FL_BLACK);
 			}
 			else {
-				fl_color(235, 243, 219);
+				fl_color(234, 243, 219);
 			}
 			fl_point(x, y);
 		}
 	}
 	std::cout << "test loop" << std::endl;
-	Fl::repeat_timeout(0.1, drawScreen, mpc);
+	Fl::repeat_timeout(0.05, drawScreen, mpc);
 }
 
-int keyhandler(int event) {
-	if (event == FL_SHORTCUT) {
-		if (Fl::event_key()) {
-			std::cout << Fl::event_key() << std::endl;
-			return 1;
-		}
+int rawHandler(void* event, void* mpcPtr)
+{
+	mpc::Mpc* mpc = (mpc::Mpc*)mpcPtr;
+	auto keyEventHandler = mpc->getControls().lock()->getKeyEventHandler().lock();
+	auto eventMsg = (MSG*)event;
+	switch (eventMsg->message)
+	{
+	case WM_KEYDOWN:
+		//printf("%d \n", eventMsg->wParam);
+		keyEventHandler->handle(KeyEvent(eventMsg->wParam, true));
 	}
-	return 0;  // we had no interest in the event
+	return 0;
+}
+
+int escKeyConsumer(int event)
+{
+	if (event == FL_SHORTCUT) {
+		return 1;
+	}
+	return 0;
 }
 
 int main(int argc, char** argv) {
@@ -65,9 +76,10 @@ int main(int argc, char** argv) {
 	mpc.init(44100, 1, 1);
 	//mpc.getControls().lock()->getKeyEventHandler();
 
-	KeyboardHandler keyboardHandler(mpc);
+	//KeyboardHandler keyHandler{ mpc };
 	//mpc.getLayeredScreen().lock()->openScreen("sequencer");
 	Fl_Window* window = new Fl_Window(800, 600);
+	//inputWidget = new  KeyboardHandler(mpc);
 	Fl_Box* box = new Fl_Box(10, 10, 250, 70);
 	//window->fullscreen();
 
@@ -75,6 +87,7 @@ int main(int argc, char** argv) {
 	window->show(argc, argv);
 	//Fl::add_timeout(1.0, initialise, &mpc);
 	Fl::add_timeout(1.0, drawScreen, &mpc);
-	//Fl::add_handler(keyhandler);
+	Fl::add_handler(escKeyConsumer);
+	Fl::add_system_handler(rawHandler, &mpc);
 	return Fl::run();
 }
