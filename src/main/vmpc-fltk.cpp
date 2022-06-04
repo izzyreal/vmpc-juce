@@ -57,7 +57,6 @@ int rawHandler(void* event, void* mpcPtr)
 	switch (eventMsg->message)
 	{
 	case WM_KEYDOWN:
-		//printf("%d \n", eventMsg->wParam);
 		keyEventHandler->handle(KeyEvent(eventMsg->wParam, true));
 	}
 	return 0;
@@ -74,18 +73,13 @@ int escKeyConsumer(int event)
 int main(int argc, char** argv) {
 	Mpc mpc;
 	mpc.init(44100, 1, 1);
-	//mpc.getControls().lock()->getKeyEventHandler();
 
-	//KeyboardHandler keyHandler{ mpc };
-	//mpc.getLayeredScreen().lock()->openScreen("sequencer");
 	Fl_Window* window = new Fl_Window(800, 600);
-	//inputWidget = new  KeyboardHandler(mpc);
 	Fl_Box* box = new Fl_Box(10, 10, 250, 70);
 	//window->fullscreen();
 
 	window->end();
 	window->show(argc, argv);
-	//Fl::add_timeout(1.0, initialise, &mpc);
 	Fl::add_timeout(1.0, drawScreen, &mpc);
 	Fl::add_handler(escKeyConsumer);
 	Fl::add_system_handler(rawHandler, &mpc);
