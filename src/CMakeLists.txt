@@ -49,6 +49,8 @@ CPMAddPackage(
     OPTIONS "FLTK_BUILD_TEST OFF"
 )
 
+CPMAddPackage("gh:PortAudio/portaudio#v19.7.0")
+
 foreach(_source IN ITEMS ${_source_list})
     get_filename_component(_source_path "${_source}" PATH)
     string(REPLACE "/" "\\" _source_path_msvc "${_source_path}")
@@ -72,6 +74,8 @@ target_link_libraries(vmpc-fltk PUBLIC fltk)
 target_link_libraries(vmpc-fltk PUBLIC ${CONAN_LIBS})
 target_include_directories(vmpc-fltk PUBLIC ${fltk_SOURCE_DIR})
 target_include_directories(vmpc-fltk PUBLIC ${fltk_BINARY_DIR})
+target_link_libraries(vmpc-fltk PUBLIC portaudio)
+#target_include_directories(vmpc-fltk PUBLIC ${portaudio_SOURCE_DIR})
 
 if(MSVC)
 	target_compile_options(vmpc-fltk PRIVATE "/MP")

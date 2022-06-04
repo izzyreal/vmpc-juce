@@ -4,22 +4,21 @@
 #include <FL/Fl_Box.H>
 #include <Fl/Fl_Image.H>
 #include <FL/fl_draw.H>
-#include <Fl/Fl_Shared_Image.H>
-#include <FL/Fl_BMP_Image.H>
-#include <Fl/Fl_RGB_Image.H>
-#include <Fl/Fl_PNG_Image.H>
 #include <Fl/Fl_Input.H>
-#include "KeyboardHandler.h"
+
+#include <controls/Controls.hpp>
+#include <controls/KeyEventHandler.hpp>
+#include <controls/KeyEvent.hpp>
+
+#include <portaudio.h>
 
 #include <Mpc.hpp>
-//#include "mpc-screens.h"
 
 #include <lcdgui/LayeredScreen.hpp>
 #include <lcdgui/Layer.hpp>
 #include <lcdgui/Screens.hpp>
 #include <lcdgui/screens/OthersScreen.hpp>
 
-//#include <gui/BasicStructs.hpp>
 #include <iostream>
 #include <controls/KeyEvent.cpp>
 
@@ -57,6 +56,7 @@ int rawHandler(void* event, void* mpcPtr)
 	switch (eventMsg->message)
 	{
 	case WM_KEYDOWN:
+		printf("%d", eventMsg->wParam);
 		keyEventHandler->handle(KeyEvent(eventMsg->wParam, true));
 	}
 	return 0;
