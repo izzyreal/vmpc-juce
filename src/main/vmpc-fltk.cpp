@@ -33,7 +33,7 @@ using namespace mpc;
 #define SAMPLE_RATE   (44100)
 #define FRAMES_PER_BUFFER  (512)
 
-static int patestCallback(const void* inputBuffer, void* outputBuffer,
+static int patestCallback(const void** inputBuffer, void* outputBuffer,
 	unsigned long framesPerBuffer,
 	const PaStreamCallbackTimeInfo* timeInfo,
 	PaStreamCallbackFlags statusFlags,
@@ -50,7 +50,6 @@ static int patestCallback(const void* inputBuffer, void* outputBuffer,
 	float tempBuffer[2][FRAMES_PER_BUFFER];
 	auto server = mpc->getAudioMidiServices().lock()->getAudioServer();
 	//server->work(tempBuffer);
-	//server->work();
 
 	for (i = 0; i < framesPerBuffer; i++)
 	{
@@ -89,7 +88,7 @@ int rawHandler(void* event, void* mpcPtr)
 {
 	mpc::Mpc* mpc = (mpc::Mpc*)mpcPtr;
 	auto keyEventHandler = mpc->getControls().lock()->getKeyEventHandler().lock();
-	//auto keyReleaseHandler = mpc->getControls().lock()->isShiftPressed();
+	auto keyReleaseHandler = mpc->getControls().lock()->isShiftPressed();
 	auto eventMsg = (MSG*)event;
 	switch (eventMsg->message)
 	{
