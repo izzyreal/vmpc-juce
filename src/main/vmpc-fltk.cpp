@@ -95,8 +95,10 @@ int rawHandler(void* event, void* mpcPtr)
 	{
 	case WM_KEYDOWN:
 		keyEventHandler->handle(KeyEvent(eventMsg->wParam, true));
+		break;
 	case WM_KEYUP:
 		keyEventHandler->handle(KeyEvent(eventMsg->wParam, false));
+		break;
 	}
 	return 0;
 }
