@@ -96,7 +96,7 @@ int rawHandler(void* event, void* mpcPtr)
 	case WM_KEYDOWN:
 		keyEventHandler->handle(KeyEvent(eventMsg->wParam, true));
 	case WM_KEYUP:
-		mpc->getControls().lock()->setShiftPressed(false);
+		keyEventHandler->handle(KeyEvent(eventMsg->wParam, false));
 	}
 	return 0;
 }
