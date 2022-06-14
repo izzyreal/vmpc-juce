@@ -74,6 +74,7 @@ target_link_libraries(vmpc-fltk PUBLIC fltk)
 target_link_libraries(vmpc-fltk PUBLIC ${CONAN_LIBS})
 target_include_directories(vmpc-fltk PUBLIC ${fltk_SOURCE_DIR})
 target_include_directories(vmpc-fltk PUBLIC ${fltk_BINARY_DIR})
+target_link_libraries(${vmpc-fltk} fltk fltk_images) 
 target_link_libraries(vmpc-fltk PUBLIC portaudio_static)
 
 if(MSVC)
