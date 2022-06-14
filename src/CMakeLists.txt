@@ -57,7 +57,6 @@ foreach(_source IN ITEMS ${_source_list})
     source_group("${_source_path_msvc}" FILES "${_source}")
 endforeach()
 
-find_package(FLTK REQUIRED NO_MODULE)
 include_directories(${FLTK_INCLUDE_DIRS})
 
 add_executable(vmpc-fltk ${_source_list})
