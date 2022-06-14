@@ -1,4 +1,10 @@
+#if _WIN32
 #define WIN32
+#elif __linux__
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xatom.h>
+#endif
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Box.H>
@@ -33,7 +39,7 @@ using namespace mpc;
 #define SAMPLE_RATE   (44100)
 #define FRAMES_PER_BUFFER  (512)
 
-static int patestCallback(const void** inputBuffer, void* outputBuffer,
+static int patestCallback(const void* inputBuffer, void* outputBuffer,
 	unsigned long framesPerBuffer,
 	const PaStreamCallbackTimeInfo* timeInfo,
 	PaStreamCallbackFlags statusFlags,
@@ -47,18 +53,16 @@ static int patestCallback(const void** inputBuffer, void* outputBuffer,
 	(void)statusFlags;
 	(void)inputBuffer;
 
-	float tempBuffer[2][FRAMES_PER_BUFFER];
+	std::vector<std::vector<float>> tempBufferOut(2, std::vector<float>(FRAMES_PER_BUFFER));
+	std::vector<float*> tempBufferOutAdapter{ tempBufferOut[0].data(), tempBufferOut[1].data() };
+
 	auto server = mpc->getAudioMidiServices().lock()->getAudioServer();
-	//server->work(tempBuffer);
+	server->work(nullptr, tempBufferOutAdapter.data(), FRAMES_PER_BUFFER, 0, 2);
 
 	for (i = 0; i < framesPerBuffer; i++)
 	{
-		//*out++ = data->sine[data->left_phase];  /* left */
-		//*out++ = data->sine[data->right_phase];  /* right */
-		//data->left_phase += 1;
-		//if (data->left_phase >= TABLE_SIZE) data->left_phase -= TABLE_SIZE;
-		//data->right_phase += 3; /* higher pitch so we can distinguish left and right. */
-		//if (data->right_phase >= TABLE_SIZE) data->right_phase -= TABLE_SIZE;
+		*out++ = tempBufferOut[0][i];
+		*out++ = tempBufferOut[1][i];
 	}
 
 	return paContinue;
@@ -81,7 +85,7 @@ void drawScreen(void* mpcPtr) {
 		}
 	}
 	//std::cout << "test loop" << std::endl;
-	Fl::repeat_timeout(0.05, drawScreen, mpc);
+	Fl::repeat_timeout(0.0001, drawScreen, mpc);
 }
 
 int rawHandler(void* event, void* mpcPtr)
@@ -148,16 +152,18 @@ int main(int argc, char** argv) {
 	mpc.init(44100, 1, 1);
 	auto server = mpc.getAudioMidiServices().lock()->getAudioServer();
 	server->resizeBuffers(FRAMES_PER_BUFFER);
-	Fl_Window* window = new Fl_Window(800, 600);
+	Fl_Window* window = new Fl_Window(248, 60);
 	Fl_Box* box = new Fl_Box(10, 10, 250, 70);
 	//window->fullscreen();
 
-	window->end();
-	window->show(argc, argv);
 	Fl::add_timeout(1.0, drawScreen, &mpc);
 	Fl::add_handler(escKeyConsumer);
 	Fl::add_system_handler(rawHandler, &mpc);
 	initialisePortAudio(&mpc);
+
+	window->end();
+	window->show(argc, argv);
+
 	int exitCode = Fl::run();
 	Pa_Terminate();
 	return exitCode;
