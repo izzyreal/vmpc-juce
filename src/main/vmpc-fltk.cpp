@@ -8,7 +8,6 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Box.H>
-#include <Fl/Fl_Image.H>
 #include <FL/fl_draw.H>
 #include <Fl/Fl_Input.H>
 
