@@ -91,7 +91,9 @@ int rawHandler(void* event, void* mpcPtr)
 {
 	mpc::Mpc* mpc = (mpc::Mpc*)mpcPtr;
 	auto keyEventHandler = mpc->getControls().lock()->getKeyEventHandler().lock();
-	auto keyReleaseHandler = mpc->getControls().lock()->isShiftPressed();
+#ifdef __linux__ 
+	printf("Nothing");
+#elif _WIN32
 	auto eventMsg = (MSG*)event;
 	switch (eventMsg->message)
 	{
@@ -102,6 +104,7 @@ int rawHandler(void* event, void* mpcPtr)
 		keyEventHandler->handle(KeyEvent(eventMsg->wParam, false));
 		break;
 	}
+#endif
 	return 0;
 }
 
