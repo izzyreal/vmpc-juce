@@ -146,7 +146,7 @@ void initialisePortAudio(mpc::Mpc *mpc)
 	
 	err = Pa_StartStream(stream);
 
-	printf("");
+	printf("o");
 }
 
 int main(int argc, char** argv) {
