@@ -9,7 +9,7 @@
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Box.H>
 #include <FL/fl_draw.H>
-#include <Fl/Fl_Input.H>
+#include <FL/Fl_Input.H>
 
 #include <controls/Controls.hpp>
 #include <controls/GlobalReleaseControls.hpp>
