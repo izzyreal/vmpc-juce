@@ -73,7 +73,6 @@ endif()
 
 
 target_link_libraries(vmpc-fltk PUBLIC fltk)
-target_link_libraries(vmpc-fltk fltk)
 target_link_libraries(vmpc-fltk PUBLIC ${CONAN_LIBS})
 target_include_directories(vmpc-fltk PUBLIC ${fltk_SOURCE_DIR})
 target_include_directories(vmpc-fltk PUBLIC ${fltk_BINARY_DIR})
