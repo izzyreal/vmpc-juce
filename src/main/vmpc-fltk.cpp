@@ -1,16 +1,3 @@
-#if _WIN32
-#define WIN32
-#elif __linux__
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-#endif
-#include <FL/Fl.H>
-#include <FL/Fl_Window.H>
-#include <FL/Fl_Box.H>
-#include <FL/fl_draw.H>
-#include <FL/Fl_Input.H>
-
 #include <controls/Controls.hpp>
 #include <controls/GlobalReleaseControls.hpp>
 #include <controls/KeyEventHandler.hpp>
@@ -30,6 +17,20 @@
 
 #include <iostream>
 #include <controls/KeyEvent.cpp>
+
+#if _WIN32
+#define WIN32
+#elif __linux__
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xatom.h>
+#endif
+
+#include <FL/Fl.H>
+#include <FL/Fl_Window.H>
+#include <FL/Fl_Box.H>
+#include <FL/fl_draw.H>
+#include <FL/Fl_Input.H>
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
