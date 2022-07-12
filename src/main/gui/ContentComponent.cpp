@@ -24,36 +24,27 @@ CMRC_DECLARE(vmpcjuce);
 ContentComponent::ContentComponent(mpc::Mpc& _mpc)
 : mpc (_mpc), keyEventHandler (mpc.getControls().lock()->getKeyEventHandler())
 {
-  keyboard = KeyboardFactory::instance(this);
 
-  keyboard->onKeyDownFn = [&](int keyCode){
-    keyEventHandler.lock()->handle(mpc::controls::KeyEvent(keyCode, true));
-  };
-  
-  keyboard->onKeyUpFn = [&](int keyCode){
-    keyEventHandler.lock()->handle(mpc::controls::KeyEvent(keyCode, false));
-  };
-  
   setWantsKeyboardFocus(true);
-  
+
   background = new Background();
   addAndMakeVisible(background);
-  
+
   dataWheel = new DataWheelControl(mpc.getHardware().lock()->getDataWheel());
   mpc.getHardware().lock()->getDataWheel().lock()->addObserver(dataWheel);
   dataWheelImg = ResourceUtil::loadImage("img/datawheels.jpg");
   dataWheel->setImage(dataWheelImg, 100);
   addAndMakeVisible(dataWheel);
-  
+
   lcd = new LCDControl(mpc, mpc.getLayeredScreen());
   lcd->setSize(496, 120);
   addAndMakeVisible(lcd);
-  
+
   lcd->drawPixelsToImg();
   lcd->startTimer(25);
-  
+
   ButtonControl::initRects();
-  
+
   for (auto& l : mpc.getHardware().lock()->getButtonLabels())
   {
     auto bc = new ButtonControl(ButtonControl::rects[l]->expanded(10),
@@ -61,15 +52,15 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
     addAndMakeVisible(bc);
     buttons.push_back(bc);
   }
-  
+
   const int padWidth = 96;
   int padSpacing = 25;
   const int padOffsetX = 778;
   const int padOffsetY = 397;
   int padCounter = 0;
-  
+
   padHitImg = ResourceUtil::loadImage("img/padhit.png");
-  
+
   for (int j = 3; j >= 0; j--)
   {
     for (int i = 0; i < 4; i++)
@@ -77,58 +68,58 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
       int x1 = (padWidth + padSpacing) * i + padOffsetX + i;
       int y1 = (padWidth + padSpacing) * j + padOffsetY;
       juce::Rectangle<float> rect(x1, y1, padWidth + i, padWidth);
-      
+
       auto pc = new PadControl(mpc, rect, mpc.getHardware().lock()->getPad(padCounter++), padHitImg);
       addAndMakeVisible(pc);
-      
+
       pads.push_back(pc);
     }
   }
-  
+
   sliderImg = ResourceUtil::loadImage("img/sliders.jpg");
   slider = new SliderControl(mpc.getHardware().lock()->getSlider());
   slider->setImage(sliderImg);
   addAndMakeVisible(slider);
-  
+
   recKnobImg = ResourceUtil::loadImage("img/recknobs.jpg");
   recKnob = new KnobControl(0, mpc.getHardware().lock()->getRecPot());
   recKnob->setImage(recKnobImg);
   addAndMakeVisible(recKnob);
-  
+
   volKnobImg = ResourceUtil::loadImage("img/volknobs.jpg");
   volKnob = new KnobControl(0, mpc.getHardware().lock()->getVolPot());
   volKnob->setImage(volKnobImg);
   addAndMakeVisible(volKnob);
-  
+
   ledRedImg = ResourceUtil::loadImage("img/led_red.png");
   ledGreenImg = ResourceUtil::loadImage("img/led_green.png");
-  
+
   leds = new LedControl(mpc, ledGreenImg, ledRedImg);
   leds->setPadBankA(true);
   leds->addAndMakeVisible(this);
-  
+
   for (auto& l : mpc.getHardware().lock()->getLeds())
     l->addObserver(leds);
-  
+
   leds->startTimer(25);
   slider->startTimer(25);
-  
+
   keyboardImg = ResourceUtil::loadImage("img/keyboard.png");
-  
+
   auto transparentWhite = juce::Colours::transparentWhite;
-  
+
   keyboardButton.setImages(false, true, true, keyboardImg, 0.5, transparentWhite, keyboardImg, 1.0, transparentWhite, keyboardImg, 0.25, transparentWhite);
-  
+
   resetWindowSizeImg = ResourceUtil::loadImage("img/reset-window-size.png");
-  
+
   resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, transparentWhite, resetWindowSizeImg, 1.0, transparentWhite, resetWindowSizeImg, 0.25, transparentWhite);
-  
+
   versionLabel.setText(version::get(), juce::dontSendNotification);
   versionLabel.setColour(juce::Label::textColourId, juce::Colours::darkgrey);
   addAndMakeVisible(versionLabel);
-  
+
   keyboardButton.setTooltip("Configure computer keyboard");
-  
+
   class KbButtonListener : public juce::Button::Listener {
   public:
     KbButtonListener(mpc::Mpc& _mpc) : mpc(_mpc) {}
@@ -137,13 +128,13 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
       mpc.getLayeredScreen().lock()->openScreen("vmpc-keyboard");
     }
   };
-  
+
   keyboardButton.addListener(new KbButtonListener(mpc));
   keyboardButton.setWantsKeyboardFocus(false);
   addAndMakeVisible(keyboardButton);
-  
+
   resetWindowSizeButton.setTooltip("Reset window size");
-  
+
   class ResetButtonListener : public juce::Button::Listener {
   public:
     ResetButtonListener(mpc::Mpc& _mpc, Component* __this) : mpc(_mpc), _this(__this) {}
@@ -153,7 +144,7 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
       _this->getParentComponent()->getParentComponent()->getParentComponent()->setSize(1298 / 2, 994 /2);
     }
   };
-  
+
   if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS) {
     resetWindowSizeButton.addListener(new ResetButtonListener(mpc, this));
     resetWindowSizeButton.setWantsKeyboardFocus(false);
@@ -166,18 +157,18 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
 ContentComponent::~ContentComponent()
 {
   delete keyboard;
-  
+
   delete dataWheel;
-  
+
   lcd->stopTimer();
   delete lcd;
-  
+
   for (auto& b : buttons)
     delete b;
-  
+
   for (auto& p : pads)
     delete p;
-  
+
   delete leds;
   delete recKnob;
   delete volKnob;
@@ -189,7 +180,7 @@ bool ContentComponent::keyPressed(const juce::KeyPress& k)
 {
   if (k.getTextDescription().toStdString() == "command + Q")
     return false;
-  
+
   return true;
 }
 
@@ -199,9 +190,9 @@ void ContentComponent::mouseDown(const juce::MouseEvent& e) {
     if (s->getIndex() == e.source.getIndex()) { exists = true; break; }
   }
   if (!exists) sources.push_back(std::make_shared<juce::MouseInputSource>(e.source));
-  
+
   auto pos1 = sources[0]->getLastMouseDownPosition();
-  
+
   if (sources.size() == 1) {
     prevSingleX = pos1.getX();
     prevSingleY = pos1.getY();
@@ -226,10 +217,10 @@ void ContentComponent::mouseUp(const juce::MouseEvent& e)
 }
 
 void ContentComponent::mouseDrag(const juce::MouseEvent& e) {
-  
+
   auto thisSource = e.source;
   auto cur_pos1 = thisSource.getScreenPosition();
-  
+
   if (sources.size() == 1) {
     auto translation_x = prevSingleX != -1.f ? (cur_pos1.getX() - prevSingleX) : 0.f;
     auto translation_y = prevSingleY != -1.f ? (cur_pos1.getY() - prevSingleY) : 0.f;
@@ -242,14 +233,14 @@ void ContentComponent::mouseDrag(const juce::MouseEvent& e) {
     setBounds(newX, newY, getWidth(), getHeight());
   }
   else if (sources.size() == 2) {
-    
+
     // For smooth transitio between 1 and 2 fingers:
     // We should keep track of prevxy in a map per e.source.getIndex
     prevSingleX = -1.f;
     prevSingleY = -1.f;
-    
+
     std::shared_ptr<juce::MouseInputSource> thatSource;
-    
+
     for (int i = 0; i < sources.size(); i++) {
       auto s = sources[i];
       if (s->getIndex() != thisSource.getIndex()) {
@@ -262,53 +253,53 @@ void ContentComponent::mouseDrag(const juce::MouseEvent& e) {
         break;
       }
     }
-    
+
     if (!thatSource) {
       mouseDrag(e);
       return;
     }
-    
+
     auto cur_pos2 = thatSource->getScreenPosition();
-    
+
     float cur_distance = juce::Line<int>(cur_pos1.getX(), cur_pos1.getY(), cur_pos2.getX(), cur_pos2.getY()).getLength();
-    
+
     auto scale = prevDistance != -1 ? (cur_distance / prevDistance) : 1.0f;
     prevDistance = cur_distance;
     auto new_w = getWidth() * scale;
     auto ratio = 1298.0 / 994.0;
     auto new_h = new_w / ratio;
-    
+
     auto contentScale = getWidth() / 1298.0;
     auto screen_pinch_cx = (cur_pos1.getX() + cur_pos2.getX()) / 2;
     auto current_x = getX();
     auto current_content_pinch_cx = (screen_pinch_cx * contentScale) - current_x;
     auto new_content_pinch_cx = current_content_pinch_cx * scale;
     auto new_x = (screen_pinch_cx * contentScale) - new_content_pinch_cx;
-    
+
     auto screen_pinch_cy = (cur_pos1.getY() + cur_pos2.getY()) / 2;
     auto current_y = getY();
     auto current_content_pinch_cy = (screen_pinch_cy * contentScale) - current_y;
     auto new_content_pinch_cy = current_content_pinch_cy * scale;
     auto new_y = (screen_pinch_cy * contentScale) - new_content_pinch_cy;
-    
+
     auto translation_x = prevPinchCx != -1.f ? (screen_pinch_cx - prevPinchCx) : 0.f;
     auto translation_y = prevPinchCy != -1.f ? (screen_pinch_cy - prevPinchCy) : 0.f;
-    
+
     translation_x *= 1.2f;
     translation_y *= 1.2f;
-    
+
     new_x += translation_x;
     new_y += translation_y;
-    
+
     prevPinchCx = screen_pinch_cx;
     prevPinchCy = screen_pinch_cy;
-    
+
     auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
-    
+
     if (primaryDisplay != nullptr) {
       auto area = primaryDisplay->userArea;
       auto portrait = area.getWidth() < area.getHeight();
-      
+
       if (portrait && new_h < area.getHeight()) {
         return;
       }
@@ -321,7 +312,7 @@ void ContentComponent::mouseDrag(const juce::MouseEvent& e) {
       else if (!portrait && new_w > area.getWidth() * 3.0) {
         return;
       }
-      
+
       setBounds(new_x, new_y, new_w, new_h);
     }
   }
@@ -336,44 +327,55 @@ void ContentComponent::resized()
   dataWheel->setBounds(Constants::DATAWHEEL_RECT().getX(), Constants::DATAWHEEL_RECT().getY(), dataWheel->getFrameWidth(), dataWheel->getFrameHeight());
   lcd->setTransform(scaleTransform);
   lcd->setBounds(Constants::LCD_RECT().getX(), Constants::LCD_RECT().getY(), 496, 120);
-  
+
   for (auto& b : buttons)
   {
     b->setTransform(scaleTransform);
     b->setBounds();
   }
-  
+
   for (auto& p : pads)
   {
     p->setBounds();
     p->setTransform(scaleTransform);
   }
-  
+
   leds->setTransform(scaleTransform);
   leds->setBounds();
-  
+
   slider->setTransform(scaleTransform);
   slider->setBounds(Constants::SLIDER_RECT().getX(), Constants::SLIDER_RECT().getY(), sliderImg.getWidth() / 2, sliderImg.getHeight() * 0.01 * 0.5);
-  
+
   recKnob->setTransform(scaleTransform);
   recKnob->setBounds(Constants::RECKNOB_RECT().getX(), Constants::RECKNOB_RECT().getY(), recKnobImg.getWidth() / 2, recKnobImg.getHeight() * 0.01 * 0.5);
-  
+
   volKnob->setTransform(scaleTransform);
   volKnob->setBounds(Constants::VOLKNOB_RECT().getX(), Constants::VOLKNOB_RECT().getY(), volKnobImg.getWidth() / 2, volKnobImg.getHeight() * 0.01 * 0.5);
-  
+
   keyboardButton.setBounds(1298 - (100 +  10), 10, 100, 50);
   keyboardButton.setTransform(scaleTransform);
-  
+
   if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS) {
     resetWindowSizeButton.setBounds(1298 - (145 + 20), 13, 45, 45);
     resetWindowSizeButton.setTransform(scaleTransform);
   }
-  
+
   versionLabel.setTransform(scaleTransform);
   versionLabel.setBounds(1175, 118, 100, 20);
 }
 
 void ContentComponent::globalFocusChanged(juce::Component*)
 {
+  if (keyboard == nullptr) {
+    keyboard = KeyboardFactory::instance(this);
+
+    keyboard->onKeyDownFn = [&](int keyCode) {
+      keyEventHandler.lock()->handle(mpc::controls::KeyEvent(keyCode, true));
+    };
+
+    keyboard->onKeyUpFn = [&](int keyCode) {
+      keyEventHandler.lock()->handle(mpc::controls::KeyEvent(keyCode, false));
+    };
+  }
   keyboard->allKeysUp();
 }
