@@ -26,14 +26,14 @@ class ContentComponent
 public:
   ContentComponent(mpc::Mpc&);
   ~ContentComponent() override;
-  
+
   bool keyPressed(const juce::KeyPress &key) override;
   void mouseDown(const juce::MouseEvent& e) override;
   void mouseUp(const juce::MouseEvent& e) override;
   void mouseDrag(const juce::MouseEvent& e) override;
   void resized() override;
   void globalFocusChanged(juce::Component*) override;
-  
+
 private:
   mpc::Mpc& mpc;
   std::weak_ptr<mpc::controls::KeyEventHandler> keyEventHandler;
@@ -43,7 +43,7 @@ private:
   float prevPinchCy = -1.f;
   float prevSingleX = -1.f;
   float prevSingleY = -1.f;
-  
+
   juce::Image dataWheelImg;
   juce::Image padHitImg;
   juce::Image sliderImg;
@@ -55,16 +55,16 @@ private:
   juce::Image resetWindowSizeImg;
 
   juce::Label versionLabel;
-  
+
   juce::ImageButton keyboardButton;
   juce::ImageButton resetWindowSizeButton;
 
   Background* background;
   DataWheelControl* dataWheel;
   LCDControl* lcd;
-  
-  Keyboard* keyboard;
-  
+
+  Keyboard* keyboard = nullptr;
+
   std::vector<ButtonControl*> buttons;
   std::vector<PadControl*> pads;
 

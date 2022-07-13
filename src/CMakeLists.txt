@@ -27,8 +27,9 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 
 include(${CMAKE_CURRENT_BINARY_DIR}/conan_paths.cmake)
 
-find_package(JUCE CONFIG REQUIRED)
+# find_package(JUCE CONFIG REQUIRED)
 
+CPMAddPackage("gh:juce-framework/JUCE#master")
 CPMAddPackage("gh:izzyreal/juce-raw-keyboard-input-module#main")
 
 juce_disable_default_flags()
@@ -66,6 +67,7 @@ juce_add_plugin(vmpc2000xl
     MICROPHONE_PERMISSION_ENABLED TRUE
     MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
     FORMATS LV2 VST3 AU AUv3 Standalone
+    LV2URI "http://www.izmar.nl/VMPC2000XL"
     PRODUCT_NAME "VMPC2000XL")
 
 set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/main")
@@ -111,7 +113,6 @@ if (UNIX AND NOT APPLE)
     include(FindPkgConfig)
     pkg_search_module(udisks2 REQUIRED udisks2)
     target_link_libraries(vmpc2000xl PRIVATE ${udisks2_LIBRARIES} X11)
-    target_compile_definitions(vmpc2000xl_LV2 PRIVATE JucePlugin_LV2URI="http://www.izmar.nl/VMPC2000XL")
 endif()
 
 target_link_libraries(vmpc2000xl PUBLIC ${CONAN_LIBS})
