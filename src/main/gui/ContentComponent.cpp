@@ -156,6 +156,7 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
 
 ContentComponent::~ContentComponent()
 {
+  juce::Desktop::getInstance().removeFocusChangeListener(this);
   delete keyboard;
 
   delete dataWheel;
