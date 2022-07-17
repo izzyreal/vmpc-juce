@@ -7,7 +7,7 @@ Long story short, using VMPC2000XL as a sampler, recording new sounds with it, d
 | Linux  | LV2 Audio | LV2 MIDI | VST3 Audio | VST3 MIDI |
 | :----: | :-------: | :------: | :--------: | :-------: |
 | Carla  | 2 mono in<br/>10 mono out | 16 channels in<br/>16 channels out |     ?      |     ?     |
-|  LMMS  |     ?     |    ?     |     ?      |     ?     |
+|  LMMS  | no LV2 support | no LV2 support |     ?      |     ?     |
 | Ardour |     ?     |    ?     |     ?      |     ?     |
 
 
