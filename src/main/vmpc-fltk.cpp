@@ -85,7 +85,7 @@ void drawScreen(void* mpcPtr) {
 		}
 	}
 	//std::cout << "test loop" << std::endl;
-	Fl::repeat_timeout(0.0001, drawScreen, mpc);
+	Fl::repeat_timeout(0.2, drawScreen, mpc);
 }
 
 int rawHandler(void* event, void* mpcPtr)
@@ -93,16 +93,19 @@ int rawHandler(void* event, void* mpcPtr)
 	mpc::Mpc* mpc = (mpc::Mpc*)mpcPtr;
 	auto keyEventHandler = mpc->getControls().lock()->getKeyEventHandler().lock();
 #ifdef __linux__ 
-	XEvent* keyEvent = (XEvent*)event;
-	if (keyEvent->type == KeyPress) {
-		uint32_t keyEventCode = keyEvent->xkey.keycode;
+	XEvent* xEvent = (XEvent*)event;
+	if (xEvent->type == KeyPress) {
+		XKeyEvent* xKeyEvent = (XKeyEvent*)xEvent; 
+		uint32_t keyEventCode = xEvent->xkey.keycode;
 		std::cout << keyEventCode << '\n';
-		keyEventHandler->handle(KeyEvent(keyEventCode, true));
-	}
-	else if (keyEvent->type == KeyRelease) {
-		uint32_t keyEventCode = keyEvent->xkey.keycode;
+		KeySym ks = XKeycodeToKeysym(fl_display, keyEventCode, 0);
+		keyEventHandler->handle(KeyEvent(ks, true));
+	} else if (xEvent->type == KeyRelease) {
+		XKeyEvent* xKeyEvent = (XKeyEvent*)xEvent;
+		uint32_t keyEventCode = xEvent->xkey.keycode;
 		std::cout << keyEventCode << '\n';
-		keyEventHandler->handle(KeyEvent(keyEventCode, false));
+		KeySym ks = XKeycodeToKeysym(fl_display, keyEventCode, 0);
+		keyEventHandler->handle(KeyEvent(ks, false));
 	}
 
 #elif _WIN32
@@ -162,11 +165,6 @@ void initialisePortAudio(mpc::Mpc *mpc)
 }
 
 int main(int argc, char** argv) {
-	Display* display;
-	Window Xwindow;
-	XEvent event;
-	int s;
-
 	Mpc mpc;
 	mpc.init(44100, 1, 1);
 	auto server = mpc.getAudioMidiServices().lock()->getAudioServer();
@@ -175,52 +173,10 @@ int main(int argc, char** argv) {
 	Fl_Box* box = new Fl_Box(10, 10, 250, 70);
 	//window->fullscreen();
 
-	/* open connection with the server */
-	display = XOpenDisplay(NULL);
-	if (display == NULL)
-	{
-		fprintf(stderr, "Cannot open display\n");
-		exit(1);
-	}
-
-	s = DefaultScreen(display);
-
-	/* create window */
-	Xwindow = XDefaultScreen(display);
-
-	/* select kind of events we are interested in */
-	XSelectInput(display, Xwindow, KeyPressMask | KeyReleaseMask);
-
-	/* map (show) the window */
-	XMapWindow(display, Xwindow);
-
-	/* event loop */
-	while (1)
-	{
-		XNextEvent(display, &event);
-
-		/* keyboard events */
-		if (event.type == KeyPress)
-		{
-			printf("KeyPress: %x\n", event.xkey.keycode);
-
-			/* exit on ESC key press */
-			if (event.xkey.keycode == 0x09)
-				break;
-		}
-		else if (event.type == KeyRelease)
-		{
-			printf("KeyRelease: %x\n", event.xkey.keycode);
-		}
-	}
-
 	Fl::add_timeout(1.0, drawScreen, &mpc);
 	Fl::add_handler(escKeyConsumer);
 	Fl::add_system_handler(rawHandler, &mpc);
 	initialisePortAudio(&mpc);
-
-	/* close connection to server */
-	XCloseDisplay(display);
 	window->end();
 	window->show(argc, argv);
 
