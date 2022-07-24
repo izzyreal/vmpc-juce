@@ -10,7 +10,7 @@ Long story short, using VMPC2000XL as a sampler, recording new sounds with it, d
 |  LMMS  | no LV2 support | no LV2 support | no VST3 support<br/>in stable | no VST3 support<br/>in stable |
 | Ardour | plugin doesn't open<br/>don't know why | plugin doesn't open<br/>don't know why | plugin opens but<br/>Ardour crashes | plugin opens but<br/>Ardour crashes |
 | Reaper |?|?|?|?|
-| Bitwig |?|?|?|?|
+| Bitwig | no LV2 support | no LV2 support |?|?|
 | Qtractor |?|?|?|?|
 | Mixxx |?|?|?|?|
 | [AudioPluginHost](https://github.com/juce-framework/JUCE/blob/master/extras/AudioPluginHost/AudioPluginHost.jucer) |?|?|?|?|
