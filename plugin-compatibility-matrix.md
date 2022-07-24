@@ -8,7 +8,7 @@ Long story short, using VMPC2000XL as a sampler, recording new sounds with it, d
 | :----: | :-------: | :------: | :--------: | :-------: |
 | Carla  | 2 mono in<br/>10 mono out | 16 channels in<br/>16 channels out |     ?      |     ?     |
 |  LMMS  | no LV2 support | no LV2 support |     ?      |     ?     |
-| Ardour |     ?     |    ?     |     ?      |     ?     |
+| Ardour | plugin doesn't open<br/>don't know why | plugin doesn't open<br/>don't know why |     ?      |     ?     |
 
 
 
