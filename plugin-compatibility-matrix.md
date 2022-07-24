@@ -12,6 +12,7 @@ Long story short, using VMPC2000XL as a sampler, recording new sounds with it, d
 | Reaper |?|?|?|?|
 | Bitwig |?|?|?|?|
 | Qtractor |?|?|?|?|
+| Mixxx |?|?|?|?|
 | [AudioPluginHost](https://github.com/juce-framework/JUCE/blob/master/extras/AudioPluginHost/AudioPluginHost.jucer) |?|?|?|?|
 
 
