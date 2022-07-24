@@ -11,6 +11,8 @@ Long story short, using VMPC2000XL as a sampler, recording new sounds with it, d
 | Ardour | plugin doesn't open<br/>don't know why | plugin doesn't open<br/>don't know why | plugin opens but<br/>Ardour crashes | plugin opens but<br/>Ardour crashes |
 | Reaper |?|?|?|?|
 | Bitwig |?|?|?|?|
+| Qtractor |?|?|?|?|
+| [AudioPluginHost](https://github.com/juce-framework/JUCE/blob/master/extras/AudioPluginHost/AudioPluginHost.jucer) |?|?|?|?|
 
 
 |   Windows 10    |                    VST3 Audio                     |             VST3 MIDI             |
