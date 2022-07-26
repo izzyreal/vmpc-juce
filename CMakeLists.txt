@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-include(../CPM.cmake)
+include(CPM.cmake)
 
 include(ResourceBundling.cmake)
 
@@ -22,25 +22,19 @@ project(vmpc2000xl VERSION ${VMPC_VERSION})
 
 add_definitions(-DJUCE_MODAL_LOOPS_PERMITTED)
 
-file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/main/version.h "#pragma once\nnamespace version { static char const* get(){ return \"${VMPC_VERSION}\";}}")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/src/main/version.h "#pragma once\nnamespace version { static char const* get(){ return \"${VMPC_VERSION}\";}}")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
-
-include(${CMAKE_CURRENT_BINARY_DIR}/conan_paths.cmake)
-
-# find_package(JUCE CONFIG REQUIRED)
 
 CPMAddPackage("gh:juce-framework/JUCE#master")
 CPMAddPackage("gh:izzyreal/juce-raw-keyboard-input-module#main")
+CPMAddPackage("gh:izzyreal/mpc#no-conan")
+CPMAddPackage("gh:izzyreal/ctoot#no-conan")
+CPMAddPackage("gh:izzyreal/moduru#no-conan")
 
 juce_disable_default_flags()
 
-if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo_multi.cmake)
-    include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo_multi.cmake)
-else()
-    include(${CMAKE_CURRENT_BINARY_DIR}/conanbuildinfo.cmake)
-endif()
-
-conan_basic_setup(NO_OUTPUT_DIRS)
+include_directories(${MPC_SOURCE_DIR}/src/main ${CTOOT_SOURCE_DIR}/src/main ${MODURU_SOURCE_DIR}/src/main)
+link_directories(${MPC_BINARY_DIR} ${CTOOT_BINARY_DIR} ${MODURU_BINARY_DIR})
 
 juce_add_plugin(vmpc2000xl
     
@@ -56,7 +50,7 @@ juce_add_plugin(vmpc2000xl
     BUNDLE_ID com.Izmar.vmpc2000xl
 
     # Relevant to all builds
-    ICON_BIG "main/resources/icon.png"
+    ICON_BIG "src/main/resources/icon.png"
     COMPANY_NAME Izmar
     IS_SYNTH TRUE
     NEEDS_MIDI_INPUT TRUE
@@ -70,7 +64,7 @@ juce_add_plugin(vmpc2000xl
     LV2URI "http://www.izmar.nl/VMPC2000XL"
     PRODUCT_NAME "VMPC2000XL")
 
-set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/main")
+set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/src/main")
 file(
         GLOB_RECURSE _source_list
         LIST_DIRECTORIES false
@@ -102,22 +96,19 @@ else()
   target_compile_definitions(vmpc2000xl PUBLIC JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1)  
 endif()
 
-target_link_libraries(vmpc2000xl PRIVATE
-    juce::juce_audio_utils
-    juce::juce_recommended_config_flags
-    juce::juce_recommended_lto_flags
-    juce::juce_recommended_warning_flags
-    raw_keyboard_input)
-
 if (UNIX AND NOT APPLE)
     include(FindPkgConfig)
     pkg_search_module(udisks2 REQUIRED udisks2)
     target_link_libraries(vmpc2000xl PRIVATE ${udisks2_LIBRARIES} X11)
 endif()
 
-target_link_libraries(vmpc2000xl PUBLIC ${CONAN_LIBS})
-
-target_link_libraries(vmpc2000xl PRIVATE juce::juce_recommended_lto_flags)
+target_link_libraries(vmpc2000xl PRIVATE
+    juce::juce_audio_utils
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags
+    raw_keyboard_input
+    mpc ctoot moduru)
 
 _bundle_vmpc_juce_resources(vmpc2000xl)
 

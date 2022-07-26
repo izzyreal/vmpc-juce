@@ -1,22 +1,13 @@
 # vmpc-juce, a JUCE implementation of VMPC2000XL, the Akai MPC2000XL emulator
 
-## Quick start
+## Creating a source package for offline building
 
-Requirements:
-- Visual Studio 2019, Xcode or Make
-- [CMake](https://cmake.org/)
-- [Python](https://www.python.org/downloads/)
-- [Conan](https://docs.conan.io/en/latest/installation.html)
+To create a source package that can be used for building VMPC2000XL offline, run `./package.sh`.
 
-Once you have these tools installed, run the following commands:
+It creates a `vmpc2000xl-0.4.4.tar.gz` which, unpacked, will yield a directory called `vmpc2000xl-0.4.4`.
+
+To build VMPC2000XL run:
+```bash
+cd vmpc2000xl-0.4.4
+./build.sh
 ```
-conan remote add jfrog-izmar https://izmar.jfrog.io/artifactory/api/conan/dev
-git clone https://github.com/izzyreal/vmpc-juce
-cd vmpc-juce
-mkdir build && cd build
-conan install .. --build missing && conan build ..
-```
-
-This will build a self-contained standalone desktop executable for Linux, MacOS or Windows.
-
-To hack around in the code in an IDE please refer to https://github.com/izzyreal/vmpc-workspace
