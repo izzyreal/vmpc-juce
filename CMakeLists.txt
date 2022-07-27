@@ -25,7 +25,7 @@ add_definitions(-DJUCE_MODAL_LOOPS_PERMITTED)
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/src/main/version.h "#pragma once\nnamespace version { static char const* get(){ return \"${VMPC_VERSION}\";}}")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 
-CPMAddPackage("gh:juce-framework/JUCE#master")
+CPMAddPackage("gh:juce-framework/JUCE#7.0.1")
 CPMAddPackage("gh:izzyreal/juce-raw-keyboard-input-module#main")
 CPMAddPackage("gh:izzyreal/mpc#no-conan")
 CPMAddPackage("gh:izzyreal/ctoot#no-conan")
