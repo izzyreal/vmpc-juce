@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
-include(CPM.cmake)
-
-include(ResourceBundling.cmake)
+include(cmake/CPM.cmake)
+include(cmake/ResourceBundling.cmake)
 
 set(VMPC_VERSION 0.4.4)
 set(CMAKE_CXX_STANDARD 17)
