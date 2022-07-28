@@ -33,7 +33,7 @@ CPMAddPackage("gh:izzyreal/moduru#no-conan")
 
 juce_disable_default_flags()
 
-include_directories(${MPC_SOURCE_DIR}/src/main ${CTOOT_SOURCE_DIR}/src/main ${MODURU_SOURCE_DIR}/src/main)
+include_directories(${MPC_SOURCE_DIR}/src/main ${CTOOT_SOURCE_DIR}/src/main ${MODURU_SOURCE_DIR}/src/main ${expected_SOURCE_DIR}/include)
 link_directories(${MPC_BINARY_DIR} ${CTOOT_BINARY_DIR} ${MODURU_BINARY_DIR})
 
 juce_add_plugin(vmpc2000xl
