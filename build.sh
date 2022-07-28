@@ -1,12 +1,14 @@
 #!/bin/sh
 
+generator=${1:-Ninja}
+
 mkdir -p build
 
 cwd=$(pwd)
 
 cmake \
   -B build \
-  -G "Ninja" \
+  -G "${generator}" \
   \
   -DCPM_mpc_SOURCE="$cwd/editables/mpc" \
   -DCPM_akaifat_SOURCE="$cwd/editables/akaifat" \
@@ -19,8 +21,10 @@ cmake \
   -DCPM_Catch2_SOURCE="$cwd/deps/Catch2" \
   -DCPM_filesystem_SOURCE="$cwd/deps/filesystem" \
   \
-  -Dexpected_SOURCE_DIR="$cwd/deps/expected" \
+  -Dexpected_INCLUDE_DIR="$cwd/deps/expected/include" \
   \
   -DCMAKE_BUILD_TYPE="Release"
 
-ninja -C build vmpc2000xl_All
+if [ "$generator" == "Ninja" ]; then
+  ninja -C build vmpc2000xl_All
+fi

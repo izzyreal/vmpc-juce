@@ -33,7 +33,7 @@ CPMAddPackage("gh:izzyreal/moduru#no-conan")
 
 juce_disable_default_flags()
 
-include_directories(${MPC_SOURCE_DIR}/src/main ${CTOOT_SOURCE_DIR}/src/main ${MODURU_SOURCE_DIR}/src/main ${expected_SOURCE_DIR}/include)
+include_directories(${MPC_SOURCE_DIR}/src/main ${CTOOT_SOURCE_DIR}/src/main ${MODURU_SOURCE_DIR}/src/main ${expected_INCLUDE_DIR})
 link_directories(${MPC_BINARY_DIR} ${CTOOT_BINARY_DIR} ${MODURU_BINARY_DIR})
 
 juce_add_plugin(vmpc2000xl
@@ -111,6 +111,21 @@ target_link_libraries(vmpc2000xl PRIVATE
     mpc ctoot moduru)
 
 _bundle_vmpc_juce_resources(vmpc2000xl)
+
+if(APPLE)
+  if (IOS)
+    execute_process(
+      COMMAND python macos-codesign-details-extractor.py
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      OUTPUT_VARIABLE DEVELOPMENT_TEAM)
+    set(CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${DEVELOPMENT_TEAM}")
+    message("\nSetting macOS/iOS development team to organisational unit: ${DEVELOPMENT_TEAM}\n"
+      "This is derived from the first valid Apple Development certificate in your local keychain.\n"
+      "You can tweak it in the Build Settings tab of your root project.\n")
+  else()
+    set(CMAKE_OSX_SYSROOT /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk)
+  endif()
+endif()
 
 if(MSVC)
 	target_compile_options(vmpc2000xl PRIVATE "/MP")
