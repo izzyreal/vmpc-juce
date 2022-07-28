@@ -55,6 +55,7 @@ $tarcommand \
   ./editables/juce-raw-keyboard-input-module \
   ./editables/moduru \
   ./editables/mpc \
+  ./editables/akaifat \
   ./deps/JUCE \
   ./deps/rapidjson \
   ./deps/Catch2 \
