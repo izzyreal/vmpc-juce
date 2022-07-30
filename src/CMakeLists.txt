@@ -7,10 +7,6 @@ include(ResourceBundling.cmake)
 set(VMPC_VERSION 0.4.4)
 set(CMAKE_CXX_STANDARD 17)
 
-if(DEFINED ENV{APPLE_M1})
-    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE INTERNAL "")
-endif()
-
 if(APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE INTERNAL "Minimum OS X deployment version")
 endif()
