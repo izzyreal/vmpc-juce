@@ -170,41 +170,13 @@ void initialisePortAudio(mpc::Mpc *mpc)
 	printf("o");
 }
 
-class mpcWindow : public Fl_Double_Window {
-	unsigned char pixbuf[YSIZE][XSIZE]; // image buffer
-	
-	// FLTK DRAW METHOD
-	void draw() {
-		fl_draw_image_mono((const uchar*)&pixbuf, 0, 0, XSIZE, YSIZE, 3, XSIZE * 3);
-	}
+unsigned char pixbuf[YSIZE][XSIZE][3];
 
-	// TIMER CALLBACK: CALLED TO UPDATE THE DRAWING
-	static void RenderImage_CB(void* userdata) {
-		mpcWindow* win = (mpcWindow*)userdata;
-		win->RenderImage();
-		Fl::repeat_timeout(UPDATE_RATE, RenderImage_CB, userdata);
-	}
-
-public:
-	// CTOR
-	mpcWindow(int w, int h, const char* name = 0) : Fl_Double_Window(w, h, name) {
-		end();
-		RenderImage();                   // show first drawing
-		// Start timer updating
-		Fl::add_timeout(UPDATE_RATE, RenderImage_CB, (void*)this);
-	}
-
-	void PlotPixel(int x, int y) {
-		
-	}
-
-	void RenderImage() {
-		for (int x = 0; x < XSIZE; x++)
-			for (int y = 0; y < YSIZE; y++)
-				PlotPixel(x, y);
-		redraw();
-	}
-};
+void PlotPixel(int x, int y, unsigned char r, unsigned char g, unsigned char b) {
+	pixbuf[y][x][0] = r;
+	pixbuf[y][x][1] = g;
+	pixbuf[y][x][2] = b;
+}
 
 int main(int argc, char** argv) {
 	Fl::visual(FL_RGB);
@@ -213,17 +185,20 @@ int main(int argc, char** argv) {
 	auto server = mpc.getAudioMidiServices().lock()->getAudioServer();
 	server->resizeBuffers(FRAMES_PER_BUFFER);
 	Fl::set_color(FL_GREEN, 234, 243, 219);
-	mpcWindow* win = new mpcWindow(XSIZE, YSIZE);
-	//window->color(FL_GREEN);
-	//Fl_Box* box = new Fl_Box(10, 10, 250, 70);
-	//window->fullscreen();
+	Fl_Window* win = new Fl_Window(XSIZE, YSIZE);
+	static unsigned char drawcount = 0;
+	for (int x = 0; x < XSIZE; x++)
+		for (int y = 0; y < YSIZE; y++)
+			PlotPixel(x, y, x + drawcount, y + drawcount, x + y + drawcount);
+	++drawcount;
 
+	fl_draw_image((const uchar*)&pixbuf, 0, 0, XSIZE, YSIZE, 3, 3);
 	//Fl::add_timeout(0.2, drawScreen, &mpc);
 	Fl::add_handler(escKeyConsumer);
 	Fl::add_system_handler(rawHandler, &mpc);
 	initialisePortAudio(&mpc);
 	win->end();
-	win->show(argc, argv);
+	win->show();
 
 	int exitCode = Fl::run();
 	Pa_Terminate();
