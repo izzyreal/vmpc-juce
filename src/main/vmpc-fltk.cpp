@@ -3,7 +3,6 @@
 #include <controls/KeyEventHandler.hpp>
 #include <controls/KeyEvent.hpp>
 
-#include <stdio.h>
 #include "portaudio.h"
 
 #include <Mpc.hpp>
@@ -29,8 +28,11 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Box.H>
+#include <FL/Fl_Button.H>
+#include <FL/Fl_Double_Window.H>
+#include <stdio.h>
+#include <time.h>
 #include <FL/fl_draw.H>
-#include <FL/Fl_Input.H>
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
@@ -38,6 +40,10 @@ using namespace mpc;
 
 #define SAMPLE_RATE   (44100)
 #define FRAMES_PER_BUFFER  (512)
+
+#define XSIZE 249
+#define YSIZE 60
+#define UPDATE_RATE 0.2
 
 static int patestCallback(const void* inputBuffer, void* outputBuffer,
 	unsigned long framesPerBuffer,
@@ -68,25 +74,25 @@ static int patestCallback(const void* inputBuffer, void* outputBuffer,
 	return paContinue;
 }
 
-void drawScreen(void* mpcPtr) {
-	mpc::Mpc* mpc = (mpc::Mpc*)mpcPtr;
-	auto ls = mpc->getLayeredScreen().lock();
-	mpc->getLayeredScreen().lock()->Draw();
-	auto pixels = mpc->getLayeredScreen().lock()->getPixels();
-	for (int y = 0; y < 60; y++) {
-		for (int x = 0; x < 248; x++) {
-			if ((*pixels)[x][y]) {
-				fl_color(FL_BLACK);
-			}
-			else {
-				fl_color(234, 243, 219);
-			}
-			fl_point(x, y);
-		}
-	}
-	//std::cout << "test loop" << std::endl;
-	Fl::repeat_timeout(0.2, drawScreen, mpc);
-}
+//void drawScreen(void* mpcPtr) {
+//	mpc::Mpc* mpc = (mpc::Mpc*)mpcPtr;
+//	auto ls = mpc->getLayeredScreen().lock();
+//	mpc->getLayeredScreen().lock()->Draw();
+//	auto pixels = mpc->getLayeredScreen().lock()->getPixels();
+//	for (unsigned int y = 0; y < 60; y++) {
+//		for (unsigned int x = 0; x < 248; x++) {
+//			if ((*pixels)[x][y]) {
+//				fl_color(FL_BLACK);
+//			}
+//			else {
+//				fl_color(FL_GREEN);
+//			}
+//			fl_point(x, y);
+//		}
+//	}
+//	//std::cout << "test loop" << std::endl;
+//	Fl::repeat_timeout(0.2, drawScreen, mpc);
+//}
 
 int rawHandler(void* event, void* mpcPtr)
 {
@@ -164,21 +170,60 @@ void initialisePortAudio(mpc::Mpc *mpc)
 	printf("o");
 }
 
+class mpcWindow : public Fl_Double_Window {
+	unsigned char pixbuf[YSIZE][XSIZE]; // image buffer
+	
+	// FLTK DRAW METHOD
+	void draw() {
+		fl_draw_image_mono((const uchar*)&pixbuf, 0, 0, XSIZE, YSIZE, 3, XSIZE * 3);
+	}
+
+	// TIMER CALLBACK: CALLED TO UPDATE THE DRAWING
+	static void RenderImage_CB(void* userdata) {
+		mpcWindow* win = (mpcWindow*)userdata;
+		win->RenderImage();
+		Fl::repeat_timeout(UPDATE_RATE, RenderImage_CB, userdata);
+	}
+
+public:
+	// CTOR
+	mpcWindow(int w, int h, const char* name = 0) : Fl_Double_Window(w, h, name) {
+		end();
+		RenderImage();                   // show first drawing
+		// Start timer updating
+		Fl::add_timeout(UPDATE_RATE, RenderImage_CB, (void*)this);
+	}
+
+	void PlotPixel(int x, int y) {
+		
+	}
+
+	void RenderImage() {
+		for (int x = 0; x < XSIZE; x++)
+			for (int y = 0; y < YSIZE; y++)
+				PlotPixel(x, y);
+		redraw();
+	}
+};
+
 int main(int argc, char** argv) {
+	Fl::visual(FL_RGB);
 	Mpc mpc;
 	mpc.init(44100, 1, 1);
 	auto server = mpc.getAudioMidiServices().lock()->getAudioServer();
 	server->resizeBuffers(FRAMES_PER_BUFFER);
-	Fl_Window* window = new Fl_Window(248, 60);
-	Fl_Box* box = new Fl_Box(10, 10, 250, 70);
+	Fl::set_color(FL_GREEN, 234, 243, 219);
+	mpcWindow* win = new mpcWindow(XSIZE, YSIZE);
+	//window->color(FL_GREEN);
+	//Fl_Box* box = new Fl_Box(10, 10, 250, 70);
 	//window->fullscreen();
 
-	Fl::add_timeout(1.0, drawScreen, &mpc);
+	//Fl::add_timeout(0.2, drawScreen, &mpc);
 	Fl::add_handler(escKeyConsumer);
 	Fl::add_system_handler(rawHandler, &mpc);
 	initialisePortAudio(&mpc);
-	window->end();
-	window->show(argc, argv);
+	win->end();
+	win->show(argc, argv);
 
 	int exitCode = Fl::run();
 	Pa_Terminate();
