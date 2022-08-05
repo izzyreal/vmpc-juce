@@ -41,11 +41,42 @@ using namespace mpc;
 #define SAMPLE_RATE   (44100)
 #define FRAMES_PER_BUFFER  (512)
 
-#define XSIZE 249
+#define XSIZE 248
 #define YSIZE 60
 #define UPDATE_RATE 0.2
 
-static int patestCallback(const void* inputBuffer, void* outputBuffer,
+class LCDWidget : public Fl_Widget {
+private:
+	mpc::Mpc& mpc;
+public:
+	LCDWidget(mpc::Mpc& _mpc) : Fl_Widget(0, 0, XSIZE, YSIZE), mpc(_mpc) {}
+	unsigned char pixbuf[YSIZE][XSIZE];
+	void draw() override
+	{
+		auto ls = mpc.getLayeredScreen().lock();
+		mpc.getLayeredScreen().lock()->Draw();
+		auto pixels = mpc.getLayeredScreen().lock()->getPixels();
+
+		for (int x = 0; x < XSIZE; x++)
+		{
+			for (int y = 0; y < YSIZE; y++)
+			{
+				if ((*pixels)[x][y])
+				{
+					pixbuf[y][x] = 0;
+				}
+				else
+				{
+					pixbuf[y][x] = 255;
+				}
+			}
+		}
+
+		fl_draw_image_mono((const uchar*)&pixbuf, 0, 0, XSIZE, YSIZE);
+	}
+};
+
+static int paCallback(const void* inputBuffer, void* outputBuffer,
 	unsigned long framesPerBuffer,
 	const PaStreamCallbackTimeInfo* timeInfo,
 	PaStreamCallbackFlags statusFlags,
@@ -94,6 +125,12 @@ static int patestCallback(const void* inputBuffer, void* outputBuffer,
 //	Fl::repeat_timeout(0.2, drawScreen, mpc);
 //}
 
+void drawScreen(void* lcdPtr) {
+	LCDWidget* lcdWidget = (LCDWidget*)lcdPtr;
+	lcdWidget->redraw();
+	Fl::repeat_timeout(0.2, drawScreen, lcdWidget);
+}
+
 int rawHandler(void* event, void* mpcPtr)
 {
 	mpc::Mpc* mpc = (mpc::Mpc*)mpcPtr;
@@ -140,6 +177,7 @@ int escKeyConsumer(int event)
 void initialisePortAudio(mpc::Mpc *mpc)
 {
 	PaStreamParameters outputParameters;
+	PaStreamParameters inputParameters;
 	PaStream* stream;
 	PaError err;
 
@@ -150,19 +188,30 @@ void initialisePortAudio(mpc::Mpc *mpc)
 		fprintf(stderr, "Error: No default output device.\n");
 		return;
 	}
+
+	inputParameters.device = Pa_GetDefaultInputDevice();
+	if (inputParameters.device == paNoDevice) {
+		fprintf(stderr, "Error: No default input device.\n");
+		return;
+	}
 	outputParameters.channelCount = 2;   
 	outputParameters.sampleFormat = paFloat32;
 	outputParameters.suggestedLatency = Pa_GetDeviceInfo(outputParameters.device)->defaultLowOutputLatency;
 	outputParameters.hostApiSpecificStreamInfo = NULL;
 
+	inputParameters.channelCount = 2;
+	inputParameters.sampleFormat = paFloat32;
+	inputParameters.suggestedLatency = Pa_GetDeviceInfo(inputParameters.device)->defaultLowInputLatency;
+	inputParameters.hostApiSpecificStreamInfo = NULL;
+
 	err = Pa_OpenStream(
 		&stream,
-		NULL, 
+		&inputParameters,
 		&outputParameters,
 		SAMPLE_RATE,
 		FRAMES_PER_BUFFER,
 		paClipOff,     
-		patestCallback,
+		paCallback,
 		mpc);
 	
 	err = Pa_StartStream(stream);
@@ -170,30 +219,19 @@ void initialisePortAudio(mpc::Mpc *mpc)
 	printf("o");
 }
 
-unsigned char pixbuf[YSIZE][XSIZE][3];
-
-void PlotPixel(int x, int y, unsigned char r, unsigned char g, unsigned char b) {
-	pixbuf[y][x][0] = r;
-	pixbuf[y][x][1] = g;
-	pixbuf[y][x][2] = b;
-}
-
 int main(int argc, char** argv) {
-	Fl::visual(FL_RGB);
 	Mpc mpc;
 	mpc.init(44100, 1, 1);
 	auto server = mpc.getAudioMidiServices().lock()->getAudioServer();
 	server->resizeBuffers(FRAMES_PER_BUFFER);
-	Fl::set_color(FL_GREEN, 234, 243, 219);
-	Fl_Window* win = new Fl_Window(XSIZE, YSIZE);
-	static unsigned char drawcount = 0;
-	for (int x = 0; x < XSIZE; x++)
-		for (int y = 0; y < YSIZE; y++)
-			PlotPixel(x, y, x + drawcount, y + drawcount, x + y + drawcount);
-	++drawcount;
+	
+	Fl::visual(FL_RGB);
+	Fl_Window* win = new Fl_Window(0,0,XSIZE, YSIZE);
+	win->begin();
+	LCDWidget* lcdWidget = new LCDWidget(mpc);
+	win->add(lcdWidget);
 
-	fl_draw_image((const uchar*)&pixbuf, 0, 0, XSIZE, YSIZE, 3, 3);
-	//Fl::add_timeout(0.2, drawScreen, &mpc);
+	Fl::add_timeout(0.2, drawScreen, lcdWidget);
 	Fl::add_handler(escKeyConsumer);
 	Fl::add_system_handler(rawHandler, &mpc);
 	initialisePortAudio(&mpc);
@@ -201,6 +239,7 @@ int main(int argc, char** argv) {
 	win->show();
 
 	int exitCode = Fl::run();
+	
 	Pa_Terminate();
 	return exitCode;
 }
