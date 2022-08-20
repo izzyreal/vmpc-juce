@@ -84,23 +84,14 @@ static int paCallback(const void* inputBuffer, void* outputBuffer,
 {
 	mpc::Mpc* mpc = (mpc::Mpc*)mpcPtr;
 	float* out = (float*)outputBuffer;
-	unsigned long i;
+	float* in = (float*)inputBuffer;
 
 	(void)timeInfo; /* Prevent unused variable warnings. */
 	(void)statusFlags;
 	(void)inputBuffer;
 
-	std::vector<std::vector<float>> tempBufferOut(2, std::vector<float>(FRAMES_PER_BUFFER));
-	std::vector<float*> tempBufferOutAdapter{ tempBufferOut[0].data(), tempBufferOut[1].data() };
-
 	auto server = mpc->getAudioMidiServices().lock()->getAudioServer();
-	server->work(nullptr, tempBufferOutAdapter.data(), FRAMES_PER_BUFFER, 0, 2);
-
-	for (i = 0; i < framesPerBuffer; i++)
-	{
-		*out++ = tempBufferOut[0][i];
-		*out++ = tempBufferOut[1][i];
-	}
+	server->work(in, out, FRAMES_PER_BUFFER, 2, 2);
 
 	return paContinue;
 }
@@ -194,6 +185,7 @@ void initialisePortAudio(mpc::Mpc *mpc)
 		fprintf(stderr, "Error: No default input device.\n");
 		return;
 	}
+
 	outputParameters.channelCount = 2;   
 	outputParameters.sampleFormat = paFloat32;
 	outputParameters.suggestedLatency = Pa_GetDeviceInfo(outputParameters.device)->defaultLowOutputLatency;
@@ -216,7 +208,7 @@ void initialisePortAudio(mpc::Mpc *mpc)
 	
 	err = Pa_StartStream(stream);
 
-	printf("o");
+	printf("Open");
 }
 
 int main(int argc, char** argv) {
