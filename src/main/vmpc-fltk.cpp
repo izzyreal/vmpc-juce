@@ -45,7 +45,7 @@ using namespace mpc;
 #define YSIZE 60
 #define UPDATE_RATE 0.2
 
-class LCDWidget : public Fl_Widget {
+class LCDWidget	 : public Fl_Widget {
 private:
 	mpc::Mpc& mpc;
 public:
@@ -119,7 +119,7 @@ static int paCallback(const void* inputBuffer, void* outputBuffer,
 void drawScreen(void* lcdPtr) {
 	LCDWidget* lcdWidget = (LCDWidget*)lcdPtr;
 	lcdWidget->redraw();
-	Fl::repeat_timeout(0.2, drawScreen, lcdWidget);
+	Fl::repeat_timeout(0.2, drawScreen, lcdWidget); 
 }
 
 int rawHandler(void* event, void* mpcPtr)
