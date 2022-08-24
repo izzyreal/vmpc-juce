@@ -128,6 +128,4 @@ endif()
 
 if(MSVC)
 	target_compile_options(vmpc2000xl PRIVATE "/MP")
-  # Dummy target to transitively add depedency unit tests to the workspace
-  add_custom_target(vmpc-juce-tests DEPENDS mpc-tests)
 endif()
