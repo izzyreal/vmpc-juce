@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
-include(cmake/CPM.cmake)
 include(cmake/ResourceBundling.cmake)
+include(FetchContent)
 
 set(VMPC_VERSION 0.4.4)
 set(CMAKE_CXX_STANDARD 17)
@@ -24,16 +24,53 @@ add_definitions(-DJUCE_MODAL_LOOPS_PERMITTED)
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/src/main/version.h "#pragma once\nnamespace version { static char const* get(){ return \"${VMPC_VERSION}\";}}")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 
-CPMAddPackage("gh:juce-framework/JUCE#7.0.1")
-CPMAddPackage("gh:izzyreal/juce-raw-keyboard-input-module#main")
-CPMAddPackage("gh:izzyreal/mpc#no-conan")
-CPMAddPackage("gh:izzyreal/ctoot#no-conan")
-CPMAddPackage("gh:izzyreal/moduru#no-conan")
+FetchContent_Declare(JUCE
+  GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
+  GIT_TAG        7.0.1
+  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/JUCE
+)
+
+FetchContent_Declare(juce-raw-keyboard-input-module
+  GIT_REPOSITORY https://github.com/izzyreal/juce-raw-keyboard-input-module.git
+  GIT_TAG        main
+  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/juce-raw-keyboard-input-module
+)
+
+FetchContent_Declare(mpc
+  GIT_REPOSITORY https://github.com/izzyreal/mpc.git
+  GIT_TAG        native-cmake
+  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/mpc
+)
+
+FetchContent_Declare(ctoot
+  GIT_REPOSITORY https://github.com/izzyreal/ctoot.git
+  GIT_TAG        native-cmake
+  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/ctoot
+)
+
+FetchContent_Declare(moduru
+  GIT_REPOSITORY https://github.com/izzyreal/moduru.git
+  GIT_TAG        native-cmake
+  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/moduru
+)
+
+FetchContent_Declare(tl-expected
+  GIT_REPOSITORY https://github.com/TartanLlama/expected.git
+  GIT_TAG        v1.0.0
+  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/deps/expected
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+)
+
+FetchContent_MakeAvailable(moduru mpc ctoot JUCE juce-raw-keyboard-input-module)
+
+FetchContent_GetProperties(tl-expected)
+
+if(NOT tl-expected_POPULATED)
+  FetchContent_Populate(tl-expected)
+endif()
 
 juce_disable_default_flags()
-
-include_directories(${MPC_SOURCE_DIR}/src/main ${CTOOT_SOURCE_DIR}/src/main ${MODURU_SOURCE_DIR}/src/main ${expected_INCLUDE_DIR})
-link_directories(${MPC_BINARY_DIR} ${CTOOT_BINARY_DIR} ${MODURU_BINARY_DIR})
 
 juce_add_plugin(vmpc2000xl
     
@@ -63,13 +100,20 @@ juce_add_plugin(vmpc2000xl
     LV2URI "http://www.izmar.nl/VMPC2000XL"
     PRODUCT_NAME "VMPC2000XL")
 
+
+target_include_directories(vmpc2000xl PUBLIC
+  ${mpc_SOURCE_DIR}/src/main
+  ${ctoot_SOURCE_DIR}/src/main
+  ${moduru_SOURCE_DIR}/src/main
+  ${tl-expected_SOURCE_DIR}/include
+)
+
 set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/src/main")
 file(
         GLOB_RECURSE _source_list
         LIST_DIRECTORIES false
         RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${_src_root_path}/*.cpp*"
-        "${_src_root_path}/*.hpp*"
+        "${_src_root_path}/*.c*"
         "${_src_root_path}/*.h*"
 )
 
@@ -129,3 +173,11 @@ endif()
 if(MSVC)
 	target_compile_options(vmpc2000xl PRIVATE "/MP")
 endif()
+
+set(CPACK_SOURCE_GENERATOR "TGZ")
+set(CPACK_SOURCE_IGNORE_FILES
+    /.git
+    /build
+    /\\\\.DS_Store
+)
+include(CPack)
