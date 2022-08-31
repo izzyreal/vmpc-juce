@@ -1,6 +1,6 @@
 #pragma once
 
-#include "juce_gui_extra/juce_gui_extra.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "PluginProcessor.h"
 
 #include "gui/ContentComponent.h"
@@ -18,7 +18,7 @@ public:
   void resized() override;
   
 private:
-  void initialise();
+  void showDisclaimer();
   
 private:
   VmpcAudioProcessor& vmpcAudioProcessor;
@@ -27,7 +27,7 @@ private:
   juce::Viewport viewport;
   
   juce::TooltipWindow tooltipWindow { this, 300 };
-  Component::SafePointer<juce::SplashScreen> vmpcSplashScreen;
+  Component::SafePointer<juce::Component> vmpcSplashScreen;
 
   juce::Image bgImg;
   

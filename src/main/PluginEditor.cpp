@@ -20,9 +20,9 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
   addAndMakeVisible(viewport);
   
   setWantsKeyboardFocus(false);
-  
-  initialise();
-  
+
+  showDisclaimer();
+
   if (juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS) {
     auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
     if (primaryDisplay != nullptr) setBounds(primaryDisplay->userArea);
@@ -38,40 +38,42 @@ VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
   vmpcSplashScreen.deleteAndZero();
 }
 
-void VmpcAudioProcessorEditor::initialise()
+void VmpcAudioProcessorEditor::showDisclaimer()
 {
   if (vmpcAudioProcessor.shouldShowDisclaimer)
   {
-    auto disclaimerImg = ResourceUtil::loadImage("img/disclaimer.gif");
-    
-    auto userArea = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
-    int width  = userArea.getWidth();
-    
-    if (width > disclaimerImg.getWidth() * 2)
-      width = disclaimerImg.getWidth() * 2;
-    
-    auto height = width * ((float) disclaimerImg.getHeight() / disclaimerImg.getWidth());
-    auto x = userArea.getCentreX() - (width / 2.f);
-    auto y = userArea.getCentreY() - (height / 2.f);
-    
-    class VmpcSplashScreen : public juce::SplashScreen {
+    class VmpcSplashScreen : public juce::Component, juce::Timer {
     public:
-      juce::Image _img;
-      VmpcSplashScreen(juce::String title, juce::Image& img, int x, int y, int w, int h): juce::SplashScreen(title, x, y, true), _img(img) {
-        setBounds(x, y, w, h);
+      juce::Image img;
+      VmpcSplashScreen() {
+        img = ResourceUtil::loadImage("img/disclaimer.gif");
+        startTimer(8000);
       }
+      
+      void mouseDown(const juce::MouseEvent&) override {
+        delete this;
+      }
+      
       void paint(juce::Graphics& g) override {
-        if (getWidth() >= _img.getWidth() * 2) g.setImageResamplingQuality(juce::Graphics::lowResamplingQuality);
+        g.setImageResamplingQuality(juce::Graphics::lowResamplingQuality);
         g.setOpacity (1.0f);
-        g.drawImage (_img, getLocalBounds().toFloat(), juce::RectanglePlacement (juce::RectanglePlacement::fillDestination));
+        g.drawImage (img, getLocalBounds().toFloat(), juce::RectanglePlacement (juce::RectanglePlacement::fillDestination));
+      }
+      
+      void timerCallback() override {
+        stopTimer();
+        callAfterDelay(10, [this](){
+          delete this;
+        });
       }
     };
     
-    vmpcSplashScreen = new VmpcSplashScreen("Disclaimer", disclaimerImg, x, y, width, height);
+    vmpcSplashScreen = new VmpcSplashScreen();
     
     vmpcSplashScreen->setWantsKeyboardFocus(false);
-    vmpcSplashScreen->deleteAfterDelay(juce::RelativeTime::seconds(8), true);
     vmpcAudioProcessor.shouldShowDisclaimer = false;
+    
+    addAndMakeVisible(vmpcSplashScreen);
   }
   
   if (juce::TopLevelWindow::getNumTopLevelWindows() != 0 &&
@@ -81,9 +83,12 @@ void VmpcAudioProcessorEditor::initialise()
 
 void VmpcAudioProcessorEditor::resized()
 {
-  if (juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS) {
+  if (juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS)
+  {
     auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
-    if (primaryDisplay != nullptr) {
+  
+    if (primaryDisplay != nullptr)
+    {
       auto area = primaryDisplay->userArea;
       setSize(area.getWidth(), area.getHeight());
       viewport.setBounds(primaryDisplay->userArea);
@@ -91,16 +96,29 @@ void VmpcAudioProcessorEditor::resized()
       auto portrait = area.getWidth() < area.getHeight();
       auto ratio = 1298.0 / 994.0;
       
-      if (portrait) {
+      if (portrait)
+      {
         viewport.getViewedComponent()->setBounds(0, 0, area.getHeight() * ratio, area.getHeight());
-      } else {
+      }
+      else
+      {
         viewport.getViewedComponent()->setBounds(0, 0, area.getWidth(), getWidth() / ratio);
       }
     }
-  } else {
+  }
+  else
+  {
     getProcessor().lastUIWidth = getWidth();
     getProcessor().lastUIHeight = getHeight();
     viewport.setBounds(0, 0, getWidth(), getHeight());
     viewport.getViewedComponent()->setBounds(0, 0, getWidth(), getHeight());
+  }
+  
+  if (vmpcSplashScreen && vmpcSplashScreen->isVisible())
+  {
+    int width = 468;
+    int height = 160;
+    auto c = getBounds().getCentre();
+    vmpcSplashScreen->setBounds(c.getX() - (width / 2), c.getY() - (height / 2), width, height);
   }
 }
