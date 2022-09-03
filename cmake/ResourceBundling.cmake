@@ -1,6 +1,6 @@
-include(CMakeRC.cmake)
+include(cmake/CMakeRC.cmake)
 
-set(_vmpc_juce_resources_root ${CMAKE_CURRENT_LIST_DIR}/../resources)
+set(_vmpc_juce_resources_root ${CMAKE_CURRENT_SOURCE_DIR}/resources)
 
 function(_bundle_vmpc_juce_resources _target_name)
   set(total_list "")
