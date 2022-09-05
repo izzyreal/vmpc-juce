@@ -34,19 +34,19 @@ FetchContent_Declare(juce-raw-keyboard-input-module
 
 FetchContent_Declare(mpc
   GIT_REPOSITORY https://github.com/izzyreal/mpc.git
-  GIT_TAG        native-cmake
+  GIT_TAG        master
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/mpc
 )
 
 FetchContent_Declare(ctoot
   GIT_REPOSITORY https://github.com/izzyreal/ctoot.git
-  GIT_TAG        native-cmake
+  GIT_TAG        master
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/ctoot
 )
 
 FetchContent_Declare(moduru
   GIT_REPOSITORY https://github.com/izzyreal/moduru.git
-  GIT_TAG        native-cmake
+  GIT_TAG        master
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/moduru
 )
 
