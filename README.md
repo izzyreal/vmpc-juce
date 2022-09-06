@@ -28,6 +28,7 @@ The targets described above are also the currently supported targets for each pl
 The above generators are just some examples. If you experience issues with generators other than the ones mentioned here, [file an issue here](https://github.com/izzyreal/vmpc-juce/issues).
 
 ## Modifying and contributing to VMPC2000XL and its dependencies
+Just skip the second `cmake -B ...` statement in the above examples and you have the IDE project that you can use for this flow.
 The code that is meant to be edited as part of VMPC2000XL will be located in `vmpc-juce/editables` after a successful `cmake -G` run.
 These editables are part of the IDE project that a `cmake -G` run produces in `vmpc-juce/build`.
 You may notice the editables being in a "detached HEAD" state (a Git thing where you're not currently on any branch), so it's required to do some `git checkout master` (or `git checkout main` if there is no `master`) and `git checkout -b <your_feature_branch_name>` before you can commit your changes.
