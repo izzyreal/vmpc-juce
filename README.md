@@ -52,3 +52,6 @@ cmake ..
 make vmpc2000xl_All -j 4
 ```
 In this example the Makefile generator is used, but here too you can use any generator you like.
+
+--------------------
+MPC® and Akai Professional® are a registered trademarks of inMusic Brands. Inc. This emulator is not affiliated with inMusic and use of the MPC® and Akai Professional® names has not been authorized, sponsored or otherwise approved by inMusic.
