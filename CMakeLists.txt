@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 include(cmake/ResourceBundling.cmake)
 include(FetchContent)
 
-set(VMPC_VERSION 0.4.4)
+set(VMPC_VERSION 0.4.5)
 set(CMAKE_CXX_STANDARD 17)
 
 if(APPLE)

@@ -19,8 +19,6 @@
 #include <Paths.hpp>
 #include <sequencer/Sequencer.hpp>
 
-#include <lcdgui/Background.hpp>
-#include <lcdgui/Screens.hpp>
 #include <lcdgui/screens/VmpcAutoSaveScreen.hpp>
 #include <lcdgui/screens/window/VmpcDirectToDiskRecorderScreen.hpp>
 #include <lcdgui/screens/SyncScreen.hpp>
