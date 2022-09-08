@@ -20,6 +20,8 @@ add_definitions(-DJUCE_MODAL_LOOPS_PERMITTED)
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/src/main/version.h "#pragma once\nnamespace version { static char const* get(){ return \"${VMPC_VERSION}\";}}")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 
+set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
+
 FetchContent_Declare(JUCE
   GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
   GIT_TAG        7.0.1
