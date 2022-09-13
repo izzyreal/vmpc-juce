@@ -27,6 +27,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
     if (primaryDisplay != nullptr) setBounds(primaryDisplay->userArea);
   } else {
+    setSize(p.lastUIWidth, p.lastUIHeight);
     setResizable(true, true);
     setResizeLimits(1298 / 2, 994 / 2, 1298, 994);
     getConstrainer()->setFixedAspectRatio(1.305835010060362);
