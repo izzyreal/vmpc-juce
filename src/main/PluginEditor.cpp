@@ -56,9 +56,9 @@ void VmpcAudioProcessorEditor::showDisclaimer()
       }
       
       void paint(juce::Graphics& g) override {
-        g.setImageResamplingQuality(juce::Graphics::lowResamplingQuality);
-        g.setOpacity (1.0f);
-        g.drawImage (img, getLocalBounds().toFloat(), juce::RectanglePlacement (juce::RectanglePlacement::fillDestination));
+        g.setImageResamplingQuality(juce::Graphics::highResamplingQuality);
+        g.setOpacity(1.0f);
+        g.drawImageAt(img, 0, 0);
       }
       
       void timerCallback() override {
