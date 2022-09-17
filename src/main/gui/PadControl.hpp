@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VmpcComponent.h"
+#include "VmpcTooltipComponent.hpp"
 
 #include <observer/Observer.hpp>
 
@@ -14,7 +14,7 @@ namespace mpc::hardware {
 }
 
 class PadControl
-        : public VmpcComponent,
+        : public VmpcTooltipComponent,
           public juce::Timer,
           public juce::FileDragAndDropTarget,
           public moduru::observer::Observer
@@ -48,6 +48,7 @@ public:
     void setBounds();
 
 public:
-    PadControl(mpc::Mpc &mpc, juce::Rectangle<float> rect, std::weak_ptr<mpc::hardware::HwPad> pad, juce::Image padhit);
+    PadControl(mpc::Mpc &_mpc, juce::Rectangle<float> _rect, std::weak_ptr<mpc::hardware::HwPad> _pad,
+               juce::Image _padHitImg);
     ~PadControl() override;
 };

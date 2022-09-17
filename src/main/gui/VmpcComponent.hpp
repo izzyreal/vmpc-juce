@@ -12,9 +12,6 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-//==============================================================================
-/*
- */
 class VmpcComponent
 : public juce::Component
 {

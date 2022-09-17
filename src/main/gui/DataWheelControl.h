@@ -1,4 +1,4 @@
-#include "VmpcComponent.h"
+#include "VmpcTooltipComponent.hpp"
 
 #include <observer/Observer.hpp>
 #include <hardware/DataWheel.hpp>
@@ -6,11 +6,11 @@
 #include "MouseWheelControllable.hpp"
 
 class DataWheelControl 
-	: public VmpcComponent
+	: public VmpcTooltipComponent
 	, public moduru::observer::Observer
 {
 public:
-	DataWheelControl(std::weak_ptr<mpc::hardware::DataWheel> dataWheel);
+	DataWheelControl(mpc::Mpc& mpc, std::weak_ptr<mpc::hardware::DataWheel> dataWheel);
 
 	~DataWheelControl() override;
 	void setImage(juce::Image image, int numFrames);

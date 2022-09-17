@@ -2,8 +2,8 @@
 
 #include <Logger.hpp>
 
-DataWheelControl::DataWheelControl(std::weak_ptr<mpc::hardware::DataWheel> _dataWheel)
-:	numFrames(0), frameWidth(0), frameHeight(0), dataWheel (_dataWheel)
+DataWheelControl::DataWheelControl(mpc::Mpc& mpc, std::weak_ptr<mpc::hardware::DataWheel> _dataWheel)
+: VmpcTooltipComponent(mpc, std::make_shared<DummyDataWheelHwComponent>(mpc)), numFrames(0), frameWidth(0), frameHeight(0), dataWheel (_dataWheel)
 {
 }
 

@@ -1,5 +1,6 @@
 #pragma once
-#include "VmpcComponent.h"
+
+#include "VmpcTooltipComponent.hpp"
 
 #include <string>
 #include <memory>
@@ -9,10 +10,19 @@ namespace mpc ::hardware {
 class Button;
 }
 
-class ButtonControl
-: public VmpcComponent
+class ButtonControl : public VmpcTooltipComponent
 {
-    
+public:
+    ButtonControl(mpc::Mpc& mpc, juce::Rectangle<int> _rect,
+                  std::weak_ptr<mpc::hardware::Button> _button);
+
+    void mouseDown(const juce::MouseEvent& event) override;
+    void mouseUp(const juce::MouseEvent& event) override;
+    void setBounds();
+
+    static std::unordered_map<std::string, juce::Rectangle<int>*> rects;
+    static void initRects();
+
 private:
     juce::Rectangle<int> rect;
     std::weak_ptr<mpc::hardware::Button> button;
@@ -22,13 +32,7 @@ private:
     static const int mh = 20;
     static const int bw = 48;
     static const int bh = 35;
-    
-    
-public:
-    static std::unordered_map<std::string, juce::Rectangle<int>*> rects;
-    static void initRects();
-    
-private:
+
     static juce::Rectangle<int> undoseq;
     static juce::Rectangle<int> erase;
     static juce::Rectangle<int> rec;
@@ -75,13 +79,4 @@ private:
     static juce::Rectangle<int> up;
     static juce::Rectangle<int> down;
     static juce::Rectangle<int> right;
-    
-public:
-    void mouseDown(const juce::MouseEvent& event) override;
-    void mouseUp(const juce::MouseEvent& event) override;
-    void setBounds();
-    
-public:
-    ButtonControl(juce::Rectangle<int> rect, std::weak_ptr<mpc::hardware::Button> button);
-    
 };

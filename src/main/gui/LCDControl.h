@@ -1,5 +1,5 @@
 #pragma once
-#include "VmpcComponent.h"
+#include "VmpcComponent.hpp"
 
 #include <observer/Observer.hpp>
 

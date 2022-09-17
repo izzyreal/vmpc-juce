@@ -9,11 +9,9 @@
 #include <controls/KeyEventHandler.hpp>
 
 #include <hardware/Hardware.hpp>
-#include <hardware/DataWheel.hpp>
 #include <hardware/Led.hpp>
 
 #include <cmrc/cmrc.hpp>
-#include <string_view>
 
 #include "../version.h"
 
@@ -30,7 +28,7 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
   background = new Background();
   addAndMakeVisible(background);
 
-  dataWheel = new DataWheelControl(mpc.getHardware().lock()->getDataWheel());
+  dataWheel = new DataWheelControl(mpc, mpc.getHardware().lock()->getDataWheel());
   mpc.getHardware().lock()->getDataWheel().lock()->addObserver(dataWheel);
   dataWheelImg = ResourceUtil::loadImage("img/datawheels.jpg");
   dataWheel->setImage(dataWheelImg, 100);
@@ -47,7 +45,7 @@ ContentComponent::ContentComponent(mpc::Mpc& _mpc)
 
   for (auto& l : mpc.getHardware().lock()->getButtonLabels())
   {
-    auto bc = new ButtonControl(ButtonControl::rects[l]->expanded(10),
+    auto bc = new ButtonControl(mpc, ButtonControl::rects[l]->expanded(10),
                                 mpc.getHardware().lock()->getButton(l));
     addAndMakeVisible(bc);
     buttons.push_back(bc);

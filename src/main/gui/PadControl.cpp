@@ -3,10 +3,8 @@
 
 #include <Mpc.hpp>
 
-#include <sequencer/Sequencer.hpp>
 #include <sequencer/Track.hpp>
 
-#include <sampler/Sampler.hpp>
 #include <sampler/Pad.hpp>
 #include <sampler/NoteParameters.hpp>
 
@@ -32,7 +30,7 @@ using namespace moduru::lang;
 
 PadControl::PadControl(mpc::Mpc &_mpc, juce::Rectangle<float> _rect, std::weak_ptr<mpc::hardware::HwPad> _pad,
                        Image _padHitImg)
-        : mpc(_mpc), pad(_pad), padhitImg(_padHitImg), rect(_rect)
+        : VmpcTooltipComponent(_mpc, _pad.lock()), mpc(_mpc), pad(_pad), padhitImg(_padHitImg), rect(_rect)
 {
     pad.lock()->addObserver(this);
 }
