@@ -59,6 +59,7 @@ private:
   
 public:
   bool shouldShowDisclaimer = true;
+  std::function<void()> showAudioSettingsDialog = [](){};
   mpc::Mpc mpc;
   //==============================================================================
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcAudioProcessor)

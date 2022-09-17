@@ -1,28 +1,3 @@
-/*
-  ==============================================================================
-
-   This file is part of the JUCE library.
-   Copyright (c) 2022 - Raw Material Software Limited
-
-   JUCE is an open source library subject to commercial or open-source
-   licensing.
-
-   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
-   Agreement and JUCE Privacy Policy.
-
-   End User License Agreement: www.juce.com/juce-7-licence
-   Privacy Policy: www.juce.com/juce-privacy-policy
-
-   Or: You may also use this code under the terms of the GPL v3 (see
-   www.gnu.org/licenses).
-
-   JUCE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY, AND ALL WARRANTIES, WHETHER
-   EXPRESSED OR IMPLIED, INCLUDING MERCHANTABILITY AND FITNESS FOR PURPOSE, ARE
-   DISCLAIMED.
-
-  ==============================================================================
-*/
-
 #pragma once
 
 #include "juce_audio_plugin_client/juce_audio_plugin_client.h"
@@ -35,40 +10,13 @@
 namespace juce
 {
 
-//==============================================================================
-/**
-    An object that creates and plays a standalone instance of an AudioProcessor.
-
-    The object will create your processor using the same createPluginFilter()
-    function that the other plugin wrappers use, and will run it through the
-    computer's audio/MIDI devices using AudioDeviceManager and AudioProcessorPlayer.
-
-    @tags{Audio}
-*/
 class StandalonePluginHolder    : private AudioIODeviceCallback,
                                   private Timer,
                                   private Value::Listener
 {
 public:
-    //==============================================================================
-    /** Structure used for the number of inputs and outputs. */
     struct PluginInOuts   { short numIns, numOuts; };
 
-    //==============================================================================
-    /** Creates an instance of the default plugin.
-
-        The settings object can be a PropertySet that the class should use to store its
-        settings - the takeOwnershipOfSettings indicates whether this object will delete
-        the settings automatically when no longer needed. The settings can also be nullptr.
-
-        A default device name can be passed in.
-
-        Preferably a complete setup options object can be used, which takes precedence over
-        the preferredDefaultDeviceName and allows you to select the input & output device names,
-        sample rate, buffer size etc.
-
-        In all instances, the settingsToUse will take precedence over the "preferred" options if not null.
-    */
     StandalonePluginHolder (PropertySet* settingsToUse,
                             bool takeOwnershipOfSettings = true,
                             const String& preferredDefaultDeviceName = String(),
@@ -86,6 +34,9 @@ public:
           autoOpenMidiDevices (shouldAutoOpenMidiDevices)
     {
         createPlugin();
+        ((VmpcAudioProcessor*) processor.get())->showAudioSettingsDialog = [this](){
+            this->showAudioSettingsDialog();
+        };
 
         auto inChannels = (channelConfiguration.size() > 0 ? channelConfiguration[0].numIns
                                                            : processor->getMainBusNumInputChannels());
@@ -244,7 +195,7 @@ public:
         auto& mpc = vmpcAudioProcessor->mpc;
         mpc.getLayeredScreen().lock()->openScreen("vmpc-keyboard");
     }
-    
+
     //==============================================================================
     void startPlaying()
     {
@@ -625,29 +576,11 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StandalonePluginHolder)
 };
 
-//==============================================================================
-/**
-    A class that can be used to run a simple standalone application containing your filter.
-
-    Just create one of these objects in your JUCEApplicationBase::initialise() method, and
-    let it do its work. It will create your filter object using the same createPluginFilter() function
-    that the other plugin wrappers use.
-
-    @tags{Audio}
-*/
-class StandaloneFilterWindow    : public DocumentWindow,
-                                  private Button::Listener
+class StandaloneFilterWindow    : public DocumentWindow
 {
 public:
-    //==============================================================================
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
-    //==============================================================================
-    /** Creates a window with a given title and colour.
-        The settings object can be a PropertySet that the class should use to
-        store its settings (it can also be null). If takeOwnershipOfSettings is
-        true, then the settings object will be owned and deleted by this object.
-    */
     StandaloneFilterWindow (const String& title,
                             Colour backgroundColour,
                             PropertySet* settingsToUse,
@@ -661,20 +594,15 @@ public:
                             bool autoOpenMidiDevices = false
                            #endif
                             )
-        : DocumentWindow (title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::closeButton),
-          optionsButton ("Options")
+        : DocumentWindow (title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::closeButton)
     {
+        setUsingNativeTitleBar(true);
         setConstrainer (&decoratorConstrainer);
 
        #if JUCE_IOS || JUCE_ANDROID
         setTitleBarHeight (0);
        #else
         setTitleBarButtonsRequired (DocumentWindow::minimiseButton | DocumentWindow::closeButton, false);
-
-        Component::addAndMakeVisible (optionsButton);
-        optionsButton.addListener (this);
-        optionsButton.setTriggeredOnMouseDown (true);
-        optionsButton.setWantsKeyboardFocus(false);
        #endif
 
         pluginHolder.reset (new StandalonePluginHolder (settingsToUse, takeOwnershipOfSettings,
@@ -768,31 +696,6 @@ public:
         JUCEApplicationBase::quit();
     }
 
-    void handleMenuResult (int result)
-    {
-        switch (result)
-        {
-            case 1:  pluginHolder->showAudioSettingsDialog(); break;
-            case 2:  pluginHolder->askUserToSaveState(); break;
-            case 3:  pluginHolder->askUserToLoadState(); break;
-            case 4:  resetToDefaultState(); break;
-            case 5:  pluginHolder->openKeyboardScreen(); break;
-            default: break;
-        }
-    }
-
-    static void menuCallback (int result, StandaloneFilterWindow* button)
-    {
-        if (button != nullptr && result != 0)
-            button->handleMenuResult (result);
-    }
-
-    void resized() override
-    {
-        DocumentWindow::resized();
-        optionsButton.setBounds (8, 6, 60, getTitleBarHeight() - 8);
-    }
-
     virtual StandalonePluginHolder* getPluginHolder()    { return pluginHolder.get(); }
 
     std::unique_ptr<StandalonePluginHolder> pluginHolder;
@@ -810,21 +713,6 @@ private:
        #endif
 
         setContentOwned (content, resizeAutomatically);
-    }
-
-    void buttonClicked (Button*) override
-    {
-        PopupMenu m;
-        m.addItem (1, TRANS("Audio/MIDI Settings..."));
-        m.addSeparator();
-        m.addItem (2, TRANS("Save current state..."));
-        m.addItem (3, TRANS("Load a saved state..."));
-        m.addSeparator();
-        m.addItem (4, TRANS("Reset to default state"));
-        m.addSeparator();
-        m.addItem (5, TRANS("Configure Keyboard"));
-        m.showMenuAsync (PopupMenu::Options(),
-                         ModalCallbackFunction::forComponent (menuCallback, this));
     }
 
     //==============================================================================
@@ -1000,7 +888,6 @@ private:
     };
 
     //==============================================================================
-    TextButton optionsButton;
     DecoratorConstrainer decoratorConstrainer;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StandaloneFilterWindow)

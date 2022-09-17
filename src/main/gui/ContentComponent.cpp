@@ -22,7 +22,7 @@
 
 CMRC_DECLARE(vmpcjuce);
 
-ContentComponent::ContentComponent(mpc::Mpc &_mpc)
+ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAudioSettingsDialog)
         : mpc(_mpc), keyEventHandler(mpc.getControls().lock()->getKeyEventHandler())
 {
     keyboard = KeyboardFactory::instance(this);
@@ -114,9 +114,14 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc)
     leds->startTimer(25);
     slider->startTimer(25);
 
-    keyboardImg = ResourceUtil::loadImage("img/keyboard.png");
+    gearImg = ResourceUtil::loadImage("img/gear.png");
 
     auto transparentWhite = juce::Colours::transparentWhite;
+
+    gearButton.setImages(false, true, true, gearImg, 0.5, transparentWhite, gearImg, 1.0, transparentWhite,
+                             gearImg, 0.25, transparentWhite);
+
+    keyboardImg = ResourceUtil::loadImage("img/keyboard.png");
 
     keyboardButton.setImages(false, true, true, keyboardImg, 0.5, transparentWhite, keyboardImg, 1.0, transparentWhite,
                              keyboardImg, 0.25, transparentWhite);
@@ -164,11 +169,20 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc)
             }
         });
     };
+
     addAndMakeVisible(importButton);
 
     versionLabel.setText(version::get(), juce::dontSendNotification);
     versionLabel.setColour(juce::Label::textColourId, juce::Colours::darkgrey);
     addAndMakeVisible(versionLabel);
+
+    gearButton.setTooltip("Audio/MIDI Settings");
+    gearButton.onClick = [&showAudioSettingsDialog]() {
+        showAudioSettingsDialog();
+    };
+
+    gearButton.setWantsKeyboardFocus(false);
+    addAndMakeVisible(gearButton);
 
     keyboardButton.setTooltip("Configure computer keyboard");
     keyboardButton.onClick = [&]() {
@@ -428,6 +442,9 @@ void ContentComponent::resized()
     {
         resetWindowSizeButton.setBounds(1298 - (190 + 30), 13, 45, 45);
         resetWindowSizeButton.setTransform(scaleTransform);
+
+        gearButton.setBounds(1298 - (235 + 40), 13, 45, 45);
+        gearButton.setTransform(scaleTransform);
     }
 
     versionLabel.setTransform(scaleTransform);

@@ -24,7 +24,7 @@ class ContentComponent
 : public juce::Component, juce::FocusChangeListener
 {
 public:
-  ContentComponent(mpc::Mpc&);
+  ContentComponent(mpc::Mpc&, std::function<void()>& showAudioSettingsDialog);
   ~ContentComponent() override;
 
   bool keyPressed(const juce::KeyPress &key) override;
@@ -51,6 +51,7 @@ private:
   juce::Image volKnobImg;
   juce::Image ledRedImg;
   juce::Image ledGreenImg;
+  juce::Image gearImg;
   juce::Image keyboardImg;
   juce::Image resetWindowSizeImg;
   juce::Image importImg;
@@ -58,6 +59,7 @@ private:
 
   juce::Label versionLabel;
 
+  juce::ImageButton gearButton;
   juce::ImageButton keyboardButton;
   juce::ImageButton resetWindowSizeButton;
   juce::ImageButton importButton;
