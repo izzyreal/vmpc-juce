@@ -38,6 +38,7 @@ public:
 
 public:
 	LCDControl(mpc::Mpc& mpc, std::weak_ptr<mpc::lcdgui::LayeredScreen> ls);
+  ~LCDControl() override;
 	void update(moduru::observer::Observable* o, nonstd::any msg) override;
 
 };

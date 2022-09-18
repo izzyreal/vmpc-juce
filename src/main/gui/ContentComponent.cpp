@@ -41,7 +41,6 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     addAndMakeVisible(background);
 
     dataWheel = new DataWheelControl(mpc, mpc.getHardware().lock()->getDataWheel());
-    mpc.getHardware().lock()->getDataWheel().lock()->addObserver(dataWheel);
     dataWheelImg = ResourceUtil::loadImage("img/datawheels.jpg");
     dataWheel->setImage(dataWheelImg, 100);
     addAndMakeVisible(dataWheel);
@@ -109,17 +108,14 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     leds->addAndMakeVisible(this);
 
     for (auto &l: mpc.getHardware().lock()->getLeds())
-        l->addObserver(leds);
+    {
+      l->addObserver(leds);
+    }
 
     leds->startTimer(25);
     slider->startTimer(25);
 
-    gearImg = ResourceUtil::loadImage("img/gear.png");
-
     auto transparentWhite = juce::Colours::transparentWhite;
-
-    gearButton.setImages(false, true, true, gearImg, 0.5, transparentWhite, gearImg, 1.0, transparentWhite,
-                             gearImg, 0.25, transparentWhite);
 
     keyboardImg = ResourceUtil::loadImage("img/keyboard.png");
 
@@ -176,13 +172,18 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     versionLabel.setColour(juce::Label::textColourId, juce::Colours::darkgrey);
     addAndMakeVisible(versionLabel);
 
-    gearButton.setTooltip("Audio/MIDI Settings");
-    gearButton.onClick = [&showAudioSettingsDialog]() {
-        showAudioSettingsDialog();
-    };
-
-    gearButton.setWantsKeyboardFocus(false);
-    addAndMakeVisible(gearButton);
+    if (juce::JUCEApplicationBase::isStandaloneApp())
+    {
+        gearImg = ResourceUtil::loadImage("img/gear.png");
+        gearButton.setImages(false, true, true, gearImg, 0.5, transparentWhite, gearImg, 1.0, transparentWhite,
+                             gearImg, 0.25, transparentWhite);
+        gearButton.setTooltip("Audio/MIDI Settings");
+        gearButton.onClick = [&showAudioSettingsDialog]() {
+            showAudioSettingsDialog();
+        };
+        gearButton.setWantsKeyboardFocus(false);
+        addAndMakeVisible(gearButton);
+    }
 
     keyboardButton.setTooltip("Configure computer keyboard");
     keyboardButton.onClick = [&]() {
@@ -207,7 +208,12 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
 ContentComponent::~ContentComponent()
 {
-    juce::Desktop::getInstance().removeFocusChangeListener(this);
+  for (auto &l: mpc.getHardware().lock()->getLeds())
+  {
+    l->deleteObserver(leds);
+  }
+
+  juce::Desktop::getInstance().removeFocusChangeListener(this);
     delete fileChooser;
     delete keyboard;
     delete dataWheel;
@@ -445,8 +451,11 @@ void ContentComponent::resized()
         resetWindowSizeButton.setBounds(1298 - (190 + 30), 13, 45, 45);
         resetWindowSizeButton.setTransform(scaleTransform);
 
-        gearButton.setBounds(1298 - (235 + 40), 13, 45, 45);
-        gearButton.setTransform(scaleTransform);
+        if (juce::JUCEApplicationBase::isStandaloneApp())
+        {
+            gearButton.setBounds(1298 - (235 + 40), 13, 45, 45);
+            gearButton.setTransform(scaleTransform);
+        }
     }
 
     versionLabel.setTransform(scaleTransform);

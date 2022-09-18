@@ -5,6 +5,7 @@
 DataWheelControl::DataWheelControl(mpc::Mpc& mpc, std::weak_ptr<mpc::hardware::DataWheel> _dataWheel)
 : VmpcTooltipComponent(mpc, std::make_shared<DummyDataWheelHwComponent>(mpc)), numFrames(0), frameWidth(0), frameHeight(0), dataWheel (_dataWheel)
 {
+  dataWheel.lock()->addObserver(this);
 }
 
 void DataWheelControl::mouseUp(const juce::MouseEvent& event)

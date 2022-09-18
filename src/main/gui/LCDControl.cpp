@@ -94,3 +94,9 @@ void LCDControl::paint(juce::Graphics& g)
 {
 	g.drawImageAt(lcd, 0, 0);
 }
+
+LCDControl::~LCDControl()
+{
+  auto othersScreen = mpc.screens->get<OthersScreen>("others");
+  othersScreen->deleteObserver(this);
+}
