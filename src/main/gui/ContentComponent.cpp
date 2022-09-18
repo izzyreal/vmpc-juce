@@ -230,7 +230,9 @@ ContentComponent::~ContentComponent()
 
 bool ContentComponent::keyPressed(const juce::KeyPress &k)
 {
-    if (k.getTextDescription().toStdString() == "command + Q")
+    auto desc = k.getTextDescription().toStdString();
+
+    if (desc == "command + Q" || desc == "alt + F4")
         return false;
 
     return true;
