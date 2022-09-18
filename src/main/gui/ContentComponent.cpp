@@ -20,7 +20,33 @@
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
+#include "file/FileUtil.hpp"
+
 CMRC_DECLARE(vmpcjuce);
+
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#if TARGET_OS_IPHONE
+#define ENABLE_IMPORT 1
+#endif
+#endif
+
+#if ENABLE_IMPORT
+bool VmpcURLProcessor::destinationExists(const char* filename, const char* relativePath)
+{
+  auto newFilePath = fs::path(destinationDir).append(relativePath).append(filename);
+  return fs::exists(newFilePath);
+}
+
+std::shared_ptr<std::ostream> VmpcURLProcessor::openOutputStream(const char* filename, const char* relativePath)
+{
+  auto newFileDir = fs::path(destinationDir).append(relativePath);
+  fs::create_directories(newFileDir);
+  auto newFilePath = newFileDir.append(filename);
+  mpc::disk::MpcFile newFile(newFilePath);
+  return newFile.getOutputStream();
+}
+#endif
 
 ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAudioSettingsDialog)
         : mpc(_mpc), keyEventHandler(mpc.getControls().lock()->getKeyEventHandler())
@@ -126,7 +152,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, transparentWhite, resetWindowSizeImg,
                                     1.0, transparentWhite, resetWindowSizeImg, 0.25, transparentWhite);
-
+#if ENABLE_IMPORT
     importImg = ResourceUtil::loadImage("img/import.png");
 
     importButton.setImages(false, true, true, importImg, 0.5, transparentWhite, importImg, 1.0, transparentWhite,
@@ -134,40 +160,11 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     importButton.setTooltip("Import files or folders");
 
-    fileChooser = new juce::FileChooser("Choose files to import", juce::File(), "*.all;*.snd;*.aps;*.pgm;*.mid;*.wav",
-                                        true, true, this);
-
-    importButton.onClick = [&]() {
-        typedef juce::FileBrowserComponent flags;
-        auto chooserFlags = flags::canSelectFiles /*| flags::canSelectDirectories */ | flags::canSelectMultipleItems |
-                            flags::openMode;
-        fileChooser->launchAsync(chooserFlags, [&_mpc](const juce::FileChooser &chooser) {
-            for (auto &f: chooser.getURLResults())
-            {
-
-                auto is = f.createInputStream(juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
-                                                      .withConnectionTimeoutMs(1000)
-                                                      .withNumRedirectsToFollow(0));
-
-                if (is->getNumBytesRemaining() > 0 && is->getNumBytesRemaining() < 100 * 1024 * 1024)
-                {
-                    std::vector<char> data;
-                    while (!is->isExhausted())
-                    {
-                        data.emplace_back(is->readByte());
-                    }
-                    if (data.size() > 0)
-                    {
-                        auto newFile = _mpc.getDisk().lock()->newFile(f.getFileName().toStdString());
-                        newFile->setFileData(data);
-                    }
-                }
-            }
-        });
-    };
+    importButton.onClick = [&]() { doOpenIosDocumentBrowser(&urlProcessor); };
 
     addAndMakeVisible(importButton);
-
+#endif
+  
     versionLabel.setText(version::get(), juce::dontSendNotification);
     versionLabel.setColour(juce::Label::textColourId, juce::Colours::darkgrey);
     addAndMakeVisible(versionLabel);
@@ -214,7 +211,6 @@ ContentComponent::~ContentComponent()
   }
 
   juce::Desktop::getInstance().removeFocusChangeListener(this);
-    delete fileChooser;
     delete keyboard;
     delete dataWheel;
 
@@ -443,20 +439,22 @@ void ContentComponent::resized()
     keyboardButton.setBounds(1298 - (100 + 10), 10, 100, 50);
     keyboardButton.setTransform(scaleTransform);
 
-    importButton.setBounds(1298 - (145 + 20), 10, 50, 50);
-    importButton.setTransform(scaleTransform);
-
     if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS)
     {
-        resetWindowSizeButton.setBounds(1298 - (190 + 30), 13, 45, 45);
+        resetWindowSizeButton.setBounds(1298 - (145 + 20), 13, 45, 45);
         resetWindowSizeButton.setTransform(scaleTransform);
 
         if (juce::JUCEApplicationBase::isStandaloneApp())
         {
-            gearButton.setBounds(1298 - (235 + 40), 13, 45, 45);
+            gearButton.setBounds(1298 - (190 + 30), 13, 45, 45);
             gearButton.setTransform(scaleTransform);
         }
     }
+  
+#if ENABLE_IMPORT
+    importButton.setBounds(1298 - (145 + 20), 10, 50, 50);
+    importButton.setTransform(scaleTransform);
+#endif
 
     versionLabel.setTransform(scaleTransform);
     versionLabel.setBounds(1175, 118, 100, 20);

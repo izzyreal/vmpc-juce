@@ -12,6 +12,26 @@
 
 #include <vector>
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#if TARGET_OS_IPHONE
+
+#include "IosDocumentBrowser.h"
+#include "Paths.hpp"
+
+class VmpcURLProcessor : public URLProcessor {
+public:
+  std::shared_ptr<mpc::disk::AbstractDisk> disk;
+  std::string destinationDir = mpc::Paths::defaultLocalVolumePath();
+  bool destinationExists(const char* filename, const char* relativePath) override;
+  std::shared_ptr<std::ostream> openOutputStream(const char* filename, const char* relativePath) override;
+};
+
+#define ENABLE_IMPORT 1
+
+#endif
+#endif
+
 class Keyboard;
 
 namespace mpc { class Mpc; }
@@ -35,6 +55,9 @@ public:
   void globalFocusChanged(juce::Component*) override;
 
 private:
+#if ENABLE_IMPORT
+  VmpcURLProcessor urlProcessor;
+#endif
   mpc::Mpc& mpc;
   std::weak_ptr<mpc::controls::KeyEventHandler> keyEventHandler;
   std::vector<std::shared_ptr<juce::MouseInputSource>> sources;
@@ -55,7 +78,6 @@ private:
   juce::Image keyboardImg;
   juce::Image resetWindowSizeImg;
   juce::Image importImg;
-  juce::FileChooser* fileChooser = nullptr;
 
   juce::Label versionLabel;
 

@@ -18,20 +18,14 @@ void DataWheelControl::mouseDrag(const juce::MouseEvent& event)
 {
   auto dY = -(event.getDistanceFromDragStartY() - lastDy);
   
-  if (juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS) {
-    if (event.getDistanceFromDragStartY() % 6 != 0) {
-      return;
-    }
-
-    dY = dY / 6.f;
-  }
-  
   if (dY == 0)
     return;
   
-  if (event.mods.isAnyModifierKeyDown())
+  const bool iOS = juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS;
+  
+  if (event.mods.isAnyModifierKeyDown() || iOS)
   {
-    pixelCounter += (dY * fineSensitivity);
+    pixelCounter += (dY * fineSensitivity * (iOS ? 2.0 : 1.0));
     auto candidate = static_cast<int>(pixelCounter);
     if (candidate >= 1 || candidate <= -1)
     {

@@ -116,6 +116,16 @@ file(
         "${_src_root_path}/*.h*"
 )
 
+if (IOS)
+file(
+        GLOB_RECURSE _source_list
+        LIST_DIRECTORIES false
+        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${_src_root_path}/*.m*"
+)
+endif()
+
+
 foreach(_source IN ITEMS ${_source_list})
     get_filename_component(_source_path "${_source}" PATH)
     string(REPLACE "/" "\\" _source_path_msvc "${_source_path}")
