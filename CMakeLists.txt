@@ -108,23 +108,25 @@ target_include_directories(vmpc2000xl PUBLIC
 )
 
 set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/src/main")
-file(
-        GLOB_RECURSE _source_list
-        LIST_DIRECTORIES false
-        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-        "${_src_root_path}/*.c*"
-        "${_src_root_path}/*.h*"
-)
 
 if (IOS)
-file(
-        GLOB_RECURSE _source_list
-        LIST_DIRECTORIES false
-        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+  file(
+    GLOB_RECURSE _source_list
+    LIST_DIRECTORIES false
+    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${_src_root_path}/*.c*"
+    "${_src_root_path}/*.h*"
         "${_src_root_path}/*.m*"
-)
+  )
+else()
+  file(
+    GLOB_RECURSE _source_list
+    LIST_DIRECTORIES false
+    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${_src_root_path}/*.c*"
+    "${_src_root_path}/*.h*"
+  )
 endif()
-
 
 foreach(_source IN ITEMS ${_source_list})
     get_filename_component(_source_path "${_source}" PATH)
