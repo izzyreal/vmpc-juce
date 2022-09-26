@@ -104,7 +104,7 @@
 - (void)handleFile:(NSURL*)url relativeDir:(NSString*)relativeDir {
   NSArray<NSString*>* allowedExtensions = @[@"wav",@"snd",@"aps",@"pgm",@"all",@"mid"];
   
-  if (![allowedExtensions containsObject:[url pathExtension]])
+  if (![allowedExtensions containsObject: (url ? [url pathExtension].lowercaseString : @"")])
   {
     return;
   }
