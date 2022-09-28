@@ -38,7 +38,7 @@ FetchContent_Declare(juce-raw-keyboard-input-module
 
 FetchContent_Declare(mpc
   GIT_REPOSITORY https://github.com/izzyreal/mpc.git
-  GIT_TAG        master
+  GIT_TAG        fix-pressed-pads
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/mpc
 )
 

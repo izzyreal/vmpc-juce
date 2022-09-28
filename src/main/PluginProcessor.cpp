@@ -194,26 +194,34 @@ void VmpcAudioProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
     const auto m = meta.getMessage();
     int timeStamp = static_cast<int>(m.getTimeStamp());
     int velocity = m.getVelocity();
-    
+    std::shared_ptr<ShortMessage> tootMsg;
+
     if (m.isNoteOn())
     {
-      m.getRawData();
-      ShortMessage tootMsg;
-      tootMsg.setMessage(ShortMessage::NOTE_ON, m.getChannel() - 1, m.getNoteNumber(), velocity);
-      mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
+      tootMsg = std::make_shared<ShortMessage>();
+      tootMsg->setMessage(ShortMessage::NOTE_ON, m.getChannel() - 1, m.getNoteNumber(), velocity);
     }
     else if (m.isNoteOff())
     {
-      ShortMessage tootMsg;
-      tootMsg.setMessage(ShortMessage::NOTE_OFF, m.getChannel() - 1, m.getNoteNumber(), 0);
-      mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
+        tootMsg = std::make_shared<ShortMessage>();
+        tootMsg->setMessage(ShortMessage::NOTE_OFF, m.getChannel() - 1, m.getNoteNumber(), 0);
     }
     else if (m.isController())
     {
-      ShortMessage tootMsg;
-      tootMsg.setMessage(ShortMessage::CONTROL_CHANGE, m.getChannel() - 1, m.getControllerNumber(), m.getControllerValue());
-      mpc.getMpcMidiInput(0)->transport(&tootMsg, timeStamp);
+        tootMsg = std::make_shared<ShortMessage>();
+        tootMsg->setMessage(ShortMessage::CONTROL_CHANGE, m.getChannel() - 1, m.getControllerNumber(), m.getControllerValue());
     }
+    else if (m.isAftertouch())
+    {
+        tootMsg = std::make_shared<ShortMessage>();
+        tootMsg->setMessage(ShortMessage::POLY_PRESSURE, m.getChannel() - 1, m.getNoteNumber(), m.getAfterTouchValue());
+    }
+
+    if (tootMsg)
+    {
+        mpc.getMpcMidiInput(0)->transport(tootMsg.get(), timeStamp);
+    }
+
   }
 }
 
