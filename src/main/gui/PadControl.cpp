@@ -1,4 +1,5 @@
 #include "PadControl.hpp"
+#include <hardware/Hardware.hpp>
 #include <hardware/HwPad.hpp>
 
 #include <Mpc.hpp>
@@ -241,14 +242,12 @@ void PadControl::mouseUp(const MouseEvent &)
 
 void PadControl::mouseDrag(const MouseEvent &event)
 {
-    auto controls = mpc.getControls().lock();
-    auto padIndex = pad.lock()->getIndex();
-    if (controls->getPressedPads()->find(padIndex) == controls->getPressedPads()->end())
+    if (!pad.lock()->isPressed())
         return;
 
     auto newVelo = getVelo(event.x, event.y);
 
-    (*controls->getPressedPadVelos())[padIndex] = newVelo;
+    pad.lock()->setPressure(newVelo);
 }
 
 void PadControl::setBounds()
