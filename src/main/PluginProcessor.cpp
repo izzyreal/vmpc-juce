@@ -216,6 +216,11 @@ void VmpcAudioProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
         tootMsg = std::make_shared<ShortMessage>();
         tootMsg->setMessage(ShortMessage::POLY_PRESSURE, m.getChannel() - 1, m.getNoteNumber(), m.getAfterTouchValue());
     }
+    else if (m.isChannelPressure())
+    {
+        tootMsg = std::make_shared<ShortMessage>();
+        tootMsg->setMessage(ShortMessage::CHANNEL_PRESSURE, m.getChannel() - 1, m.getChannelPressureValue(), 0);
+    }
 
     if (tootMsg)
     {
