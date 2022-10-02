@@ -67,6 +67,11 @@ VmpcAudioProcessor::VmpcAudioProcessor()
   moduru::Logger::l.log("\n\n-= VMPC2000XL v" + std::string(version::get()) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
   
   mpc.init(44100.f, 1, 5);
+
+  if (juce::PluginHostType::jucePlugInClientCurrentWrapperType != juce::AudioProcessor::wrapperType_LV2)
+  {
+      mpc.getDisk().lock()->initFiles();
+  }
 }
 
 const juce::String VmpcAudioProcessor::getName() const
