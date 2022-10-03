@@ -187,14 +187,31 @@ void LedControl::setUndoSeq(bool b)
 
 void LedControl::timerCallback()
 {
-    setUndoSeq(mpc.getSequencer().lock()->isUndoSeqAvailable());
-    setPlay(mpc.getSequencer().lock()->isPlaying());
-    
-    setOverDub(mpc.getControls().lock()->isOverDubPressed() ||
-               mpc.getSequencer().lock()->isOverDubbing());
-    
-    setRec(mpc.getControls().lock()->isRecPressed() ||
-           mpc.getSequencer().lock()->isRecording());
+    auto seq = mpc.getSequencer().lock();
+    auto controls = mpc.getControls().lock();
+
+    setUndoSeq(seq->isUndoSeqAvailable());
+    setPlay(seq->isPlaying());
+
+    auto isPlayingButNotOverdubbingAndOverdubIsPressed = seq->isPlaying() && !seq->isOverDubbing() && controls->isOverDubPressed();
+
+    if (isPlayingButNotOverdubbingAndOverdubIsPressed)
+    {
+        setOverDub(false);
+    }
+    else
+    {
+        setOverDub(controls->isOverDubPressed() || seq->isOverDubbing());
+    }
+
+    auto isPlayingButNotRecordingAndRecIsPressed = seq->isPlaying() && !seq->isRecording() && controls->isRecPressed();
+
+    if (isPlayingButNotRecordingAndRecIsPressed)
+    {
+        setRec(false);
+    } else {
+        setRec(controls->isRecPressed() || seq->isRecording());
+    }
 }
 
 void LedControl::update(moduru::observer::Observable*, nonstd::any arg)
