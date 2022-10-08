@@ -1,7 +1,5 @@
 #include "Led.hpp"
 
-#include <string>
-
 Led::Led(juce::Image _led, juce::Rectangle<float> _rect)
 :led (_led), rect (_rect)
 {
