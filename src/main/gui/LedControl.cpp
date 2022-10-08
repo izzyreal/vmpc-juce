@@ -189,9 +189,11 @@ void LedControl::timerCallback()
 {
     auto seq = mpc.getSequencer().lock();
     auto controls = mpc.getControls().lock();
+    auto stepEditor = mpc.getLayeredScreen().lock()->getCurrentScreenName() == "step-editor";
 
     setUndoSeq(seq->isUndoSeqAvailable());
-    setPlay(seq->isPlaying());
+
+    setPlay(seq->isPlaying() && !stepEditor);
 
     auto isPlayingButNotOverdubbingAndOverdubIsPressed = seq->isPlaying() && !seq->isOverDubbing() && controls->isOverDubPressed();
 
@@ -201,7 +203,7 @@ void LedControl::timerCallback()
     }
     else
     {
-        setOverDub(controls->isOverDubPressed() || seq->isOverDubbing());
+        setOverDub(controls->isOverDubPressed() || seq->isOverDubbing() || stepEditor);
     }
 
     auto isPlayingButNotRecordingAndRecIsPressed = seq->isPlaying() && !seq->isRecording() && controls->isRecPressed();
