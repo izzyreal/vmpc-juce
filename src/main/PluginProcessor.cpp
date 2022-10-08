@@ -706,7 +706,9 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
         AllParser allParser(mpc, allData);
         AllLoader::loadEverythingFromAllParser(mpc, allParser);
       }
-      
+
+      mpc.getSampler().lock()->setSoundIndex(mpc_ui->getIntAttribute("soundIndex"));
+
       auto screen = mpc_ui->getStringAttribute("screen").toStdString();
       mpc.getLayeredScreen().lock()->openScreen(screen);
       
@@ -717,7 +719,6 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
       
       mpc.getLayeredScreen().lock()->setDirty();
       
-      mpc.getSampler().lock()->setSoundIndex(mpc_ui->getIntAttribute("soundIndex"));
     }
   }
 }
