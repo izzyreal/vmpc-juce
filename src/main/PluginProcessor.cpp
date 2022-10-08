@@ -503,13 +503,17 @@ void VmpcAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
   auto screen = layeredScreen->getCurrentScreenName();
   auto focus = mpc.getLayeredScreen().lock()->getFocus();
   auto soundIndex = mpc.getSampler().lock()->getSoundIndex();
-  
+  auto lastPressedPad = mpc.getPad();
+  auto lastPressedNote = mpc.getNote();
+
   auto mpc_ui = new juce::XmlElement("MPC-UI");
   root->addChildElement(mpc_ui);
   
   mpc_ui->setAttribute("screen", screen);
   mpc_ui->setAttribute("focus", focus);
   mpc_ui->setAttribute("soundIndex", soundIndex);
+  mpc_ui->setAttribute("lastPressedNote", lastPressedNote);
+  mpc_ui->setAttribute("lastPressedPad", lastPressedPad);
   mpc_ui->setAttribute("currentDir", mpc.getDisk().lock()->getAbsolutePath());
   
   ApsParser apsParser(mpc, "stateinfo");
@@ -708,6 +712,8 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
       }
 
       mpc.getSampler().lock()->setSoundIndex(mpc_ui->getIntAttribute("soundIndex"));
+      mpc.setNote(mpc_ui->getIntAttribute("lastPressedNote"));
+      mpc.setPad(mpc_ui->getIntAttribute("lastPressedPad"));
 
       auto screen = mpc_ui->getStringAttribute("screen").toStdString();
       mpc.getLayeredScreen().lock()->openScreen(screen);
