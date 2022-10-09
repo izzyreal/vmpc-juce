@@ -8,14 +8,32 @@ DataWheelControl::DataWheelControl(mpc::Mpc& mpc, std::weak_ptr<mpc::hardware::D
   dataWheel.lock()->addObserver(this);
 }
 
+void DataWheelControl::mouseDown(const juce::MouseEvent& event)
+{
+  mouseDownEventSources.emplace(event.source.getIndex());
+  if (latestMouseDownTime == juce::Time(0)) latestMouseDownTime = event.mouseDownTime;
+}
+
 void DataWheelControl::mouseUp(const juce::MouseEvent& event)
 {
+  mouseDownEventSources.erase(event.source.getIndex());
+    
+  if (mouseDownEventSources.empty())
+  {
+    latestMouseDownTime = juce::Time(0);
+  }
+  
   lastDy = 0;
   getParentComponent()->mouseUp(event);
 }
 
 void DataWheelControl::mouseDrag(const juce::MouseEvent& event)
 {
+  if (mouseDownEventSources.size() > 1 && event.source.getLastMouseDownTime() != latestMouseDownTime)
+  {
+    return;
+  }
+    
   auto dY = -(event.getDistanceFromDragStartY() - lastDy);
   
   if (dY == 0)
@@ -25,7 +43,14 @@ void DataWheelControl::mouseDrag(const juce::MouseEvent& event)
   
   if (event.mods.isAnyModifierKeyDown() || iOS)
   {
-    pixelCounter += (dY * fineSensitivity * (iOS ? 2.0 : 1.0));
+    float iOSMultiplier = 1.0;
+    
+    for (int i = 1; i < mouseDownEventSources.size(); i++)
+    {
+      iOSMultiplier *= 10.f;
+    }
+      
+    pixelCounter += (dY * fineSensitivity * (iOS ? iOSMultiplier : 1.0));
     auto candidate = static_cast<int>(pixelCounter);
     if (candidate >= 1 || candidate <= -1)
     {

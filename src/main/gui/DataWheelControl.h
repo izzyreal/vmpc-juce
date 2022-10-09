@@ -5,6 +5,8 @@
 
 #include "MouseWheelControllable.hpp"
 
+#include <set>
+
 class DataWheelControl 
 	: public VmpcTooltipComponent
 	, public moduru::observer::Observer
@@ -19,7 +21,8 @@ public:
 	void paint(juce::Graphics& g) override;
 
 	void mouseDrag(const juce::MouseEvent&) override;
-	void mouseUp(const juce::MouseEvent&) override;
+	void mouseDown(const juce::MouseEvent&) override;
+    void mouseUp(const juce::MouseEvent&) override;
     void mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails&) override;
 
 	void update(moduru::observer::Observable* o, nonstd::any arg) override;
@@ -30,6 +33,8 @@ private:
 	int numFrames;
 	int frameWidth, frameHeight;
 
+    std::set<int> mouseDownEventSources;
+    juce::Time latestMouseDownTime = juce::Time(0);
 	int dataWheelIndex = 0;
 	float lastDy = 0;
 	double pixelCounter = 0;
