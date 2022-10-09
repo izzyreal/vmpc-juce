@@ -16,8 +16,6 @@ class KnobControl
 private:
     MouseWheelControllable mouseWheelControllable;
     std::weak_ptr<mpc::hardware::Pot> pot;
-    int knobType = 0; // 0 = rec, 1 = vol
-    int knobIndex = 0;
 
 public:
     void paint(juce::Graphics& g) override;
@@ -33,6 +31,6 @@ private:
     int frameWidth, frameHeight, lastDy = 0;
     
 public:
-    KnobControl(int type, std::weak_ptr<mpc::hardware::Pot> pot);
+    KnobControl(std::weak_ptr<mpc::hardware::Pot> pot);
     
 };

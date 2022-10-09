@@ -117,12 +117,12 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     addAndMakeVisible(slider);
 
     recKnobImg = ResourceUtil::loadImage("img/recknobs.jpg");
-    recKnob = new KnobControl(0, mpc.getHardware().lock()->getRecPot());
+    recKnob = new KnobControl(mpc.getHardware().lock()->getRecPot());
     recKnob->setImage(recKnobImg);
     addAndMakeVisible(recKnob);
 
     volKnobImg = ResourceUtil::loadImage("img/volknobs.jpg");
-    volKnob = new KnobControl(0, mpc.getHardware().lock()->getVolPot());
+    volKnob = new KnobControl(mpc.getHardware().lock()->getVolPot());
     volKnob->setImage(volKnobImg);
     addAndMakeVisible(volKnob);
 
