@@ -193,7 +193,7 @@ void LedControl::timerCallback()
 
     setUndoSeq(seq->isUndoSeqAvailable());
 
-    setPlay(seq->isPlaying() && !stepEditor);
+    setPlay(seq->isPlaying());
 
     auto isPlayingButNotOverdubbingAndOverdubIsPressed = seq->isPlaying() && !seq->isOverDubbing() && controls->isOverDubPressed();
 
