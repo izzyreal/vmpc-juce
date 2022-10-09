@@ -32,5 +32,6 @@ private:
     
 public:
     KnobControl(std::weak_ptr<mpc::hardware::Pot> pot);
-    
+    ~KnobControl();
+
 };

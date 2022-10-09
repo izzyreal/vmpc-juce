@@ -1,6 +1,5 @@
 #include "VmpcTooltipComponent.hpp"
 
-#include <observer/Observer.hpp>
 #include <hardware/DataWheel.hpp>
 
 #include "MouseWheelControllable.hpp"
@@ -9,7 +8,6 @@
 
 class DataWheelControl 
 	: public VmpcTooltipComponent
-	, public moduru::observer::Observer
 {
 public:
 	DataWheelControl(mpc::Mpc& mpc, std::weak_ptr<mpc::hardware::DataWheel> dataWheel);
@@ -25,7 +23,7 @@ public:
     void mouseUp(const juce::MouseEvent&) override;
     void mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails&) override;
 
-	void update(moduru::observer::Observable* o, nonstd::any arg) override;
+	void updateUI(int increment);
 
 private:
     MouseWheelControllable mouseWheelControllable;

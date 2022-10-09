@@ -21,6 +21,12 @@ KnobControl::KnobControl(std::weak_ptr<mpc::hardware::Pot> _pot)
     };
 }
 
+KnobControl::~KnobControl()
+{
+    pot.lock()->updateUi = [](){};
+}
+
+
 void KnobControl::setImage(juce::Image image)
 {
 	knobs = image;

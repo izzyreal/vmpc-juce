@@ -5,7 +5,14 @@
 DataWheelControl::DataWheelControl(mpc::Mpc& mpc, std::weak_ptr<mpc::hardware::DataWheel> _dataWheel)
 : VmpcTooltipComponent(mpc, std::make_shared<DummyDataWheelHwComponent>(mpc)), numFrames(0), frameWidth(0), frameHeight(0), dataWheel (_dataWheel)
 {
-  dataWheel.lock()->addObserver(this);
+    dataWheel.lock()->updateUi = [this](int increment) {
+        juce::MessageManager::callAsync ([target = juce::WeakReference<Component> { this }, increment] {
+            if (target != nullptr) {
+                DataWheelControl* dataWheelControl = dynamic_cast<DataWheelControl*>(target.get());
+                dataWheelControl->updateUI(increment);
+            }
+        });
+    };
 }
 
 void DataWheelControl::mouseDown(const juce::MouseEvent& event)
@@ -81,9 +88,8 @@ static inline void clampIndex(int& dataWheelIndex)
   }
 }
 
-void DataWheelControl::update(moduru::observer::Observable*, nonstd::any arg)
+void DataWheelControl::updateUI(int increment)
 {
-  int increment = nonstd::any_cast<int>(arg);
   dataWheelIndex += increment;
   clampIndex(dataWheelIndex);
   repaint();
@@ -100,7 +106,7 @@ void DataWheelControl::setImage(juce::Image image, int numFrames_)
 
 DataWheelControl::~DataWheelControl()
 {
-  dataWheel.lock()->deleteObserver(this);
+  dataWheel.lock()->updateUi = [](int){};
 }
 
 void DataWheelControl::paint(juce::Graphics& g)
