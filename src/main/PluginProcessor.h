@@ -48,15 +48,13 @@ private:
   void processMidiOut(juce::MidiBuffer& midiMessages);
   void processTransport();
   void checkBouncing();
-  void checkSoundRecorder();
-  
+
   juce::AudioSampleBuffer monoToStereoBufferIn;
   juce::AudioSampleBuffer monoToStereoBufferOut;
   double m_Tempo = 0;
   bool wasPlaying = false;
   bool wasBouncing = false;
-  bool wasRecordingSound = false;
-  
+
 public:
   bool shouldShowDisclaimer = true;
   std::function<void()> showAudioSettingsDialog = [](){};

@@ -344,37 +344,14 @@ void VmpcAudioProcessor::checkBouncing()
   }
 }
 
-void VmpcAudioProcessor::checkSoundRecorder()
-{
-  auto ams = mpc.getAudioMidiServices().lock();
-  auto recorder = ams->getSoundRecorder().lock();
-  
-  if (wasRecordingSound && !recorder->isRecording())
-  {
-    recorder->stop();
-    ams->stopSoundRecorder();
-  }
-  
-  if (!wasRecordingSound && ams->isRecordingSound())
-  {
-    wasRecordingSound = true;
-    recorder->start();
-  }
-  else if (wasRecordingSound && !ams->isRecordingSound())
-  {
-    wasRecordingSound = false;
-    recorder->stop();
-  }
-}
-
 void VmpcAudioProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuffer& midiMessages)
 {
   juce::ScopedNoDenormals noDenormals;
   
   const int totalNumInputChannels = getTotalNumInputChannels();
   const int totalNumOutputChannels = getTotalNumOutputChannels();
-  
-  auto server = mpc.getAudioMidiServices().lock()->getAudioServer();
+  auto audioMidiServices = mpc.getAudioMidiServices().lock();
+  auto server = audioMidiServices->getAudioServer();
   
   if (!server->isRunning())
   {
@@ -384,10 +361,9 @@ void VmpcAudioProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::Mid
     }
     return;
   }
-  
-  
+
   checkBouncing();
-  checkSoundRecorder();
+  audioMidiServices->changeSoundRecorderStateIfRequired();
   
   if (!server->isRealTime())
   {
