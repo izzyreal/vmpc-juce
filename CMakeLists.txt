@@ -143,13 +143,8 @@ target_compile_definitions(vmpc2000xl
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
     JUCE_VST3_CAN_REPLACE_VST2=0
-    JUCE_DISPLAY_SPLASH_SCREEN=0)
-
-if (IOS)
-  target_compile_definitions(vmpc2000xl PUBLIC JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=0)
-else()
-  target_compile_definitions(vmpc2000xl PUBLIC JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1)  
-endif()
+    JUCE_DISPLAY_SPLASH_SCREEN=0
+    JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1)
 
 if (UNIX AND NOT APPLE)
     include(FindPkgConfig)

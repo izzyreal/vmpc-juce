@@ -3,6 +3,10 @@
 
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 
+#if JUCE_IOS
+void* juce_GetIOSCustomDelegateClass()  { return nullptr; }
+#endif
+
 StandaloneFilterApp::StandaloneFilterApp()
 {
     juce::PluginHostType::jucePlugInClientCurrentWrapperType =
@@ -22,12 +26,15 @@ StandaloneFilterWindow* StandaloneFilterApp::createWindow()
         Helpers::shouldAutoOpenMidiDevices());
 }
 
-void StandaloneFilterApp::initialise(const String&)
+void StandaloneFilterApp::initialise(const juce::String&)
 {
-    mainWindow.reset(createWindow());
+    mainWindow.reset (createWindow());
 
-    if (!Helpers::shouldUseKioskMode())
-        mainWindow->setVisible(true);
+   #if JUCE_STANDALONE_FILTER_WINDOW_USE_KIOSK_MODE
+    juce::Desktop::getInstance().setKioskModeComponent (mainWindow.get(), false);
+   #endif
+
+    mainWindow->setVisible (true);
 }
 
 void StandaloneFilterApp::shutdown()
