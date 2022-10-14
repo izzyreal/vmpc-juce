@@ -26,8 +26,8 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
 FetchContent_Declare(JUCE
-  GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-  GIT_TAG        7.0.1
+  GIT_REPOSITORY https://github.com/izzyreal/JUCE.git
+  GIT_TAG        patched-for-ios
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/JUCE
 )
 
