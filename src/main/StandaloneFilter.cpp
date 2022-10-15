@@ -39,14 +39,21 @@ void StandaloneFilterApp::initialise(const juce::String&)
 
 void StandaloneFilterApp::shutdown()
 {
+#if JUCE_IOS
+    if (mainWindow != nullptr)
+        mainWindow->pluginHolder->savePluginState();
+#endif
     mainWindow = nullptr;
     appProperties.saveIfNeeded();
 }
 
 void StandaloneFilterApp::systemRequestedQuit()
 {
+
+#ifndef JUCE_IOS
     if (mainWindow != nullptr)
         mainWindow->pluginHolder->savePluginState();
+#endif
 
     if (ModalComponentManager::getInstance()->cancelAllModalComponents())
         Timer::callAfterDelay(100, [&]() { requestQuit(); });
