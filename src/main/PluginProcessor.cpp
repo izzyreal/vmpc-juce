@@ -607,15 +607,15 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
             mpc.setPad(static_cast<unsigned char>(mpc_ui->getIntAttribute("lastPressedPad")));
             
             auto screen = mpc_ui->getStringAttribute("screen").toStdString();
+            mpc.getLayeredScreen().lock()->openScreen("black");
             mpc.getLayeredScreen().lock()->openScreen(screen);
-            
+
             auto focus = mpc_ui->getStringAttribute("focus").toStdString();
             
             if (focus.length() > 0)
                 mpc.getLayeredScreen().lock()->setFocus(focus);
             
             mpc.getLayeredScreen().lock()->setDirty();
-            
         }
     };
   if (xmlState.get() != nullptr)

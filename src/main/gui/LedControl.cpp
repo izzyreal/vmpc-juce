@@ -220,76 +220,76 @@ void LedControl::update(moduru::observer::Observable*, nonstd::any arg)
 {
 	auto s = nonstd::any_cast<std::string>(arg);
 
-	if (s.compare("full-level-on") == 0) {
+	if (s == "full-level-on") {
 		setFullLevel(true);
 	}
-	else if(s.compare("full-level-off") == 0) {
+	else if(s == "full-level-off") {
 		setFullLevel(false);
 	}
-	else if (s.compare("sixteen-levels-on") == 0) {
+	else if (s == "sixteen-levels-on") {
 		setSixteenLevels(true);
 	}
-	else if (s.compare("sixteen-levels-off") == 0) {
+	else if (s == "sixteen-levels-off") {
 		setSixteenLevels(false);
 	}
-	else if (s.compare("next-seq-on") == 0) {
+	else if (s == "next-seq-on") {
 		setNextSeq(true);
 	}
-	else if (s.compare("next-seq-off") == 0) {
+	else if (s == "next-seq-off") {
 		setNextSeq(false);
 	}
-	else if (s.compare("track-mute-on") == 0) {
+	else if (s == "track-mute-on") {
 		setTrackMute(true);
 	}
-	else if (s.compare("track-mute-off") == 0) {
+	else if (s == "track-mute-off") {
 		setTrackMute(false);
 	}
-	else if (s.compare("pad-bank-a-on") == 0) {
+	else if (s == "pad-bank-a-on") {
 		setPadBankA(true);
 	}
-	else if (s.compare("pad-bank-a-off") == 0) {
+	else if (s == "pad-bank-a-off") {
 		setPadBankA(false);
 	}
-	else if (s.compare("pad-bank-b-on") == 0) {
+	else if (s == "pad-bank-b-on") {
 		setPadBankB(true);
 	}
-	else if (s.compare("pad-bank-b-off") == 0) {
+	else if (s == "pad-bank-b-off") {
 		setPadBankB(false);
 	}
-	else if (s.compare("pad-bank-c-on") == 0) {
+	else if (s == "pad-bank-c-on") {
 		setPadBankC(true);
 	}
-	else if (s.compare("pad-bank-c-off") == 0) {
+	else if (s == "pad-bank-c-off") {
 		setPadBankC(false);
 	}
-	else if (s.compare("pad-bank-d-on") == 0) {
+	else if (s == "pad-bank-d-on") {
 		setPadBankD(true);
 	}
-	else if (s.compare("pad-bank-d-off") == 0) {
+	else if (s == "pad-bank-d-off") {
 		setPadBankD(false);
 	}
-	else if (s.compare("after-on") == 0) {
+	else if (s == "after-on") {
 		setAfter(true);
 	}
-	else if (s.compare("after-off") == 0) {
+	else if (s == "after-off") {
 		setAfter(false);
 	}
-	else if (s.compare("undo-seq-on") == 0) {
+	else if (s == "undo-seq-on") {
 		setUndoSeq(true);
 	}
-	else if (s.compare("undo-seq-off") == 0) {
+	else if (s == "undo-seq-off") {
 		setUndoSeq(false);
 	}
-	else if (s.compare("rec-on") == 0) {
+	else if (s == "rec-on") {
 		setRec(true);
 	}
-	else if (s.compare("rec-off") == 0) {
+	else if (s == "rec-off") {
 		setRec(false);
 	}
-	else if (s.compare("overdub-on") == 0) {
+	else if (s == "overdub-on") {
 		setOverDub(true);
 	}
-	else if (s.compare("overdub-off") == 0) {
+	else if (s == "overdub-off") {
 		setOverDub(false);
 	}
 }
