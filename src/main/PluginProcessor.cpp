@@ -20,7 +20,6 @@
 #include <sequencer/Sequencer.hpp>
 
 #include <lcdgui/screens/VmpcAutoSaveScreen.hpp>
-#include <lcdgui/screens/window/VmpcDirectToDiskRecorderScreen.hpp>
 #include <lcdgui/screens/SyncScreen.hpp>
 
 // ctoot
@@ -123,16 +122,16 @@ int VmpcAudioProcessor::getCurrentProgram()
   return 0;
 }
 
-void VmpcAudioProcessor::setCurrentProgram (int index)
+void VmpcAudioProcessor::setCurrentProgram (int /* index */)
 {
 }
 
-const juce::String VmpcAudioProcessor::getProgramName (int index)
+const juce::String VmpcAudioProcessor::getProgramName (int /* index */)
 {
   return {};
 }
 
-void VmpcAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void VmpcAudioProcessor::changeProgramName (int /* index */, const juce::String& /* newName */)
 {
 }
 
@@ -165,30 +164,8 @@ void VmpcAudioProcessor::releaseResources()
   // spare memory, etc.
 }
 
-bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout&) const
 {
-  return true;
-  
-  //     if (layouts.inputBuses.size() > 1)
-  //     return false;
-  
-  //     if (layouts.outputBuses.size() > 5)
-  //     return false;
-  
-  // Mono input is anticipated, but outputs need to come in stereo pairs
-  
-  for (auto& bus : layouts.inputBuses)
-  {
-    if (bus != juce::AudioChannelSet::mono() && bus != juce::AudioChannelSet::stereo())
-      return false;
-  }
-  
-  for (auto& bus : layouts.outputBuses)
-  {
-    if (bus != juce::AudioChannelSet::stereo())
-      return false;
-  }
-  
   return true;
 }
 
@@ -273,9 +250,8 @@ void VmpcAudioProcessor::processTransport()
   
   if (syncEnabled)
   {
-    juce::AudioPlayHead::CurrentPositionInfo info;
-    getPlayHead()->getCurrentPosition(info);
-    double tempo = info.bpm;
+    auto info = getPlayHead()->getPosition();
+    double tempo = info->getBpm().orFallback(120);
     
     if (tempo != m_Tempo || mpc.getSequencer().lock()->getTempo() != tempo)
     {
@@ -283,7 +259,7 @@ void VmpcAudioProcessor::processTransport()
       m_Tempo = tempo;
     }
     
-    bool isPlaying = info.isPlaying;
+    bool isPlaying = info->getIsPlaying();
     
     if (!wasPlaying && isPlaying)
     {
@@ -294,53 +270,6 @@ void VmpcAudioProcessor::processTransport()
       mpc.getSequencer().lock()->stop();
     }
     wasPlaying = isPlaying;
-  }
-}
-
-void VmpcAudioProcessor::checkBouncing()
-{
-  auto ams = mpc.getAudioMidiServices().lock();
-  auto server = ams->getAudioServer();
-  bool amsIsBouncing = ams->isBouncing();
-  
-  auto directToDiskRecorderScreen = mpc.screens->get<VmpcDirectToDiskRecorderScreen>("vmpc-direct-to-disk-recorder");
-  
-  if (amsIsBouncing && !wasBouncing) {
-    
-    wasBouncing = true;
-    
-    if (directToDiskRecorderScreen->isOffline())
-    {
-      std::vector<int> rates{ 44100, 48000, 88200 };
-      auto rate = rates[static_cast<size_t>(directToDiskRecorderScreen->getSampleRate())];
-      ams->getFrameSequencer().lock()->start(rate);
-      
-      if (server->isRealTime())
-      {
-        server->setSampleRate(rate);
-        server->setRealTime(false);
-      }
-    }
-    else if (directToDiskRecorderScreen->getRecord() != 4)
-    {
-      ams->getFrameSequencer().lock()->start(static_cast<int>(getSampleRate()));
-    }
-    
-    for (auto& diskRecorder : ams->getDiskRecorders())
-      diskRecorder.lock()->start();
-  }
-  else if (!amsIsBouncing && wasBouncing)
-  {
-    wasBouncing = false;
-    
-    if (directToDiskRecorderScreen->isOffline())
-    {
-      if (!server->isRealTime())
-      {
-        server->setSampleRate(static_cast<int>(getSampleRate()));
-        server->setRealTime(true);
-      }
-    }
   }
 }
 
@@ -362,7 +291,7 @@ void VmpcAudioProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::Mid
     return;
   }
 
-  checkBouncing();
+  audioMidiServices->changeBounceStateIfRequired();
   audioMidiServices->changeSoundRecorderStateIfRequired();
   
   if (!server->isRealTime())
@@ -689,7 +618,7 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 
       mpc.getSampler().lock()->setSoundIndex(mpc_ui->getIntAttribute("soundIndex"));
       mpc.setNote(mpc_ui->getIntAttribute("lastPressedNote"));
-      mpc.setPad(mpc_ui->getIntAttribute("lastPressedPad"));
+      mpc.setPad(static_cast<unsigned char>(mpc_ui->getIntAttribute("lastPressedPad")));
 
       auto screen = mpc_ui->getStringAttribute("screen").toStdString();
       mpc.getLayeredScreen().lock()->openScreen(screen);

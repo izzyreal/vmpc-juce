@@ -47,13 +47,11 @@ private:
   void processMidiIn(juce::MidiBuffer& midiMessages);
   void processMidiOut(juce::MidiBuffer& midiMessages);
   void processTransport();
-  void checkBouncing();
 
   juce::AudioSampleBuffer monoToStereoBufferIn;
   juce::AudioSampleBuffer monoToStereoBufferOut;
   double m_Tempo = 0;
   bool wasPlaying = false;
-  bool wasBouncing = false;
 
 public:
   bool shouldShowDisclaimer = true;
