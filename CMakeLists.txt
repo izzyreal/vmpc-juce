@@ -18,8 +18,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 project(vmpc2000xl VERSION ${VMPC_VERSION})
 
-add_definitions(-DJUCE_MODAL_LOOPS_PERMITTED)
-
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/src/main/version.h "#pragma once\nnamespace version { static char const* get(){ return \"${VMPC_VERSION}\";}}")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 

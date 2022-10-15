@@ -285,7 +285,7 @@ void ContentComponent::mouseUp(const juce::MouseEvent &e)
 
 void ContentComponent::mouseDrag(const juce::MouseEvent &e)
 {
-
+    return;
     auto thisSource = e.source;
     auto cur_pos1 = thisSource.getScreenPosition();
 
@@ -297,8 +297,6 @@ void ContentComponent::mouseDrag(const juce::MouseEvent &e)
         prevSingleY = cur_pos1.getY();
         auto newX = getX() + translation_x;
         auto newY = getY() + translation_y;
-        auto w = getWidth();
-        auto h = getHeight();
         setBounds(newX, newY, getWidth(), getHeight());
     }
     else if (sources.size() == 2)
