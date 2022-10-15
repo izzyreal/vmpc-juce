@@ -6,9 +6,10 @@ DataWheelControl::DataWheelControl(mpc::Mpc& mpc, std::weak_ptr<mpc::hardware::D
 : VmpcTooltipComponent(mpc, std::make_shared<DummyDataWheelHwComponent>(mpc)), numFrames(0), frameWidth(0), frameHeight(0), dataWheel (_dataWheel)
 {
     dataWheel.lock()->updateUi = [this](int increment) {
-        juce::MessageManager::callAsync ([target = juce::WeakReference<Component> { this }, increment] {
-            if (target != nullptr) {
-                DataWheelControl* dataWheelControl = dynamic_cast<DataWheelControl*>(target.get());
+        juce::MessageManager::callAsync ([this, increment] {
+            DataWheelControl* dataWheelControl = dynamic_cast<DataWheelControl*>(this);
+            if (dataWheelControl != nullptr)
+            {
                 dataWheelControl->updateUI(increment);
             }
         });

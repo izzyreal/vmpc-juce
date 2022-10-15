@@ -15,8 +15,9 @@ KnobControl::KnobControl(std::weak_ptr<mpc::hardware::Pot> _pot)
 : pot (_pot)
 {
     pot.lock()->updateUi = [this]() {
-        juce::MessageManager::callAsync ([target = juce::WeakReference<Component> { this }] {
-            if (target != nullptr) target->repaint();
+        juce::MessageManager::callAsync ([this] {
+			auto knobControl = dynamic_cast<KnobControl*>(this);
+            if (knobControl != nullptr) knobControl->repaint();
         });
     };
 }
