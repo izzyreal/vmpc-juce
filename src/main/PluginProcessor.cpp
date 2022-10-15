@@ -139,18 +139,40 @@ void VmpcAudioProcessor::changeProgramName (int /* index */, const juce::String&
 void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
   auto seq = mpc.getSequencer().lock();
-  bool seqIsPlaying = seq->isPlaying();
-  
-  if (seqIsPlaying)
-    seq->stop();
+  bool seqWasPlaying = seq->isPlaying();
+  bool seqWasOverdubbing = seq->isOverDubbing();
+  bool seqWasRecording = seq->isRecording();
+  bool countWasEnabled = seq->isCountEnabled();
+
+  if (seqWasPlaying)
+  {
+      seq->stop();
+  }
   
   auto ams = mpc.getAudioMidiServices().lock();
   auto server = ams->getAudioServer();
   server->setSampleRate(static_cast<int>(sampleRate));
   server->resizeBuffers(samplesPerBlock);
-  
-  if (seqIsPlaying)
-    seq->play();
+
+  seq->setCountEnabled(false);
+
+  if (seqWasOverdubbing)
+  {
+      seq->overdub();
+  }
+  else if (seqWasRecording)
+  {
+      seq->rec();
+  }
+  else if (seqWasPlaying)
+  {
+      seq->play();
+  }
+
+  if (countWasEnabled)
+  {
+      seq->setCountEnabled(true);
+  }
   
   monoToStereoBufferIn.clear();
   monoToStereoBufferIn.setSize(2, samplesPerBlock);
