@@ -19,12 +19,16 @@
 #include "IosDocumentBrowser.h"
 #include "Paths.hpp"
 
+namespace mpc { class Mpc; }
+
 class VmpcURLProcessor : public URLProcessor {
 public:
-  std::shared_ptr<mpc::disk::AbstractDisk> disk;
+  mpc::Mpc* mpc;
   std::string destinationDir = mpc::Paths::defaultLocalVolumePath();
+  
   bool destinationExists(const char* filename, const char* relativePath) override;
   std::shared_ptr<std::ostream> openOutputStream(const char* filename, const char* relativePath) override;
+  void initFiles() override;
 };
 
 #define ENABLE_IMPORT 1

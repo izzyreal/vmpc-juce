@@ -190,7 +190,9 @@
     [self handleURLs:urls relativeDir:@""];
     
     dispatch_async(dispatch_get_main_queue(), ^{
-      [controller dismissViewControllerAnimated:true completion:nil];
+        [controller dismissViewControllerAnimated:true completion:^{
+            _urlProcessor->initFiles();
+        }];
     });
   });
 }

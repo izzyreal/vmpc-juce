@@ -46,11 +46,26 @@ std::shared_ptr<std::ostream> VmpcURLProcessor::openOutputStream(const char* fil
   mpc::disk::MpcFile newFile(newFilePath);
   return newFile.getOutputStream();
 }
+
+void VmpcURLProcessor::initFiles()
+{
+    auto layeredScreen = mpc->getLayeredScreen().lock();
+    auto currentScreen = layeredScreen->getCurrentScreenName();
+    if (currentScreen == "load" || currentScreen == "save" || currentScreen == "directory")
+    {
+        layeredScreen->openScreen(currentScreen == "directory" ? "load" : "black");
+        mpc->getDisk().lock()->initFiles();
+        layeredScreen->openScreen(currentScreen);
+    }
+}
 #endif
 
 ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAudioSettingsDialog)
         : mpc(_mpc), keyEventHandler(mpc.getControls().lock()->getKeyEventHandler())
 {
+#if ENABLE_IMPORT
+    urlProcessor.mpc = &mpc;
+#endif
     keyboard = KeyboardFactory::instance(this);
 
     keyboard->onKeyDownFn = [&](int keyCode) {

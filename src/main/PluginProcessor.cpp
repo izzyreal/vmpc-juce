@@ -395,6 +395,7 @@ void VmpcAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
         auto layeredScreen = mpc.getLayeredScreen().lock();
         
         auto screen = layeredScreen->getCurrentScreenName();
+        auto previousScreen = layeredScreen->getPreviousScreenName();
         auto focus = mpc.getLayeredScreen().lock()->getFocus();
         auto soundIndex = mpc.getSampler().lock()->getSoundIndex();
         auto lastPressedPad = mpc.getPad();
@@ -404,6 +405,7 @@ void VmpcAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
         root->addChildElement(mpc_ui);
         
         mpc_ui->setAttribute("screen", screen);
+        mpc_ui->setAttribute("previousScreen", previousScreen);
         mpc_ui->setAttribute("focus", focus);
         mpc_ui->setAttribute("soundIndex", soundIndex);
         mpc_ui->setAttribute("lastPressedNote", lastPressedNote);
@@ -607,9 +609,11 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
             mpc.setPad(static_cast<unsigned char>(mpc_ui->getIntAttribute("lastPressedPad")));
             
             auto screen = mpc_ui->getStringAttribute("screen").toStdString();
+            auto previousScreen = mpc_ui->getStringAttribute("previousScreen").toStdString();
             mpc.getLayeredScreen().lock()->openScreen("black");
+            mpc.getLayeredScreen().lock()->openScreen(previousScreen);
+            
             mpc.getLayeredScreen().lock()->openScreen(screen);
-
             auto focus = mpc_ui->getStringAttribute("focus").toStdString();
             
             if (focus.length() > 0)
