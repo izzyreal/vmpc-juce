@@ -164,7 +164,7 @@ _bundle_vmpc_juce_resources(vmpc2000xl)
 
 if(APPLE)
   execute_process(
-    COMMAND python macos-codesign-details-extractor.py
+    COMMAND python3 macos-codesign-details-extractor.py
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     OUTPUT_VARIABLE DEVELOPMENT_TEAM)
   set(CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${DEVELOPMENT_TEAM}")
