@@ -21,6 +21,7 @@
 
 #include <lcdgui/screens/VmpcAutoSaveScreen.hpp>
 #include <lcdgui/screens/SyncScreen.hpp>
+#include <lcdgui/screens/window/DirectoryScreen.hpp>
 
 // ctoot
 #include <audio/server/NonRealTimeAudioServer.hpp>
@@ -612,7 +613,10 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
             auto previousScreen = mpc_ui->getStringAttribute("previousScreen").toStdString();
             mpc.getLayeredScreen().lock()->openScreen("black");
             mpc.getLayeredScreen().lock()->openScreen(previousScreen);
-            
+
+            auto directoryScreen = mpc.screens->get<DirectoryScreen>("directory");
+            directoryScreen->setPreviousScreenName(previousScreen == "save" ? "save" : "load");
+
             mpc.getLayeredScreen().lock()->openScreen(screen);
             auto focus = mpc_ui->getStringAttribute("focus").toStdString();
             
