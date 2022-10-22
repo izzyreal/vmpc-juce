@@ -131,7 +131,7 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
             layeredScreen->openScreen("popup");
             popupScreen->returnToScreenAfterMilliSeconds(screenToReturnTo, 300);
 
-            auto drumIndex = mpc.getSequencer().lock()->getActiveTrack().lock()->getBus() - 1;
+            auto drumIndex = mpc.getSequencer().lock()->getActiveTrack()->getBus() - 1;
 
             if (drumIndex == -1)
             {
@@ -201,23 +201,21 @@ void PadControl::update(moduru::observer::Observable *, nonstd::any arg)
     if (velocity == 255)
     {
         fading = true;
-        pressed = false;
     }
     else
     {
         padhitBrightness = velocity + 25;
-        pressed = true;
         fading = false;
         startTimer(100);
     }
 }
 
-int PadControl::getVelo(int x, int y)
+int PadControl::getVelo(int veloX, int veloY)
 {
     float centX = rect.getCentreX() - rect.getX();
     float centY = rect.getCentreY() - rect.getY();
-    float distX = x - centX;
-    float distY = y - centY;
+    float distX = static_cast<float>(veloX) - centX;
+    float distY = static_cast<float>(veloY) - centY;
     float powX = static_cast<float>(pow(distX, 2));
     float powY = static_cast<float>(pow(distY, 2));
     float dist = sqrt(powX + powY);
@@ -247,7 +245,7 @@ void PadControl::mouseDrag(const MouseEvent &event)
 
     auto newVelo = getVelo(event.x, event.y);
 
-    pad.lock()->setPressure(newVelo);
+    pad.lock()->setPressure(static_cast<unsigned char>(newVelo));
 }
 
 void PadControl::setBounds()

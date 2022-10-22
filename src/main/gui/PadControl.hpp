@@ -27,10 +27,9 @@ private:
     juce::Rectangle<float> rect;
 
     bool fading = false;
-    bool pressed = false;
     int padhitBrightness = 0;
 
-    int getVelo(int x, int y);
+    int getVelo(int veloX, int veloY);
     void loadFile(const juce::String path, bool shouldBeConverted, std::string screenToReturnTo);
 
 public:
