@@ -443,7 +443,7 @@ void VmpcAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
         mpc_aps->setAttribute("data", encodedAps.toString());
         mpc_aps->setAttribute("size", (int) apsBytes.size());
         
-        AllParser allParser(mpc, "stateinfo");
+        AllParser allParser(mpc);
         auto allBytes = allParser.getBytes();
         
         juce::MemoryOutputStream encodedAll;
