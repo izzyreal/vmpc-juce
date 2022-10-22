@@ -181,7 +181,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 #endif
   
     versionLabel.setText(version::get(), juce::dontSendNotification);
-    versionLabel.setColour(juce::Label::textColourId, juce::Colours::darkgrey);
+    versionLabel.setColour(juce::Label::textColourId, juce::Colours::grey);
     addAndMakeVisible(versionLabel);
 
     if (juce::JUCEApplicationBase::isStandaloneApp())
@@ -470,7 +470,7 @@ void ContentComponent::resized()
 #endif
 
     versionLabel.setTransform(scaleTransform);
-    versionLabel.setBounds(1175, 118, 100, 20);
+    versionLabel.setBounds(1152, 112, 100, 20);
 }
 
 void ContentComponent::globalFocusChanged(juce::Component *)
