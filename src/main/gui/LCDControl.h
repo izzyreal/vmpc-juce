@@ -19,16 +19,20 @@ class LCDControl
 {
 
 private:
-	mpc::Mpc& mpc;
-	std::weak_ptr<mpc::lcdgui::LayeredScreen> ls;
+    bool isAux = false;
+    juce::ResizableWindow* auxWindow = nullptr;
+    mpc::Mpc& mpc;
+	std::shared_ptr<mpc::lcdgui::LayeredScreen> ls;
 	juce::Image lcd;
     juce::Rectangle<int> dirtyRect;
+    static bool auxNeedsToUpdate;
 
 public:
 	void checkLsDirty();
 	void drawPixelsToImg();
 	void paint(juce::Graphics& g) override;
 	void timerCallback() override;
+    void mouseDoubleClick (const juce::MouseEvent&) override;
   void mouseDown(const juce::MouseEvent& e) override {
     getParentComponent()->mouseDown(e);
   }
@@ -37,7 +41,7 @@ public:
   }
 
 public:
-	LCDControl(mpc::Mpc& mpc, std::weak_ptr<mpc::lcdgui::LayeredScreen> ls);
+	LCDControl(mpc::Mpc& mpc);
   ~LCDControl() override;
 	void update(moduru::observer::Observable* o, nonstd::any msg) override;
 
