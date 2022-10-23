@@ -145,6 +145,7 @@ void LCDControl::mouseDoubleClick (const juce::MouseEvent&)
         auto auxLcd = new AuxLCD(mpc);
         auxLcd->isAux = true;
         auxWindow->setContentOwned(auxLcd, false);
+        auxWindow->setBackgroundColour(Constants::LCD_OFF);
         auxLcd->drawPixelsToImg();
         auxLcd->startTimer(25);
     }
