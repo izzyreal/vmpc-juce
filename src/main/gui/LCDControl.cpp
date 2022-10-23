@@ -1,6 +1,5 @@
 #include "LCDControl.h"
 
-#include <lcdgui/LayeredScreen.hpp>
 #include <lcdgui/Layer.hpp>
 #include <lcdgui/screens/OthersScreen.hpp>
 #include "Constants.h"
