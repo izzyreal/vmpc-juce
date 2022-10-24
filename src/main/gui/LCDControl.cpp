@@ -4,6 +4,9 @@
 #include <lcdgui/screens/OthersScreen.hpp>
 #include "Constants.h"
 
+#include "ContentComponent.h"
+#include "raw_keyboard_input/raw_keyboard_input.h"
+
 #include <gui/BasicStructs.hpp>
 
 using namespace mpc::lcdgui;
@@ -120,6 +123,8 @@ void LCDControl::mouseDoubleClick (const juce::MouseEvent&)
 
     if (auxWindow != nullptr)
     {
+        auto contentComponent = dynamic_cast<ContentComponent*>(getParentComponent());
+        contentComponent->keyboard->setAuxParent(nullptr);
         delete auxWindow;
         auxWindow = nullptr;
     }
@@ -133,15 +138,26 @@ void LCDControl::mouseDoubleClick (const juce::MouseEvent&)
         auxWindow->setResizeLimits(248 + margin, 60 + margin, (248*8) + margin, (60 * 8) + margin);
         auxWindow->getConstrainer()->setFixedAspectRatio((496.f + margin) / (120.f + margin));
         auxWindow->setBounds(0, 0, 496 + margin, 120 + margin);
+        auxWindow->setAlwaysOnTop(true);
+        auxWindow->setWantsKeyboardFocus(false);
+
+        auto contentComponent = dynamic_cast<ContentComponent*>(getParentComponent());
+        contentComponent->keyboard->setAuxParent(auxWindow);
 
         class AuxLCD : public LCDControl {
-        public: AuxLCD(mpc::Mpc& m) : LCDControl(m) {}
+        public: AuxLCD(mpc::Mpc& m, juce::ResizableWindow*& w, Keyboard* kb) : LCDControl(m), window(w), keyboard(kb) {}
+        private: juce::ResizableWindow*& window; Keyboard* keyboard;
             void resized() override {
                 setBounds(margin / 2, margin / 2, getParentWidth() - margin, getParentHeight() - margin);
             }
+            void mouseDoubleClick(const juce::MouseEvent&) override {
+                keyboard->setAuxParent(nullptr);
+                delete window;
+                window = nullptr;
+            }
         };
 
-        auto auxLcd = new AuxLCD(mpc);
+        auto auxLcd = new AuxLCD(mpc, auxWindow, contentComponent->keyboard);
         auxLcd->isAux = true;
         auxWindow->setContentOwned(auxLcd, false);
         auxWindow->setBackgroundColour(Constants::LCD_OFF);
