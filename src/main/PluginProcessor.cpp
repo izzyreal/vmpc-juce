@@ -193,10 +193,10 @@ bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout&) const
 }
 
 void VmpcAudioProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
-  
-  for (const auto meta : midiMessages)
+
+  for (const auto& meta : midiMessages)
   {
-    const auto m = meta.getMessage();
+    const auto& m = meta.getMessage();
     int timeStamp = static_cast<int>(m.getTimeStamp());
     int velocity = m.getVelocity();
     std::shared_ptr<ShortMessage> tootMsg;
