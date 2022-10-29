@@ -27,6 +27,9 @@ private:
     juce::Rectangle<int> dirtyRect;
     static bool auxNeedsToUpdate;
 
+protected:
+    void resetAuxWindow() { if (auxWindow != nullptr) { auxWindow->removeFromDesktop(); delete auxWindow; auxWindow = nullptr;}}
+    
 public:
 	void checkLsDirty();
 	void drawPixelsToImg();

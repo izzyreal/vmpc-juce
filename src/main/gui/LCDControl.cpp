@@ -145,19 +145,18 @@ void LCDControl::mouseDoubleClick (const juce::MouseEvent&)
         contentComponent->keyboard->setAuxParent(auxWindow);
 
         class AuxLCD : public LCDControl {
-        public: AuxLCD(mpc::Mpc& m, juce::ResizableWindow*& w, Keyboard* kb) : LCDControl(m), window(w), keyboard(kb) {}
-        private: juce::ResizableWindow*& window; Keyboard* keyboard;
+        public: AuxLCD(mpc::Mpc& m, LCDControl* p, Keyboard* kb) : LCDControl(m), parent(p), keyboard(kb) {}
+        private: LCDControl* parent; Keyboard* keyboard;
             void resized() override {
                 setBounds(margin / 2, margin / 2, getParentWidth() - margin, getParentHeight() - margin);
             }
             void mouseDoubleClick(const juce::MouseEvent&) override {
                 keyboard->setAuxParent(nullptr);
-                delete window;
-                window = nullptr;
+                parent->resetAuxWindow();
             }
         };
 
-        auto auxLcd = new AuxLCD(mpc, auxWindow, contentComponent->keyboard);
+        auto auxLcd = new AuxLCD(mpc, this, contentComponent->keyboard);
         auxLcd->isAux = true;
         auxWindow->setContentOwned(auxLcd, false);
         auxWindow->setBackgroundColour(Constants::LCD_OFF);
