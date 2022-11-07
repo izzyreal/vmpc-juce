@@ -598,32 +598,35 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
         if (mpc_all != nullptr)
         {
             std::vector<char> allData = decodeBase64(mpc_all);
-            
+
             if (allData.size() > 0)
             {
                 AllParser allParser(mpc, allData);
                 AllLoader::loadEverythingFromAllParser(mpc, allParser);
             }
-            
+
             mpc.getSampler().lock()->setSoundIndex(mpc_ui->getIntAttribute("soundIndex"));
             mpc.setNote(mpc_ui->getIntAttribute("lastPressedNote"));
             mpc.setPad(static_cast<unsigned char>(mpc_ui->getIntAttribute("lastPressedPad")));
-            
+
             auto screen = mpc_ui->getStringAttribute("screen").toStdString();
             auto previousScreen = mpc_ui->getStringAttribute("previousScreen").toStdString();
-            mpc.getLayeredScreen().lock()->openScreen("black");
-            mpc.getLayeredScreen().lock()->openScreen(previousScreen);
+            auto layeredScreen = mpc.getLayeredScreen().lock();
+
+            layeredScreen->openScreen("black");
+            layeredScreen->openScreen(previousScreen);
+            layeredScreen->Draw();
 
             auto directoryScreen = mpc.screens->get<DirectoryScreen>("directory");
             directoryScreen->setPreviousScreenName(previousScreen == "save" ? "save" : "load");
 
-            mpc.getLayeredScreen().lock()->openScreen(screen);
+            layeredScreen->openScreen(screen);
             auto focus = mpc_ui->getStringAttribute("focus").toStdString();
             
             if (focus.length() > 0)
-                mpc.getLayeredScreen().lock()->setFocus(focus);
+                layeredScreen->setFocus(focus);
             
-            mpc.getLayeredScreen().lock()->setDirty();
+            layeredScreen->setDirty();
         }
     };
   if (xmlState.get() != nullptr)
