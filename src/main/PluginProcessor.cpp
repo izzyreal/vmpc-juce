@@ -397,6 +397,7 @@ void VmpcAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
         
         auto screen = layeredScreen->getCurrentScreenName();
         auto previousScreen = layeredScreen->getPreviousScreenName();
+        auto previousSamplerScreen = mpc.getPreviousSamplerScreenName();
         auto focus = mpc.getLayeredScreen().lock()->getFocus();
         auto soundIndex = mpc.getSampler().lock()->getSoundIndex();
         auto lastPressedPad = mpc.getPad();
@@ -407,6 +408,7 @@ void VmpcAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
         
         mpc_ui->setAttribute("screen", screen);
         mpc_ui->setAttribute("previousScreen", previousScreen);
+        mpc_ui->setAttribute("previousSamplerScreen", previousSamplerScreen);
         mpc_ui->setAttribute("focus", focus);
         mpc_ui->setAttribute("soundIndex", soundIndex);
         mpc_ui->setAttribute("lastPressedNote", lastPressedNote);
@@ -609,11 +611,15 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
             mpc.setNote(mpc_ui->getIntAttribute("lastPressedNote"));
             mpc.setPad(static_cast<unsigned char>(mpc_ui->getIntAttribute("lastPressedPad")));
 
+            auto previousSamplerScreen = mpc_ui->getStringAttribute("previousSamplerScreen").toStdString();
+            mpc.setPreviousSamplerScreenName(previousSamplerScreen);
+
             auto screen = mpc_ui->getStringAttribute("screen").toStdString();
             auto previousScreen = mpc_ui->getStringAttribute("previousScreen").toStdString();
             auto layeredScreen = mpc.getLayeredScreen().lock();
 
-            layeredScreen->openScreen("black");
+            layeredScreen->openScreen(previousSamplerScreen.empty() ? "sequencer" : previousSamplerScreen);
+            layeredScreen->Draw();
             layeredScreen->openScreen(previousScreen);
             layeredScreen->Draw();
 
