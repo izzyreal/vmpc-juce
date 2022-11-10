@@ -470,7 +470,7 @@ void ContentComponent::resized()
 #endif
 
     versionLabel.setTransform(scaleTransform);
-    versionLabel.setBounds(1152, 112, 100, 20);
+    versionLabel.setBounds(1152, 114, 100, 20);
 }
 
 void ContentComponent::globalFocusChanged(juce::Component *)
