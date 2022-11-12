@@ -8,7 +8,7 @@
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audiomidi/DiskRecorder.hpp>
 #include <audiomidi/SoundRecorder.hpp>
-#include <audiomidi/MpcMidiPorts.hpp>
+#include <audiomidi/MpcMidiOutput.hpp>
 #include <audiomidi/MpcMidiInput.hpp>
 
 #include <file/aps/ApsParser.hpp>
@@ -248,7 +248,7 @@ void VmpcAudioProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
 
 void VmpcAudioProcessor::processMidiOut(juce::MidiBuffer& midiMessages)
 {
-  auto midiOutMsgQueues = mpc.getMidiPorts()->getReceivers();
+  auto midiOutMsgQueues = mpc.getMidiOutputs()->getMidiOutEventQueues();
   for (auto& queue : midiOutMsgQueues)
   {
     for (auto& msg : queue)
@@ -267,9 +267,9 @@ void VmpcAudioProcessor::processMidiOut(juce::MidiBuffer& midiMessages)
       midiMessages.addEvent(jmsg, msg.bufferPos);
     }
   }
-  
-  mpc.getMidiPorts()->getReceivers()[0].clear();
-  mpc.getMidiPorts()->getReceivers()[1].clear();
+
+    mpc.getMidiOutputs()->getMidiOutEventQueues()[0].clear();
+    mpc.getMidiOutputs()->getMidiOutEventQueues()[1].clear();
 }
 
 void VmpcAudioProcessor::processTransport()
