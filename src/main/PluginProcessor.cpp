@@ -2,6 +2,9 @@
 #include "PluginEditor.h"
 #include "version.h"
 
+#include "gui/VmpcLookAndFeel.h"
+#include "lcdgui/screens/VmpcSettingsScreen.hpp"
+
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audiomidi/DiskRecorder.hpp>
 #include <audiomidi/SoundRecorder.hpp>
@@ -59,7 +62,10 @@ VmpcAudioProcessor::VmpcAudioProcessor()
                   .withOutput("MIX OUT 7/8", juce::AudioChannelSet::stereo(), false)
                   )
 {
-  time_t currentTime = time(nullptr);
+    lookAndFeel = new VmpcLookAndFeel();
+    juce::LookAndFeel::setDefaultLookAndFeel(lookAndFeel);
+
+    time_t currentTime = time(nullptr);
   struct tm* currentLocalTime = localtime(&currentTime);
   auto timeString = std::string(asctime(currentLocalTime));
   
@@ -72,6 +78,11 @@ VmpcAudioProcessor::VmpcAudioProcessor()
   {
       mpc.getDisk().lock()->initFiles();
   }
+}
+
+VmpcAudioProcessor::~VmpcAudioProcessor()
+{
+    delete lookAndFeel;
 }
 
 const juce::String VmpcAudioProcessor::getName() const
@@ -473,16 +484,26 @@ void VmpcAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
         struct AlertBoxResultChosen
         {
             std::function<void()> storeState;
+            VmpcLookAndFeel* lookAndFeel;
+            mpc::Mpc& mpc;
+
             void operator() (int result) const noexcept
             {
                 if (result)
                 {
                   // MLOG("Not saving current session");
-                  // Our work here is done
+                    // The user never wants to auto-save the session
+                    // when exiting VMPC2000XL.
+                    auto screen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
+                    screen->setAutoSaveOnExit(0);
                 }
                 else
                 {
                   // MLOG("Auto-saving session");
+                    // The user always wants to auto-save the session
+                    // when exiting VMPC2000XL.
+                    auto screen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
+                    screen->setAutoSaveOnExit(2);
                     storeState();
                 }
             }
@@ -494,7 +515,7 @@ void VmpcAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
                                                   "Don't save",
                                                   "Save",
                                                   nullptr,
-                                                        juce::ModalCallbackFunction::create(AlertBoxResultChosen{storeState}));
+                                                        juce::ModalCallbackFunction::create(AlertBoxResultChosen{storeState, lookAndFeel, mpc}));
     }
     else
     {
@@ -653,6 +674,8 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
               struct AlertBoxResultChosen
               {
                   std::function<void()> restoreState;
+                  VmpcLookAndFeel* lookAndFeel;
+                  mpc::Mpc& mpc;
                   void operator() (int result) const noexcept
                   {
                       if (result)
@@ -660,24 +683,38 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
                           // MLOG("Ignoring auto-saved session");
                           // We ignore the fact that a previously saved session exists,
                           // but we restore the user's window size.
+                          if (lookAndFeel->rememberButton.getToggleState())
+                          {
+                              // The user wants to always ignore auto-saved sessions
+                              // when starting VMPC2000XL.
+                              auto screen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
+                              screen->setAutoLoadOnStart(0);
+                          }
                           return;
                       }
                       else
                       {
                           // MLOG("Continuing auto-saved session");
+                          if (lookAndFeel->rememberButton.getToggleState())
+                          {
+                              // The user wants to always load auto-saved sessions
+                              // when starting VMPC2000XL.
+                              auto screen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
+                              screen->setAutoLoadOnStart(2);
+                          }
                           restoreState();
                       }
                   }
               };
-              
+
               juce::AlertWindow::showOkCancelBox (
-                                                                juce::AlertWindow::InfoIcon,
-                                                                "Continue previous VMPC2000XL session?",
-                                                                "An auto-saved previous session was found.",
-                                                                "Forget and start new session",
-                                                                "Continue session",
-                                                                nullptr,
-                                                                juce::ModalCallbackFunction::create(AlertBoxResultChosen{restoreState}));
+                      juce::AlertWindow::InfoIcon,
+                      "Continue previous VMPC2000XL session?",
+                      "An auto-saved previous session was found.",
+                      "Forget and start new session",
+                      "Continue session",
+                      nullptr,
+                      juce::ModalCallbackFunction::create(AlertBoxResultChosen{restoreState, lookAndFeel, mpc}));
           }
           else if (autoLoadOnStart == 2)
           {

@@ -23,7 +23,7 @@ private:
 private:
   VmpcAudioProcessor& vmpcAudioProcessor;
   mpc::Mpc& mpc;
-  
+
   juce::Viewport viewport;
   
   juce::TooltipWindow tooltipWindow { this, 300 };

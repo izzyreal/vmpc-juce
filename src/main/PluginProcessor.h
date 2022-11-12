@@ -4,12 +4,15 @@
 
 #include <Mpc.hpp>
 
+#include "gui/VmpcLookAndFeel.h"
+
 class VmpcAudioProcessor  : public juce::AudioProcessor
 {
 public:
   //==============================================================================
   VmpcAudioProcessor();
-  
+  ~VmpcAudioProcessor();
+
   //==============================================================================
   void prepareToPlay (double sampleRate, int samplesPerBlock) override;
   void releaseResources() override;
@@ -52,6 +55,8 @@ private:
   juce::AudioSampleBuffer monoToStereoBufferOut;
   double m_Tempo = 0;
   bool wasPlaying = false;
+
+  VmpcLookAndFeel* lookAndFeel;
 
 public:
   bool shouldShowDisclaimer = true;
