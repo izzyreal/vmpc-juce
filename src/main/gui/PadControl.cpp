@@ -142,7 +142,7 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
             auto mpcSoundPlayerChannel = mpc.getDrum(drumIndex);
 
             auto programIndex = mpcSoundPlayerChannel->getProgram();
-            auto program = mpc.getSampler()->getProgram(programIndex).lock();
+            auto program = mpc.getSampler()->getProgram(programIndex);
             auto soundIndex = mpc.getSampler()->getSoundCount() - 1;
             auto padIndex = pad.lock()->getIndex() + (mpc.getBank() * 16);
             auto programPad = program->getPad(padIndex);

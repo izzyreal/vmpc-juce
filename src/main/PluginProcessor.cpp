@@ -436,7 +436,7 @@ void VmpcAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
             auto soundElement = new juce::XmlElement(elementName.c_str());
             root->addChildElement(soundElement);
             
-            auto sound = sounds[i].lock();
+            auto sound = sounds[i];
             SndWriter sndWriter(sound.get());
             auto data = sndWriter.getSndFileArray();
             
@@ -574,7 +574,7 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
             std::vector<char> apsData = decodeBase64(mpc_aps);
             if (apsData.size() > 0)
             {
-                ApsParser apsParser(mpc, apsData, "auto-state-from-xml");
+                ApsParser apsParser(mpc, apsData);
                 // We don't want the APS loader to attempt to load the sounds
                 // from the file system. We load them manually from the
                 // decode project state.
@@ -596,7 +596,7 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
                 auto sndData = decodeBase64(candidate);
                 SndReader sndReader(sndData);
                 
-                auto sound = mpc.getSampler()->addSound(sndReader.getSampleRate()).lock();
+                auto sound = mpc.getSampler()->addSound(sndReader.getSampleRate());
                 sound->setMono(sndReader.isMono());
                 sndReader.readData(*sound->getSampleData());
                 sound->setName(sndReader.getName());
