@@ -66,7 +66,7 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
     if (StrUtil::hasEnding(StrUtil::toLower(path.toStdString()), ".snd") ||
         StrUtil::hasEnding(StrUtil::toLower(path.toStdString()), ".wav"))
     {
-        auto sampler = mpc.getSampler().lock();
+        auto sampler = mpc.getSampler();
 
         auto soundLoader = SoundLoader(mpc, sampler->getSounds(), false);
         soundLoader.setPreview(false);
@@ -131,7 +131,7 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
             layeredScreen->openScreen("popup");
             popupScreen->returnToScreenAfterMilliSeconds(screenToReturnTo, 300);
 
-            auto drumIndex = mpc.getSequencer().lock()->getActiveTrack()->getBus() - 1;
+            auto drumIndex = mpc.getSequencer()->getActiveTrack()->getBus() - 1;
 
             if (drumIndex == -1)
             {
@@ -142,8 +142,8 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
             auto mpcSoundPlayerChannel = mpc.getDrum(drumIndex);
 
             auto programIndex = mpcSoundPlayerChannel->getProgram();
-            auto program = mpc.getSampler().lock()->getProgram(programIndex).lock();
-            auto soundIndex = mpc.getSampler().lock()->getSoundCount() - 1;
+            auto program = mpc.getSampler()->getProgram(programIndex).lock();
+            auto soundIndex = mpc.getSampler()->getSoundCount() - 1;
             auto padIndex = pad.lock()->getIndex() + (mpc.getBank() * 16);
             auto programPad = program->getPad(padIndex);
             auto padNote = programPad->getNote();

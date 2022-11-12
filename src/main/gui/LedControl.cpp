@@ -187,7 +187,7 @@ void LedControl::setUndoSeq(bool b)
 
 void LedControl::timerCallback()
 {
-    auto seq = mpc.getSequencer().lock();
+    auto seq = mpc.getSequencer();
     auto controls = mpc.getControls().lock();
     auto stepEditor = mpc.getLayeredScreen()->getCurrentScreenName() == "step-editor";
 

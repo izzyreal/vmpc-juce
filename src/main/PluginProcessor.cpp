@@ -66,7 +66,7 @@ VmpcAudioProcessor::VmpcAudioProcessor()
   moduru::Logger::l.setPath(mpc::Paths::logFilePath());
   moduru::Logger::l.log("\n\n-= VMPC2000XL v" + std::string(version::get()) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
   
-  mpc.init(44100.f, 1, 5);
+  mpc.init(1, 5);
 
   if (juce::PluginHostType::jucePlugInClientCurrentWrapperType != juce::AudioProcessor::wrapperType_LV2)
   {
@@ -139,7 +139,7 @@ void VmpcAudioProcessor::changeProgramName (int /* index */, const juce::String&
 //==============================================================================
 void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-  auto seq = mpc.getSequencer().lock();
+  auto seq = mpc.getSequencer();
   bool seqWasPlaying = seq->isPlaying();
   bool seqWasOverdubbing = seq->isOverDubbing();
   bool seqWasRecording = seq->isRecording();
@@ -150,7 +150,7 @@ void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
       seq->stop();
   }
   
-  auto ams = mpc.getAudioMidiServices().lock();
+  auto ams = mpc.getAudioMidiServices();
   auto server = ams->getAudioServer();
   server->setSampleRate(static_cast<int>(sampleRate));
   server->resizeBuffers(samplesPerBlock);
@@ -276,9 +276,9 @@ void VmpcAudioProcessor::processTransport()
     auto info = getPlayHead()->getPosition();
     double tempo = info->getBpm().orFallback(120);
     
-    if (tempo != m_Tempo || mpc.getSequencer().lock()->getTempo() != tempo)
+    if (tempo != m_Tempo || mpc.getSequencer()->getTempo() != tempo)
     {
-      mpc.getSequencer().lock()->setTempo(tempo);
+      mpc.getSequencer()->setTempo(tempo);
       m_Tempo = tempo;
     }
     
@@ -286,11 +286,11 @@ void VmpcAudioProcessor::processTransport()
     
     if (!wasPlaying && isPlaying)
     {
-      mpc.getSequencer().lock()->playFromStart();
+      mpc.getSequencer()->playFromStart();
     }
     
     if (wasPlaying && !isPlaying) {
-      mpc.getSequencer().lock()->stop();
+      mpc.getSequencer()->stop();
     }
     wasPlaying = isPlaying;
   }
@@ -302,7 +302,7 @@ void VmpcAudioProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::Mid
   
   const int totalNumInputChannels = getTotalNumInputChannels();
   const int totalNumOutputChannels = getTotalNumOutputChannels();
-  auto audioMidiServices = mpc.getAudioMidiServices().lock();
+  auto audioMidiServices = mpc.getAudioMidiServices();
   auto server = audioMidiServices->getAudioServer();
   
   if (!server->isRunning())
@@ -399,7 +399,7 @@ void VmpcAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
         auto previousScreen = layeredScreen->getPreviousScreenName();
         auto previousSamplerScreen = mpc.getPreviousSamplerScreenName();
         auto focus = mpc.getLayeredScreen()->getFocus();
-        auto soundIndex = mpc.getSampler().lock()->getSoundIndex();
+        auto soundIndex = mpc.getSampler()->getSoundIndex();
         auto lastPressedPad = mpc.getPad();
         auto lastPressedNote = mpc.getNote();
         
@@ -417,7 +417,7 @@ void VmpcAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
         
         ApsParser apsParser(mpc, "stateinfo");
         auto apsBytes = apsParser.getBytes();
-        auto sounds = mpc.getSampler().lock()->getSounds();
+        auto sounds = mpc.getSampler()->getSounds();
         
         for (size_t i = 0; i < sounds.size(); i++)
         {
@@ -575,7 +575,7 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
                 auto sndData = decodeBase64(candidate);
                 SndReader sndReader(sndData);
                 
-                auto sound = mpc.getSampler().lock()->addSound(sndReader.getSampleRate()).lock();
+                auto sound = mpc.getSampler()->addSound(sndReader.getSampleRate()).lock();
                 sound->setMono(sndReader.isMono());
                 sndReader.readData(*sound->getSampleData());
                 sound->setName(sndReader.getName());
@@ -607,7 +607,7 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
                 AllLoader::loadEverythingFromAllParser(mpc, allParser);
             }
 
-            mpc.getSampler().lock()->setSoundIndex(mpc_ui->getIntAttribute("soundIndex"));
+            mpc.getSampler()->setSoundIndex(mpc_ui->getIntAttribute("soundIndex"));
             mpc.setNote(mpc_ui->getIntAttribute("lastPressedNote"));
             mpc.setPad(static_cast<unsigned char>(mpc_ui->getIntAttribute("lastPressedPad")));
 
