@@ -199,7 +199,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     keyboardButton.setTooltip("Configure computer keyboard");
     keyboardButton.onClick = [&]() {
-        mpc.getLayeredScreen().lock()->openScreen("vmpc-keyboard");
+        mpc.getLayeredScreen()->openScreen("vmpc-keyboard");
     };
 
     keyboardButton.setWantsKeyboardFocus(false);

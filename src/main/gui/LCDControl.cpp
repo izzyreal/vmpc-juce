@@ -13,7 +13,7 @@ using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 
 LCDControl::LCDControl(mpc::Mpc& _mpc)
-	: mpc (_mpc), ls (_mpc.getLayeredScreen().lock())
+	: mpc (_mpc), ls (_mpc.getLayeredScreen())
 {
 	lcd = juce::Image(juce::Image::RGB, 496, 120, true);
 	auto othersScreen = mpc.screens->get<OthersScreen>("others");

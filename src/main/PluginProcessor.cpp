@@ -369,7 +369,7 @@ bool VmpcAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* VmpcAudioProcessor::createEditor()
 {
-  mpc.getLayeredScreen().lock()->setDirty();
+  mpc.getLayeredScreen()->setDirty();
   return new VmpcAudioProcessorEditor (*this);
 }
 
@@ -393,12 +393,12 @@ void VmpcAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     
     std::function<void()> storeState = [&, root](){
         
-        auto layeredScreen = mpc.getLayeredScreen().lock();
+        auto layeredScreen = mpc.getLayeredScreen();
         
         auto screen = layeredScreen->getCurrentScreenName();
         auto previousScreen = layeredScreen->getPreviousScreenName();
         auto previousSamplerScreen = mpc.getPreviousSamplerScreenName();
-        auto focus = mpc.getLayeredScreen().lock()->getFocus();
+        auto focus = mpc.getLayeredScreen()->getFocus();
         auto soundIndex = mpc.getSampler().lock()->getSoundIndex();
         auto lastPressedPad = mpc.getPad();
         auto lastPressedNote = mpc.getNote();
@@ -616,7 +616,7 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 
             auto screen = mpc_ui->getStringAttribute("screen").toStdString();
             auto previousScreen = mpc_ui->getStringAttribute("previousScreen").toStdString();
-            auto layeredScreen = mpc.getLayeredScreen().lock();
+            auto layeredScreen = mpc.getLayeredScreen();
 
             layeredScreen->openScreen(previousSamplerScreen.empty() ? "sequencer" : previousSamplerScreen);
             layeredScreen->Draw();

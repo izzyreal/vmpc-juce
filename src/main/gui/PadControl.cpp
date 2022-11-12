@@ -75,7 +75,7 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
 
         auto file = std::make_shared<mpc::disk::MpcFile>(fs::path(compatiblePath));
 
-        auto layeredScreen = mpc.getLayeredScreen().lock();
+        auto layeredScreen = mpc.getLayeredScreen();
 
         SoundLoaderResult result;
 
@@ -166,7 +166,7 @@ void PadControl::filesDropped(const StringArray &files, int, int)
     if (files.size() != 1) return;
 
     const bool shouldBeConverted = false;
-    std::string screenToReturnTo = mpc.getLayeredScreen().lock()->getCurrentScreenName();
+    std::string screenToReturnTo = mpc.getLayeredScreen()->getCurrentScreenName();
 
     for (auto &f: files)
     {

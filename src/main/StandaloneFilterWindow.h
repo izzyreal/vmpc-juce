@@ -5,7 +5,6 @@
 #include "juce_audio_utils/juce_audio_utils.h"
 
 #include "PluginProcessor.h"
-#include <Mpc.hpp>
 
 namespace juce
 {
@@ -187,13 +186,6 @@ public:
                                                   TRANS("Error whilst loading"),
                                                   TRANS("Couldn't read from the specified file!"));
         });
-    }
-
-    void openKeyboardScreen ()
-    {
-        auto vmpcAudioProcessor = dynamic_cast<VmpcAudioProcessor*>(processor.get());
-        auto& mpc = vmpcAudioProcessor->mpc;
-        mpc.getLayeredScreen().lock()->openScreen("vmpc-keyboard");
     }
 
     //==============================================================================
