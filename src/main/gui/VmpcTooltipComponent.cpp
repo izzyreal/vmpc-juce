@@ -21,7 +21,7 @@ void VmpcTooltipComponent::mouseMove(const juce::MouseEvent &event)
     if (event.mods.isAnyModifierKeyDown() && !event.mods.isShiftDown() && getTooltip() == "")
     {
         auto label = mpcHardwareComponent->getLabel();
-        auto kbMapping = mpc.getControls().lock()->getKbMapping().lock();
+        auto kbMapping = mpc.getControls()->getKbMapping().lock();
         auto tooltipText = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel(label));
 
         if (std::dynamic_pointer_cast<DummyDataWheelHwComponent>(mpcHardwareComponent))

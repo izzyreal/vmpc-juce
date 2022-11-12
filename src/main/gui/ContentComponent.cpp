@@ -61,7 +61,7 @@ void VmpcURLProcessor::initFiles()
 #endif
 
 ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAudioSettingsDialog)
-        : mpc(_mpc), keyEventHandler(mpc.getControls().lock()->getKeyEventHandler())
+        : mpc(_mpc), keyEventHandler(mpc.getControls()->getKeyEventHandler())
 {
 #if ENABLE_IMPORT
     urlProcessor.mpc = &mpc;
@@ -81,7 +81,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     background = new Background();
     addAndMakeVisible(background);
 
-    dataWheel = new DataWheelControl(mpc, mpc.getHardware().lock()->getDataWheel());
+    dataWheel = new DataWheelControl(mpc, mpc.getHardware()->getDataWheel());
     dataWheelImg = ResourceUtil::loadImage("img/datawheels.jpg");
     dataWheel->setImage(dataWheelImg, 100);
     addAndMakeVisible(dataWheel);
@@ -95,10 +95,10 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     ButtonControl::initRects();
 
-    for (auto &l: mpc.getHardware().lock()->getButtonLabels())
+    for (auto &l: mpc.getHardware()->getButtonLabels())
     {
         auto bc = new ButtonControl(mpc, ButtonControl::rects[l]->expanded(10),
-                                    mpc.getHardware().lock()->getButton(l));
+                                    mpc.getHardware()->getButton(l));
         addAndMakeVisible(bc);
         buttons.push_back(bc);
     }
@@ -119,7 +119,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
             int y1 = (padWidth + padSpacing) * j + padOffsetY;
             juce::Rectangle<float> rect(x1, y1, padWidth + i, padWidth);
 
-            auto pc = new PadControl(mpc, rect, mpc.getHardware().lock()->getPad(padCounter++), padHitImg);
+            auto pc = new PadControl(mpc, rect, mpc.getHardware()->getPad(padCounter++), padHitImg);
             addAndMakeVisible(pc);
 
             pads.push_back(pc);
@@ -127,17 +127,17 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     }
 
     sliderImg = ResourceUtil::loadImage("img/sliders.jpg");
-    slider = new SliderControl(mpc.getHardware().lock()->getSlider());
+    slider = new SliderControl(mpc.getHardware()->getSlider());
     slider->setImage(sliderImg);
     addAndMakeVisible(slider);
 
     recKnobImg = ResourceUtil::loadImage("img/recknobs.jpg");
-    recKnob = new KnobControl(mpc.getHardware().lock()->getRecPot());
+    recKnob = new KnobControl(mpc.getHardware()->getRecPot());
     recKnob->setImage(recKnobImg);
     addAndMakeVisible(recKnob);
 
     volKnobImg = ResourceUtil::loadImage("img/volknobs.jpg");
-    volKnob = new KnobControl(mpc.getHardware().lock()->getVolPot());
+    volKnob = new KnobControl(mpc.getHardware()->getVolPot());
     volKnob->setImage(volKnobImg);
     addAndMakeVisible(volKnob);
 
@@ -148,7 +148,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     leds->setPadBankA(true);
     leds->addAndMakeVisible(this);
 
-    for (auto &l: mpc.getHardware().lock()->getLeds())
+    for (auto &l: mpc.getHardware()->getLeds())
     {
       l->addObserver(leds);
     }
@@ -220,7 +220,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
 ContentComponent::~ContentComponent()
 {
-  for (auto &l: mpc.getHardware().lock()->getLeds())
+  for (auto &l: mpc.getHardware()->getLeds())
   {
     l->deleteObserver(leds);
   }

@@ -76,7 +76,7 @@ VmpcAudioProcessor::VmpcAudioProcessor()
 
   if (juce::PluginHostType::jucePlugInClientCurrentWrapperType != juce::AudioProcessor::wrapperType_LV2)
   {
-      mpc.getDisk().lock()->initFiles();
+      mpc.getDisk()->initFiles();
   }
 }
 
@@ -248,7 +248,7 @@ void VmpcAudioProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
 
 void VmpcAudioProcessor::processMidiOut(juce::MidiBuffer& midiMessages)
 {
-  auto midiOutMsgQueues = mpc.getMidiPorts().lock()->getReceivers();
+  auto midiOutMsgQueues = mpc.getMidiPorts()->getReceivers();
   for (auto& queue : midiOutMsgQueues)
   {
     for (auto& msg : queue)
@@ -268,8 +268,8 @@ void VmpcAudioProcessor::processMidiOut(juce::MidiBuffer& midiMessages)
     }
   }
   
-  mpc.getMidiPorts().lock()->getReceivers()[0].clear();
-  mpc.getMidiPorts().lock()->getReceivers()[1].clear();
+  mpc.getMidiPorts()->getReceivers()[0].clear();
+  mpc.getMidiPorts()->getReceivers()[1].clear();
 }
 
 void VmpcAudioProcessor::processTransport()
@@ -424,7 +424,7 @@ void VmpcAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
         mpc_ui->setAttribute("soundIndex", soundIndex);
         mpc_ui->setAttribute("lastPressedNote", lastPressedNote);
         mpc_ui->setAttribute("lastPressedPad", lastPressedPad);
-        mpc_ui->setAttribute("currentDir", mpc.getDisk().lock()->getAbsolutePath());
+        mpc_ui->setAttribute("currentDir", mpc.getDisk()->getAbsolutePath());
         
         ApsParser apsParser(mpc, "stateinfo");
         auto apsBytes = apsParser.getBytes();
@@ -554,8 +554,8 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
                 
                 for (auto& s : splitTrimmedDir)
                 {
-                    mpc.getDisk().lock()->moveForward(s);
-                    mpc.getDisk().lock()->initFiles();
+                    mpc.getDisk()->moveForward(s);
+                    mpc.getDisk()->initFiles();
                 }
             }
         }
