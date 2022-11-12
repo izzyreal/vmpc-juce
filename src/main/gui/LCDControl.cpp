@@ -26,7 +26,7 @@ void LCDControl::update(moduru::observer::Observable*, nonstd::any msg)
 
 	if (message == "contrast")
 	{
-		ls->getFocusedLayer().lock()->SetDirty(); // Could be done less invasively by just redrawing the current pixels of the LCD screens, but with updated colors
+		ls->getFocusedLayer()->SetDirty(); // Could be done less invasively by just redrawing the current pixels of the LCD screens, but with updated colors
 		repaint();
 	}
 }
