@@ -242,34 +242,71 @@ void VmpcAudioProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
     {
         mpc.getMpcMidiInput(0)->transport(tootMsg.get(), timeStamp);
     }
-
   }
 }
 
 void VmpcAudioProcessor::processMidiOut(juce::MidiBuffer& midiMessages)
 {
-  auto midiOutMsgQueues = mpc.getMidiOutputs()->getMidiOutEventQueues();
-  for (auto& queue : midiOutMsgQueues)
-  {
-    for (auto& msg : queue)
-    {
-      juce::uint8 velo = (juce::uint8) msg.getData2();
-      if (velo == 0) continue;
-      auto jmsg = juce::MidiMessage::noteOn(msg.getChannel() + 1, msg.getData1(), juce::uint8(velo));
-      midiMessages.addEvent(jmsg, msg.bufferPos);
-    }
-    
-    for (auto msg : queue)
-    {
-      auto velo = msg.getData2();
-      if (velo != 0) continue;
-      auto jmsg = juce::MidiMessage::noteOff(msg.getChannel() + 1, msg.getData1());
-      midiMessages.addEvent(jmsg, msg.bufferPos);
-    }
-  }
+    midiMessages.clear();
 
-    mpc.getMidiOutputs()->getMidiOutEventQueues()[0].clear();
-    mpc.getMidiOutputs()->getMidiOutEventQueues()[1].clear();
+    static auto processMsg = [&midiMessages](std::shared_ptr<ShortMessage>& msg) {
+        juce::MidiMessage juceMsg;
+        bool compatibleMsg = false;
+
+        if (msg->getStatus() == ShortMessage::NOTE_ON || msg->getStatus() == ShortMessage::NOTE_OFF)
+        {
+            juce::uint8 velo = (juce::uint8) msg->getData2();
+
+            juceMsg = velo == 0 ? juce::MidiMessage::noteOff(msg->getChannel() + 1, msg->getData1())
+                                                  : juce::MidiMessage::noteOn(msg->getChannel() + 1, msg->getData1(),
+                                                                              juce::uint8(velo));
+            compatibleMsg = true;
+        }
+        else if (msg->getStatus() == ShortMessage::TIMING_CLOCK)
+        {
+            juceMsg = juce::MidiMessage::midiClock();
+            compatibleMsg = true;
+        }
+        else if (msg->getStatus() == ShortMessage::START)
+        {
+            juceMsg = juce::MidiMessage::midiStart();
+            compatibleMsg = true;
+        }
+        else if (msg->getStatus() == ShortMessage::STOP)
+        {
+            juceMsg = juce::MidiMessage::midiStop();
+            compatibleMsg = true;
+        }
+        else if (msg->getStatus() == ShortMessage::CONTINUE)
+        {
+            juceMsg = juce::MidiMessage::midiContinue();
+            compatibleMsg = true;
+        }
+
+        if (compatibleMsg)
+        {
+            midiMessages.addEvent(juceMsg, msg->bufferPos);
+        }
+    };
+
+    const auto outputAEventCount = mpc.getMidiOutput()->dequeueOutputA(midiOutputBuffer);
+
+    for (int i = 0; i < outputAEventCount; i++)
+    {
+        processMsg(midiOutputBuffer[i]);
+    }
+
+    // In JUCE we only have 1 set of 16 MIDI channels as far as I know.
+    // The MPC2000XL has 2 of those -- MIDI OUT A and MIDI OUT B. The below shows some
+    // example processing, but it's commented out, to restrict MIDI out processing
+    // to just MIDI OUT A.
+
+//    const auto outputBEventCount = mpc.getMidiOutput()->dequeueOutputB(midiOutputBuffer);
+//
+//    for (int i = 0; i < outputBEventCount; i++)
+//    {
+//        processMsg(midiOutputBuffer[i]);
+//    }
 }
 
 void VmpcAudioProcessor::processTransport()
@@ -338,8 +375,7 @@ void VmpcAudioProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::Mid
   
   processTransport();
   processMidiIn(midiMessages);
-  processMidiOut(midiMessages);
-  
+
   auto chDataIn = buffer.getArrayOfReadPointers();
   auto chDataOut = buffer.getArrayOfWritePointers();
   int totalNumInputChannelsFinal = totalNumInputChannels;
@@ -362,7 +398,9 @@ void VmpcAudioProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::Mid
   }
   
   server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannelsFinal, totalNumOutputChannelsFinal);
-  
+
+  processMidiOut(midiMessages);
+
   if (totalNumOutputChannels < 1)
   {
     buffer.clear();
