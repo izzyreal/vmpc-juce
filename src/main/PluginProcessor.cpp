@@ -364,7 +364,8 @@ void VmpcAudioProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::Mid
 
   audioMidiServices->changeBounceStateIfRequired();
   audioMidiServices->changeSoundRecorderStateIfRequired();
-  
+  audioMidiServices->switchMidiControlMappingIfRequired();
+
   if (!server->isRealTime())
   {
     for (int i = 0; i < totalNumInputChannels; ++i)
