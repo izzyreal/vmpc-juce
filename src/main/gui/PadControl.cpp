@@ -78,24 +78,14 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
         auto layeredScreen = mpc.getLayeredScreen();
 
         SoundLoaderResult result;
+        auto sound = mpc.getSampler()->addSound();
 
-        try
-        {
-            soundLoader.loadSound(file, result, shouldBeConverted);
-        }
-        catch (const std::exception &exception)
-        {
-            MLOG("A problem occurred when trying to load " + compatiblePath + ": " + std::string(exception.what()));
-            MLOG(result.errorMessage);
-            layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
-            return;
-        }
-
+        soundLoader.loadSound(file, result, sound, shouldBeConverted);
         auto popupScreen = mpc.screens->get<PopupScreen>("popup");
 
         if (!result.success)
         {
-            if (result.soundWasAdded) sampler->deleteSound(sampler->getPreviewSound());
+            sampler->deleteSound(sound);
 
             if (result.canBeConverted)
             {
