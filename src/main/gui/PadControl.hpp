@@ -24,7 +24,7 @@ private:
     mpc::Mpc &mpc;
     std::weak_ptr<mpc::hardware::HwPad> pad;
     juce::Image padhitImg;
-    juce::Rectangle<float> rect;
+    juce::Rectangle<int> rect;
 
     bool fading = false;
     int padhitBrightness = 0;
@@ -47,7 +47,7 @@ public:
     void setBounds();
 
 public:
-    PadControl(mpc::Mpc &_mpc, juce::Rectangle<float> _rect, std::weak_ptr<mpc::hardware::HwPad> _pad,
-               juce::Image _padHitImg);
+    PadControl(mpc::Mpc &_mpc, juce::Rectangle<int> rectToUse, std::weak_ptr<mpc::hardware::HwPad> padToUse,
+               juce::Image padHitImgToUse);
     ~PadControl() override;
 };

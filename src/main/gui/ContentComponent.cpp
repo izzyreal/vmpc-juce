@@ -117,7 +117,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
         {
             int x1 = (padWidth + padSpacing) * i + padOffsetX + i;
             int y1 = (padWidth + padSpacing) * j + padOffsetY;
-            juce::Rectangle<float> rect(x1, y1, padWidth + i, padWidth);
+            juce::Rectangle<int> rect(x1, y1, padWidth + i, padWidth);
 
             auto pc = new PadControl(mpc, rect, mpc.getHardware()->getPad(padCounter++), padHitImg);
             addAndMakeVisible(pc);
@@ -255,172 +255,16 @@ bool ContentComponent::keyPressed(const juce::KeyPress &k)
     return true;
 }
 
-void ContentComponent::mouseDown(const juce::MouseEvent &e)
-{
-    bool exists = false;
-    for (auto &s: sources)
-    {
-        if (s->getIndex() == e.source.getIndex())
-        {
-            exists = true;
-            break;
-        }
-    }
-    if (!exists) sources.push_back(std::make_shared<juce::MouseInputSource>(e.source));
-
-    auto pos1 = sources[0]->getLastMouseDownPosition();
-
-    if (sources.size() == 1)
-    {
-        prevSingleX = pos1.getX();
-        prevSingleY = pos1.getY();
-    }
-    else if (sources.size() == 2)
-    {
-        auto pos2 = sources[1]->getLastMouseDownPosition();
-        float length = juce::Line<int>(pos1.getX(), pos1.getY(), pos2.getX(), pos2.getY()).getLength();
-        prevDistance = length;
-    }
-}
-
-void ContentComponent::mouseUp(const juce::MouseEvent &e)
-{
-    for (int i = 0; i < sources.size(); i++)
-    {
-        if (sources[i]->getIndex() == e.source.getIndex())
-        {
-            sources.erase(sources.begin() + i);
-            prevDistance = -1.f;
-            prevPinchCx = -1.f;
-            prevPinchCy = -1.f;
-            break;
-        }
-    }
-}
-
-void ContentComponent::mouseDrag(const juce::MouseEvent &e)
-{
-    return;
-    auto thisSource = e.source;
-    auto cur_pos1 = thisSource.getScreenPosition();
-
-    if (sources.size() == 1)
-    {
-        auto translation_x = prevSingleX != -1.f ? (cur_pos1.getX() - prevSingleX) : 0.f;
-        auto translation_y = prevSingleY != -1.f ? (cur_pos1.getY() - prevSingleY) : 0.f;
-        prevSingleX = cur_pos1.getX();
-        prevSingleY = cur_pos1.getY();
-        auto newX = getX() + translation_x;
-        auto newY = getY() + translation_y;
-        setBounds(newX, newY, getWidth(), getHeight());
-    }
-    else if (sources.size() == 2)
-    {
-
-        // For smooth transitio between 1 and 2 fingers:
-        // We should keep track of prevxy in a map per e.source.getIndex
-        prevSingleX = -1.f;
-        prevSingleY = -1.f;
-
-        std::shared_ptr<juce::MouseInputSource> thatSource;
-
-        for (int i = 0; i < sources.size(); i++)
-        {
-            auto s = sources[i];
-            if (s->getIndex() != thisSource.getIndex())
-            {
-                if (!s->isDragging())
-                {
-                    sources.erase(sources.begin() + i);
-                    i--;
-                    continue;
-                }
-                thatSource = s;
-                break;
-            }
-        }
-
-        if (!thatSource)
-        {
-            mouseDrag(e);
-            return;
-        }
-
-        auto cur_pos2 = thatSource->getScreenPosition();
-
-        float cur_distance = juce::Line<int>(cur_pos1.getX(), cur_pos1.getY(), cur_pos2.getX(),
-                                             cur_pos2.getY()).getLength();
-
-        auto scale = prevDistance != -1 ? (cur_distance / prevDistance) : 1.0f;
-        prevDistance = cur_distance;
-        auto new_w = getWidth() * scale;
-        auto ratio = 1298.0 / 994.0;
-        auto new_h = new_w / ratio;
-
-        auto contentScale = getWidth() / 1298.0;
-        auto screen_pinch_cx = (cur_pos1.getX() + cur_pos2.getX()) / 2;
-        auto current_x = getX();
-        auto current_content_pinch_cx = (screen_pinch_cx * contentScale) - current_x;
-        auto new_content_pinch_cx = current_content_pinch_cx * scale;
-        auto new_x = (screen_pinch_cx * contentScale) - new_content_pinch_cx;
-
-        auto screen_pinch_cy = (cur_pos1.getY() + cur_pos2.getY()) / 2;
-        auto current_y = getY();
-        auto current_content_pinch_cy = (screen_pinch_cy * contentScale) - current_y;
-        auto new_content_pinch_cy = current_content_pinch_cy * scale;
-        auto new_y = (screen_pinch_cy * contentScale) - new_content_pinch_cy;
-
-        auto translation_x = prevPinchCx != -1.f ? (screen_pinch_cx - prevPinchCx) : 0.f;
-        auto translation_y = prevPinchCy != -1.f ? (screen_pinch_cy - prevPinchCy) : 0.f;
-
-        translation_x *= 1.2f;
-        translation_y *= 1.2f;
-
-        new_x += translation_x;
-        new_y += translation_y;
-
-        prevPinchCx = screen_pinch_cx;
-        prevPinchCy = screen_pinch_cy;
-
-        auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
-
-        if (primaryDisplay != nullptr)
-        {
-            auto area = primaryDisplay->userArea;
-            auto portrait = area.getWidth() < area.getHeight();
-
-            if (portrait && new_h < area.getHeight())
-            {
-                return;
-            }
-            else if (!portrait && new_w < area.getWidth())
-            {
-                return;
-            }
-            else if (portrait && new_h > area.getHeight() * 3.0)
-            {
-                return;
-            }
-            else if (!portrait && new_w > area.getWidth() * 3.0)
-            {
-                return;
-            }
-
-            setBounds(new_x, new_y, new_w, new_h);
-        }
-    }
-}
-
 void ContentComponent::resized()
 {
     auto scale = static_cast<float>(getWidth() / 1298.0);
     auto scaleTransform = juce::AffineTransform::scale(scale);
     background->setSize(getWidth(), getHeight());
     dataWheel->setTransform(scaleTransform);
-    dataWheel->setBounds(Constants::DATAWHEEL_RECT().getX(), Constants::DATAWHEEL_RECT().getY(),
+    dataWheel->setBounds(Constants::dataWheelRect().getX(), Constants::dataWheelRect().getY(),
                          dataWheel->getFrameWidth(), dataWheel->getFrameHeight());
     lcd->setTransform(scaleTransform);
-    lcd->setBounds(Constants::LCD_RECT().getX(), Constants::LCD_RECT().getY(), 496, 120);
+    lcd->setBounds(Constants::lcdRect().getX(), Constants::lcdRect().getY(), 496, 120);
 
     for (auto &b: buttons)
     {
@@ -438,15 +282,15 @@ void ContentComponent::resized()
     leds->setBounds();
 
     slider->setTransform(scaleTransform);
-    slider->setBounds(Constants::SLIDER_RECT().getX(), Constants::SLIDER_RECT().getY(), sliderImg.getWidth() / 2,
+    slider->setBounds(Constants::sliderRect().getX(), Constants::sliderRect().getY(), sliderImg.getWidth() / 2,
                       sliderImg.getHeight() * 0.01 * 0.5);
 
     recKnob->setTransform(scaleTransform);
-    recKnob->setBounds(Constants::RECKNOB_RECT().getX(), Constants::RECKNOB_RECT().getY(), recKnobImg.getWidth() / 2,
+    recKnob->setBounds(Constants::recKnobRect().getX(), Constants::recKnobRect().getY(), recKnobImg.getWidth() / 2,
                        recKnobImg.getHeight() * 0.01 * 0.5);
 
     volKnob->setTransform(scaleTransform);
-    volKnob->setBounds(Constants::VOLKNOB_RECT().getX(), Constants::VOLKNOB_RECT().getY(), volKnobImg.getWidth() / 2,
+    volKnob->setBounds(Constants::volKnobRect().getX(), Constants::volKnobRect().getY(), volKnobImg.getWidth() / 2,
                        volKnobImg.getHeight() * 0.01 * 0.5);
 
     keyboardButton.setBounds(1298 - (100 + 10), 10, 100, 50);

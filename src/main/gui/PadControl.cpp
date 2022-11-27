@@ -29,9 +29,9 @@ using namespace mpc::lcdgui::screens::window;
 using namespace mpc::lcdgui::screens::dialog2;
 using namespace moduru::lang;
 
-PadControl::PadControl(mpc::Mpc &_mpc, juce::Rectangle<float> _rect, std::weak_ptr<mpc::hardware::HwPad> _pad,
-                       Image _padHitImg)
-        : VmpcTooltipComponent(_mpc, _pad.lock()), mpc(_mpc), pad(_pad), padhitImg(_padHitImg), rect(_rect)
+PadControl::PadControl(mpc::Mpc &_mpc, juce::Rectangle<int> rectToUse, std::weak_ptr<mpc::hardware::HwPad> padToUse,
+                       Image padHitImgToUse)
+        : VmpcTooltipComponent(_mpc, padToUse.lock()), mpc(_mpc), pad(padToUse), padhitImg(padHitImgToUse), rect(rectToUse)
 {
     pad.lock()->addObserver(this);
 }
@@ -68,7 +68,7 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
     {
         auto sampler = mpc.getSampler();
 
-        auto soundLoader = SoundLoader(mpc, sampler->getSounds(), false);
+        auto soundLoader = SoundLoader(mpc, false);
         soundLoader.setPreview(false);
 
         auto compatiblePath = StrUtil::replaceAll(path.toStdString(), '\\', std::string("\\"));
@@ -99,13 +99,6 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
                 convertAndLoadWavScreen->setLoadRoutine(loadRoutine);
                 layeredScreen->openScreen("vmpc-convert-and-load-wav");
             }
-            else
-            {
-                layeredScreen->openScreen("popup");
-                popupScreen->setText(result.errorMessage);
-                popupScreen->returnToScreenAfterMilliSeconds("load", 500);
-            }
-
             return;
         }
 
@@ -202,13 +195,14 @@ void PadControl::update(moduru::observer::Observable *, nonstd::any arg)
 
 int PadControl::getVelo(int veloX, int veloY)
 {
-    float centX = rect.getCentreX() - rect.getX();
-    float centY = rect.getCentreY() - rect.getY();
-    float distX = static_cast<float>(veloX) - centX;
-    float distY = static_cast<float>(veloY) - centY;
-    float powX = static_cast<float>(pow(distX, 2));
-    float powY = static_cast<float>(pow(distY, 2));
-    float dist = sqrt(powX + powY);
+    auto centX = rect.getCentreX() - rect.getX();
+    auto centY = rect.getCentreY() - rect.getY();
+    auto distX = veloX - centX;
+    auto distY = veloY - centY;
+    auto powX = pow(distX, 2);
+    auto powY = pow(distY, 2);
+    auto dist = sqrt(powX + powY);
+
     if (dist > 46) dist = 46;
     int velo = static_cast<int>(127.0 - (dist * (127.0 / 48.0)));
     return velo;
@@ -240,15 +234,15 @@ void PadControl::mouseDrag(const MouseEvent &event)
 
 void PadControl::setBounds()
 {
-    setSize(rect.getWidth(), rect.getHeight());
+    setSize(static_cast<int>(rect.getWidth()), static_cast<int>(rect.getHeight()));
     Component::setBounds(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
 }
 
 void PadControl::paint(Graphics &g)
 {
     auto img = padhitImg.createCopy();
-    float mult = (float) (padhitBrightness) / 150.0;
-    img.multiplyAllAlphas(mult);
+    auto mult = padhitBrightness / 150.0;
+    img.multiplyAllAlphas(static_cast<float>(mult));
     g.drawImageAt(img, 0, 0);
 }
 
