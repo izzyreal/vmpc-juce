@@ -49,12 +49,12 @@ std::shared_ptr<std::ostream> VmpcURLProcessor::openOutputStream(const char* fil
 
 void VmpcURLProcessor::initFiles()
 {
-    auto layeredScreen = mpc->getLayeredScreen().lock();
+    auto layeredScreen = mpc->getLayeredScreen();
     auto currentScreen = layeredScreen->getCurrentScreenName();
     if (currentScreen == "load" || currentScreen == "save" || currentScreen == "directory")
     {
         layeredScreen->openScreen(currentScreen == "directory" ? "load" : "black");
-        mpc->getDisk().lock()->initFiles();
+        mpc->getDisk()->initFiles();
         layeredScreen->openScreen(currentScreen);
     }
 }
