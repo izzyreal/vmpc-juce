@@ -648,8 +648,7 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
                 sound->setLoopTo(sound->getEnd() - sndReader.getLoopLength());
                 sound->setBeatCount(sndReader.getNumberOfBeats());
                 sound->setLoopEnabled(sndReader.isLoopEnabled());
-                sound->setMemoryIndex(counter);
-                
+
                 counter++;
                 
                 candidateName = "sound" + std::to_string(counter);

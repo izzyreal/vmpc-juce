@@ -64,8 +64,7 @@ bool PadControl::isInterestedInFileDrag(const StringArray &files)
 void PadControl::loadFile(const String path, bool shouldBeConverted, std::string screenToReturnTo)
 {
     if (StrUtil::hasEnding(StrUtil::toLower(path.toStdString()), ".snd") ||
-        StrUtil::hasEnding(StrUtil::toLower(path.toStdString()), ".wav"))
-    {
+        StrUtil::hasEnding(StrUtil::toLower(path.toStdString()), ".wav")) {
         auto sampler = mpc.getSampler();
 
         auto soundLoader = SoundLoader(mpc, false);
@@ -83,12 +82,10 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
         soundLoader.loadSound(file, result, sound, shouldBeConverted);
         auto popupScreen = mpc.screens->get<PopupScreen>("popup");
 
-        if (!result.success)
-        {
+        if (!result.success) {
             sampler->deleteSound(sound);
 
-            if (result.canBeConverted)
-            {
+            if (result.canBeConverted) {
                 auto loadRoutine = [&, path, screenToReturnTo, layeredScreen]() {
                     const bool shouldBeConverted2 = true;
                     loadFile(path, shouldBeConverted2, screenToReturnTo);
@@ -102,43 +99,39 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
             return;
         }
 
-        if (result.existingIndex == -1)
+        auto soundFileName = StrUtil::toUpper(file->getNameWithoutExtension());
+
+        if (soundFileName.length() >= 16) {
+            soundFileName = soundFileName.substr(0, 16);
+        }
+
+        auto ext = file->getExtension();
+
+        popupScreen->setText("LOADING " + StrUtil::padRight(soundFileName, " ", 16) + "." + ext);
+
+        layeredScreen->openScreen("popup");
+        popupScreen->returnToScreenAfterMilliSeconds(screenToReturnTo, 300);
+
+        auto drumIndex = mpc.getSequencer()->getActiveTrack()->getBus() - 1;
+
+        if (drumIndex == -1) {
+            layeredScreen->openScreen(screenToReturnTo);
+            return;
+        }
+
+        auto mpcSoundPlayerChannel = mpc.getDrum(drumIndex);
+
+        auto programIndex = mpcSoundPlayerChannel->getProgram();
+        auto program = mpc.getSampler()->getProgram(programIndex);
+        auto soundIndex = mpc.getSampler()->getSoundCount() - 1;
+        auto padIndex = pad.lock()->getIndex() + (mpc.getBank() * 16);
+        auto programPad = program->getPad(padIndex);
+        auto padNote = programPad->getNote();
+
+        auto noteParameters = dynamic_cast<mpc::sampler::NoteParameters *>(program->getNoteParameters(padNote));
+
+        if (noteParameters != nullptr)
         {
-            auto soundFileName = StrUtil::toUpper(file->getNameWithoutExtension());
-            if (soundFileName.length() >= 16) soundFileName = soundFileName.substr(0, 16);
-
-            auto ext = file->getExtension();
-
-            popupScreen->setText("LOADING " + StrUtil::padRight(soundFileName, " ", 16) + "." + ext);
-
-            layeredScreen->openScreen("popup");
-            popupScreen->returnToScreenAfterMilliSeconds(screenToReturnTo, 300);
-
-            auto drumIndex = mpc.getSequencer()->getActiveTrack()->getBus() - 1;
-
-            if (drumIndex == -1)
-            {
-                layeredScreen->openScreen(screenToReturnTo);
-                return;
-            }
-
-            auto mpcSoundPlayerChannel = mpc.getDrum(drumIndex);
-
-            auto programIndex = mpcSoundPlayerChannel->getProgram();
-            auto program = mpc.getSampler()->getProgram(programIndex);
-            auto soundIndex = mpc.getSampler()->getSoundCount() - 1;
-            auto padIndex = pad.lock()->getIndex() + (mpc.getBank() * 16);
-            auto programPad = program->getPad(padIndex);
-            auto padNote = programPad->getNote();
-
-            auto noteParameters = dynamic_cast<mpc::sampler::NoteParameters *>(program->getNoteParameters(padNote));
-
-            if (noteParameters == nullptr)
-            {
-                layeredScreen->openScreen(layeredScreen->getPreviousScreenName());
-                return;
-            }
-
             noteParameters->setSoundIndex(soundIndex);
         }
     }
