@@ -78,12 +78,12 @@ juce_add_plugin(vmpc2000xl
     REQUIRES_FULL_SCREEN TRUE
     BACKGROUND_AUDIO_ENABLED TRUE
     APP_GROUPS_ENABLED TRUE
-    APP_GROUP_IDS group.com.Izmar.vmpc2000xl
+    APP_GROUP_IDS group.nl.Izmar.vmpc2000xl
     FILE_SHARING_ENABLED TRUE
     DOCUMENT_BROWSER_ENABLED TRUE
 
     # Relevant to macOS and iOS
-    BUNDLE_ID com.Izmar.vmpc2000xl
+    BUNDLE_ID nl.Izmar.vmpc2000xl
 
     # Relevant to all builds
     ICON_BIG "src/main/resources/icon.png"

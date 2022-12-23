@@ -679,6 +679,8 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
             auto previousScreen = mpc_ui->getStringAttribute("previousScreen").toStdString();
             auto layeredScreen = mpc.getLayeredScreen();
 
+            auto currentScreen = layeredScreen->getCurrentScreenName();
+
             layeredScreen->openScreen(previousSamplerScreen.empty() ? "sequencer" : previousSamplerScreen);
             layeredScreen->Draw();
             layeredScreen->openScreen(previousScreen);
@@ -689,10 +691,17 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 
             layeredScreen->openScreen(screen);
             auto focus = mpc_ui->getStringAttribute("focus").toStdString();
-            
+            layeredScreen->Draw();
+
             if (focus.length() > 0)
                 layeredScreen->setFocus(focus);
-            
+
+            if (currentScreen == "vmpc-known-controller-detected")
+            {
+                layeredScreen->openScreen(currentScreen);
+                layeredScreen->Draw();
+            }
+
             layeredScreen->setDirty();
         }
     };
