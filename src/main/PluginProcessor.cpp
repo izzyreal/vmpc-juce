@@ -4,6 +4,7 @@
 
 #include "gui/VmpcLookAndFeel.h"
 #include "lcdgui/screens/VmpcSettingsScreen.hpp"
+#include "AutoSave.hpp"
 
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audiomidi/DiskRecorder.hpp>
@@ -23,7 +24,6 @@
 #include <Paths.hpp>
 #include <sequencer/Sequencer.hpp>
 
-#include <lcdgui/screens/VmpcAutoSaveScreen.hpp>
 #include <lcdgui/screens/SyncScreen.hpp>
 #include <lcdgui/screens/window/DirectoryScreen.hpp>
 
@@ -69,20 +69,30 @@ VmpcAudioProcessor::VmpcAudioProcessor()
     time_t currentTime = time(nullptr);
   struct tm* currentLocalTime = localtime(&currentTime);
   auto timeString = std::string(asctime(currentLocalTime));
-  
+
   moduru::Logger::l.setPath(mpc::Paths::logFilePath());
   moduru::Logger::l.log("\n\n-= VMPC2000XL v" + std::string(version::get()) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
-  
+
   mpc.init(1, 5);
 
   if (juce::PluginHostType::jucePlugInClientCurrentWrapperType != juce::AudioProcessor::wrapperType_LV2)
   {
       mpc.getDisk()->initFiles();
   }
+
+  if (juce::JUCEApplication::isStandaloneApp())
+  {
+    mpc::AutoSave::restoreAutoSavedState(mpc);
+  }
 }
 
 VmpcAudioProcessor::~VmpcAudioProcessor()
 {
+    if (juce::JUCEApplication::isStandaloneApp())
+    {
+        mpc::AutoSave::storeAutoSavedState(mpc);
+    }
+
     delete lookAndFeel;
 }
 
@@ -148,7 +158,6 @@ void VmpcAudioProcessor::changeProgramName (int /* index */, const juce::String&
 {
 }
 
-//==============================================================================
 void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
   auto seq = mpc.getSequencer();
@@ -161,7 +170,7 @@ void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
   {
       seq->stop();
   }
-  
+
   auto ams = mpc.getAudioMidiServices();
   ams->getMidiClockEmitter()->setSampleRate(static_cast<unsigned int>(sampleRate));
   auto server = ams->getAudioServer();
@@ -187,7 +196,7 @@ void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
   {
       seq->setCountEnabled(true);
   }
-  
+
   monoToStereoBufferIn.clear();
   monoToStereoBufferIn.setSize(2, samplesPerBlock);
   monoToStereoBufferOut.clear();
@@ -293,7 +302,7 @@ void VmpcAudioProcessor::processMidiOut(juce::MidiBuffer& midiMessages)
 
     const auto outputAEventCount = mpc.getMidiOutput()->dequeueOutputA(midiOutputBuffer);
 
-    for (int i = 0; i < outputAEventCount; i++)
+    for (unsigned int i = 0; i < outputAEventCount; i++)
     {
         processMsg(midiOutputBuffer[i]);
     }
@@ -317,28 +326,29 @@ void VmpcAudioProcessor::processTransport()
   {
     return;
   }
+
   auto syncScreen = mpc.screens->get<SyncScreen>("sync");
-  
+
   bool syncEnabled = syncScreen->getModeIn() == 1;
-  
+
   if (syncEnabled)
   {
     auto info = getPlayHead()->getPosition();
     double tempo = info->getBpm().orFallback(120);
-    
+
     if (tempo != m_Tempo || mpc.getSequencer()->getTempo() != tempo)
     {
       mpc.getSequencer()->setTempo(tempo);
       m_Tempo = tempo;
     }
-    
+
     bool isPlaying = info->getIsPlaying();
-    
+
     if (!wasPlaying && isPlaying)
     {
       mpc.getSequencer()->playFromStart();
     }
-    
+
     if (wasPlaying && !isPlaying) {
       mpc.getSequencer()->stop();
     }
@@ -349,12 +359,12 @@ void VmpcAudioProcessor::processTransport()
 void VmpcAudioProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuffer& midiMessages)
 {
   juce::ScopedNoDenormals noDenormals;
-  
+
   const int totalNumInputChannels = getTotalNumInputChannels();
   const int totalNumOutputChannels = getTotalNumOutputChannels();
   auto audioMidiServices = mpc.getAudioMidiServices();
   auto server = audioMidiServices->getAudioServer();
-  
+
   if (!server->isRunning())
   {
     for (int i = 0; i < totalNumInputChannels; ++i)
@@ -372,10 +382,10 @@ void VmpcAudioProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::Mid
   {
     for (int i = 0; i < totalNumInputChannels; ++i)
       buffer.clear(i, 0, buffer.getNumSamples());
-    
+
     return;
   }
-  
+
   processTransport();
   processMidiIn(midiMessages);
 
@@ -383,7 +393,7 @@ void VmpcAudioProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::Mid
   auto chDataOut = buffer.getArrayOfWritePointers();
   int totalNumInputChannelsFinal = totalNumInputChannels;
   int totalNumOutputChannelsFinal = totalNumOutputChannels;
-  
+
   if (totalNumInputChannels == 1)
   {
     monoToStereoBufferIn.clear();
@@ -392,14 +402,14 @@ void VmpcAudioProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::Mid
     chDataIn = monoToStereoBufferIn.getArrayOfReadPointers();
     totalNumInputChannelsFinal = 2;
   }
-  
+
   if (totalNumOutputChannels == 1)
   {
     monoToStereoBufferOut.clear();
     chDataOut = monoToStereoBufferOut.getArrayOfWritePointers();
     totalNumOutputChannelsFinal = 2;
   }
-  
+
   server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannelsFinal, totalNumOutputChannelsFinal);
 
   processMidiOut(midiMessages);
@@ -425,353 +435,237 @@ juce::AudioProcessorEditor* VmpcAudioProcessor::createEditor()
   return new VmpcAudioProcessorEditor (*this);
 }
 
-void VmpcAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void VmpcAudioProcessor::getStateInformation(juce::MemoryBlock &destData)
 {
     auto editor = getActiveEditor();
     auto root = std::make_shared<juce::XmlElement>("root");
-    
+
     auto juce_ui = new juce::XmlElement("JUCE-UI");
     root->addChildElement(juce_ui);
-    
+
     if (editor != nullptr)
     {
-      auto w = editor->getWidth();
-      auto h = editor->getHeight();
-      juce_ui->setAttribute("w", w);
-      juce_ui->setAttribute("h", h);
+        auto w = editor->getWidth();
+        auto h = editor->getHeight();
+        juce_ui->setAttribute("w", w);
+        juce_ui->setAttribute("h", h);
     }
-    
-    auto vmpcAutoSaveScreen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
-    
-    std::function<void()> storeState = [&, root](){
-        
-        auto layeredScreen = mpc.getLayeredScreen();
-        
-        auto screen = layeredScreen->getCurrentScreenName();
-        auto previousScreen = layeredScreen->getPreviousScreenName();
-        auto previousSamplerScreen = mpc.getPreviousSamplerScreenName();
-        auto focus = mpc.getLayeredScreen()->getFocus();
-        auto soundIndex = mpc.getSampler()->getSoundIndex();
-        auto lastPressedPad = mpc.getPad();
-        auto lastPressedNote = mpc.getNote();
-        
-        auto mpc_ui = new juce::XmlElement("MPC-UI");
-        root->addChildElement(mpc_ui);
-        
-        mpc_ui->setAttribute("screen", screen);
-        mpc_ui->setAttribute("previousScreen", previousScreen);
-        mpc_ui->setAttribute("previousSamplerScreen", previousSamplerScreen);
-        mpc_ui->setAttribute("focus", focus);
-        mpc_ui->setAttribute("soundIndex", soundIndex);
-        mpc_ui->setAttribute("lastPressedNote", lastPressedNote);
-        mpc_ui->setAttribute("lastPressedPad", lastPressedPad);
-        mpc_ui->setAttribute("currentDir", mpc.getDisk()->getAbsolutePath());
-        
-        ApsParser apsParser(mpc, "stateinfo");
-        auto apsBytes = apsParser.getBytes();
-        auto sounds = mpc.getSampler()->getSounds();
-        
-        for (size_t i = 0; i < sounds.size(); i++)
-        {
-            auto elementName = "sound" + std::to_string(i);
-            auto soundElement = new juce::XmlElement(elementName.c_str());
-            root->addChildElement(soundElement);
-            
-            auto sound = sounds[i];
-            SndWriter sndWriter(sound.get());
-            auto data = sndWriter.getSndFileArray();
-            
-            juce::MemoryOutputStream encodedSound;
-            juce::Base64::convertToBase64(encodedSound, &data[0], data.size());
-            
-            soundElement->setAttribute("data", encodedSound.toString());
-            soundElement->setAttribute("size", (int) data.size());
-        }
-        
-        juce::MemoryOutputStream encodedAps;
-        juce::Base64::convertToBase64(encodedAps, &apsBytes[0], apsBytes.size());
-        
-        auto mpc_aps = new juce::XmlElement("MPC-APS");
-        root->addChildElement(mpc_aps);
-        
-        mpc_aps->setAttribute("data", encodedAps.toString());
-        mpc_aps->setAttribute("size", (int) apsBytes.size());
-        
-        AllParser allParser(mpc);
-        auto allBytes = allParser.getBytes();
-        
-        juce::MemoryOutputStream encodedAll;
-        juce::Base64::convertToBase64(encodedAll, &allBytes[0], allBytes.size());
-        
-        auto mpc_all = new juce::XmlElement("MPC-ALL");
-        root->addChildElement(mpc_all);
-        mpc_all->setAttribute("data", encodedAll.toString());
-        mpc_all->setAttribute("size", (int) allBytes.size());
-        
+
+    if (juce::JUCEApplication::isStandaloneApp())
+    {
         copyXmlToBinary(*root.get(), destData);
-    };
+        return;
+    }
 
-  if (wrapperType == wrapperType_Standalone)
-  {
-    if (vmpcAutoSaveScreen->getAutoSaveOnExit() == 0)
-    {
-      // For now we will assume any call in standalone mode to getStateInformation
-      // is when VMPC2000XL exits.
-      return;
-    }
-    else if (vmpcAutoSaveScreen->getAutoSaveOnExit() == 1)
-    {
-      // The user wants to be asked.
-        struct AlertBoxResultChosen
-        {
-            std::function<void()> storeState;
-            VmpcLookAndFeel* lookAndFeel;
-            mpc::Mpc& mpc;
+    auto layeredScreen = mpc.getLayeredScreen();
 
-            void operator() (int result) const noexcept
-            {
-                if (result)
-                {
-                  // MLOG("Not saving current session");
-                    // The user never wants to auto-save the session
-                    // when exiting VMPC2000XL.
-                    auto screen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
-                    screen->setAutoSaveOnExit(0);
-                }
-                else
-                {
-                  // MLOG("Auto-saving session");
-                    // The user always wants to auto-save the session
-                    // when exiting VMPC2000XL.
-                    auto screen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
-                    screen->setAutoSaveOnExit(2);
-                    storeState();
-                }
-            }
-        };
-      juce::AlertWindow::showOkCancelBox (
-                                                  juce::AlertWindow::InfoIcon,
-                                                  "Auto-save this VMPC2000XL session?",
-                                                  "This will allow you to continue your work next time you start VMPC2000XL",
-                                                  "Don't save",
-                                                  "Save",
-                                                  nullptr,
-                                                        juce::ModalCallbackFunction::create(AlertBoxResultChosen{storeState, lookAndFeel, mpc}));
-    }
-    else
+    auto screen = layeredScreen->getCurrentScreenName();
+    auto previousScreen = layeredScreen->getPreviousScreenName();
+    auto previousSamplerScreen = mpc.getPreviousSamplerScreenName();
+    auto focus = mpc.getLayeredScreen()->getFocus();
+    auto soundIndex = mpc.getSampler()->getSoundIndex();
+    auto lastPressedPad = mpc.getPad();
+    auto lastPressedNote = mpc.getNote();
+
+    auto mpc_ui = new juce::XmlElement("MPC-UI");
+    root->addChildElement(mpc_ui);
+
+    mpc_ui->setAttribute("screen", screen);
+    mpc_ui->setAttribute("previousScreen", previousScreen);
+    mpc_ui->setAttribute("previousSamplerScreen", previousSamplerScreen);
+    mpc_ui->setAttribute("focus", focus);
+    mpc_ui->setAttribute("soundIndex", soundIndex);
+    mpc_ui->setAttribute("lastPressedNote", lastPressedNote);
+    mpc_ui->setAttribute("lastPressedPad", lastPressedPad);
+    mpc_ui->setAttribute("currentDir", mpc.getDisk()->getAbsolutePath());
+
+    ApsParser apsParser(mpc, "stateinfo");
+    auto apsBytes = apsParser.getBytes();
+    auto sounds = mpc.getSampler()->getSounds();
+
+    for (size_t i = 0; i < sounds.size(); i++)
     {
-        // The user always wants to save
-        storeState();
+        auto elementName = "sound" + std::to_string(i);
+        auto soundElement = new juce::XmlElement(elementName.c_str());
+        root->addChildElement(soundElement);
+
+        auto sound = sounds[i];
+        SndWriter sndWriter(sound.get());
+        auto data = sndWriter.getSndFileArray();
+
+        juce::MemoryOutputStream encodedSound;
+        juce::Base64::convertToBase64(encodedSound, &data[0], data.size());
+
+        soundElement->setAttribute("data", encodedSound.toString());
+        soundElement->setAttribute("size", (int) data.size());
     }
-  }
+
+    juce::MemoryOutputStream encodedAps;
+    juce::Base64::convertToBase64(encodedAps, &apsBytes[0], apsBytes.size());
+
+    auto mpc_aps = new juce::XmlElement("MPC-APS");
+    root->addChildElement(mpc_aps);
+
+    mpc_aps->setAttribute("data", encodedAps.toString());
+    mpc_aps->setAttribute("size", (int) apsBytes.size());
+
+    AllParser allParser(mpc);
+    auto allBytes = allParser.getBytes();
+
+    juce::MemoryOutputStream encodedAll;
+    juce::Base64::convertToBase64(encodedAll, &allBytes[0], allBytes.size());
+
+    auto mpc_all = new juce::XmlElement("MPC-ALL");
+    root->addChildElement(mpc_all);
+    mpc_all->setAttribute("data", encodedAll.toString());
+    mpc_all->setAttribute("size", (int) allBytes.size());
+
+    copyXmlToBinary(*root.get(), destData);
 }
 
 void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-  std::shared_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+    std::shared_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
 
-  auto juce_ui = xmlState->getChildByName("JUCE-UI");
-  if (juce_ui != nullptr)
-  {
-      lastUIWidth = juce_ui->getIntAttribute("w", 1298 / 2);
-      lastUIHeight = juce_ui->getIntAttribute("h", 994 / 2);
-  }
+    auto juce_ui = xmlState->getChildByName("JUCE-UI");
 
-  auto vmpcAutoSaveScreen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
-  
-    std::function<void()> restoreState = [&, xmlState](){
-        auto mpc_ui = xmlState->getChildByName("MPC-UI");
-        
-        if (mpc_ui != nullptr)
-        {
-            auto currentDir = mpc_ui->getStringAttribute("currentDir").toStdString();
-            auto storesPath = mpc::Paths::storesPath() + "MPC2000XL";
-            auto resPathIndex = currentDir.find(storesPath);
-            
-            if (resPathIndex != std::string::npos)
-            {
-                auto trimmedCurrentDir = currentDir.substr(resPathIndex + storesPath.length());
-                auto splitTrimmedDir = StrUtil::split(trimmedCurrentDir, FileUtil::getSeparator()[0]);
-                
-                for (auto& s : splitTrimmedDir)
-                {
-                    mpc.getDisk()->moveForward(s);
-                    mpc.getDisk()->initFiles();
-                }
-            }
-        }
-        
-        auto decodeBase64 = [](juce::XmlElement* element) {
-            juce::MemoryOutputStream decoded;
-            juce::Base64::convertFromBase64(decoded, element->getStringAttribute("data"));
-            auto decodedData = (char*) (decoded.getData());
-            return std::vector<char>(decodedData, decodedData + element->getIntAttribute("size"));
-        };
-        
-        auto mpc_aps = xmlState->getChildByName("MPC-APS");
-        
-        if (mpc_aps != nullptr)
-        {
-            std::vector<char> apsData = decodeBase64(mpc_aps);
-            if (apsData.size() > 0)
-            {
-                ApsParser apsParser(mpc, apsData);
-                // We don't want the APS loader to attempt to load the sounds
-                // from the file system. We load them manually from the
-                // decode project state.
-                auto withoutSounds = true;
-                
-                // We don't need popups to appear in the LCD UI.
-                auto headless = true;
-                
-                ApsLoader::loadFromParsedAps(apsParser, mpc, withoutSounds, headless);
-            }
-            
-            int counter = 0;
-            
-            auto candidateName = "sound" + std::to_string(counter);
-            auto candidate = xmlState->getChildByName(candidateName);
-            
-            while (candidate != nullptr)
-            {
-                auto sndData = decodeBase64(candidate);
-                SndReader sndReader(sndData);
-                
-                auto sound = mpc.getSampler()->addSound(sndReader.getSampleRate());
-                sound->setMono(sndReader.isMono());
-                sndReader.readData(*sound->getSampleData());
-                sound->setName(sndReader.getName());
-                sound->setTune(sndReader.getTune());
-                sound->setLevel(sndReader.getLevel());
-                sound->setStart(sndReader.getStart());
-                sound->setEnd(sndReader.getEnd());
-                sound->setLoopTo(sound->getEnd() - sndReader.getLoopLength());
-                sound->setBeatCount(sndReader.getNumberOfBeats());
-                sound->setLoopEnabled(sndReader.isLoopEnabled());
+    if (juce_ui != nullptr)
+    {
+        lastUIWidth = juce_ui->getIntAttribute("w", 1298 / 2);
+        lastUIHeight = juce_ui->getIntAttribute("h", 994 / 2);
+    }
 
-                counter++;
-                
-                candidateName = "sound" + std::to_string(counter);
-                candidate = xmlState->getChildByName(candidateName);
-            }
-        }
-        
-        auto mpc_all = xmlState->getChildByName("MPC-ALL");
-        
-        if (mpc_all != nullptr)
-        {
-            std::vector<char> allData = decodeBase64(mpc_all);
+    if (juce::JUCEApplication::isStandaloneApp())
+    {
+        return;
+    }
 
-            if (allData.size() > 0)
-            {
-                AllParser allParser(mpc, allData);
-                AllLoader::loadEverythingFromAllParser(mpc, allParser);
-            }
-
-            mpc.getSampler()->setSoundIndex(mpc_ui->getIntAttribute("soundIndex"));
-            mpc.setNote(mpc_ui->getIntAttribute("lastPressedNote"));
-            mpc.setPad(static_cast<unsigned char>(mpc_ui->getIntAttribute("lastPressedPad")));
-
-            auto previousSamplerScreen = mpc_ui->getStringAttribute("previousSamplerScreen").toStdString();
-            mpc.setPreviousSamplerScreenName(previousSamplerScreen);
-
-            auto screen = mpc_ui->getStringAttribute("screen").toStdString();
-            auto previousScreen = mpc_ui->getStringAttribute("previousScreen").toStdString();
-            auto layeredScreen = mpc.getLayeredScreen();
-
-            auto currentScreen = layeredScreen->getCurrentScreenName();
-
-            layeredScreen->openScreen(previousSamplerScreen.empty() ? "sequencer" : previousSamplerScreen);
-            layeredScreen->Draw();
-            layeredScreen->openScreen(previousScreen);
-            layeredScreen->Draw();
-
-            auto directoryScreen = mpc.screens->get<DirectoryScreen>("directory");
-            directoryScreen->setPreviousScreenName(previousScreen == "save" ? "save" : "load");
-
-            layeredScreen->openScreen(screen);
-            auto focus = mpc_ui->getStringAttribute("focus").toStdString();
-            layeredScreen->Draw();
-
-            if (focus.length() > 0)
-                layeredScreen->setFocus(focus);
-
-            if (currentScreen == "vmpc-known-controller-detected")
-            {
-                layeredScreen->openScreen(currentScreen);
-                layeredScreen->Draw();
-            }
-
-            layeredScreen->setDirty();
-        }
+    auto decodeBase64 = [](juce::XmlElement *element) {
+        juce::MemoryOutputStream decoded;
+        juce::Base64::convertFromBase64(decoded, element->getStringAttribute("data"));
+        auto decodedData = (char *) (decoded.getData());
+        return std::vector<char>(decodedData, decodedData + element->getIntAttribute("size"));
     };
-  if (xmlState.get() != nullptr)
-  {
-      if (wrapperType == wrapperType_Standalone)
-      {
-          auto autoLoadOnStart = vmpcAutoSaveScreen->getAutoLoadOnStart();
-          
-          if (autoLoadOnStart == 0)
-          {
-              // Auto-load on start is Disabled
-              return;
-          }
-          else if (autoLoadOnStart == 1)
-          {
-              // The user wants to be asked
-              
-              struct AlertBoxResultChosen
-              {
-                  std::function<void()> restoreState;
-                  VmpcLookAndFeel* lookAndFeel;
-                  mpc::Mpc& mpc;
-                  void operator() (int result) const noexcept
-                  {
-                      if (result)
-                      {
-                          // MLOG("Ignoring auto-saved session");
-                          // We ignore the fact that a previously saved session exists,
-                          // but we restore the user's window size.
-                          if (lookAndFeel->rememberButton.getToggleState())
-                          {
-                              // The user wants to always ignore auto-saved sessions
-                              // when starting VMPC2000XL.
-                              auto screen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
-                              screen->setAutoLoadOnStart(0);
-                          }
-                          return;
-                      }
-                      else
-                      {
-                          // MLOG("Continuing auto-saved session");
-                          if (lookAndFeel->rememberButton.getToggleState())
-                          {
-                              // The user wants to always load auto-saved sessions
-                              // when starting VMPC2000XL.
-                              auto screen = mpc.screens->get<VmpcAutoSaveScreen>("vmpc-auto-save");
-                              screen->setAutoLoadOnStart(2);
-                          }
-                          restoreState();
-                      }
-                  }
-              };
 
-              juce::AlertWindow::showOkCancelBox (
-                      juce::AlertWindow::InfoIcon,
-                      "Continue previous VMPC2000XL session?",
-                      "An auto-saved previous session was found.",
-                      "Forget and start new session",
-                      "Continue session",
-                      nullptr,
-                      juce::ModalCallbackFunction::create(AlertBoxResultChosen{restoreState, lookAndFeel, mpc}));
-          }
-          else if (autoLoadOnStart == 2)
-          {
-              // The user always wants to load auto-saved sessions.
-              restoreState();
-          }
-      }
-  }
+    auto mpc_aps = xmlState->getChildByName("MPC-APS");
+
+    if (mpc_aps != nullptr)
+    {
+        std::vector<char> apsData = decodeBase64(mpc_aps);
+        if (apsData.size() > 0)
+        {
+            ApsParser apsParser(mpc, apsData);
+            // We don't want the APS loader to attempt to load the sounds
+            // from the file system. We load them manually from the
+            // decode project state.
+            auto withoutSounds = true;
+
+            // We don't need popups to appear in the LCD UI.
+            auto headless = true;
+
+            ApsLoader::loadFromParsedAps(apsParser, mpc, withoutSounds, headless);
+        }
+
+        int counter = 0;
+
+        auto candidateName = "sound" + std::to_string(counter);
+        auto candidate = xmlState->getChildByName(candidateName);
+
+        while (candidate != nullptr)
+        {
+            auto sndData = decodeBase64(candidate);
+            SndReader sndReader(sndData);
+
+            auto sound = mpc.getSampler()->addSound(sndReader.getSampleRate());
+            sound->setMono(sndReader.isMono());
+            sndReader.readData(*sound->getSampleData());
+            sound->setName(sndReader.getName());
+            sound->setTune(sndReader.getTune());
+            sound->setLevel(sndReader.getLevel());
+            sound->setStart(sndReader.getStart());
+            sound->setEnd(sndReader.getEnd());
+            sound->setLoopTo(sound->getEnd() - sndReader.getLoopLength());
+            sound->setBeatCount(sndReader.getNumberOfBeats());
+            sound->setLoopEnabled(sndReader.isLoopEnabled());
+
+            counter++;
+
+            candidateName = "sound" + std::to_string(counter);
+            candidate = xmlState->getChildByName(candidateName);
+        }
+    }
+
+    auto mpc_all = xmlState->getChildByName("MPC-ALL");
+
+    if (mpc_all != nullptr)
+    {
+        std::vector<char> allData = decodeBase64(mpc_all);
+
+        if (allData.size() > 0)
+        {
+            AllParser allParser(mpc, allData);
+            AllLoader::loadEverythingFromAllParser(mpc, allParser);
+        }
+    }
+
+    auto mpc_ui = xmlState->getChildByName("MPC-UI");
+
+    if (mpc_ui != nullptr)
+    {
+        auto currentDir = mpc_ui->getStringAttribute("currentDir").toStdString();
+        auto storesPath = mpc::Paths::storesPath() + "MPC2000XL";
+        auto resPathIndex = currentDir.find(storesPath);
+
+        if (resPathIndex != std::string::npos)
+        {
+            auto trimmedCurrentDir = currentDir.substr(resPathIndex + storesPath.length());
+            auto splitTrimmedDir = StrUtil::split(trimmedCurrentDir, FileUtil::getSeparator()[0]);
+
+            for (auto &s: splitTrimmedDir)
+            {
+                mpc.getDisk()->moveForward(s);
+                mpc.getDisk()->initFiles();
+            }
+        }
+
+        mpc.getSampler()->setSoundIndex(mpc_ui->getIntAttribute("soundIndex"));
+        mpc.setNote(mpc_ui->getIntAttribute("lastPressedNote"));
+        mpc.setPad(static_cast<unsigned char>(mpc_ui->getIntAttribute("lastPressedPad")));
+
+        auto previousSamplerScreen = mpc_ui->getStringAttribute("previousSamplerScreen").toStdString();
+        mpc.setPreviousSamplerScreenName(previousSamplerScreen);
+
+        auto screen = mpc_ui->getStringAttribute("screen").toStdString();
+        auto previousScreen = mpc_ui->getStringAttribute("previousScreen").toStdString();
+        auto layeredScreen = mpc.getLayeredScreen();
+
+        auto currentScreen = layeredScreen->getCurrentScreenName();
+
+        layeredScreen->openScreen(previousSamplerScreen.empty() ? "sequencer" : previousSamplerScreen);
+        layeredScreen->Draw();
+        layeredScreen->openScreen(previousScreen);
+        layeredScreen->Draw();
+
+        auto directoryScreen = mpc.screens->get<DirectoryScreen>("directory");
+        directoryScreen->setPreviousScreenName(previousScreen == "save" ? "save" : "load");
+
+        layeredScreen->openScreen(screen);
+        auto focus = mpc_ui->getStringAttribute("focus").toStdString();
+        layeredScreen->Draw();
+
+        if (!focus.empty())
+        {
+            layeredScreen->setFocus(focus);
+        }
+
+        if (currentScreen == "vmpc-known-controller-detected")
+        {
+            layeredScreen->openScreen(currentScreen);
+            layeredScreen->Draw();
+        }
+
+        layeredScreen->setDirty();
+    }
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
