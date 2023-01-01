@@ -3,6 +3,7 @@
 #include <hardware/HwPad.hpp>
 
 #include <Mpc.hpp>
+#include "file/AkaiName.hpp"
 
 #include <sequencer/Track.hpp>
 
@@ -99,7 +100,25 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
             return;
         }
 
-        auto soundFileName = StrUtil::toUpper(file->getNameWithoutExtension());
+        std::string soundFileName;
+
+        for (auto& c : StrUtil::toUpper(file->getNameWithoutExtension()))
+        {
+            if (c == ' ')
+            {
+                soundFileName.push_back('_');
+                continue;
+            }
+            if (mpc::file::AkaiName::isValidChar(c))
+            {
+                soundFileName.push_back(c);
+            }
+        }
+
+        if (soundFileName.empty())
+        {
+            return;
+        }
 
         if (soundFileName.length() >= 16) {
             soundFileName = soundFileName.substr(0, 16);
