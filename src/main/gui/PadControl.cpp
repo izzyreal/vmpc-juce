@@ -67,7 +67,7 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
         StrUtil::hasEnding(StrUtil::toLower(path.toStdString()), ".wav")) {
         auto sampler = mpc.getSampler();
 
-        auto soundLoader = SoundLoader(mpc, false);
+        SoundLoader soundLoader(mpc, false);
         soundLoader.setPreview(false);
 
         auto compatiblePath = StrUtil::replaceAll(path.toStdString(), '\\', std::string("\\"));
@@ -104,6 +104,9 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
         if (soundFileName.length() >= 16) {
             soundFileName = soundFileName.substr(0, 16);
         }
+
+        soundFileName = sampler->addOrIncreaseNumber(soundFileName);
+        sound->setName(soundFileName);
 
         auto ext = file->getExtension();
 
