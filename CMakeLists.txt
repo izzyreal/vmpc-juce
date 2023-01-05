@@ -70,8 +70,6 @@ if(NOT tl-expected_POPULATED)
   FetchContent_Populate(tl-expected)
 endif()
 
-juce_disable_default_flags()
-
 juce_add_plugin(vmpc2000xl
     
     # Relevant to iOS only
