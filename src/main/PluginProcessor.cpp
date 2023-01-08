@@ -264,7 +264,7 @@ void VmpcAudioProcessor::processMidiOut(juce::MidiBuffer& midiMessages)
         juce::MidiMessage juceMsg;
         bool compatibleMsg = false;
 
-        if (msg->getStatus() == ShortMessage::NOTE_ON || msg->getStatus() == ShortMessage::NOTE_OFF)
+        if (msg->getCommand() == ShortMessage::NOTE_ON || msg->getCommand() == ShortMessage::NOTE_OFF)
         {
             juce::uint8 velo = (juce::uint8) msg->getData2();
 
