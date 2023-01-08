@@ -25,10 +25,10 @@ void SliderControl::mouseUp(const juce::MouseEvent& event)
 
 void SliderControl::mouseDrag(const juce::MouseEvent& event)
 {
-    auto dY = event.getDistanceFromDragStartY() - lastDy;
+    auto dY = -(event.getDistanceFromDragStartY() - lastDy);
     lastDy = event.getDistanceFromDragStartY();
     slider.lock()->setValue(slider.lock()->getValue() + dY);
-    sliderIndex = static_cast<int>(slider.lock()->getValue() / 1.27);
+    sliderIndex = 100 - static_cast<int>(slider.lock()->getValue() / 1.27);
     clampIndex(sliderIndex);
     repaint();
 }
@@ -55,7 +55,7 @@ void SliderControl::paint(juce::Graphics& g)
 void SliderControl::timerCallback()
 {
     auto newValue = slider.lock()->getValue();
-    auto candidateSliderIndex = static_cast<int>(newValue / 1.27);
+    auto candidateSliderIndex = 100 - static_cast<int>(newValue / 1.27);
     
     if (candidateSliderIndex == sliderIndex)
         return;
@@ -69,7 +69,7 @@ void SliderControl::mouseWheelMove(const juce::MouseEvent&, const juce::MouseWhe
 {
     auto s = slider.lock();
     mouseWheelControllable.processWheelEvent(wheel, [&](int increment) {     s->setValue(s->getValue() + increment);
-        sliderIndex = static_cast<int>(s->getValue() / 1.27);
+        sliderIndex = 100 - static_cast<int>(s->getValue() / 1.27);
         clampIndex(sliderIndex);
         repaint();
     });

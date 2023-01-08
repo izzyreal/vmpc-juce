@@ -3,7 +3,7 @@
 void MouseWheelControllable::processWheelEvent(const juce::MouseWheelDetails& details,
                                                        std::function<void(int)> updateFn)
 {
-    auto y = details.deltaY;
+    auto y = -details.deltaY;
     
     acc += y;
     
