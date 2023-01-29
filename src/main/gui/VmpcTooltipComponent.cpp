@@ -9,6 +9,7 @@ VmpcTooltipComponent::VmpcTooltipComponent(
         : Button(_mpcHardwareComponent->getLabel()),
         mpc(_mpc), mpcHardwareComponent(_mpcHardwareComponent)
 {
+    setWantsKeyboardFocus(false);
 }
 
 void VmpcTooltipComponent::paintButton(juce::Graphics &, bool, bool)
