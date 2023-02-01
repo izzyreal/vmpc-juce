@@ -11,7 +11,6 @@
 #include <audiomidi/SoundRecorder.hpp>
 #include <audiomidi/MpcMidiOutput.hpp>
 #include <audiomidi/MpcMidiInput.hpp>
-#include <audiomidi/MidiClockEmitter.hpp>
 
 #include <file/aps/ApsParser.hpp>
 #include <file/all/AllParser.hpp>
@@ -172,7 +171,6 @@ void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
   }
 
   auto ams = mpc.getAudioMidiServices();
-  ams->getMidiClockEmitter()->setSampleRate(static_cast<unsigned int>(sampleRate));
   auto server = ams->getAudioServer();
   server->setSampleRate(static_cast<int>(sampleRate));
   server->resizeBuffers(samplesPerBlock);

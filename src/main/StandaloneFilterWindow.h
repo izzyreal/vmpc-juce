@@ -601,6 +601,30 @@ public:
                                                         preferredDefaultDeviceName, preferredSetupOptions,
                                                         constrainToConfiguration, autoOpenMidiDevices));
 
+        class MidiOutputBackgroundThreadStarter : public juce::ChangeListener
+        {
+        private:
+            MidiOutput* midiOutput = nullptr;
+        public:
+            void changeListenerCallback (ChangeBroadcaster* source) override
+            {
+                auto deviceManager = (AudioDeviceManager*)source;
+                auto newMidiOutput = deviceManager->getDefaultMidiOutput();
+                if (midiOutput != newMidiOutput)
+                {
+                    midiOutput = newMidiOutput;
+
+                    if (midiOutput != nullptr)
+                    {
+                        midiOutput->startBackgroundThread();
+                    }
+                }
+            }
+        };
+
+        pluginHolder->deviceManager.addChangeListener(new MidiOutputBackgroundThreadStarter());
+        pluginHolder->deviceManager.sendSynchronousChangeMessage();
+
        #if JUCE_IOS || JUCE_ANDROID
         setFullScreen (true);
         updateContent();
