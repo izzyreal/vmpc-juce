@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 
-include(cmake/ResourceBundling.cmake)
 include(FetchContent)
+include(cmake/ResourceBundling.cmake)
+include(cmake/ASIOSDK.cmake)
 
 set(VMPC_VERSION 0.4.5)
 set(CMAKE_CXX_STANDARD 17)
@@ -138,6 +139,7 @@ target_sources(vmpc2000xl PRIVATE ${_source_list})
 target_compile_definitions(vmpc2000xl
     PUBLIC
     JUCE_JACK=1
+    JUCE_ASIO=1
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
     JUCE_VST3_CAN_REPLACE_VST2=0
@@ -172,6 +174,7 @@ if(IOS)
 endif()
 
 if(MSVC)
+  getAndIncludeASIOSDK(asiosdk_2.3.3_2019-06-14)
 	target_compile_options(vmpc2000xl PRIVATE "/MP")
 endif()
 
