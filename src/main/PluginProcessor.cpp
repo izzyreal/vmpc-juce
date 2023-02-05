@@ -174,6 +174,7 @@ void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
   auto server = ams->getAudioServer();
   server->setSampleRate(static_cast<int>(sampleRate));
   server->resizeBuffers(samplesPerBlock);
+  ams->getFrameSequencer()->setSampleRate(static_cast<unsigned int>(sampleRate));
 
   seq->setCountEnabled(false);
 
