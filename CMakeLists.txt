@@ -4,7 +4,7 @@ include(FetchContent)
 include(cmake/ResourceBundling.cmake)
 include(cmake/ASIOSDK.cmake)
 
-set(VMPC_VERSION 0.5.0.0)
+set(VMPC_VERSION 0.5.0.1)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_SKIP_BUILD_RPATH ON)
