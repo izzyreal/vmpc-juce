@@ -9,8 +9,6 @@ void* juce_GetIOSCustomDelegateClass()  { return nullptr; }
 
 StandaloneFilterApp::StandaloneFilterApp()
 {
-    juce::PluginHostType::jucePlugInClientCurrentWrapperType =
-        AudioProcessor::wrapperType_Standalone;
     appProperties.setStorageParameters(PropertiesFileOptions());
 }
 
