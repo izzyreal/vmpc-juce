@@ -4,7 +4,8 @@ include(FetchContent)
 include(cmake/ResourceBundling.cmake)
 include(cmake/ASIOSDK.cmake)
 
-if (IOS)
+# Note that IOS (as of CMake 3.14) is not set until the project() call is made.
+if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
   set(VMPC_VERSION 0.5.0)
 else()
   set(VMPC_VERSION 0.5.0.2)
@@ -167,7 +168,7 @@ target_link_libraries(vmpc2000xl PRIVATE
 
 _bundle_vmpc_juce_resources(vmpc2000xl)
 
-if(IOS)
+if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
   execute_process(
     COMMAND python3 macos-codesign-details-extractor.py
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
