@@ -4,6 +4,8 @@ include(FetchContent)
 include(cmake/ResourceBundling.cmake)
 include(cmake/ASIOSDK.cmake)
 
+find_package(Git)
+
 # Note that IOS (as of CMake 3.14) is not set until the project() call is made.
 if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
   set(VMPC_VERSION 0.5.0)
@@ -182,6 +184,25 @@ endif()
 if(MSVC)
   getAndIncludeASIOSDK(asiosdk_2.3.3_2019-06-14)
 	target_compile_options(vmpc2000xl PRIVATE "/MP")
+endif()
+
+if(GIT_FOUND)
+  if (EXISTS ${CMAKE_SOURCE_DIR}/editables/mpc)
+    execute_process(COMMAND ${GIT_EXECUTABLE} remote set-url --push origin git@github.com:izzyreal/mpc
+                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/editables/mpc
+                    RESULT_VARIABLE GIT_REMOTE_RESULT)
+    if(NOT GIT_REMOTE_RESULT EQUAL "0")
+        message(FATAL_ERROR "git remote set-url --push origin git@github.com:izzyreal/mpc failed with ${GIT_REMOTE_RESULT}. Please contact your local Git guru if you want to push changes.")
+    endif()
+  endif()
+  if (EXISTS ${CMAKE_SOURCE_DIR}/editables/ctoot)
+    execute_process(COMMAND ${GIT_EXECUTABLE} remote set-url --push origin git@github.com:izzyreal/ctoot
+                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/editables/ctoot
+                    RESULT_VARIABLE GIT_REMOTE_RESULT)
+    if(NOT GIT_REMOTE_RESULT EQUAL "0")
+        message(FATAL_ERROR "git remote set-url --push origin git@github.com:izzyreal/ctoot failed with ${GIT_REMOTE_RESULT}. Please contact your local Git guru if you want to push changes.")
+    endif()
+  endif()
 endif()
 
 set(CPACK_SOURCE_GENERATOR "TGZ")
