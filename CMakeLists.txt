@@ -20,7 +20,12 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 add_compile_definitions(RAPIDJSON_NOMEMBERITERATORCLASS)
 
 if(APPLE)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE INTERNAL "Minimum OS X deployment version")
+  if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    # This is not a typo. See https://cmake.org/cmake/help/latest/variable/CMAKE_OSX_DEPLOYMENT_TARGET.html
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE INTERNAL "Minimum iOS deployment version")
+  else()
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE INTERNAL "Minimum OS X deployment version")
+  endif()
 endif()
 
 set (JUCE_ENABLE_MODULE_SOURCE_GROUPS ON)
