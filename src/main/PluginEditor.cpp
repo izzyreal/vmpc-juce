@@ -47,12 +47,13 @@ void VmpcAudioProcessorEditor::showDisclaimer()
     public:
       juce::Image img;
       VmpcSplashScreen() {
+        setWantsKeyboardFocus(false);
         img = ResourceUtil::loadImage("img/disclaimer.gif");
         startTimer(8000);
       }
       
       void mouseDown(const juce::MouseEvent&) override {
-        delete this;
+        setVisible(false);
       }
       
       void paint(juce::Graphics& g) override {
