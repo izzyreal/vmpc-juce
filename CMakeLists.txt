@@ -108,6 +108,8 @@ juce_add_plugin(vmpc2000xl
     PLUGIN_CODE 2kXL
     MICROPHONE_PERMISSION_ENABLED TRUE
     MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
+    HARDENED_RUNTIME_ENABLED TRUE
+    HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input
     FORMATS LV2 VST3 AU AUv3 Standalone
     LV2URI "http://www.izmar.nl/VMPC2000XL"
     PRODUCT_NAME "VMPC2000XL")
