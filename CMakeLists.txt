@@ -175,7 +175,7 @@ target_link_libraries(vmpc2000xl PRIVATE
 
 _bundle_vmpc_juce_resources(vmpc2000xl)
 
-if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
+if (APPLE)
   execute_process(
     COMMAND python3 macos-codesign-details-extractor.py
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
