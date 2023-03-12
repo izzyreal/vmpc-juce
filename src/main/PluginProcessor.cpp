@@ -27,8 +27,8 @@
 #include <lcdgui/screens/window/DirectoryScreen.hpp>
 
 // ctoot
-#include <audio/server/NonRealTimeAudioServer.hpp>
-#include <midi/core/ShortMessage.hpp>
+#include <engine/audio/server/NonRealTimeAudioServer.hpp>
+#include <engine/midi/ShortMessage.hpp>
 
 // moduru
 #include <lang/StrUtil.hpp>

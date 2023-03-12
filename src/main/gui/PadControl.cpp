@@ -16,8 +16,6 @@
 #include <lcdgui/screens/window/VmpcConvertAndLoadWavScreen.hpp>
 #include <lcdgui/screens/dialog2/PopupScreen.hpp>
 
-#include <mpc/MpcSoundPlayerChannel.hpp>
-
 #include <lang/StrUtil.hpp>
 
 #include <Logger.hpp>
@@ -141,9 +139,9 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
             return;
         }
 
-        auto mpcSoundPlayerChannel = mpc.getDrum(drumIndex);
+        auto& mpcSoundPlayerChannel = mpc.getDrum(drumIndex);
 
-        auto programIndex = mpcSoundPlayerChannel->getProgram();
+        auto programIndex = mpcSoundPlayerChannel.getProgram();
         auto program = mpc.getSampler()->getProgram(programIndex);
         auto soundIndex = mpc.getSampler()->getSoundCount() - 1;
         auto padIndex = pad.lock()->getIndex() + (mpc.getBank() * 16);
