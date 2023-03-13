@@ -66,6 +66,8 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 #if ENABLE_IMPORT
     urlProcessor.mpc = &mpc;
 #endif
+    setName("ContentComponent");
+
     keyboard = KeyboardFactory::instance(this);
 
     keyboard->onKeyDownFn = [&](int keyCode) {
@@ -317,8 +319,16 @@ void ContentComponent::resized()
     versionLabel.setBounds(1152, 114, 100, 20);
 }
 
-void ContentComponent::globalFocusChanged(juce::Component *)
+void ContentComponent::globalFocusChanged(juce::Component *newFocus)
 {
+    if (newFocus != nullptr)
+    {
+        if (newFocus->getName() != "ContentComponent")
+        {
+            grabKeyboardFocus();
+        }
+    }
+
     if (keyboard == nullptr)
     {
         keyboard = KeyboardFactory::instance(this);
@@ -331,5 +341,6 @@ void ContentComponent::globalFocusChanged(juce::Component *)
             keyEventHandler.lock()->handle(mpc::controls::KeyEvent(keyCode, false));
         };
     }
+
     keyboard->allKeysUp();
 }
