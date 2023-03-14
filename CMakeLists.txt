@@ -56,12 +56,6 @@ FetchContent_Declare(mpc
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/mpc
 )
 
-FetchContent_Declare(ctoot
-  GIT_REPOSITORY https://github.com/izzyreal/ctoot.git
-  GIT_TAG        master
-  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/ctoot
-)
-
 FetchContent_Declare(moduru
   GIT_REPOSITORY https://github.com/izzyreal/moduru.git
   GIT_TAG        master
@@ -76,7 +70,7 @@ FetchContent_Declare(tl-expected
   BUILD_COMMAND ""
 )
 
-FetchContent_MakeAvailable(moduru mpc ctoot JUCE juce-raw-keyboard-input-module)
+FetchContent_MakeAvailable(moduru mpc JUCE juce-raw-keyboard-input-module)
 
 FetchContent_GetProperties(tl-expected)
 
@@ -87,12 +81,12 @@ endif()
 juce_add_plugin(vmpc2000xl
     
     # Relevant to iOS only
-    REQUIRES_FULL_SCREEN TRUE
-    BACKGROUND_AUDIO_ENABLED TRUE
-    APP_GROUPS_ENABLED TRUE
-    APP_GROUP_IDS group.nl.izmar.vmpc2000xl
-    FILE_SHARING_ENABLED TRUE
-    DOCUMENT_BROWSER_ENABLED TRUE
+    #REQUIRES_FULL_SCREEN TRUE
+    #BACKGROUND_AUDIO_ENABLED TRUE
+    #APP_GROUPS_ENABLED TRUE
+    #APP_GROUP_IDS group.nl.izmar.vmpc2000xl
+    #FILE_SHARING_ENABLED TRUE
+    #DOCUMENT_BROWSER_ENABLED TRUE
 
     # Relevant to macOS and iOS
     BUNDLE_ID nl.izmar.vmpc2000xl
@@ -108,6 +102,8 @@ juce_add_plugin(vmpc2000xl
     PLUGIN_CODE 2kXL
     MICROPHONE_PERMISSION_ENABLED TRUE
     MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
+    HARDENED_RUNTIME_ENABLED TRUE
+    HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input
     FORMATS LV2 VST3 AU AUv3 Standalone
     LV2URI "http://www.izmar.nl/VMPC2000XL"
     PRODUCT_NAME "VMPC2000XL")
@@ -115,7 +111,6 @@ juce_add_plugin(vmpc2000xl
 
 target_include_directories(vmpc2000xl PUBLIC
   ${mpc_SOURCE_DIR}/src/main
-  ${ctoot_SOURCE_DIR}/src/main
   ${moduru_SOURCE_DIR}/src/main
   ${tl-expected_SOURCE_DIR}/include
 )
@@ -171,7 +166,7 @@ target_link_libraries(vmpc2000xl PRIVATE
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags
     raw_keyboard_input
-    mpc ctoot moduru)
+    mpc moduru)
 
 _bundle_vmpc_juce_resources(vmpc2000xl)
 
@@ -198,14 +193,6 @@ if(GIT_FOUND)
                     RESULT_VARIABLE GIT_REMOTE_RESULT)
     if(NOT GIT_REMOTE_RESULT EQUAL "0")
         message(FATAL_ERROR "git remote set-url --push origin git@github.com:izzyreal/mpc failed with ${GIT_REMOTE_RESULT}. Please contact your local Git guru if you want to push changes.")
-    endif()
-  endif()
-  if (EXISTS ${CMAKE_SOURCE_DIR}/editables/ctoot)
-    execute_process(COMMAND ${GIT_EXECUTABLE} remote set-url --push origin git@github.com:izzyreal/ctoot
-                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/editables/ctoot
-                    RESULT_VARIABLE GIT_REMOTE_RESULT)
-    if(NOT GIT_REMOTE_RESULT EQUAL "0")
-        message(FATAL_ERROR "git remote set-url --push origin git@github.com:izzyreal/ctoot failed with ${GIT_REMOTE_RESULT}. Please contact your local Git guru if you want to push changes.")
     endif()
   endif()
 endif()

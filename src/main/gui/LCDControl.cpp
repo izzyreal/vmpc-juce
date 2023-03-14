@@ -139,7 +139,7 @@ void LCDControl::mouseDoubleClick (const juce::MouseEvent&)
         auxWindow->getConstrainer()->setFixedAspectRatio((496.f + margin) / (120.f + margin));
         auxWindow->setBounds(0, 0, 496 + margin, 120 + margin);
         auxWindow->setAlwaysOnTop(true);
-        auxWindow->setWantsKeyboardFocus(false);
+        auxWindow->setWantsKeyboardFocus(true);
 
         auto contentComponent = dynamic_cast<ContentComponent*>(getParentComponent());
         contentComponent->keyboard->setAuxParent(auxWindow);
@@ -147,6 +147,11 @@ void LCDControl::mouseDoubleClick (const juce::MouseEvent&)
         class AuxLCD : public LCDControl {
         public: AuxLCD(mpc::Mpc& m, LCDControl* p, Keyboard* kb) : LCDControl(m), parent(p), keyboard(kb) {}
         private: LCDControl* parent; Keyboard* keyboard;
+            
+            bool keyPressed(const juce::KeyPress&) override {
+                return true;
+            }
+            
             void resized() override {
                 setBounds(margin / 2, margin / 2, getParentWidth() - margin, getParentHeight() - margin);
             }
