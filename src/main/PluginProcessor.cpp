@@ -43,7 +43,7 @@ using namespace mpc::file::sndwriter;
 using namespace mpc::file::sndreader;
 using namespace mpc::disk;
 
-using namespace ctoot::midi::core;
+using namespace mpc::engine::midi;
 
 using namespace moduru::lang;
 using namespace moduru::file;

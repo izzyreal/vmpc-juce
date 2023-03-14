@@ -6,7 +6,7 @@
 
 #include "gui/VmpcLookAndFeel.h"
 
-namespace ctoot::midi::core { class ShortMessage; }
+namespace mpc::engine::midi { class ShortMessage; }
 
 class VmpcAudioProcessor  : public juce::AudioProcessor
 {
@@ -59,7 +59,7 @@ private:
   bool wasPlaying = false;
 
   VmpcLookAndFeel* lookAndFeel;
-  std::vector<std::shared_ptr<ctoot::midi::core::ShortMessage>> midiOutputBuffer = std::vector<std::shared_ptr<ctoot::midi::core::ShortMessage>>(100);
+  std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>> midiOutputBuffer = std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>>(100);
 
 public:
   bool shouldShowDisclaimer = true;
