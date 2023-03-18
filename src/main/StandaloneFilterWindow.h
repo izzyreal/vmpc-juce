@@ -224,10 +224,10 @@ public:
         }
 
         if (auto* bus = processor->getBus (true, 0))
-            maxNumInputs = jmax (0, bus->getDefaultLayout().size());
+            maxNumInputs = jmax (maxNumInputs, bus->getDefaultLayout().size());
 
         if (auto* bus = processor->getBus (false, 0))
-            maxNumOutputs = jmax (0, bus->getDefaultLayout().size());
+            maxNumOutputs = jmax (maxNumOutputs, bus->getDefaultLayout().size());
 
         auto content = std::make_unique<SettingsComponent> (*this, deviceManager, maxNumInputs, maxNumOutputs);
         content->setSize (500, 550);

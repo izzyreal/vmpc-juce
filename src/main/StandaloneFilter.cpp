@@ -14,13 +14,15 @@ StandaloneFilterApp::StandaloneFilterApp()
 
 StandaloneFilterWindow* StandaloneFilterApp::createWindow()
 {
+    StandalonePluginHolder::PluginInOuts channels[] = {{2, 10}};
+
     return new StandaloneFilterWindow(getApplicationName(),
         Helpers::getBackgroundColor(),
         appProperties.getUserSettings(),
         false,
         {},
         nullptr,
-        Helpers::getChannelConfigurations(),
+        juce::Array<StandalonePluginHolder::PluginInOuts>(channels, juce::numElementsInArray(channels)),
         Helpers::shouldAutoOpenMidiDevices());
 }
 
