@@ -1,182 +1,163 @@
 #include "LCDControl.h"
 
+#include "AuxLCD.h"
+
 #include <lcdgui/Layer.hpp>
 #include <lcdgui/screens/OthersScreen.hpp>
 #include "Constants.h"
 
 #include "ContentComponent.h"
-#include "raw_keyboard_input/raw_keyboard_input.h"
 
 #include <gui/BasicStructs.hpp>
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 
-LCDControl::LCDControl(mpc::Mpc& _mpc)
-	: mpc (_mpc), ls (_mpc.getLayeredScreen())
+LCDControl::LCDControl(mpc::Mpc &_mpc, Keyboard* keyboard)
+        : mpc(_mpc), ls(_mpc.getLayeredScreen())
 {
-	lcd = juce::Image(juce::Image::RGB, 496, 120, true);
-	auto othersScreen = mpc.screens->get<OthersScreen>("others");
-	othersScreen->addObserver(this);
+    lcd = juce::Image(juce::Image::RGB, 496, 120, true);
+    auto othersScreen = mpc.screens->get<OthersScreen>("others");
+    othersScreen->addObserver(this);
 }
 
-void LCDControl::update(moduru::observer::Observable*, nonstd::any msg)
+void LCDControl::update(moduru::observer::Observable *, nonstd::any msg)
 {
-	auto message = nonstd::any_cast<std::string>(msg);
+    auto message = nonstd::any_cast<std::string>(msg);
 
-	if (message == "contrast")
-	{
-		ls->getFocusedLayer()->SetDirty(); // Could be done less invasively by just redrawing the current pixels of the LCD screens, but with updated colors
-		repaint();
-	}
+    if (message == "contrast")
+    {
+        ls->getFocusedLayer()->SetDirty(); // Could be done less invasively by just redrawing the current pixels of the LCD screens, but with updated colors
+        repaint();
+    }
 }
 
 void LCDControl::drawPixelsToImg()
 {
-	auto pixels = ls->getPixels();
-	
-	auto othersScreen = mpc.screens->get<OthersScreen>("others");
-	auto contrast = othersScreen->getContrast();
+    auto pixels = ls->getPixels();
 
-  juce::Colour c;
-	
-	auto halfOn = Constants::LCD_HALF_ON.darker(static_cast<float>(contrast * 0.02));
-  auto on = Constants::LCD_ON.darker(static_cast<float>(contrast * 0.02));
-	auto off = Constants::LCD_OFF.brighter(static_cast<float>(contrast * 0.01428));
+    auto othersScreen = mpc.screens->get<OthersScreen>("others");
+    auto contrast = othersScreen->getContrast();
 
-    if (isAux) dirtyRect = juce::Rectangle<int>(248, 60);
+    juce::Colour c;
 
-	const auto rectX = dirtyRect.getX();
-	const auto rectY = dirtyRect.getY();
-	const auto rectRight = dirtyRect.getRight();
-	const auto rectBottom = dirtyRect.getBottom();
+    auto halfOn = Constants::LCD_HALF_ON.darker(static_cast<float>(contrast * 0.02));
+    auto on = Constants::LCD_ON.darker(static_cast<float>(contrast * 0.02));
+    auto off = Constants::LCD_OFF.brighter(static_cast<float>(contrast * 0.01428));
 
-	for (int x = rectX; x < rectRight; x++)
-	{
-		for (int y = rectY; y < rectBottom; y++)
-		{
-			const auto x_x2 = x * 2;
-			const auto y_x2 = y * 2;
-			
-			if ((*pixels)[x][y])
-			{
-				c = halfOn;
-				lcd.setPixelAt(x_x2, y_x2, on);
-			}
-			else {
-				c = off;
-				lcd.setPixelAt(x_x2, y_x2, c);
-			}
-					
-			lcd.setPixelAt(x_x2 + 1, y_x2, c);
-			lcd.setPixelAt(x_x2 + 1, y_x2 + 1, c);
-			lcd.setPixelAt(x_x2, y_x2 + 1, c);
-		}
-	}
-	dirtyRect = juce::Rectangle<int>();
+    const auto rectX = dirtyRect.getX();
+    const auto rectY = dirtyRect.getY();
+    const auto rectRight = dirtyRect.getRight();
+    const auto rectBottom = dirtyRect.getBottom();
+
+    for (int x = rectX; x < rectRight; x++)
+    {
+        for (int y = rectY; y < rectBottom; y++)
+        {
+            const auto x_x2 = x * 2;
+            const auto y_x2 = y * 2;
+
+            if ((*pixels)[x][y])
+            {
+                c = halfOn;
+                lcd.setPixelAt(x_x2, y_x2, on);
+            }
+            else
+            {
+                c = off;
+                lcd.setPixelAt(x_x2, y_x2, c);
+            }
+
+            lcd.setPixelAt(x_x2 + 1, y_x2, c);
+            lcd.setPixelAt(x_x2 + 1, y_x2 + 1, c);
+            lcd.setPixelAt(x_x2, y_x2 + 1, c);
+        }
+    }
+
+    dirtyRect = juce::Rectangle<int>();
 }
-
-bool LCDControl::auxNeedsToUpdate = false;
 
 void LCDControl::checkLsDirty()
 {
-    if (isAux && auxNeedsToUpdate)
+    if (ls->IsDirty())
     {
+        auto dirtyArea = ls->getDirtyArea();
+        dirtyRect = juce::Rectangle<int>(dirtyArea.L, dirtyArea.T, dirtyArea.W(), dirtyArea.H());
+        ls->Draw();
         drawPixelsToImg();
-        repaint();
-        auxNeedsToUpdate = false;
+        auto dirtyRect_x2 = juce::Rectangle<int>(dirtyArea.L * 2, dirtyArea.T * 2, dirtyArea.W() * 2, dirtyArea.H() * 2);
+        repaint(dirtyRect_x2);
+
+        if (auxLcd != nullptr)
+        {
+            auto auxBounds = auxLcd->getLocalBounds();
+
+            auto scale = auxBounds.getWidth() / (248.f);
+
+            auto auxRepaintBounds = juce::Rectangle<int>(dirtyArea.L * scale, dirtyArea.T * scale, dirtyArea.W() * scale, dirtyArea.H() * scale);
+
+            auxLcd->repaint(auxRepaintBounds.expanded(3));
+        }
     }
-	else if (!isAux && ls->IsDirty())
-	{
-		auto dirtyArea = ls->getDirtyArea();
-		dirtyRect = juce::Rectangle<int>(dirtyArea.L, dirtyArea.T, dirtyArea.W(), dirtyArea.H());
-		ls->Draw();
-		drawPixelsToImg();
-        repaint(juce::Rectangle<int>(dirtyArea.L * 2, dirtyArea.T * 2, dirtyArea.W() * 2, dirtyArea.H() * 2));
-        auxNeedsToUpdate = true;
-	}
 }
 
 void LCDControl::timerCallback()
 {
-	checkLsDirty();
+    checkLsDirty();
 }
 
-void LCDControl::paint(juce::Graphics& g)
+void LCDControl::paint(juce::Graphics &g)
 {
-    if (isAux)
-    {
-        g.drawImage(lcd, getLocalBounds().toFloat());
-    }
-	else
-    {
-        g.drawImageAt(lcd, 0, 0);
-    }
+    g.drawImageAt(lcd, 0, 0);
 }
 
-void LCDControl::mouseDoubleClick (const juce::MouseEvent&)
+void LCDControl::mouseDoubleClick(const juce::MouseEvent &)
 {
-    if (isAux)
-    {
-        return;
-    }
-
     if (auxWindow != nullptr)
     {
-        auto contentComponent = dynamic_cast<ContentComponent*>(getParentComponent());
+        auto contentComponent = dynamic_cast<ContentComponent *>(getParentComponent());
         contentComponent->keyboard->setAuxParent(nullptr);
         delete auxWindow;
         auxWindow = nullptr;
+        delete auxLcd;
+        auxLcd = nullptr;
     }
     else
     {
         auxWindow = new juce::ResizableWindow("foo", true);
         auxWindow->setOpaque(false);
-        auxWindow->setVisible (true);
-        const int margin = 20;
+        auxWindow->setVisible(true);
+        const int margin = 0;
         auxWindow->setResizable(true, true);
-        auxWindow->setResizeLimits(248 + margin, 60 + margin, (248*8) + margin, (60 * 8) + margin);
-        auxWindow->getConstrainer()->setFixedAspectRatio((496.f + margin) / (120.f + margin));
-        auxWindow->setBounds(0, 0, 496 + margin, 120 + margin);
+
+        const int minWidth = 248 + (margin * 2);
+        const int minHeight = 60 + (margin * 2);
+        const int maxWidth = (248 * 8) + (margin * 2);
+        const int maxHeight = (60 * 8) + (margin * 2);
+
+        auxWindow->setResizeLimits(minWidth, minHeight, maxWidth, maxHeight);
+        auxWindow->getConstrainer()->setFixedAspectRatio((float) minWidth / minHeight);
+        auxWindow->setBounds(0, 0, (248 * 3) + (margin * 2), (60 * 3) + (margin * 2));
         auxWindow->setAlwaysOnTop(true);
         auxWindow->setWantsKeyboardFocus(true);
 
-        auto contentComponent = dynamic_cast<ContentComponent*>(getParentComponent());
+        auto contentComponent = dynamic_cast<ContentComponent *>(getParentComponent());
         contentComponent->keyboard->setAuxParent(auxWindow);
 
-        class AuxLCD : public LCDControl {
-        public: AuxLCD(mpc::Mpc& m, LCDControl* p, Keyboard* kb) : LCDControl(m), parent(p), keyboard(kb) {}
-        private: LCDControl* parent; Keyboard* keyboard;
-            
-            bool keyPressed(const juce::KeyPress&) override {
-                return true;
-            }
-            
-            void resized() override {
-                setBounds(margin / 2, margin / 2, getParentWidth() - margin, getParentHeight() - margin);
-            }
-            void mouseDoubleClick(const juce::MouseEvent&) override {
-                keyboard->setAuxParent(nullptr);
-                parent->resetAuxWindow();
-            }
-        };
+        auxLcd = new AuxLCD(this, contentComponent->keyboard);
 
-        auto auxLcd = new AuxLCD(mpc, this, contentComponent->keyboard);
-        auxLcd->isAux = true;
         auxWindow->setContentOwned(auxLcd, false);
         auxWindow->setBackgroundColour(Constants::LCD_OFF);
-        auxLcd->drawPixelsToImg();
-        auxLcd->startTimer(25);
     }
 }
 
 LCDControl::~LCDControl()
 {
-  auto othersScreen = mpc.screens->get<OthersScreen>("others");
-  othersScreen->deleteObserver(this);
+    auto othersScreen = mpc.screens->get<OthersScreen>("others");
+    othersScreen->deleteObserver(this);
 
-  if (auxWindow != nullptr)
-  {
-      delete auxWindow;
-  }
+    if (auxWindow != nullptr)
+    {
+        delete auxWindow;
+    }
 }

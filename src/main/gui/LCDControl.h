@@ -6,6 +6,9 @@
 #include <vector>
 #include <memory>
 
+class Keyboard;
+class AuxLCD;
+
 namespace mpc { class Mpc; }
 
 namespace mpc::lcdgui {
@@ -19,19 +22,16 @@ class LCDControl
 {
 
 private:
-    bool isAux = false;
     juce::ResizableWindow* auxWindow = nullptr;
+    AuxLCD* auxLcd = nullptr;
     mpc::Mpc& mpc;
 	std::shared_ptr<mpc::lcdgui::LayeredScreen> ls;
 	juce::Image lcd;
     juce::Rectangle<int> dirtyRect;
-    static bool auxNeedsToUpdate;
 
-protected:
-    void resetAuxWindow() { if (auxWindow != nullptr) { auxWindow->removeFromDesktop(); delete auxWindow; auxWindow = nullptr;}}
-    
 public:
-	void checkLsDirty();
+    void resetAuxWindow() { if (auxWindow != nullptr) { auxWindow->removeFromDesktop(); delete auxWindow; auxWindow = nullptr;}}
+    void checkLsDirty();
 	void drawPixelsToImg();
 	void paint(juce::Graphics& g) override;
 	void timerCallback() override;
@@ -44,8 +44,11 @@ public:
   }
 
 public:
-	LCDControl(mpc::Mpc& mpc);
-  ~LCDControl() override;
-	void update(moduru::observer::Observable* o, nonstd::any msg) override;
+	LCDControl(mpc::Mpc& mpc, Keyboard*);
+    ~LCDControl() override;
 
+    void update(moduru::observer::Observable* o, nonstd::any msg) override;
+
+private:
+    friend class AuxLCD;
 };
