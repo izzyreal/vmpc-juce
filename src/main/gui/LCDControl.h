@@ -8,6 +8,7 @@
 
 class Keyboard;
 class AuxLCD;
+class AuxLCDWindow;
 
 namespace mpc { class Mpc; }
 
@@ -22,14 +23,14 @@ class LCDControl
 {
 
 private:
-    juce::TopLevelWindow* auxWindow = nullptr;
+    AuxLCDWindow* auxWindow = nullptr;
     mpc::Mpc& mpc;
 	std::shared_ptr<mpc::lcdgui::LayeredScreen> ls;
 	juce::Image lcd;
     juce::Rectangle<int> dirtyRect;
 
 public:
-    void resetAuxWindow() { if (auxWindow != nullptr) { auxWindow->removeFromDesktop(); delete auxWindow; auxWindow = nullptr;}}
+    void resetAuxWindow();
     void checkLsDirty();
 	void drawPixelsToImg();
 	void paint(juce::Graphics& g) override;

@@ -78,6 +78,15 @@ void LCDControl::drawPixelsToImg()
     dirtyRect = juce::Rectangle<int>();
 }
 
+void LCDControl::resetAuxWindow()
+{
+    if (auxWindow != nullptr)
+    {
+        auxWindow->removeFromDesktop();
+        delete auxWindow; auxWindow = nullptr;
+    }
+}
+
 void LCDControl::checkLsDirty()
 {
     if (ls->IsDirty())
@@ -91,13 +100,13 @@ void LCDControl::checkLsDirty()
 
         if (auxWindow != nullptr)
         {
-            auto auxBounds = auxWindow->getLocalBounds();
+            auto auxBounds = auxWindow->auxLcd->getLocalBounds();
 
             auto scale = auxBounds.getWidth() / (248.f);
 
             auto auxRepaintBounds = juce::Rectangle<int>(dirtyArea.L * scale, dirtyArea.T * scale, dirtyArea.W() * scale, dirtyArea.H() * scale);
 
-            auxWindow->repaint(auxRepaintBounds.expanded(3));
+            auxWindow->auxLcd->repaint(auxRepaintBounds.expanded(3));
         }
     }
 }

@@ -27,6 +27,7 @@ public:
     void mouseDoubleClick(const juce::MouseEvent &) override;
 
 private:
+    static const char MARGIN = 6;
     AuxLCD* auxLcd = nullptr;
     Keyboard *keyboard;
     LCDControl *lcdControl;
@@ -46,4 +47,6 @@ private:
                                            int newMinimumHeight,
                                            int newMaximumWidth,
                                            int newMaximumHeight) noexcept;
+
+    friend class LCDControl;
 };

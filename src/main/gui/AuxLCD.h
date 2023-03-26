@@ -12,7 +12,5 @@ public:
 private:
     LCDControl *lcdControl;
 
-    void resized() override;
-
     void paint(juce::Graphics& g) override;
 };
