@@ -323,7 +323,7 @@ void ContentComponent::globalFocusChanged(juce::Component *newFocus)
 {
     if (newFocus != nullptr)
     {
-        if (newFocus->getName() != "ContentComponent")
+        if (newFocus->getName() != "ContentComponent" && newFocus->getName() != "auxlcdwindow")
         {
             grabKeyboardFocus();
         }

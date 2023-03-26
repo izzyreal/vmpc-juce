@@ -1,14 +1,15 @@
 #include "LCDControl.h"
 
-#include "AuxLCD.h"
-
 #include <lcdgui/Layer.hpp>
 #include <lcdgui/screens/OthersScreen.hpp>
 #include "Constants.h"
 
 #include "ContentComponent.h"
+#include "AuxLCDWindow.h"
 
-#include <gui/BasicStructs.hpp>
+#include "gui/BasicStructs.hpp"
+
+#include <raw_keyboard_input/src/Keyboard.h>
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
@@ -88,15 +89,15 @@ void LCDControl::checkLsDirty()
         auto dirtyRect_x2 = juce::Rectangle<int>(dirtyArea.L * 2, dirtyArea.T * 2, dirtyArea.W() * 2, dirtyArea.H() * 2);
         repaint(dirtyRect_x2);
 
-        if (auxLcd != nullptr)
+        if (auxWindow != nullptr)
         {
-            auto auxBounds = auxLcd->getLocalBounds();
+            auto auxBounds = auxWindow->getLocalBounds();
 
             auto scale = auxBounds.getWidth() / (248.f);
 
             auto auxRepaintBounds = juce::Rectangle<int>(dirtyArea.L * scale, dirtyArea.T * scale, dirtyArea.W() * scale, dirtyArea.H() * scale);
 
-            auxLcd->repaint(auxRepaintBounds.expanded(3));
+            auxWindow->repaint(auxRepaintBounds.expanded(3));
         }
     }
 }
@@ -113,41 +114,18 @@ void LCDControl::paint(juce::Graphics &g)
 
 void LCDControl::mouseDoubleClick(const juce::MouseEvent &)
 {
-    if (auxWindow != nullptr)
+    if (auxWindow == nullptr)
+    {
+        auto contentComponent = dynamic_cast<ContentComponent *>(getParentComponent());
+        auxWindow = new AuxLCDWindow(this, contentComponent->keyboard);
+        contentComponent->keyboard->setAuxParent(auxWindow);
+    }
+    else
     {
         auto contentComponent = dynamic_cast<ContentComponent *>(getParentComponent());
         contentComponent->keyboard->setAuxParent(nullptr);
         delete auxWindow;
         auxWindow = nullptr;
-        delete auxLcd;
-        auxLcd = nullptr;
-    }
-    else
-    {
-        auxWindow = new juce::ResizableWindow("foo", true);
-        auxWindow->setOpaque(false);
-        auxWindow->setVisible(true);
-        const int margin = 0;
-        auxWindow->setResizable(true, true);
-
-        const int minWidth = 248 + (margin * 2);
-        const int minHeight = 60 + (margin * 2);
-        const int maxWidth = (248 * 8) + (margin * 2);
-        const int maxHeight = (60 * 8) + (margin * 2);
-
-        auxWindow->setResizeLimits(minWidth, minHeight, maxWidth, maxHeight);
-        auxWindow->getConstrainer()->setFixedAspectRatio((float) minWidth / minHeight);
-        auxWindow->setBounds(0, 0, (248 * 3) + (margin * 2), (60 * 3) + (margin * 2));
-        auxWindow->setAlwaysOnTop(true);
-        auxWindow->setWantsKeyboardFocus(true);
-
-        auto contentComponent = dynamic_cast<ContentComponent *>(getParentComponent());
-        contentComponent->keyboard->setAuxParent(auxWindow);
-
-        auxLcd = new AuxLCD(this, contentComponent->keyboard);
-
-        auxWindow->setContentOwned(auxLcd, false);
-        auxWindow->setBackgroundColour(Constants::LCD_OFF);
     }
 }
 

@@ -1,23 +1,18 @@
 #pragma once
 
-#include "raw_keyboard_input/src/Keyboard.h"
+#include <juce_gui_basics/juce_gui_basics.h>
 
 class LCDControl;
 
 class AuxLCD : public juce::Component
 {
 public:
-    AuxLCD(LCDControl *lcdControlToUse, Keyboard *kb);
+    explicit AuxLCD(LCDControl *lcdControlToUse);
 
 private:
     LCDControl *lcdControl;
-    Keyboard *keyboard;
-
-    bool keyPressed(const juce::KeyPress &) override;
 
     void resized() override;
-
-    void mouseDoubleClick(const juce::MouseEvent &) override;
 
     void paint(juce::Graphics& g) override;
 };

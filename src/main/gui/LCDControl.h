@@ -22,8 +22,7 @@ class LCDControl
 {
 
 private:
-    juce::ResizableWindow* auxWindow = nullptr;
-    AuxLCD* auxLcd = nullptr;
+    juce::TopLevelWindow* auxWindow = nullptr;
     mpc::Mpc& mpc;
 	std::shared_ptr<mpc::lcdgui::LayeredScreen> ls;
 	juce::Image lcd;

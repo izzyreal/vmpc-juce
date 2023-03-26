@@ -2,26 +2,17 @@
 
 #include "LCDControl.h"
 
-AuxLCD::AuxLCD(LCDControl* lcdControlToUse, Keyboard *kb)
-        : lcdControl(lcdControlToUse), keyboard(kb)
+AuxLCD::AuxLCD(LCDControl* lcdControlToUse)
+        : Component("auxlcd"), lcdControl(lcdControlToUse)
 {
-}
-
-bool AuxLCD::keyPressed(const juce::KeyPress &)
-{
-    return true;
+    setWantsKeyboardFocus(false);
+    setInterceptsMouseClicks(false, false);
 }
 
 void AuxLCD::resized()
 {
     const int margin = 0;
     setBounds(margin / 2, margin / 2, getParentWidth() - margin, getParentHeight() - margin);
-}
-
-void AuxLCD::mouseDoubleClick(const juce::MouseEvent &)
-{
-    keyboard->setAuxParent(nullptr);
-    lcdControl->resetAuxWindow();
 }
 
 void AuxLCD::paint(juce::Graphics& g)
