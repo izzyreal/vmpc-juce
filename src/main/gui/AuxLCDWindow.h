@@ -2,6 +2,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "AuxLCD.h"
+#include "VmpcLookAndFeel.h"
 
 class Keyboard;
 class LCDControl;
@@ -31,13 +32,13 @@ private:
     AuxLCD* auxLcd = nullptr;
     Keyboard *keyboard;
     LCDControl *lcdControl;
+    VmpcLookAndFeel lookAndFeel;
 
     bool dragStarted = false;
     juce::ComponentDragger dragger;
     juce::ComponentBoundsConstrainer constrainer;
 
     std::unique_ptr<juce::ResizableCornerComponent> resizableCorner;
-    std::unique_ptr<juce::ResizableBorderComponent> resizableBorder;
 
     void setBoundsConstrained (const juce::Rectangle<int>& newBounds);
     void setResizable (const bool shouldBeResizable,

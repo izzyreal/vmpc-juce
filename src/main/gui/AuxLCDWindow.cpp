@@ -8,6 +8,7 @@
 AuxLCDWindow::AuxLCDWindow(LCDControl *lcdControlToUse, Keyboard *keyboardToUse)
 : TopLevelWindow("auxlcdwindow", /*addToDesktop*/true), keyboard(keyboardToUse), lcdControl(lcdControlToUse)
 {
+    setLookAndFeel(&lookAndFeel);
     setVisible(true);
     const int minWidth = 248 + MARGIN;
     const int minHeight = 60 + MARGIN;

@@ -1,46 +1,23 @@
 #include "VmpcLookAndFeel.h"
+#include "Constants.h"
 
 using namespace juce;
 
-AlertWindow* VmpcLookAndFeel::createAlertWindow (const String& title, const String& message,
-                                      const String& button1,
-                                      const String& button2,
-                                      const String& button3,
-                                      MessageBoxIconType iconType,
-                                      int numButtons,
-                                      Component* associatedComponent)
+void VmpcLookAndFeel::drawCornerResizer (Graphics& g, int, int, bool, bool)
 {
-    AlertWindow* aw = new AlertWindow (title, message, MessageBoxIconType::NoIcon, associatedComponent);
-
-    if (numButtons == 1)
+    const int blockSize = 3;
+    const int rows = 7;
+    for (int i = 0; i < rows; i++)
     {
-        aw->addButton (button1, 0,
-                       KeyPress (KeyPress::escapeKey),
-                       KeyPress (KeyPress::returnKey));
-    }
-    else
-    {
-        const KeyPress button1ShortCut ((int) CharacterFunctions::toLowerCase (button1[0]), 0, 0);
-        KeyPress button2ShortCut ((int) CharacterFunctions::toLowerCase (button2[0]), 0, 0);
-        if (button1ShortCut == button2ShortCut)
-            button2ShortCut = KeyPress();
+        const int y = i * blockSize;
 
-        if (numButtons == 2)
+        for (int j = 0; j < i; j++)
         {
-            aw->addButton (button1, 1, KeyPress (KeyPress::returnKey), button1ShortCut);
-            aw->addButton (button2, 0, KeyPress (KeyPress::escapeKey), button2ShortCut);
-        }
-        else if (numButtons == 3)
-        {
-            aw->addButton (button1, 1, button1ShortCut);
-            aw->addButton (button2, 2, button2ShortCut);
-            aw->addButton (button3, 0, KeyPress (KeyPress::escapeKey));
+            const int x = ((rows - j) - 2) * blockSize;
+            g.setColour(Constants::LCD_HALF_ON);
+            g.fillRect(juce::Rectangle<int>(x, y, blockSize, blockSize));
+            g.setColour(Constants::LCD_ON);
+            g.fillRect(juce::Rectangle<int>(x, y, blockSize - 1, blockSize - 1));
         }
     }
-
-    rememberButton.setBounds(aw->getWidth() / 6.f, aw->getHeight(), aw->getWidth(), 40);
-    rememberButton.setButtonText("Remember my preference. Change it later\nin Auto-save settings (Shift + 0, F3)");
-    aw->addAndMakeVisible(&rememberButton);
-    aw->setSize(aw->getWidth(), aw->getHeight() * 1.3f);
-    return aw;
 }

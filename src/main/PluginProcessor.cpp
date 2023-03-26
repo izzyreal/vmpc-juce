@@ -2,7 +2,6 @@
 #include "PluginEditor.h"
 #include "version.h"
 
-#include "gui/VmpcLookAndFeel.h"
 #include "lcdgui/screens/VmpcSettingsScreen.hpp"
 #include "AutoSave.hpp"
 
@@ -62,9 +61,6 @@ VmpcAudioProcessor::VmpcAudioProcessor()
                   .withOutput("MIX OUT 7/8", juce::AudioChannelSet::stereo(), false)
                   )
 {
-    lookAndFeel = new VmpcLookAndFeel();
-    juce::LookAndFeel::setDefaultLookAndFeel(lookAndFeel);
-
     time_t currentTime = time(nullptr);
   struct tm* currentLocalTime = localtime(&currentTime);
   auto timeString = std::string(asctime(currentLocalTime));
@@ -91,8 +87,6 @@ VmpcAudioProcessor::~VmpcAudioProcessor()
     {
         mpc::AutoSave::storeAutoSavedState(mpc);
     }
-
-    delete lookAndFeel;
 }
 
 const juce::String VmpcAudioProcessor::getName() const

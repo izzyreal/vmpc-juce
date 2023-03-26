@@ -4,8 +4,6 @@
 
 #include <Mpc.hpp>
 
-#include "gui/VmpcLookAndFeel.h"
-
 namespace mpc::engine::midi { class ShortMessage; }
 
 class VmpcAudioProcessor  : public juce::AudioProcessor
@@ -13,7 +11,7 @@ class VmpcAudioProcessor  : public juce::AudioProcessor
 public:
   //==============================================================================
   VmpcAudioProcessor();
-  ~VmpcAudioProcessor();
+  ~VmpcAudioProcessor() override;
 
   //==============================================================================
   void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -58,7 +56,6 @@ private:
   double m_Tempo = 0;
   bool wasPlaying = false;
 
-  VmpcLookAndFeel* lookAndFeel;
   std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>> midiOutputBuffer = std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>>(100);
 
 public:
