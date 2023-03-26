@@ -92,7 +92,7 @@ void LCDControl::checkLsDirty()
 		dirtyRect = juce::Rectangle<int>(dirtyArea.L, dirtyArea.T, dirtyArea.W(), dirtyArea.H());
 		ls->Draw();
 		drawPixelsToImg();
-		repaint();
+        repaint(juce::Rectangle<int>(dirtyArea.L * 2, dirtyArea.T * 2, dirtyArea.W() * 2, dirtyArea.H() * 2));
         auxNeedsToUpdate = true;
 	}
 }

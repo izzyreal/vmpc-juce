@@ -146,6 +146,7 @@ target_sources(vmpc2000xl PRIVATE ${_source_list})
 
 target_compile_definitions(vmpc2000xl
     PUBLIC
+    JUCE_ENABLE_REPAINT_DEBUGGING=1
     JUCE_JACK=1
     JUCE_ASIO=1
     JUCE_WEB_BROWSER=0
