@@ -102,5 +102,6 @@ void AuxLCDWindow::mouseDoubleClick(const juce::MouseEvent &)
 
 AuxLCDWindow::~AuxLCDWindow()
 {
+    setLookAndFeel(nullptr);
     delete auxLcd;
 }
