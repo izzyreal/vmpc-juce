@@ -28,7 +28,7 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
     if (primaryDisplay != nullptr) setBounds(primaryDisplay->userArea);
   } else {
     setSize(p.lastUIWidth, p.lastUIHeight);
-    setResizable(true, true);
+    setResizable(true, false);
     setResizeLimits(1298 / 2, 994 / 2, 1298, 994);
     getConstrainer()->setFixedAspectRatio(1.305835010060362);
   }
