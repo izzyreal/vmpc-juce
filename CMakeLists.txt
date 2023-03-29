@@ -81,15 +81,21 @@ endif()
 juce_add_plugin(vmpc2000xl
     
     # Relevant to iOS only
-    #REQUIRES_FULL_SCREEN TRUE
-    #BACKGROUND_AUDIO_ENABLED TRUE
-    #APP_GROUPS_ENABLED TRUE
-    #APP_GROUP_IDS group.nl.izmar.vmpc2000xl
-    #FILE_SHARING_ENABLED TRUE
-    #DOCUMENT_BROWSER_ENABLED TRUE
+    REQUIRES_FULL_SCREEN TRUE
+    BACKGROUND_AUDIO_ENABLED TRUE
+    $<$<BOOL:${IOS}>:APP_GROUPS_ENABLED TRUE>
+    $<$<BOOL:${IOS}>:APP_GROUP_IDS group.nl.izmar.vmpc2000xl>
+    $<$<BOOL:${IOS}>:FILE_SHARING_ENABLED TRUE>
+    $<$<BOOL:${IOS}>:DOCUMENT_BROWSER_ENABLED TRUE>
 
     # Relevant to macOS and iOS
     BUNDLE_ID nl.izmar.vmpc2000xl
+
+    # Format-specific options
+    AU_MAIN_TYPE kAudioUnitType_MusicEffect
+    VST3_CATEGORIES Instrument Drum OnlyRT Sampler Stereo
+    VST_NUM_MIDI_INS 1
+    VST_NUM_MIDI_OUTS 1
 
     # Relevant to all builds
     ICON_BIG "src/main/resources/icon.png"
