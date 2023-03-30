@@ -302,14 +302,14 @@ void ContentComponent::resized()
     {
         resetWindowSizeButton.setBounds(1298 - (145 + 20), 13, 45, 45);
         resetWindowSizeButton.setTransform(scaleTransform);
-
-        if (juce::JUCEApplicationBase::isStandaloneApp())
-        {
-            gearButton.setBounds(1298 - (190 + 30), 13, 45, 45);
-            gearButton.setTransform(scaleTransform);
-        }
     }
-  
+
+    if (juce::JUCEApplicationBase::isStandaloneApp())
+    {
+        gearButton.setBounds(1298 - (190 + 30), 13, 45, 45);
+        gearButton.setTransform(scaleTransform);
+    }
+
 #if ENABLE_IMPORT
     importButton.setBounds(1298 - (145 + 20), 10, 50, 50);
     importButton.setTransform(scaleTransform);
@@ -323,7 +323,18 @@ void ContentComponent::globalFocusChanged(juce::Component *newFocus)
 {
     if (newFocus != nullptr)
     {
-        if (newFocus->getName() != "ContentComponent" && newFocus->getName() != "auxlcdwindow")
+#if JUCE_IOS
+        // For some reason on iOS the ComboBoxes in the audio/midi settings panel grab focus
+        // and on other systems they don't.
+        if (newFocus->getName().isEmpty() && dynamic_cast<juce::ComboBox*>(newFocus))
+        {
+            return;
+        }
+#endif
+        
+        if (newFocus->getName() != "ContentComponent" &&
+            newFocus->getName() != "auxlcdwindow" &&
+            newFocus->getName() != "AudioMidiSettingsWindow")
         {
             grabKeyboardFocus();
         }

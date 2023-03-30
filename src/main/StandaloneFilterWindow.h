@@ -5,6 +5,7 @@
 #include "juce_audio_utils/juce_audio_utils.h"
 
 #include "PluginProcessor.h"
+#include "AudioMidiSettingsComponent.h"
 
 namespace juce
 {
@@ -128,67 +129,6 @@ public:
         return f;
     }
 
-    void setLastFile (const FileChooser& fc)
-    {
-        if (settings != nullptr)
-            settings->setValue ("lastStateFile", fc.getResult().getFullPathName());
-    }
-
-    /** Pops up a dialog letting the user save the processor's state to a file. */
-    void askUserToSaveState (const String& fileSuffix = String())
-    {
-        stateFileChooser = std::make_unique<FileChooser> (TRANS("Save current state"),
-                                                          getLastFile(),
-                                                          getFilePatterns (fileSuffix));
-        auto flags = FileBrowserComponent::saveMode
-                   | FileBrowserComponent::canSelectFiles
-                   | FileBrowserComponent::warnAboutOverwriting;
-
-        stateFileChooser->launchAsync (flags, [this] (const FileChooser& fc)
-        {
-            if (fc.getResult() == File{})
-                return;
-
-            setLastFile (fc);
-
-            MemoryBlock data;
-            processor->getStateInformation (data);
-
-            if (! fc.getResult().replaceWithData (data.getData(), data.getSize()))
-                AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
-                                                  TRANS("Error whilst saving"),
-                                                  TRANS("Couldn't write to the specified file!"));
-        });
-    }
-
-    /** Pops up a dialog letting the user re-load the processor's state from a file. */
-    void askUserToLoadState (const String& fileSuffix = String())
-    {
-        stateFileChooser = std::make_unique<FileChooser> (TRANS("Load a saved state"),
-                                                          getLastFile(),
-                                                          getFilePatterns (fileSuffix));
-        auto flags = FileBrowserComponent::openMode
-                   | FileBrowserComponent::canSelectFiles;
-
-        stateFileChooser->launchAsync (flags, [this] (const FileChooser& fc)
-        {
-            if (fc.getResult() == File{})
-                return;
-
-            setLastFile (fc);
-
-            MemoryBlock data;
-
-            if (fc.getResult().loadFileAsData (data))
-                processor->setStateInformation (data.getData(), (int) data.getSize());
-            else
-                AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
-                                                  TRANS("Error whilst loading"),
-                                                  TRANS("Couldn't read from the specified file!"));
-        });
-    }
-
-    //==============================================================================
     void startPlaying()
     {
         player.setProcessor (processor.get());
@@ -207,7 +147,6 @@ public:
         player.setProcessor (nullptr);
     }
 
-    //==============================================================================
     /** Shows an audio properties dialog box modally. */
     void showAudioSettingsDialog()
     {
@@ -229,19 +168,24 @@ public:
         if (auto* bus = processor->getBus (false, 0))
             maxNumOutputs = jmax (maxNumOutputs, bus->getDefaultLayout().size());
 
-        auto content = std::make_unique<SettingsComponent> (*this, deviceManager, maxNumInputs, maxNumOutputs);
+        auto content = std::make_unique<AudioMidiSettingsComponent> (deviceManager, maxNumInputs, maxNumOutputs);
         content->setSize (500, 550);
         content->setToRecommendedSize();
-
+    
         o.content.setOwned (content.release());
 
         o.dialogTitle                   = TRANS("Audio/MIDI Settings");
         o.dialogBackgroundColour        = o.content->getLookAndFeel().findColour (ResizableWindow::backgroundColourId);
         o.escapeKeyTriggersCloseButton  = true;
-        o.useNativeTitleBar             = true;
-        o.resizable                     = false;
+        o.resizable                     = true;
+        o.useBottomRightCornerResizer   = true;
 
-        o.launchAsync();
+#if JUCE_IOS
+        o.useNativeTitleBar             = false;
+#endif
+
+        auto window = o.launchAsync();
+        window->setName("AudioMidiSettingsWindow");
     }
 
     void saveAudioDeviceState()
@@ -439,62 +383,6 @@ private:
     };
 
     CallbackMaxSizeEnforcer maxSizeEnforcer { *this };
-
-    //==============================================================================
-    class SettingsComponent : public Component
-    {
-    public:
-        SettingsComponent (StandalonePluginHolder& pluginHolder,
-                           AudioDeviceManager& deviceManagerToUse,
-                           int maxAudioInputChannels,
-                           int maxAudioOutputChannels)
-            : owner (pluginHolder),
-              deviceSelector (deviceManagerToUse,
-                              0, maxAudioInputChannels,
-                              0, maxAudioOutputChannels,
-                              true,
-                              (pluginHolder.processor.get() != nullptr && pluginHolder.processor->producesMidi()),
-                              true, false)
-        {
-            setOpaque (true);
-
-            addAndMakeVisible (deviceSelector);
-        }
-
-        void paint (Graphics& g) override
-        {
-            g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
-        }
-
-        void resized() override
-        {
-            const ScopedValueSetter<bool> scope (isResizing, true);
-
-            auto r = getLocalBounds();
-
-            deviceSelector.setBounds (r);
-        }
-
-        void childBoundsChanged (Component* childComp) override
-        {
-            if (! isResizing && childComp == &deviceSelector)
-                setToRecommendedSize();
-        }
-
-        void setToRecommendedSize()
-        {
-            setSize (getWidth(), deviceSelector.getHeight());
-        }
-
-    private:
-        //==============================================================================
-        StandalonePluginHolder& owner;
-        AudioDeviceSelectorComponent deviceSelector;
-        bool isResizing = false;
-
-        //==============================================================================
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SettingsComponent)
-    };
 
     //==============================================================================
     void audioDeviceIOCallbackWithContext (const float* const* inputChannelData,
