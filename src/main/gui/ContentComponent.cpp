@@ -249,12 +249,16 @@ ContentComponent::~ContentComponent()
 
 bool ContentComponent::keyPressed(const juce::KeyPress &k)
 {
+#if JUCE_IOS
+    return false;
+#else
     auto desc = k.getTextDescription().toStdString();
 
     if (desc == "command + Q" || desc == "alt + F4")
         return false;
 
-    return true;
+    return false;
+#endif
 }
 
 void ContentComponent::resized()
