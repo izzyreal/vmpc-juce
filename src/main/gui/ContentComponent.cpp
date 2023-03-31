@@ -257,7 +257,7 @@ bool ContentComponent::keyPressed(const juce::KeyPress &k)
     if (desc == "command + Q" || desc == "alt + F4")
         return false;
 
-    return false;
+    return true;
 #endif
 }
 
