@@ -338,7 +338,7 @@ void ContentComponent::globalFocusChanged(juce::Component *newFocus)
         
         if (newFocus->getName() != "ContentComponent" &&
             newFocus->getName() != "auxlcdwindow" &&
-            newFocus->getName() != "AudioMidiSettingsWindow")
+            newFocus->getComponentID() != "AudioMidiSettingsWindow")
         {
             grabKeyboardFocus();
         }

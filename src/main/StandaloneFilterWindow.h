@@ -173,8 +173,7 @@ public:
         content->setToRecommendedSize();
     
         o.content.setOwned (content.release());
-
-        o.dialogTitle                   = TRANS("Audio/MIDI Settings");
+        o.dialogTitle = "Audio/MIDI Settings";
         o.dialogBackgroundColour        = o.content->getLookAndFeel().findColour (ResizableWindow::backgroundColourId);
         o.escapeKeyTriggersCloseButton  = true;
         o.resizable                     = true;
@@ -185,7 +184,7 @@ public:
 #endif
 
         auto window = o.launchAsync();
-        window->setName("AudioMidiSettingsWindow");
+        window->setComponentID("AudioMidiSettingsWindow");
     }
 
     void saveAudioDeviceState()
