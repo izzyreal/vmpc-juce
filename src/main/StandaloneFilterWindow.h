@@ -12,7 +12,8 @@ namespace juce
 
 class StandalonePluginHolder    : private AudioIODeviceCallback,
                                   private Timer,
-                                  private Value::Listener
+                                  private Value::Listener,
+                                  private juce::ComponentListener
 {
 public:
     struct PluginInOuts   { short numIns, numOuts; };
@@ -185,6 +186,17 @@ public:
 
         auto window = o.launchAsync();
         window->setComponentID("AudioMidiSettingsWindow");
+        window->addComponentListener(this);
+        if (!lastKnownAudioMidiSettingsWindowBounds.isEmpty())
+        {
+            window->setBounds(lastKnownAudioMidiSettingsWindowBounds);
+        }
+    }
+
+    void componentMovedOrResized (Component &component, bool wasMoved, bool wasResized) override
+    {
+        if (!wasMoved && !wasResized) return;
+        lastKnownAudioMidiSettingsWindowBounds = component.getBounds();
     }
 
     void saveAudioDeviceState()
@@ -287,6 +299,7 @@ public:
     AudioDeviceManager deviceManager;
     AudioProcessorPlayer player;
     Array<PluginInOuts> channelConfiguration;
+    juce::Rectangle<int> lastKnownAudioMidiSettingsWindowBounds;
 
     AudioBuffer<float> emptyBuffer;
     bool autoOpenMidiDevices;
