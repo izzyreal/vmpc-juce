@@ -201,12 +201,7 @@
 
 /* ------------- */
 
-@interface JuceUIWindow <UIDocumentBrowserViewControllerDelegate> : UIWindow
-@end
-
-/* ------------- */
-
-@implementation JuceUIWindow (DocumentBrowser)
+@implementation UIWindow (DocumentBrowser)
 
 -(void) cancelButtonAction:(id)sender {
   [[self rootViewController] dismissViewControllerAnimated:true completion:nil];
@@ -237,18 +232,9 @@
 
 /* ------------- */
 
-@implementation UIApplication (GetJuceUIWindow)
-
--(JuceUIWindow*) juceUIWindow {
-  return (JuceUIWindow*)([self windows].firstObject);
-}
-
-@end
-
-/* ------------- */
-
-void doOpenIosDocumentBrowser(URLProcessor* urlProcessor) {
-  auto window = [[UIApplication sharedApplication] juceUIWindow];
+void doOpenIosDocumentBrowser(URLProcessor* urlProcessor, void* nativeWindowHandle) {
+  auto uiview = (UIView*) nativeWindowHandle;
+  auto window = (UIWindow*)[uiview window];
   [window openIosDocumentBrowser:urlProcessor];
 }
 

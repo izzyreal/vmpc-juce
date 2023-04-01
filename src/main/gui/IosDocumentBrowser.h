@@ -17,7 +17,7 @@ public:
   virtual std::shared_ptr<std::ostream> openOutputStream(const char* /* filename */, const char* /* relativeDir */) = 0;
   virtual void initFiles() = 0;
 };
-void doOpenIosDocumentBrowser(URLProcessor*);
+void doOpenIosDocumentBrowser(URLProcessor*, void* nativeWindowHandle);
 
 #endif
 #endif

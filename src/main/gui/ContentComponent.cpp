@@ -177,7 +177,10 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     importButton.setTooltip("Import files or folders");
 
-    importButton.onClick = [&]() { doOpenIosDocumentBrowser(&urlProcessor); };
+    importButton.onClick = [&]() {
+        auto uiView = getPeer()->getNativeHandle();
+        doOpenIosDocumentBrowser(&urlProcessor, uiView);
+    };
 
     addAndMakeVisible(importButton);
 #endif
