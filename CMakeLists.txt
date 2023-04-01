@@ -78,42 +78,62 @@ if(NOT tl-expected_POPULATED)
   FetchContent_Populate(tl-expected)
 endif()
 
-juce_add_plugin(vmpc2000xl
-    
-    # Relevant to iOS only
-    REQUIRES_FULL_SCREEN TRUE
-    BACKGROUND_AUDIO_ENABLED TRUE
-    $<$<BOOL:${IOS}>:APP_GROUPS_ENABLED TRUE>
-    $<$<BOOL:${IOS}>:APP_GROUP_IDS group.nl.izmar.vmpc2000xl>
-    $<$<BOOL:${IOS}>:FILE_SHARING_ENABLED TRUE>
-    $<$<BOOL:${IOS}>:DOCUMENT_BROWSER_ENABLED TRUE>
+if (IOS)
+  juce_add_plugin(vmpc2000xl
+      
+      REQUIRES_FULL_SCREEN TRUE
+      BACKGROUND_AUDIO_ENABLED TRUE
+      APP_GROUPS_ENABLED TRUE
+      APP_GROUP_IDS group.nl.izmar.vmpc2000xl
+      FILE_SHARING_ENABLED TRUE
+      DOCUMENT_BROWSER_ENABLED TRUE
+  
+      BUNDLE_ID nl.izmar.vmpc2000xl
+  
+      AU_MAIN_TYPE kAudioUnitType_MusicEffect
+      VST3_CATEGORIES Instrument Drum OnlyRT Sampler Stereo
+      VST_NUM_MIDI_INS 1
+      VST_NUM_MIDI_OUTS 1
+  
+      ICON_BIG "src/main/resources/icon.png"
+      COMPANY_NAME Izmar
+      IS_SYNTH TRUE
+      NEEDS_MIDI_INPUT TRUE
+      NEEDS_MIDI_OUTPUT TRUE
+      EDITOR_WANTS_KEYBOARD_FOCUS TRUE
+      PLUGIN_MANUFACTURER_CODE Izmr
+      PLUGIN_CODE 2kXL
+      MICROPHONE_PERMISSION_ENABLED TRUE
+      MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
+      HARDENED_RUNTIME_ENABLED TRUE
+      HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input
+      FORMATS AUv3 Standalone
+      PRODUCT_NAME "VMPC2000XL")
+else()
+    juce_add_plugin(vmpc2000xl
+      BUNDLE_ID nl.izmar.vmpc2000xl
+  
+      AU_MAIN_TYPE kAudioUnitType_MusicEffect
+      VST3_CATEGORIES Instrument Drum OnlyRT Sampler Stereo
+      VST_NUM_MIDI_INS 1
+      VST_NUM_MIDI_OUTS 1
 
-    # Relevant to macOS and iOS
-    BUNDLE_ID nl.izmar.vmpc2000xl
-
-    # Format-specific options
-    AU_MAIN_TYPE kAudioUnitType_MusicEffect
-    VST3_CATEGORIES Instrument Drum OnlyRT Sampler Stereo
-    VST_NUM_MIDI_INS 1
-    VST_NUM_MIDI_OUTS 1
-
-    # Relevant to all builds
-    ICON_BIG "src/main/resources/icon.png"
-    COMPANY_NAME Izmar
-    IS_SYNTH TRUE
-    NEEDS_MIDI_INPUT TRUE
-    NEEDS_MIDI_OUTPUT TRUE
-    EDITOR_WANTS_KEYBOARD_FOCUS TRUE
-    PLUGIN_MANUFACTURER_CODE Izmr
-    PLUGIN_CODE 2kXL
-    MICROPHONE_PERMISSION_ENABLED TRUE
-    MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
-    HARDENED_RUNTIME_ENABLED TRUE
-    HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input
-    FORMATS LV2 VST3 AU AUv3 Standalone
-    LV2URI "http://www.izmar.nl/VMPC2000XL"
-    PRODUCT_NAME "VMPC2000XL")
-
+      ICON_BIG "src/main/resources/icon.png"
+      COMPANY_NAME Izmar
+      IS_SYNTH TRUE
+      NEEDS_MIDI_INPUT TRUE
+      NEEDS_MIDI_OUTPUT TRUE
+      EDITOR_WANTS_KEYBOARD_FOCUS TRUE
+      PLUGIN_MANUFACTURER_CODE Izmr
+      PLUGIN_CODE 2kXL
+      MICROPHONE_PERMISSION_ENABLED TRUE
+      MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
+      HARDENED_RUNTIME_ENABLED TRUE
+      HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input
+      FORMATS LV2 VST3 AU AUv3 Standalone
+      LV2URI "http://www.izmar.nl/VMPC2000XL"
+      PRODUCT_NAME "VMPC2000XL")
+endif()
 
 target_include_directories(vmpc2000xl PUBLIC
   ${mpc_SOURCE_DIR}/src/main
