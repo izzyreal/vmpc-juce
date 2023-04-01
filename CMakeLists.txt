@@ -91,9 +91,6 @@ if (IOS)
       BUNDLE_ID nl.izmar.vmpc2000xl
   
       AU_MAIN_TYPE kAudioUnitType_MusicEffect
-      VST3_CATEGORIES Instrument Drum OnlyRT Sampler Stereo
-      VST_NUM_MIDI_INS 1
-      VST_NUM_MIDI_OUTS 1
   
       ICON_BIG "src/main/resources/icon.png"
       COMPANY_NAME Izmar

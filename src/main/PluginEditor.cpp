@@ -23,15 +23,10 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 
   showDisclaimer();
 
-  if (juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS) {
-    auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
-    if (primaryDisplay != nullptr) setBounds(primaryDisplay->userArea);
-  } else {
-    setSize(p.lastUIWidth, p.lastUIHeight);
-    setResizable(true, false);
-    setResizeLimits(1298 / 2, 994 / 2, 1298, 994);
-    getConstrainer()->setFixedAspectRatio(1.305835010060362);
-  }
+  setSize(p.lastUIWidth, p.lastUIHeight);
+  setResizable(true, false);
+  setResizeLimits(1298 / 2, 994 / 2, 1298, 994);
+  getConstrainer()->setFixedAspectRatio(1.305835010060362);
 }
 
 VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
@@ -87,6 +82,16 @@ void VmpcAudioProcessorEditor::resized()
 {
   if (juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS)
   {
+    if (juce::PluginHostType::jucePlugInClientCurrentWrapperType == juce::AudioProcessor::wrapperType_AudioUnitv3)
+    {
+        auto width = getWidth();
+        auto height = getHeight();
+        auto ratio = 1298.0 / 994.0;
+        viewport.getViewedComponent()->setBounds(0, 0, getWidth(), getWidth() / ratio);
+        viewport.setBounds(0, 0, getWidth(), getWidth() / ratio);
+        return;
+    }
+    
     auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
   
     if (primaryDisplay != nullptr)
