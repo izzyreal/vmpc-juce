@@ -31,7 +31,6 @@
 
 // moduru
 #include <lang/StrUtil.hpp>
-#include <file/FileUtil.hpp>
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
@@ -606,20 +605,13 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 
     if (mpc_ui != nullptr)
     {
-        auto currentDir = mpc_ui->getStringAttribute("currentDir").toStdString();
-        auto storesPath = mpc::Paths::storesPath() + "MPC2000XL";
-        auto resPathIndex = currentDir.find(storesPath);
+        auto currentDir = fs::path(mpc_ui->getStringAttribute("currentDir").toStdString());
+        auto relativePath = fs::relative(currentDir, mpc::Paths::defaultLocalVolumePath());
 
-        if (resPathIndex != std::string::npos)
+        for (auto& pathSegment : relativePath)
         {
-            auto trimmedCurrentDir = currentDir.substr(resPathIndex + storesPath.length());
-            auto splitTrimmedDir = StrUtil::split(trimmedCurrentDir, FileUtil::getSeparator()[0]);
-
-            for (auto &s: splitTrimmedDir)
-            {
-                mpc.getDisk()->moveForward(s);
-                mpc.getDisk()->initFiles();
-            }
+            mpc.getDisk()->moveForward(pathSegment);
+            mpc.getDisk()->initFiles();
         }
 
         mpc.getSampler()->setSoundIndex(mpc_ui->getIntAttribute("soundIndex"));

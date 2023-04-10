@@ -20,8 +20,6 @@
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
-#include "file/FileUtil.hpp"
-
 CMRC_DECLARE(vmpcjuce);
 
 #ifdef __APPLE__
