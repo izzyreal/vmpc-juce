@@ -65,7 +65,7 @@ VmpcAudioProcessor::VmpcAudioProcessor()
   struct tm* currentLocalTime = localtime(&currentTime);
   auto timeString = std::string(asctime(currentLocalTime));
 
-  moduru::Logger::l.setPath(mpc::Paths::logFilePath());
+  moduru::Logger::l.setPath(mpc::Paths::logFilePath().string());
   moduru::Logger::l.log("\n\n-= VMPC2000XL v" + std::string(version::get()) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
 
   mpc.init(1, 5);
@@ -610,7 +610,7 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 
         for (auto& pathSegment : relativePath)
         {
-            mpc.getDisk()->moveForward(pathSegment);
+            mpc.getDisk()->moveForward(pathSegment.string());
             mpc.getDisk()->initFiles();
         }
 
