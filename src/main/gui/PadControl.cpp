@@ -127,7 +127,7 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
 
         auto ext = file->getExtension();
 
-        popupScreen->setText("LOADING " + StrUtil::padRight(soundFileName, " ", 16) + "." + ext);
+        popupScreen->setText("LOADING " + StrUtil::padRight(soundFileName, " ", 16) + ext);
 
         layeredScreen->openScreen("popup");
         popupScreen->returnToScreenAfterMilliSeconds(screenToReturnTo, 300);
