@@ -122,6 +122,12 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
             soundFileName = soundFileName.substr(0, 16);
         }
 
+        // TODO PadControl::loadFile should use the exact same logic as LoadScreen does when loading SND or WAV
+        //  files. For now we preemptively bump the sound counter to make sure we don't get duplicate
+        //  sound names. But if we follow LoadScreen logic, we will get a chance to CANCEL or RENAME in case
+        //  a sound already exists. With the current logic, loading a file named "FULL1.SND" into an empty
+        //  VMPC2000XL results in a sound named FULL2.
+
         soundFileName = sampler->addOrIncreaseNumber(soundFileName);
         sound->setName(soundFileName);
 
