@@ -187,6 +187,17 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     versionLabel.setColour(juce::Label::textColourId, juce::Colours::grey);
     addAndMakeVisible(versionLabel);
 
+    helpImg = ResourceUtil::loadImage("img/help.png");
+    helpButton.setImages(false, true, true, helpImg, 0.5, transparentWhite, helpImg, 1.0, transparentWhite,
+                         helpImg, 0.25, transparentWhite);
+    helpButton.setTooltip("Browse online documentation");
+    helpButton.onClick = [] {
+        juce::URL url("https://vmpcdocs.izmar.nl");
+        url.launchInDefaultBrowser();
+    };
+    helpButton.setWantsKeyboardFocus(false);
+    addAndMakeVisible(helpButton);
+
     if (juce::JUCEApplicationBase::isStandaloneApp())
     {
         gearImg = ResourceUtil::loadImage("img/gear.png");
@@ -313,12 +324,21 @@ void ContentComponent::resized()
     {
         gearButton.setBounds(1298 - (190 + 30), 13, 45, 45);
         gearButton.setTransform(scaleTransform);
+
+        helpButton.setBounds(1298 - (235 + 40), 13, 45, 45);
+        helpButton.setTransform(scaleTransform);
+    }
+    else
+    {
+        helpButton.setBounds(1298 - (280 + 50), 13, 45, 45);
+        helpButton.setTransform(scaleTransform);
     }
 
 #if ENABLE_IMPORT
     importButton.setBounds(1298 - (145 + 20), 10, 50, 50);
     importButton.setTransform(scaleTransform);
 #endif
+
 
     versionLabel.setTransform(scaleTransform);
     versionLabel.setBounds(1152, 114, 100, 20);

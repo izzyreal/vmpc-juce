@@ -77,6 +77,7 @@ private:
   juce::Image volKnobImg;
   juce::Image ledRedImg;
   juce::Image ledGreenImg;
+  juce::Image helpImg;
   juce::Image gearImg;
   juce::Image keyboardImg;
   juce::Image resetWindowSizeImg;
@@ -84,6 +85,7 @@ private:
 
   juce::Label versionLabel;
 
+  juce::ImageButton helpButton;
   juce::ImageButton gearButton;
   juce::ImageButton keyboardButton;
   juce::ImageButton resetWindowSizeButton;
