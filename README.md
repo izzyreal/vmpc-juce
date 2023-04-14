@@ -7,21 +7,21 @@ VMPC2000XL supports a typical CMake workflow, for example on Windows:
 git clone https://github.com/izzyreal/vmpc-juce
 cd vmpc-juce && mkdir build
 cmake -B build -G "Visual Studio 17 2022"
-cmake -B build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3
+cmake --build build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3
 ```
 and on macOS:
 ```
 git clone https://github.com/izzyreal/vmpc-juce
 cd vmpc-juce && mkdir build
 cmake -B build -G "Xcode"
-cmake -B build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3
+cmake --build build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3
 ```
 or Linux:
 ```
 git clone https://github.com/izzyreal/vmpc-juce
 cd vmpc-juce && mkdir build
 cmake -B build -G "CodeBlocks - Ninja"
-cmake -B build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3 vmpc2000xl_LV2
+cmake --build build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3 vmpc2000xl_LV2
 ```
 The targets described above are also the currently supported targets for each platform.
 
