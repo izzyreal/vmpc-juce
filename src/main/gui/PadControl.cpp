@@ -177,6 +177,12 @@ void PadControl::filesDropped(const StringArray &files, int, int)
 
 void PadControl::timerCallback()
 {
+    if (isShowingKeyboardMapping())
+    {
+        VmpcTooltipComponent::timerCallback();
+        return;
+    }
+
     if (fading)
     {
         padhitBrightness -= 20;
@@ -209,7 +215,7 @@ void PadControl::update(moduru::observer::Observable *, nonstd::any arg)
         {
             velocity = 127;
         }
-        
+
         padhitBrightness = velocity + 25;
         fading = false;
         startTimer(100);
@@ -263,10 +269,12 @@ void PadControl::setBounds()
 
 void PadControl::paint(Graphics &g)
 {
-    auto img = padhitImg.createCopy();
-    auto mult = padhitBrightness / 150.0;
-    img.multiplyAllAlphas(static_cast<float>(mult));
-    g.drawImageAt(img, 0, 0);
+//    auto img = padhitImg.createCopy();
+//    auto mult = padhitBrightness / 150.0;
+//    img.multiplyAllAlphas(static_cast<float>(mult));
+//    g.drawImageAt(img, 0, 0);
+
+    VmpcTooltipComponent::paintButton(g, true, true);
 }
 
 PadControl::~PadControl()

@@ -36,6 +36,18 @@ public:
 #endif
 #endif
 
+class KeyboardButton : public juce::ImageButton {
+public:
+    void mouseEnter(const juce::MouseEvent&) override {
+        for (auto& c1 : getParentComponent()->getChildren())
+            if (auto c2 = dynamic_cast<VmpcTooltipComponent*>(c1)) c2->showKeyboardMapping();
+    }
+    void mouseExit(const juce::MouseEvent&) override {
+        for (auto& c1 : getParentComponent()->getChildren())
+            if (auto c2 = dynamic_cast<VmpcTooltipComponent*>(c1)) c2->hideKeyboardMapping();
+    }
+};
+
 class Keyboard;
 
 namespace mpc { class Mpc; }
@@ -64,11 +76,6 @@ private:
   mpc::Mpc& mpc;
   std::weak_ptr<mpc::controls::KeyEventHandler> keyEventHandler;
   std::vector<std::shared_ptr<juce::MouseInputSource>> sources;
-  float prevDistance = -1.f;
-  float prevPinchCx = -1.f;
-  float prevPinchCy = -1.f;
-  float prevSingleX = -1.f;
-  float prevSingleY = -1.f;
 
   juce::Image dataWheelImg;
   juce::Image padHitImg;
@@ -87,7 +94,7 @@ private:
 
   juce::ImageButton helpButton;
   juce::ImageButton gearButton;
-  juce::ImageButton keyboardButton;
+  KeyboardButton keyboardButton;
   juce::ImageButton resetWindowSizeButton;
   juce::ImageButton importButton;
 

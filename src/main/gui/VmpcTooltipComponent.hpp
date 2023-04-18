@@ -7,7 +7,7 @@
 
 // The reason we are using juce::Button instead of VmpcComponent
 // or juce::Component, is we get tooltips for free.
-class VmpcTooltipComponent : public juce::Button
+class VmpcTooltipComponent : public juce::Button, public juce::Timer
 {
 public:
     VmpcTooltipComponent(mpc::Mpc&, std::shared_ptr<mpc::hardware::HwComponent> mpcHardwareComponent);
@@ -17,9 +17,20 @@ public:
 
     void paintButton(juce::Graphics&, bool, bool) override;
 
+    void showKeyboardMapping();
+    void hideKeyboardMapping();
+
+    void timerCallback() override;
+
+protected:
+    bool isShowingKeyboardMapping();
+
 private:
     mpc::Mpc& mpc;
     std::shared_ptr<mpc::hardware::HwComponent> mpcHardwareComponent;
+    std::string keyboardMappingText;
+    float keyboardMappingOpacity = 0.f;
+    float keyboardMappingOpacityIncrement = 0.f;
 };
 
 /**
