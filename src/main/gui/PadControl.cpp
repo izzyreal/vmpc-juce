@@ -206,6 +206,11 @@ void PadControl::update(moduru::observer::Observable *, nonstd::any arg)
     }
     else
     {
+        if (velocity > 127)
+        {
+            velocity = 127;
+        }
+        
         padhitBrightness = velocity + 25;
         fading = false;
         startTimer(100);
