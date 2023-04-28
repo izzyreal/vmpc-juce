@@ -3,21 +3,26 @@
 
 using namespace juce;
 
-void VmpcLookAndFeel::drawCornerResizer (Graphics& g, int, int, bool, bool)
+void VmpcLookAndFeel::drawLcdPixel(juce::Graphics& g, int x, int y)
 {
-    const int blockSize = 3;
-    const int rows = 7;
+    g.setColour(Constants::LCD_HALF_ON);
+    g.fillRect(juce::Rectangle<int>(x * LCD_PIXEL_SIZE, y * LCD_PIXEL_SIZE, LCD_PIXEL_SIZE, LCD_PIXEL_SIZE));
+    g.setColour(Constants::LCD_ON);
+    g.fillRect(juce::Rectangle<int>(x * LCD_PIXEL_SIZE, y * LCD_PIXEL_SIZE, LCD_PIXEL_SIZE - 1, LCD_PIXEL_SIZE - 1));
+}
+
+void VmpcLookAndFeel::drawCornerResizer(Graphics& g, int w, int h, bool, bool)
+{
+    const int rows = 5;
+    const int xOffset = (w / VmpcLookAndFeel::LCD_PIXEL_SIZE) - rows;
+    const int yOffset = (h / VmpcLookAndFeel::LCD_PIXEL_SIZE) - rows;
+
     for (int i = 0; i < rows; i++)
     {
-        const int y = i * blockSize;
-
         for (int j = 0; j < i; j++)
         {
-            const int x = ((rows - j) - 2) * blockSize;
-            g.setColour(Constants::LCD_HALF_ON);
-            g.fillRect(juce::Rectangle<int>(x, y, blockSize, blockSize));
-            g.setColour(Constants::LCD_ON);
-            g.fillRect(juce::Rectangle<int>(x, y, blockSize - 1, blockSize - 1));
+            const int x = (rows - j);
+            drawLcdPixel(g, x + xOffset - 1, i + yOffset - 1);
         }
     }
 }
