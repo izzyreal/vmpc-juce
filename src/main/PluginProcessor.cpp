@@ -29,9 +29,6 @@
 #include <engine/audio/server/NonRealTimeAudioServer.hpp>
 #include <engine/midi/ShortMessage.hpp>
 
-// moduru
-#include <lang/StrUtil.hpp>
-
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 using namespace mpc::lcdgui::screens::window;
@@ -42,9 +39,6 @@ using namespace mpc::file::sndreader;
 using namespace mpc::disk;
 
 using namespace mpc::engine::midi;
-
-using namespace moduru::lang;
-using namespace moduru::file;
 
 VmpcAudioProcessor::VmpcAudioProcessor()
 : AudioProcessor (juce::PluginHostType::jucePlugInClientCurrentWrapperType == juce::AudioProcessor::wrapperType_AudioUnitv3 ?

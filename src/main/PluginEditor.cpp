@@ -6,7 +6,6 @@
 
 #include <hardware/Hardware.hpp>
 #include <audiomidi/AudioMidiServices.hpp>
-#include <Paths.hpp>
 
 VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
 : AudioProcessorEditor(&p), vmpcAudioProcessor(p), mpc(p.mpc)
