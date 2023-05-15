@@ -235,6 +235,26 @@ void VmpcAudioProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
         tootMsg = std::make_shared<ShortMessage>();
         tootMsg->setMessage(ShortMessage::CHANNEL_PRESSURE, m.getChannel() - 1, m.getChannelPressureValue(), 0);
     }
+    else if (m.isMidiClock())
+    {
+        tootMsg = std::make_shared<ShortMessage>();
+        tootMsg->setMessage(ShortMessage::TIMING_CLOCK);
+    }
+    else if (m.isMidiStart())
+    {
+        tootMsg = std::make_shared<ShortMessage>();
+        tootMsg->setMessage(ShortMessage::START);
+    }
+    else if (m.isMidiContinue())
+    {
+        tootMsg = std::make_shared<ShortMessage>();
+        tootMsg->setMessage(ShortMessage::CONTINUE);
+    }
+    else if (m.isMidiStop())
+    {
+        tootMsg = std::make_shared<ShortMessage>();
+        tootMsg->setMessage(ShortMessage::STOP);
+    }
 
     if (tootMsg)
     {
