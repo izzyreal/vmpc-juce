@@ -1,5 +1,5 @@
-#include "PluginProcessor.h"
-#include "PluginEditor.h"
+#include "VmpcProcessor.h"
+#include "VmpcEditor.h"
 #include "version.h"
 
 #include "lcdgui/screens/VmpcSettingsScreen.hpp"
@@ -40,7 +40,7 @@ using namespace mpc::disk;
 
 using namespace mpc::engine::midi;
 
-VmpcAudioProcessor::VmpcAudioProcessor()
+VmpcProcessor::VmpcProcessor()
 : AudioProcessor (juce::PluginHostType::jucePlugInClientCurrentWrapperType == juce::AudioProcessor::wrapperType_AudioUnitv3 ?
                   BusesProperties()
                   .withInput("RECORD IN",  juce::AudioChannelSet::stereo(), true)
@@ -75,7 +75,7 @@ VmpcAudioProcessor::VmpcAudioProcessor()
   }
 }
 
-VmpcAudioProcessor::~VmpcAudioProcessor()
+VmpcProcessor::~VmpcProcessor()
 {
     if (juce::JUCEApplication::isStandaloneApp())
     {
@@ -83,12 +83,12 @@ VmpcAudioProcessor::~VmpcAudioProcessor()
     }
 }
 
-const juce::String VmpcAudioProcessor::getName() const
+const juce::String VmpcProcessor::getName() const
 {
   return JucePlugin_Name;
 }
 
-bool VmpcAudioProcessor::acceptsMidi() const
+bool VmpcProcessor::acceptsMidi() const
 {
 #if JucePlugin_WantsMidiInput
   return true;
@@ -97,7 +97,7 @@ bool VmpcAudioProcessor::acceptsMidi() const
 #endif
 }
 
-bool VmpcAudioProcessor::producesMidi() const
+bool VmpcProcessor::producesMidi() const
 {
   if (wrapperType == wrapperType_AudioUnitv3) return false;
 #if JucePlugin_ProducesMidiOutput
@@ -107,7 +107,7 @@ bool VmpcAudioProcessor::producesMidi() const
 #endif
 }
 
-bool VmpcAudioProcessor::isMidiEffect() const
+bool VmpcProcessor::isMidiEffect() const
 {
 #if JucePlugin_IsMidiEffect
   return true;
@@ -116,36 +116,36 @@ bool VmpcAudioProcessor::isMidiEffect() const
 #endif
 }
 
-double VmpcAudioProcessor::getTailLengthSeconds() const
+double VmpcProcessor::getTailLengthSeconds() const
 {
   return 0.0;
 }
 
-int VmpcAudioProcessor::getNumPrograms()
+int VmpcProcessor::getNumPrograms()
 {
   return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
   // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int VmpcAudioProcessor::getCurrentProgram()
+int VmpcProcessor::getCurrentProgram()
 {
   return 0;
 }
 
-void VmpcAudioProcessor::setCurrentProgram (int /* index */)
+void VmpcProcessor::setCurrentProgram (int /* index */)
 {
 }
 
-const juce::String VmpcAudioProcessor::getProgramName (int /* index */)
+const juce::String VmpcProcessor::getProgramName (int /* index */)
 {
   return {};
 }
 
-void VmpcAudioProcessor::changeProgramName (int /* index */, const juce::String& /* newName */)
+void VmpcProcessor::changeProgramName (int /* index */, const juce::String& /* newName */)
 {
 }
 
-void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void VmpcProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
   auto seq = mpc.getSequencer();
   bool seqWasPlaying = seq->isPlaying();
@@ -190,18 +190,18 @@ void VmpcAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
   monoToStereoBufferOut.setSize(2, samplesPerBlock);
 }
 
-void VmpcAudioProcessor::releaseResources()
+void VmpcProcessor::releaseResources()
 {
   // When playback stops, you can use this as an opportunity to free up any
   // spare memory, etc.
 }
 
-bool VmpcAudioProcessor::isBusesLayoutSupported (const BusesLayout&) const
+bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout&) const
 {
   return true;
 }
 
-void VmpcAudioProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
+void VmpcProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
 
   for (const auto& meta : midiMessages)
   {
@@ -263,7 +263,7 @@ void VmpcAudioProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
   }
 }
 
-void VmpcAudioProcessor::processMidiOut(juce::MidiBuffer& midiMessages)
+void VmpcProcessor::processMidiOut(juce::MidiBuffer& midiMessages)
 {
     midiMessages.clear();
 
@@ -327,7 +327,7 @@ void VmpcAudioProcessor::processMidiOut(juce::MidiBuffer& midiMessages)
 //    }
 }
 
-void VmpcAudioProcessor::processTransport()
+void VmpcProcessor::processTransport()
 {
   if (juce::JUCEApplication::isStandaloneApp())
   {
@@ -363,7 +363,7 @@ void VmpcAudioProcessor::processTransport()
   }
 }
 
-void VmpcAudioProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuffer& midiMessages)
+void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuffer& midiMessages)
 {
   juce::ScopedNoDenormals noDenormals;
 
@@ -431,18 +431,18 @@ void VmpcAudioProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::Mid
   }
 }
 
-bool VmpcAudioProcessor::hasEditor() const
+bool VmpcProcessor::hasEditor() const
 {
   return true;
 }
 
-juce::AudioProcessorEditor* VmpcAudioProcessor::createEditor()
+juce::AudioProcessorEditor* VmpcProcessor::createEditor()
 {
   mpc.getLayeredScreen()->setDirty();
-  return new VmpcAudioProcessorEditor (*this);
+  return new VmpcEditor (*this);
 }
 
-void VmpcAudioProcessor::getStateInformation(juce::MemoryBlock &destData)
+void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
 {
     auto editor = getActiveEditor();
     auto root = std::make_shared<juce::XmlElement>("root");
@@ -530,7 +530,7 @@ void VmpcAudioProcessor::getStateInformation(juce::MemoryBlock &destData)
     copyXmlToBinary(*root.get(), destData);
 }
 
-void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     std::shared_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
 
@@ -670,5 +670,5 @@ void VmpcAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-  return new VmpcAudioProcessor();
+  return new VmpcProcessor();
 }

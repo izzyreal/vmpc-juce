@@ -4,7 +4,7 @@
 #include "juce_audio_devices/juce_audio_devices.h"
 #include "juce_audio_utils/juce_audio_utils.h"
 
-#include "PluginProcessor.h"
+#include "VmpcProcessor.h"
 #include "AudioMidiSettingsComponent.h"
 
 namespace juce
@@ -35,7 +35,7 @@ public:
           autoOpenMidiDevices (shouldAutoOpenMidiDevices)
     {
         createPlugin();
-        ((VmpcAudioProcessor*) processor.get())->showAudioSettingsDialog = [this](){
+        ((VmpcProcessor*) processor.get())->showAudioSettingsDialog = [this](){
             this->showAudioSettingsDialog();
         };
 

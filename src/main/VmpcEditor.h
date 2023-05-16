@@ -1,19 +1,19 @@
 #pragma once
 
 #include "juce_gui_basics/juce_gui_basics.h"
-#include "PluginProcessor.h"
+#include "VmpcProcessor.h"
 
 #include "gui/ContentComponent.h"
 
 namespace mpc { class Mpc; }
 
-class VmpcAudioProcessorEditor
+class VmpcEditor
 : public juce::AudioProcessorEditor
 {
   
 public:
-  explicit VmpcAudioProcessorEditor(VmpcAudioProcessor&);
-  ~VmpcAudioProcessorEditor() override;
+  explicit VmpcEditor(VmpcProcessor&);
+  ~VmpcEditor() override;
   
   void resized() override;
   
@@ -21,7 +21,7 @@ private:
   void showDisclaimer();
   
 private:
-  VmpcAudioProcessor& vmpcAudioProcessor;
+  VmpcProcessor& vmpcProcessor;
   mpc::Mpc& mpc;
 
   juce::Viewport viewport;
@@ -31,10 +31,10 @@ private:
 
   juce::Image bgImg;
   
-  VmpcAudioProcessor& getProcessor() const
+  VmpcProcessor& getProcessor() const
   {
-    return static_cast<VmpcAudioProcessor&> (processor);
+    return static_cast<VmpcProcessor&> (processor);
   }
   
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcAudioProcessorEditor)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcEditor)
 };

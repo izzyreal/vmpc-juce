@@ -6,12 +6,12 @@
 
 namespace mpc::engine::midi { class ShortMessage; }
 
-class VmpcAudioProcessor  : public juce::AudioProcessor
+class VmpcProcessor  : public juce::AudioProcessor
 {
 public:
   //==============================================================================
-  VmpcAudioProcessor();
-  ~VmpcAudioProcessor() override;
+  VmpcProcessor();
+  ~VmpcProcessor() override;
 
   //==============================================================================
   void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -63,5 +63,5 @@ public:
   std::function<void()> showAudioSettingsDialog = [](){};
   mpc::Mpc mpc;
   //==============================================================================
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcAudioProcessor)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcProcessor)
 };

@@ -1,14 +1,12 @@
-#include "PluginEditor.h"
-
-#include "PluginProcessor.h"
+#include "VmpcEditor.h"
 
 #include "ResourceUtil.h"
 
 #include <hardware/Hardware.hpp>
 #include <audiomidi/AudioMidiServices.hpp>
 
-VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
-: AudioProcessorEditor(&p), vmpcAudioProcessor(p), mpc(p.mpc)
+VmpcEditor::VmpcEditor(VmpcProcessor& p)
+: AudioProcessorEditor(&p), vmpcProcessor(p), mpc(p.mpc)
 {
   auto content = new ContentComponent(mpc, p.showAudioSettingsDialog);
   
@@ -28,14 +26,14 @@ VmpcAudioProcessorEditor::VmpcAudioProcessorEditor(VmpcAudioProcessor& p)
   getConstrainer()->setFixedAspectRatio(1.305835010060362);
 }
 
-VmpcAudioProcessorEditor::~VmpcAudioProcessorEditor()
+VmpcEditor::~VmpcEditor()
 {
   vmpcSplashScreen.deleteAndZero();
 }
 
-void VmpcAudioProcessorEditor::showDisclaimer()
+void VmpcEditor::showDisclaimer()
 {
-  if (vmpcAudioProcessor.shouldShowDisclaimer)
+  if (vmpcProcessor.shouldShowDisclaimer)
   {
     class VmpcSplashScreen : public juce::Component, juce::Timer {
     public:
@@ -67,7 +65,7 @@ void VmpcAudioProcessorEditor::showDisclaimer()
     vmpcSplashScreen = new VmpcSplashScreen();
     
     vmpcSplashScreen->setWantsKeyboardFocus(false);
-    vmpcAudioProcessor.shouldShowDisclaimer = false;
+    vmpcProcessor.shouldShowDisclaimer = false;
     
     addAndMakeVisible(vmpcSplashScreen);
   }
@@ -77,7 +75,7 @@ void VmpcAudioProcessorEditor::showDisclaimer()
     juce::TopLevelWindow::getTopLevelWindow(0)->setWantsKeyboardFocus(false);
 }
 
-void VmpcAudioProcessorEditor::resized()
+void VmpcEditor::resized()
 {
   if (juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS)
   {
