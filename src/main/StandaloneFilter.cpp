@@ -1,5 +1,4 @@
 #include "StandaloneFilter.h"
-#include "ConfigurationHelpers.h"
 
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 
@@ -17,13 +16,13 @@ StandaloneFilterWindow* StandaloneFilterApp::createWindow()
     StandalonePluginHolder::PluginInOuts channels[] = {{2, 10}};
 
     return new StandaloneFilterWindow(getApplicationName(),
-        Helpers::getBackgroundColor(),
+        LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId),
         appProperties.getUserSettings(),
         false,
         {},
         nullptr,
         juce::Array<StandalonePluginHolder::PluginInOuts>(channels, juce::numElementsInArray(channels)),
-        Helpers::shouldAutoOpenMidiDevices());
+        true);
 }
 
 void StandaloneFilterApp::initialise(const juce::String&)
