@@ -269,10 +269,10 @@ void PadControl::setBounds()
 
 void PadControl::paint(Graphics &g)
 {
-//    auto img = padhitImg.createCopy();
-//    auto mult = padhitBrightness / 150.0;
-//    img.multiplyAllAlphas(static_cast<float>(mult));
-//    g.drawImageAt(img, 0, 0);
+    auto img = padhitImg.createCopy();
+    auto mult = padhitBrightness / 150.0;
+    img.multiplyAllAlphas(static_cast<float>(mult));
+    g.drawImageAt(img, 0, 0);
 
     VmpcTooltipComponent::paintButton(g, true, true);
 }
