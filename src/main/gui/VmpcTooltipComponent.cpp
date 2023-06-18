@@ -56,7 +56,11 @@ void VmpcTooltipComponent::mouseMove(const juce::MouseEvent &event)
 void VmpcTooltipComponent::mouseExit(const juce::MouseEvent &)
 {
     setTooltip("");
-    hideKeyboardMapping();
+
+    if (keyboardMappingOpacity > 0.f)
+    {
+        hideKeyboardMapping();
+    }
 }
 
 void VmpcTooltipComponent::showKeyboardMapping()
