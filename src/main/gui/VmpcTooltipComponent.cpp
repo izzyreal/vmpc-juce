@@ -27,6 +27,7 @@ VmpcTooltipComponent::VmpcTooltipComponent(
     keyboardMappingText = "Key: " + keyboardMappingText;
 
     setWantsKeyboardFocus(false);
+    setOpaque(true);
 }
 
 void VmpcTooltipComponent::paintButton(juce::Graphics &g, bool, bool)

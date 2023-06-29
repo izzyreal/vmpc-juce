@@ -15,7 +15,6 @@ namespace mpc::hardware {
 
 class PadControl
         : public VmpcTooltipComponent,
-//          public juce::Timer,
           public juce::FileDragAndDropTarget,
           public moduru::observer::Observer
 {
