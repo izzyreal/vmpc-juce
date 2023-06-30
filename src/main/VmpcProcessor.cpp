@@ -7,9 +7,9 @@
 
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audiomidi/DiskRecorder.hpp>
+#include <audiomidi/MidiInput.hpp>
+#include <audiomidi/MidiOutput.hpp>
 #include <audiomidi/SoundRecorder.hpp>
-#include <audiomidi/MpcMidiOutput.hpp>
-#include <audiomidi/MpcMidiInput.hpp>
 
 #include <file/aps/ApsParser.hpp>
 #include <file/all/AllParser.hpp>
@@ -147,6 +147,7 @@ void VmpcProcessor::changeProgramName (int /* index */, const juce::String& /* n
 
 void VmpcProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+  mpc.panic();
   auto seq = mpc.getSequencer();
   bool seqWasPlaying = seq->isPlaying();
   bool seqWasOverdubbing = seq->isOverDubbing();

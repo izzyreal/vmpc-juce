@@ -522,13 +522,28 @@ public:
             }
         };
 
+        class MidiPanicUponAudioDeviceChangeListener : public juce::ChangeListener
+        {
+        private:
+            mpc::Mpc& mpc;
+        public:
+            MidiPanicUponAudioDeviceChangeListener(mpc::Mpc& mpcToUse) : mpc(mpcToUse) {}
+            void changeListenerCallback (ChangeBroadcaster* source) override
+            {
+                mpc.panic();
+            }
+        };
+
         pluginHolder->deviceManager.addChangeListener(new MidiOutputBackgroundThreadStarter());
         pluginHolder->deviceManager.sendSynchronousChangeMessage();
 
-       #if JUCE_IOS || JUCE_ANDROID
+        auto& mpc = dynamic_cast<VmpcProcessor*>(pluginHolder->processor.get())->mpc;
+        pluginHolder->deviceManager.addChangeListener(new MidiPanicUponAudioDeviceChangeListener(mpc));
+
+        #if JUCE_IOS || JUCE_ANDROID
         setFullScreen (true);
         updateContent();
-       #else
+        #else
         updateContent();
 
         const auto windowScreenBounds = [this]() -> Rectangle<int>
