@@ -528,7 +528,7 @@ public:
             mpc::Mpc& mpc;
         public:
             MidiPanicUponAudioDeviceChangeListener(mpc::Mpc& mpcToUse) : mpc(mpcToUse) {}
-            void changeListenerCallback (ChangeBroadcaster* source) override
+            void changeListenerCallback (ChangeBroadcaster* /*source*/) override
             {
                 mpc.panic();
             }
