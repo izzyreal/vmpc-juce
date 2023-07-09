@@ -81,8 +81,6 @@ void VmpcEditor::resized()
   {
     if (juce::PluginHostType::jucePlugInClientCurrentWrapperType == juce::AudioProcessor::wrapperType_AudioUnitv3)
     {
-        auto width = getWidth();
-        auto height = getHeight();
         auto ratio = 1298.0 / 994.0;
         viewport.getViewedComponent()->setBounds(0, 0, getWidth(), getWidth() / ratio);
         viewport.setBounds(0, 0, getWidth(), getWidth() / ratio);
@@ -112,10 +110,19 @@ void VmpcEditor::resized()
   }
   else
   {
-    getProcessor().lastUIWidth = getWidth();
-    getProcessor().lastUIHeight = getHeight();
-    viewport.setBounds(0, 0, getWidth(), getHeight());
-    viewport.getViewedComponent()->setBounds(0, 0, getWidth(), getHeight());
+    auto new_w = getWidth();
+    auto new_h = getWidth() / (1298/994.f);
+
+    if (new_h > getHeight())
+    {
+      new_h = getHeight();
+      new_w = getHeight() * (1298/994.f);
+    }
+
+    getProcessor().lastUIWidth = new_w;
+    getProcessor().lastUIHeight = new_h;
+    viewport.setBounds((getWidth() - new_w) / 2.f, (getHeight() - new_h) / 2.f, new_w, new_h);
+    viewport.getViewedComponent()->setBounds(0, 0, new_w, new_h);
   }
   
   if (vmpcSplashScreen && vmpcSplashScreen->isVisible())
