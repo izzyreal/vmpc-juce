@@ -1,5 +1,9 @@
 # vmpc-juce, a JUCE implementation of VMPC2000XL, the Akai MPC2000XL emulator
 
+<p align="center">
+  <img src="https://izmar.nl/images/vmpc2000xl-main.jpg" width=500 />
+</p>
+
 ## Building from source just to run, try or use VMPC2000XL or its tests
 
 VMPC2000XL supports a typical CMake workflow, for example on Windows:
