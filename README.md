@@ -27,6 +27,30 @@ cd vmpc-juce && mkdir build
 cmake -B build -G "CodeBlocks - Ninja"
 cmake --build build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3 vmpc2000xl_LV2
 ```
+
+Note that on Linux you need some system dependencies. I don't have an exhaustive list that will work for all distributions and installations. What I can provide is how the binaries that are published on izmar.nl are built, which is in an official Ubuntu 20.04 Docker container, using the below Dockerfile:
+```dockerfile
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+  && apt-get -y install build-essential \
+  && apt-get install -y wget \
+  && rm -rf /var/lib/apt/lists/* \
+  && wget https://github.com/Kitware/CMake/releases/download/v3.24.1/cmake-3.24.1-Linux-x86_64.sh \
+      -q -O /tmp/cmake-install.sh \
+      && chmod u+x /tmp/cmake-install.sh \
+      && mkdir /opt/cmake-3.24.1 \
+      && /tmp/cmake-install.sh --skip-license --prefix=/opt/cmake-3.24.1 \
+      && rm /tmp/cmake-install.sh \
+      && ln -s /opt/cmake-3.24.1/bin/* /usr/local/bin
+RUN rm -vf /var/lib/apt/lists/* && apt-get update
+RUN apt-get -y install git
+RUN apt-get -y install libasound2-dev libjack-jackd2-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxext-dev libxinerama-dev libxrender-dev
+RUN apt-get -y install ninja-build
+RUN apt -y install libxrandr-dev libudisks2-dev libglib2.0-dev
+```
+
 The targets described above are also the currently supported targets for each platform.
 
 The above generators are just some examples. If you experience issues with generators other than the ones mentioned here, [file an issue here](https://github.com/izzyreal/vmpc-juce/issues).
