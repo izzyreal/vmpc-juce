@@ -8,18 +8,18 @@
 void AuxLCDWindowMaximizeButton::paint(juce::Graphics& g)
 {
     const int rows = 5;
-    const int xOffset = (getWidth() / VmpcLookAndFeel::LCD_PIXEL_SIZE) - (rows + 1);
+    const int xOffset = (getWidth() / VmpcAuxLcdLookAndFeel::LCD_PIXEL_SIZE) - (rows + 1);
 
     for (int i = 0; i < rows; i++)
     {
-        VmpcLookAndFeel::drawLcdPixel(g, xOffset + 2, i + 1);
+        VmpcAuxLcdLookAndFeel::drawLcdPixel(g, xOffset + 2, i + 1);
 
         if (i == 2)
         {
             continue;
         }
 
-        VmpcLookAndFeel::drawLcdPixel(g, i + xOffset, 3);
+        VmpcAuxLcdLookAndFeel::drawLcdPixel(g, i + xOffset, 3);
     }
 }
 

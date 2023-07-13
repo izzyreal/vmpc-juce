@@ -4,6 +4,7 @@
 #include "VmpcProcessor.h"
 
 #include "gui/ContentComponent.h"
+#include "gui/VmpcLookAndFeel.h"
 
 namespace mpc { class Mpc; }
 
@@ -21,6 +22,7 @@ private:
   void showDisclaimer();
   
 private:
+  VmpcLookAndFeel lookAndFeel;
   VmpcProcessor& vmpcProcessor;
   mpc::Mpc& mpc;
 

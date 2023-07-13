@@ -21,13 +21,15 @@ VmpcEditor::VmpcEditor(VmpcProcessor& p)
   showDisclaimer();
 
   setSize(p.lastUIWidth, p.lastUIHeight);
-  setResizable(true, false);
+  setResizable(true, true);
   setResizeLimits(1298 / 2, 994 / 2, 1298, 994);
   getConstrainer()->setFixedAspectRatio(1.305835010060362);
+  setLookAndFeel(&lookAndFeel);
 }
 
 VmpcEditor::~VmpcEditor()
 {
+  setLookAndFeel(nullptr);
   vmpcSplashScreen.deleteAndZero();
 }
 
@@ -125,7 +127,7 @@ void VmpcEditor::resized()
     viewport.getViewedComponent()->setBounds(0, 0, new_w, new_h);
   }
   
-  if (vmpcSplashScreen && vmpcSplashScreen->isVisible())
+  if (vmpcSplashScreen != nullptr && vmpcSplashScreen->isVisible())
   {
     int width = 468;
     int height = 160;

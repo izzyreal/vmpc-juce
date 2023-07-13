@@ -1,9 +1,9 @@
-#include "VmpcLookAndFeel.h"
+#include "VmpcAuxLcdLookAndFeel.h"
 #include "Constants.h"
 
 using namespace juce;
 
-void VmpcLookAndFeel::drawLcdPixel(juce::Graphics& g, int x, int y)
+void VmpcAuxLcdLookAndFeel::drawLcdPixel(juce::Graphics& g, int x, int y)
 {
     g.setColour(Constants::LCD_HALF_ON);
     g.fillRect(juce::Rectangle<int>(x * LCD_PIXEL_SIZE, y * LCD_PIXEL_SIZE, LCD_PIXEL_SIZE, LCD_PIXEL_SIZE));
@@ -11,11 +11,11 @@ void VmpcLookAndFeel::drawLcdPixel(juce::Graphics& g, int x, int y)
     g.fillRect(juce::Rectangle<int>(x * LCD_PIXEL_SIZE, y * LCD_PIXEL_SIZE, LCD_PIXEL_SIZE - 1, LCD_PIXEL_SIZE - 1));
 }
 
-void VmpcLookAndFeel::drawCornerResizer(Graphics& g, int w, int h, bool, bool)
+void VmpcAuxLcdLookAndFeel::drawCornerResizer(Graphics& g, int w, int h, bool, bool)
 {
     const int rows = 5;
-    const int xOffset = (w / VmpcLookAndFeel::LCD_PIXEL_SIZE) - rows;
-    const int yOffset = (h / VmpcLookAndFeel::LCD_PIXEL_SIZE) - rows;
+    const int xOffset = (w / VmpcAuxLcdLookAndFeel::LCD_PIXEL_SIZE) - rows;
+    const int yOffset = (h / VmpcAuxLcdLookAndFeel::LCD_PIXEL_SIZE) - rows;
 
     for (int i = 0; i < rows; i++)
     {

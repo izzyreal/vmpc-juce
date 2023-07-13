@@ -2,7 +2,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "AuxLCD.h"
-#include "VmpcLookAndFeel.h"
+#include "VmpcAuxLcdLookAndFeel.h"
 
 class Keyboard;
 class LCDControl;
@@ -57,7 +57,7 @@ private:
     int buttonsHaveBeenShownForMs = 0;
     Keyboard *keyboard;
     LCDControl *lcdControl;
-    VmpcLookAndFeel lookAndFeel;
+    VmpcAuxLcdLookAndFeel lookAndFeel;
 
     bool dragStarted = false;
     juce::ComponentDragger dragger;
