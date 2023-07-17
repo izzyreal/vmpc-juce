@@ -486,16 +486,17 @@ public:
                             bool autoOpenMidiDevices = false
                            #endif
                             )
-        : DocumentWindow (title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::closeButton)
-    {
+        : DocumentWindow (title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::closeButton) {
+#ifndef __linux__
         setUsingNativeTitleBar(true);
+#endif
         setConstrainer (&decoratorConstrainer);
 
-       #if JUCE_IOS || JUCE_ANDROID
+#if JUCE_IOS || JUCE_ANDROID
         setTitleBarHeight (0);
-       #else
+#else
         setTitleBarButtonsRequired (DocumentWindow::minimiseButton | DocumentWindow::closeButton, false);
-       #endif
+#endif
 
         pluginHolder.reset (new StandalonePluginHolder (settingsToUse, takeOwnershipOfSettings,
                                                         preferredDefaultDeviceName, preferredSetupOptions,
@@ -540,10 +541,10 @@ public:
         auto& mpc = dynamic_cast<VmpcProcessor*>(pluginHolder->processor.get())->mpc;
         pluginHolder->deviceManager.addChangeListener(new MidiPanicUponAudioDeviceChangeListener(mpc));
 
-        #if JUCE_IOS || JUCE_ANDROID
+#if JUCE_IOS || JUCE_ANDROID
         setFullScreen (true);
         updateContent();
-        #else
+#else
         updateContent();
 
         const auto windowScreenBounds = [this]() -> Rectangle<int>
@@ -582,18 +583,18 @@ public:
         if (auto* processor = getAudioProcessor())
             if (auto* editor = processor->getActiveEditor())
                 setResizable (editor->isResizable(), false);
-       #endif
+#endif
     }
 
     ~StandaloneFilterWindow() override
     {
-       #if (! JUCE_IOS) && (! JUCE_ANDROID)
+#if (! JUCE_IOS) && (! JUCE_ANDROID)
         if (auto* props = pluginHolder->settings.get())
         {
             props->setValue ("windowX", getX());
             props->setValue ("windowY", getY());
         }
-       #endif
+#endif
 
         pluginHolder->stopPlaying();
         clearContentComponent();
@@ -637,11 +638,11 @@ private:
         auto* content = new MainContentComponent (*this);
         decoratorConstrainer.setMainContentComponent (content);
 
-       #if JUCE_IOS || JUCE_ANDROID
+#if JUCE_IOS || JUCE_ANDROID
         constexpr auto resizeAutomatically = false;
-       #else
+#else
         constexpr auto resizeAutomatically = true;
-       #endif
+#endif
 
         setContentOwned (content, resizeAutomatically);
     }
@@ -826,7 +827,7 @@ private:
 
 inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
 {
-   #if JucePlugin_Enable_IAA || JucePlugin_Build_Standalone
+#if JucePlugin_Enable_IAA || JucePlugin_Build_Standalone
     if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_Standalone)
     {
         auto& desktop = Desktop::getInstance();
@@ -836,7 +837,7 @@ inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
             if (auto window = dynamic_cast<StandaloneFilterWindow*> (desktop.getComponent (i)))
                 return window->getPluginHolder();
     }
-   #endif
+#endif
 
     return nullptr;
 }
