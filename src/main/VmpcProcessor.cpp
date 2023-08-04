@@ -562,7 +562,7 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
         std::vector<char> apsData = decodeBase64(mpc_aps);
         if (apsData.size() > 0)
         {
-            ApsParser apsParser(mpc, apsData);
+            ApsParser apsParser(apsData);
             // We don't want the APS loader to attempt to load the sounds
             // from the file system. We load them manually from the
             // decode project state.
