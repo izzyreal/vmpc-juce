@@ -16,8 +16,9 @@ public:
     ButtonControl(mpc::Mpc& mpc, juce::Rectangle<int> _rect,
                   std::weak_ptr<mpc::hardware::Button> _button);
 
-    void mouseDown(const juce::MouseEvent& event) override;
-    void mouseUp(const juce::MouseEvent& event) override;
+    void mouseDoubleClick(const juce::MouseEvent&) override;
+    void mouseDown(const juce::MouseEvent&) override;
+    void mouseUp(const juce::MouseEvent&) override;
     void setBounds();
 
     static std::unordered_map<std::string, juce::Rectangle<int>*> rects;

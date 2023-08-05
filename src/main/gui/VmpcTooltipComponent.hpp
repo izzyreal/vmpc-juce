@@ -25,8 +25,9 @@ public:
 protected:
     bool isShowingKeyboardMapping();
 
-private:
     mpc::Mpc& mpc;
+
+private:
     std::shared_ptr<mpc::hardware::HwComponent> mpcHardwareComponent;
     std::string keyboardMappingText;
     float keyboardMappingOpacity = 0.f;

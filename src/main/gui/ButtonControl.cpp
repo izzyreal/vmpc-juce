@@ -1,5 +1,6 @@
 #include "ButtonControl.hpp"
 #include "hardware/Button.hpp"
+#include "controls/Controls.hpp"
 
 ButtonControl::ButtonControl(mpc::Mpc& mpc, juce::Rectangle<int> _rect,
                              std::weak_ptr<mpc::hardware::Button> _button)
@@ -115,6 +116,18 @@ void ButtonControl::initRects()
 void ButtonControl::setBounds()
 {
   Component::setBounds(rect);
+}
+
+void ButtonControl::mouseDoubleClick(const juce::MouseEvent&)
+{
+    if (button.lock()->getLabel() == "rec")
+    {
+        mpc.getControls()->setRecLocked(true);
+    }
+    else if (button.lock()->getLabel() == "overdub")
+    {
+        mpc.getControls()->setOverDubLocked(true);
+    }
 }
 
 void ButtonControl::mouseDown(const juce::MouseEvent&)
