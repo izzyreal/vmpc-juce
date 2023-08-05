@@ -7,15 +7,15 @@
 #include "ContentComponent.h"
 #include "AuxLCDWindow.h"
 
-#include "gui/BasicStructs.hpp"
+#include "lcdgui/BasicStructs.hpp"
 
 #include <raw_keyboard_input/src/Keyboard.h>
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 
-LCDControl::LCDControl(mpc::Mpc &_mpc, Keyboard* keyboard)
-        : mpc(_mpc), ls(_mpc.getLayeredScreen())
+LCDControl::LCDControl(mpc::Mpc& _mpc)
+    : mpc(_mpc), ls(_mpc.getLayeredScreen())
 {
     lcd = juce::Image(juce::Image::RGB, 496, 120, true);
     auto othersScreen = mpc.screens->get<OthersScreen>("others");

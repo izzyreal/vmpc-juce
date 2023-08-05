@@ -44,7 +44,7 @@ public:
   }
 
 public:
-	LCDControl(mpc::Mpc& mpc, Keyboard*);
+    LCDControl(mpc::Mpc& mpc);
     ~LCDControl() override;
 
     void update(moduru::observer::Observable* o, nonstd::any msg) override;

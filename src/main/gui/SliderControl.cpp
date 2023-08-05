@@ -1,8 +1,6 @@
 #include "SliderControl.hpp"
 #include <hardware/HwSlider.hpp>
 
-#include <Logger.hpp>
-
 static inline void clampIndex(int& sliderIndex)
 {
     if (sliderIndex < 0)

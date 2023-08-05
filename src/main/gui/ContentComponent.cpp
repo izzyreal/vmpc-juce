@@ -86,7 +86,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     dataWheel->setImage(dataWheelImg, 100);
     addAndMakeVisible(dataWheel);
 
-    lcd = new LCDControl(mpc, keyboard);
+    lcd = new LCDControl(mpc);
     lcd->setSize(496, 120);
     addAndMakeVisible(lcd);
 
