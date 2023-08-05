@@ -15,7 +15,7 @@
 #include <lcdgui/screens/window/VmpcConvertAndLoadWavScreen.hpp>
 #include <lcdgui/screens/dialog2/PopupScreen.hpp>
 
-#include <lang/StrUtil.hpp>
+#include <StrUtil.hpp>
 
 #include <Logger.hpp>
 
@@ -25,7 +25,6 @@ using namespace juce;
 using namespace mpc::disk;
 using namespace mpc::lcdgui::screens::window;
 using namespace mpc::lcdgui::screens::dialog2;
-using namespace moduru::lang;
 
 PadControl::PadControl(mpc::Mpc &_mpc, juce::Rectangle<int> rectToUse, std::weak_ptr<mpc::hardware::HwPad> padToUse,
                        Image padHitImgToUse)
@@ -43,8 +42,8 @@ bool PadControl::isInterestedInFileDrag(const StringArray &files)
 
     for (auto &s: files)
     {
-        if (StrUtil::hasEnding(StrUtil::toLower(s.toStdString()), ".snd") ||
-            StrUtil::hasEnding(StrUtil::toLower(s.toStdString()), ".wav"))
+        if (mpc::StrUtil::hasEnding(mpc::StrUtil::toLower(s.toStdString()), ".snd") ||
+            mpc::StrUtil::hasEnding(mpc::StrUtil::toLower(s.toStdString()), ".wav"))
         {
             if (padhitBrightness == 0)
             {
@@ -61,14 +60,14 @@ bool PadControl::isInterestedInFileDrag(const StringArray &files)
 
 void PadControl::loadFile(const String path, bool shouldBeConverted, std::string screenToReturnTo)
 {
-    if (StrUtil::hasEnding(StrUtil::toLower(path.toStdString()), ".snd") ||
-        StrUtil::hasEnding(StrUtil::toLower(path.toStdString()), ".wav")) {
+    if (mpc::StrUtil::hasEnding(mpc::StrUtil::toLower(path.toStdString()), ".snd") ||
+        mpc::StrUtil::hasEnding(mpc::StrUtil::toLower(path.toStdString()), ".wav")) {
         auto sampler = mpc.getSampler();
 
         SoundLoader soundLoader(mpc, false);
         soundLoader.setPreview(false);
 
-        auto compatiblePath = StrUtil::replaceAll(path.toStdString(), '\\', std::string("\\"));
+        auto compatiblePath = mpc::StrUtil::replaceAll(path.toStdString(), '\\', std::string("\\"));
 
         auto file = std::make_shared<mpc::disk::MpcFile>(fs::path(compatiblePath));
 
@@ -99,7 +98,7 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
 
         std::string soundFileName;
 
-        for (auto& c : StrUtil::toUpper(file->getNameWithoutExtension()))
+        for (auto& c : mpc::StrUtil::toUpper(file->getNameWithoutExtension()))
         {
             if (c == ' ')
             {
@@ -132,7 +131,7 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
 
         auto ext = file->getExtension();
 
-        popupScreen->setText("LOADING " + StrUtil::padRight(soundFileName, " ", 16) + ext);
+        popupScreen->setText("LOADING " + mpc::StrUtil::padRight(soundFileName, " ", 16) + ext);
 
         layeredScreen->openScreen("popup");
         popupScreen->returnToScreenAfterMilliSeconds(screenToReturnTo, 300);
@@ -201,9 +200,9 @@ void PadControl::timerCallback()
     }
 }
 
-void PadControl::update(moduru::observer::Observable *, nonstd::any arg)
+void PadControl::update(mpc::Observable *, mpc::Message message)
 {
-    int velocity = nonstd::any_cast<int>(arg);
+    int velocity = std::get<int>(message);
 
     if (velocity == 255)
     {

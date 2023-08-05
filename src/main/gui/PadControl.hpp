@@ -2,7 +2,7 @@
 
 #include "VmpcTooltipComponent.hpp"
 
-#include <observer/Observer.hpp>
+#include <Observer.hpp>
 
 #include <thread>
 #include <memory>
@@ -16,7 +16,7 @@ namespace mpc::hardware {
 class PadControl
         : public VmpcTooltipComponent,
           public juce::FileDragAndDropTarget,
-          public moduru::observer::Observer
+          public mpc::Observer
 {
 
 private:
@@ -42,7 +42,7 @@ public:
     void filesDropped(const juce::StringArray &files, int x, int y) override;
 
 public:
-    void update(moduru::observer::Observable *o, nonstd::any arg) override;
+    void update(mpc::Observable *o, mpc::Message message) override;
     void setBounds();
 
 public:

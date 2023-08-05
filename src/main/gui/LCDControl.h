@@ -1,7 +1,7 @@
 #pragma once
 #include "VmpcComponent.hpp"
 
-#include <observer/Observer.hpp>
+#include <Observer.hpp>
 
 #include <vector>
 #include <memory>
@@ -19,7 +19,7 @@ namespace mpc::lcdgui {
 class LCDControl
 	: public VmpcComponent
 	, public juce::Timer
-	, public moduru::observer::Observer
+    , public mpc::Observer
 {
 
 private:
@@ -47,7 +47,7 @@ public:
     LCDControl(mpc::Mpc& mpc);
     ~LCDControl() override;
 
-    void update(moduru::observer::Observable* o, nonstd::any msg) override;
+    void update(mpc::Observable* o, mpc::Message) override;
 
 private:
     friend class AuxLCD;

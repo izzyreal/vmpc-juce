@@ -22,11 +22,11 @@ LCDControl::LCDControl(mpc::Mpc& _mpc)
     othersScreen->addObserver(this);
 }
 
-void LCDControl::update(moduru::observer::Observable *, nonstd::any msg)
+void LCDControl::update(mpc::Observable *, mpc::Message message)
 {
-    auto message = nonstd::any_cast<std::string>(msg);
+    const auto msg = std::get<std::string>(message);
 
-    if (message == "contrast")
+    if (msg == "contrast")
     {
         ls->getFocusedLayer()->SetDirty(); // Could be done less invasively by just redrawing the current pixels of the LCD screens, but with updated colors
         repaint();

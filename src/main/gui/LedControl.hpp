@@ -3,13 +3,13 @@
 #include "juce_graphics/juce_graphics.h"
 #include "juce_audio_processors/juce_audio_processors.h"
 
-#include <observer/Observer.hpp>
+#include <Observer.hpp>
 
 namespace mpc { class Mpc; }
 
 class LedControl
 : public juce::Timer
-, public moduru::observer::Observer
+    , public mpc::Observer
 {
     
 private:
@@ -65,7 +65,7 @@ public:
     void setTransform(juce::AffineTransform transform);
     void setBounds();
     
-    void update(moduru::observer::Observable* o, nonstd::any arg) override;
+    void update(mpc::Observable* o, mpc::Message message) override;
     
     void timerCallback() override;
     
