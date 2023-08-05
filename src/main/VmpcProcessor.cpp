@@ -59,8 +59,8 @@ VmpcProcessor::VmpcProcessor()
   struct tm* currentLocalTime = localtime(&currentTime);
   auto timeString = std::string(asctime(currentLocalTime));
 
-  moduru::Logger::l.setPath(mpc::Paths::logFilePath().string());
-  moduru::Logger::l.log("\n\n-= VMPC2000XL v" + std::string(version::get()) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
+  mpc::Logger::l.setPath(mpc::Paths::logFilePath().string());
+  mpc::Logger::l.log("\n\n-= VMPC2000XL v" + std::string(version::get()) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
 
   mpc.init(1, 5);
 
