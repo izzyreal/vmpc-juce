@@ -177,13 +177,16 @@ if (UNIX AND NOT APPLE)
     target_link_libraries(vmpc2000xl PRIVATE ${udisks2_LIBRARIES} X11)
 endif()
 
-target_link_libraries(vmpc2000xl PRIVATE
+target_link_libraries(vmpc2000xl
+  PRIVATE
     juce::juce_audio_utils
+    raw_keyboard_input
+    mpc
+    moduru
+  PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
-    juce::juce_recommended_warning_flags
-    raw_keyboard_input
-    mpc)
+    juce::juce_recommended_warning_flags)
 
 _bundle_vmpc_juce_resources(vmpc2000xl)
 
