@@ -57,12 +57,6 @@ FetchContent_Declare(mpc
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/mpc
 )
 
-FetchContent_Declare(moduru
-  GIT_REPOSITORY https://github.com/izzyreal/moduru.git
-  GIT_TAG        master
-  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/moduru
-)
-
 FetchContent_Declare(tl-expected
   GIT_REPOSITORY https://github.com/TartanLlama/expected.git
   GIT_TAG        v1.0.0
@@ -71,7 +65,7 @@ FetchContent_Declare(tl-expected
   BUILD_COMMAND ""
 )
 
-FetchContent_MakeAvailable(moduru mpc JUCE juce-raw-keyboard-input-module)
+FetchContent_MakeAvailable(mpc JUCE juce-raw-keyboard-input-module)
 
 FetchContent_GetProperties(tl-expected)
 
@@ -135,7 +129,6 @@ endif()
 
 target_include_directories(vmpc2000xl PUBLIC
   ${mpc_SOURCE_DIR}/src/main
-  ${moduru_SOURCE_DIR}/src/main
   ${tl-expected_SOURCE_DIR}/include
 )
 
@@ -189,7 +182,6 @@ target_link_libraries(vmpc2000xl
     juce::juce_audio_utils
     raw_keyboard_input
     mpc
-    moduru
   PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
