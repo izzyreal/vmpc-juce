@@ -17,6 +17,7 @@
 #include <cmrc/cmrc.hpp>
 
 #include "../version.h"
+#include "Paths.hpp"
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
@@ -82,7 +83,20 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     addAndMakeVisible(background);
 
     dataWheel = new DataWheelControl(mpc, mpc.getHardware()->getDataWheel());
-    dataWheelImg = ResourceUtil::loadImage("img/datawheels.jpg");
+
+    const auto dataWheelSkinPath = mpc::Paths::appDocumentsPath() / "Skin" / "datawheels.png";
+    const bool dataWheelSkinExists = fs::exists(dataWheelSkinPath);
+
+    if (dataWheelSkinExists)
+    {
+        const auto skinData = get_file_data(dataWheelSkinPath);
+        dataWheelImg = juce::ImageFileFormat::loadFrom(&skinData[0], skinData.size());
+    }
+    else
+    {
+        dataWheelImg = ResourceUtil::loadImage("img/datawheels.jpg");
+    }
+
     dataWheel->setImage(dataWheelImg, 100);
     addAndMakeVisible(dataWheel);
 
@@ -126,7 +140,19 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
         }
     }
 
-    sliderImg = ResourceUtil::loadImage("img/sliders.jpg");
+    const auto sliderSkinPath = mpc::Paths::appDocumentsPath() / "Skin" / "sliders.png";
+    const bool sliderSkinExists = fs::exists(sliderSkinPath);
+
+    if (sliderSkinExists)
+    {
+        const auto skinData = get_file_data(sliderSkinPath);
+        sliderImg = juce::ImageFileFormat::loadFrom(&skinData[0], skinData.size());
+    }
+    else
+    {
+        sliderImg = ResourceUtil::loadImage("img/sliders.jpg");
+    }
+
     slider = new SliderControl(mpc.getHardware()->getSlider());
     slider->setImage(sliderImg);
     addAndMakeVisible(slider);
