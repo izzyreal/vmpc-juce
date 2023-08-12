@@ -48,13 +48,14 @@ public:
   
 private:
   void processMidiIn(juce::MidiBuffer& midiMessages);
-  void processMidiOut(juce::MidiBuffer& midiMessages);
+  void processMidiOut(juce::MidiBuffer& midiMessages, bool discard);
   void processTransport();
 
   juce::AudioSampleBuffer monoToStereoBufferIn;
   juce::AudioSampleBuffer monoToStereoBufferOut;
   double m_Tempo = 0;
   bool wasPlaying = false;
+  int framesProcessed = 0;
 
   std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>> midiOutputBuffer = std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>>(100);
 

@@ -264,7 +264,7 @@ void VmpcProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
   }
 }
 
-void VmpcProcessor::processMidiOut(juce::MidiBuffer& midiMessages)
+void VmpcProcessor::processMidiOut(juce::MidiBuffer& midiMessages, bool discard)
 {
     midiMessages.clear();
 
@@ -309,6 +309,11 @@ void VmpcProcessor::processMidiOut(juce::MidiBuffer& midiMessages)
     };
 
     const auto outputAEventCount = mpc.getMidiOutput()->dequeueOutputA(midiOutputBuffer);
+
+    if (discard)
+    {
+        return;
+    }
 
     for (unsigned int i = 0; i < outputAEventCount; i++)
     {
@@ -420,7 +425,17 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
 
   server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannelsFinal, totalNumOutputChannelsFinal);
 
-  processMidiOut(midiMessages);
+  // I've observed a crash in Ableton Live VST3 indicating what could be allocating MIDI events too soon.
+  // So we give it a little bit of leeway of 10000 frames.
+  if (framesProcessed < 10000)
+  {
+      framesProcessed += buffer.getNumSamples();
+      processMidiOut(midiMessages, true);
+  }
+  else
+  {
+      processMidiOut(midiMessages, false);
+  }
 
   if (totalNumOutputChannels < 1)
   {
