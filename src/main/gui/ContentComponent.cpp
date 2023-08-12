@@ -14,14 +14,10 @@
 #include <hardware/Hardware.hpp>
 #include <hardware/Led.hpp>
 
-#include <cmrc/cmrc.hpp>
-
 #include "../version.h"
 #include "Paths.hpp"
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
-
-CMRC_DECLARE(vmpcjuce);
 
 #ifdef __APPLE__
 #include <TargetConditionals.h>
@@ -94,7 +90,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     }
     else
     {
-        dataWheelImg = ResourceUtil::loadImage("img/datawheels.jpg");
+        dataWheelImg = vmpc::ResourceUtil::loadImage("img/datawheels.jpg");
     }
 
     dataWheel->setImage(dataWheelImg, 100);
@@ -123,7 +119,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     const int padOffsetY = 397;
     int padCounter = 0;
 
-    padHitImg = ResourceUtil::loadImage("img/padhit.png");
+    padHitImg = vmpc::ResourceUtil::loadImage("img/padhit.png");
 
     for (int j = 3; j >= 0; j--)
     {
@@ -150,25 +146,25 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     }
     else
     {
-        sliderImg = ResourceUtil::loadImage("img/sliders.jpg");
+        sliderImg = vmpc::ResourceUtil::loadImage("img/sliders.jpg");
     }
 
     slider = new SliderControl(mpc.getHardware()->getSlider());
     slider->setImage(sliderImg);
     addAndMakeVisible(slider);
 
-    recKnobImg = ResourceUtil::loadImage("img/recknobs.jpg");
+    recKnobImg = vmpc::ResourceUtil::loadImage("img/recknobs.jpg");
     recKnob = new KnobControl(mpc.getHardware()->getRecPot());
     recKnob->setImage(recKnobImg);
     addAndMakeVisible(recKnob);
 
-    volKnobImg = ResourceUtil::loadImage("img/volknobs.jpg");
+    volKnobImg = vmpc::ResourceUtil::loadImage("img/volknobs.jpg");
     volKnob = new KnobControl(mpc.getHardware()->getVolPot());
     volKnob->setImage(volKnobImg);
     addAndMakeVisible(volKnob);
 
-    ledRedImg = ResourceUtil::loadImage("img/led_red.png");
-    ledGreenImg = ResourceUtil::loadImage("img/led_green.png");
+    ledRedImg = vmpc::ResourceUtil::loadImage("img/led_red.png");
+    ledGreenImg = vmpc::ResourceUtil::loadImage("img/led_green.png");
 
     leds = new LedControl(mpc, ledGreenImg, ledRedImg);
     leds->setPadBankA(true);
@@ -184,17 +180,17 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     auto transparentWhite = juce::Colours::transparentWhite;
 
-    keyboardImg = ResourceUtil::loadImage("img/keyboard.png");
+    keyboardImg = vmpc::ResourceUtil::loadImage("img/keyboard.png");
 
     keyboardButton.setImages(false, true, true, keyboardImg, 0.5, transparentWhite, keyboardImg, 1.0, transparentWhite,
                              keyboardImg, 0.25, transparentWhite);
 
-    resetWindowSizeImg = ResourceUtil::loadImage("img/reset-window-size.png");
+    resetWindowSizeImg = vmpc::ResourceUtil::loadImage("img/reset-window-size.png");
 
     resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, transparentWhite, resetWindowSizeImg,
                                     1.0, transparentWhite, resetWindowSizeImg, 0.25, transparentWhite);
 #if ENABLE_IMPORT
-    importImg = ResourceUtil::loadImage("img/import.png");
+    importImg = vmpc::ResourceUtil::loadImage("img/import.png");
 
     importButton.setImages(false, true, true, importImg, 0.5, transparentWhite, importImg, 1.0, transparentWhite,
                            importImg, 0.25, transparentWhite);
@@ -213,7 +209,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     versionLabel.setColour(juce::Label::textColourId, juce::Colours::grey);
     addAndMakeVisible(versionLabel);
 
-    helpImg = ResourceUtil::loadImage("img/help.png");
+    helpImg = vmpc::ResourceUtil::loadImage("img/help.png");
     helpButton.setImages(false, true, true, helpImg, 0.5, transparentWhite, helpImg, 1.0, transparentWhite,
                          helpImg, 0.25, transparentWhite);
     helpButton.setTooltip("Browse online documentation");
@@ -226,7 +222,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     if (juce::JUCEApplicationBase::isStandaloneApp())
     {
-        gearImg = ResourceUtil::loadImage("img/gear.png");
+        gearImg = vmpc::ResourceUtil::loadImage("img/gear.png");
         gearButton.setImages(false, true, true, gearImg, 0.5, transparentWhite, gearImg, 1.0, transparentWhite,
                              gearImg, 0.25, transparentWhite);
         gearButton.setTooltip("Audio/MIDI Settings");

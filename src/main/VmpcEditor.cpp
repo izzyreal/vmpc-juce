@@ -42,7 +42,7 @@ void VmpcEditor::showDisclaimer()
       juce::Image img;
       VmpcSplashScreen() {
         setWantsKeyboardFocus(false);
-        img = ResourceUtil::loadImage("img/disclaimer.gif");
+        img = vmpc::ResourceUtil::loadImage("img/disclaimer.gif");
         startTimer(8000);
       }
       

@@ -1,7 +1,8 @@
 #include "Background.h"
-#include "../ResourceUtil.h"
 #include "mpc_fs.hpp"
 #include "Paths.hpp"
+
+#include "../ResourceUtil.h"
 
 Background::Background()
 {
@@ -15,7 +16,7 @@ Background::Background()
   }
   else
   {
-      img = ResourceUtil::loadImage("img/bg.jpg");
+      img = vmpc::ResourceUtil::loadImage("img/bg.jpg");
   }
 
   setBufferedToImage(true);
