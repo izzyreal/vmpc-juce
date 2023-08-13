@@ -29,7 +29,7 @@ end_index = first_cert.find(end, begin_index + len(begin))
 
 if end_index == -1:
     raise Exception("Only find organisational unit start marker '\OU=' was found. " +
-                    "Failed to end marker '/O'  in what seems to be " +
+                    "Failed to find end marker '/O'  in what seems to be " +
                     "a string with valid certificate info:", first_cert)
 
 organisational_unit = first_cert[begin_index + len(begin):end_index]
