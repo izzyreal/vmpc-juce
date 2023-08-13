@@ -42,6 +42,7 @@ set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 FetchContent_Declare(JUCE
   GIT_REPOSITORY https://github.com/izzyreal/JUCE.git
   GIT_TAG        patched-for-ios-7.0.5
+  GIT_SHALLOW    ON
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/JUCE
 )
 
@@ -60,6 +61,7 @@ FetchContent_Declare(mpc
 FetchContent_Declare(tl-expected
   GIT_REPOSITORY https://github.com/TartanLlama/expected.git
   GIT_TAG        v1.0.0
+  GIT_SHALLOW    ON
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/deps/expected
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
