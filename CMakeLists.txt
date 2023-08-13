@@ -22,7 +22,7 @@ add_compile_definitions(RAPIDJSON_NOMEMBERITERATORCLASS)
 if(APPLE)
   if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
     # This is not a typo. See https://cmake.org/cmake/help/latest/variable/CMAKE_OSX_DEPLOYMENT_TARGET.html
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE INTERNAL "Minimum iOS deployment version")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE INTERNAL "Minimum iOS deployment version")
   else()
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE INTERNAL "Minimum OS X deployment version")
   endif()
