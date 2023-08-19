@@ -96,7 +96,7 @@ void LCDControl::checkLsDirty()
         ls->Draw();
         drawPixelsToImg();
         auto dirtyRect_x2 = juce::Rectangle<int>(dirtyArea.L * 2, dirtyArea.T * 2, dirtyArea.W() * 2, dirtyArea.H() * 2);
-        repaint(dirtyRect_x2);
+        repaint(dirtyRect_x2.expanded(1));
 
         if (auxWindow != nullptr)
         {
