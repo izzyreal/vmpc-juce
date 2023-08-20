@@ -53,8 +53,14 @@ FetchContent_Declare(juce-raw-keyboard-input-module
 
 FetchContent_Declare(mpc
   GIT_REPOSITORY https://github.com/izzyreal/mpc.git
-  GIT_TAG        master
+  GIT_TAG        mac-elevation
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/mpc
+)
+
+FetchContent_Declare(macos-raw-usb-helper
+        GIT_REPOSITORY https://github.com/izzyreal/macos-raw-usb-helper
+        GIT_TAG        main
+        SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/macos-raw-usb-helper
 )
 
 FetchContent_Declare(tl-expected
@@ -66,7 +72,7 @@ FetchContent_Declare(tl-expected
   BUILD_COMMAND ""
 )
 
-FetchContent_MakeAvailable(mpc JUCE juce-raw-keyboard-input-module)
+FetchContent_MakeAvailable(mpc JUCE juce-raw-keyboard-input-module macos-raw-usb-helper)
 
 FetchContent_GetProperties(tl-expected)
 
@@ -189,6 +195,13 @@ target_link_libraries(vmpc2000xl
     juce::juce_recommended_warning_flags)
 
 _bundle_vmpc_juce_resources(vmpc2000xl)
+
+add_dependencies(vmpc2000xl_Standalone macos-raw-usb-helper)
+add_custom_command(TARGET vmpc2000xl_Standalone POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:vmpc2000xl_Standalone>/../Library/LaunchServices/
+        COMMAND ${CMAKE_COMMAND} -E copy_directory $<TARGET_FILE_DIR:macos-raw-usb-helper>/..
+        $<TARGET_FILE_DIR:vmpc2000xl_Standalone>/../Library/LaunchServices/macos-raw-usb-helper.app
+)
 
 if (APPLE)
   execute_process(

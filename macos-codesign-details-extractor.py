@@ -15,7 +15,7 @@ args = parser.parse_args()
 
 first_cert = subprocess.check_output("security find-certificate -c \"Apple Development\" -p | openssl x509 -subject", universal_newlines=True, shell=True, stderr=subprocess.STDOUT)
 
-begin = "/OU="
+begin = "OU = "
 
 begin_index = first_cert.find(begin)
 
@@ -23,7 +23,7 @@ if begin == -1:
     raise Exception("Failed to find organisational unit when looking for the following "
                     "string in the output of 'security find-certificate -c \"Apple Development\" -p':", begin)
 
-end = "/O"
+end = ", O ="
 
 end_index = first_cert.find(end, begin_index + len(begin))
 
