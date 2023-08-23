@@ -10,7 +10,7 @@ find_package(Git)
 if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
   set(VMPC_VERSION 0.5.3)
 else()
-  set(VMPC_VERSION 0.5.3)
+  set(VMPC_VERSION 0.5.3.1)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
