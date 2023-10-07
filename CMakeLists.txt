@@ -64,10 +64,19 @@ FetchContent_Declare(tl-expected
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
 )
+FetchContent_Declare(avir
+        GIT_REPOSITORY https://github.com/avaneev/avir.git
+        GIT_TAG        master
+        GIT_SHALLOW    ON
+        SOURCE_DIR     ${CMAKE_SOURCE_DIR}/deps/avir
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+)
 
 FetchContent_MakeAvailable(mpc JUCE juce-raw-keyboard-input-module)
 
-FetchContent_GetProperties(tl-expected)
+FetchContent_GetProperties(tl-expected avir)
+FetchContent_Populate(avir)
 
 if(NOT tl-expected_POPULATED)
   FetchContent_Populate(tl-expected)
@@ -130,6 +139,7 @@ endif()
 target_include_directories(vmpc2000xl PUBLIC
   ${mpc_SOURCE_DIR}/src/main
   ${tl-expected_SOURCE_DIR}/include
+  ${avir_SOURCE_DIR}
 )
 
 set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/src/main")
