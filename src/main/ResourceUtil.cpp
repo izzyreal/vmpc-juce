@@ -1,7 +1,7 @@
 #include "ResourceUtil.h"
 
 #ifdef MAC_BUNDLE_RESOURCES
-#include "MacBundleResources.hpp"
+#include "MacBundleResources.h"
 #else
 #include <cmrc/cmrc.hpp>
 #include <string_view>
@@ -22,7 +22,7 @@ juce::Image ResourceUtil::loadImage(const std::string& path)
 #ifdef MAC_BUNDLE_RESOURCES
 juce::Image ResourceUtil::loadImageFromMacBundleResources(const std::string &path)
 {
-    const auto imgPath = getMacBundleResourcesPath() + "/" + path;
+    const auto imgPath = mpc::MacBundleResources::getResourcePath(path);
     return juce::ImageFileFormat::loadFrom(juce::File(imgPath));
 }
 #else
