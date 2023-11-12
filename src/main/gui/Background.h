@@ -2,10 +2,12 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+namespace mpc { class Mpc; }
+
 struct Background : public juce::Component {
 
 public:
-  Background();
+  Background(mpc::Mpc&);
   
   void paint(juce::Graphics& g) override;
   

@@ -15,7 +15,6 @@
 #include <hardware/Led.hpp>
 
 #include "../version.h"
-#include "Paths.hpp"
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
@@ -75,12 +74,12 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     setWantsKeyboardFocus(true);
 
-    background = new Background();
+    background = new Background(mpc);
     addAndMakeVisible(background);
 
     dataWheel = new DataWheelControl(mpc, mpc.getHardware()->getDataWheel());
 
-    const auto dataWheelSkinPath = mpc::Paths::appDocumentsPath() / "Skin" / "datawheels.png";
+    const auto dataWheelSkinPath = mpc.paths->appDocumentsPath() / "Skin" / "datawheels.png";
     const bool dataWheelSkinExists = fs::exists(dataWheelSkinPath);
 
     if (dataWheelSkinExists)
@@ -136,7 +135,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
         }
     }
 
-    const auto sliderSkinPath = mpc::Paths::appDocumentsPath() / "Skin" / "sliders.png";
+    const auto sliderSkinPath = mpc.paths->appDocumentsPath() / "Skin" / "sliders.png";
     const bool sliderSkinExists = fs::exists(sliderSkinPath);
 
     if (sliderSkinExists)

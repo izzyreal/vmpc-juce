@@ -1,12 +1,12 @@
 #include "Background.h"
 #include "mpc_fs.hpp"
-#include "Paths.hpp"
+#include "Mpc.hpp"
 
 #include "../ResourceUtil.h"
 
-Background::Background()
+Background::Background(mpc::Mpc& mpc)
 {
-  const auto skinPath = mpc::Paths::appDocumentsPath() / "Skin" / "bg.jpg";
+  const auto skinPath = mpc.paths->appDocumentsPath() / "Skin" / "bg.jpg";
   const bool skinExists = fs::exists(skinPath);
 
   if (skinExists)

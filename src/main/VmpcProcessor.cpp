@@ -19,7 +19,6 @@
 #include <disk/AllLoader.hpp>
 #include <disk/AbstractDisk.hpp>
 
-#include <Paths.hpp>
 #include <sequencer/Sequencer.hpp>
 
 #include <lcdgui/screens/SyncScreen.hpp>
@@ -58,7 +57,7 @@ VmpcProcessor::VmpcProcessor()
   struct tm* currentLocalTime = localtime(&currentTime);
   auto timeString = std::string(asctime(currentLocalTime));
 
-  mpc::Logger::l.setPath(mpc::Paths::logFilePath().string());
+  mpc::Logger::l.setPath(mpc.paths->logFilePath().string());
   mpc::Logger::l.log("\n\n-= VMPC2000XL v" + std::string(version::get()) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
 
   mpc.init(1, 5);
@@ -636,7 +635,7 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
     if (mpc_ui != nullptr)
     {
         auto currentDir = fs::path(mpc_ui->getStringAttribute("currentDir").toStdString());
-        auto relativePath = fs::relative(currentDir, mpc::Paths::defaultLocalVolumePath());
+        auto relativePath = fs::relative(currentDir, mpc.paths->defaultLocalVolumePath());
 
         for (auto& pathSegment : relativePath)
         {
