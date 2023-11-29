@@ -26,7 +26,7 @@ Long story short, using VMPC2000XL as a sampler, recording new sounds with it, d
 
 |      macOS      |                              AU                              |                        AUv3                        | VST3 |
 | :-------------: | :----------------------------------------------------------: | :------------------------------------------------: | ---- |
-|  Logix Pro (X)  | 1 stereo in (Side Chain in top right of plugin)<br />5 stereo out | 0 stereo in<br />1 stereo out<br />only MIDI input |      |
+|  Logic Pro (X)  | 1 stereo in (Side Chain in top right of plugin)<br />5 stereo out | 0 stereo in<br />1 stereo out<br />only MIDI input |      |
 | Ableton Live 10 |                1 stereo in<br />5 stereo out                 |                unsupported by Live                 |      |
 |   GarageBand    |                                                              | 0 stereo in<br />1 stereo out<br />only MIDI input |      |
 |    Cubase 10    |                                                              |                                                    |      |
