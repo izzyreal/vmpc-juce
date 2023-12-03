@@ -28,13 +28,13 @@
 #if ENABLE_IMPORT
 bool VmpcURLProcessor::destinationExists(const char* filename, const char* relativePath)
 {
-  auto newFilePath = fs::path(destinationDir).append(relativePath).append(filename);
+  auto newFilePath = fs::path(destinationDir()).append(relativePath).append(filename);
   return fs::exists(newFilePath);
 }
 
 std::shared_ptr<std::ostream> VmpcURLProcessor::openOutputStream(const char* filename, const char* relativePath)
 {
-  auto newFileDir = fs::path(destinationDir).append(relativePath);
+  auto newFileDir = fs::path(destinationDir()).append(relativePath);
   fs::create_directories(newFileDir);
   auto newFilePath = newFileDir.append(filename);
   mpc::disk::MpcFile newFile(newFilePath);

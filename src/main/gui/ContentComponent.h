@@ -22,10 +22,12 @@
 namespace mpc { class Mpc; }
 
 class VmpcURLProcessor : public URLProcessor {
+private:
+    std::string destinationDir() {
+        return mpc->paths->defaultLocalVolumePath();
+    }
 public:
   mpc::Mpc* mpc;
-  std::string destinationDir = mpc::Paths::defaultLocalVolumePath();
-  
   bool destinationExists(const char* filename, const char* relativePath) override;
   std::shared_ptr<std::ostream> openOutputStream(const char* filename, const char* relativePath) override;
   void initFiles() override;
