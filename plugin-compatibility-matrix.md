@@ -40,9 +40,14 @@ Long story short, using VMPC2000XL as a sampler, recording new sounds with it, d
 * Any MIDI Controller (1-127) controls the slider
 * Persist full state including samples to DAW projects and programs
 
-**Not implemented**:
+**Not implemented**
 
 * Musical position synchronization
 * Button to MIDI mapping
 
 This will also serve as a rough indication of VMPC2000XL's MIDI and other control protocol support for the time being, which indeed is very crude and limited compared to the original.
+
+**Some notes on Logic**
+* Side-chain options may be hidden depending on your Logic settings. To see the side-chain option, enable "Show Advanced Tools" in Preferences > Advanced, and make sure the "Audio" checkbox is enabled.
+* You can resize the window, but not via the plugin window's handle. Use the bottom-right of the background of VMPC2000XL itself instead. I've been informed this is a known issue with Logic, and that literally only Apple's own plugins allow that kind of resizing.
+* I have seen occasional absence of keyboard input. This seems to happen due to some issue related to window focus. Close and reopen the plugin window to work around this.
