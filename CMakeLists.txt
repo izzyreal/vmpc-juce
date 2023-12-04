@@ -82,6 +82,7 @@ if (IOS)
       APP_GROUP_IDS group.nl.izmar.vmpc2000xl
       FILE_SHARING_ENABLED TRUE
       DOCUMENT_BROWSER_ENABLED TRUE
+      TARGETED_DEVICE_FAMILY "2"
   
       BUNDLE_ID nl.izmar.vmpc2000xl
   
