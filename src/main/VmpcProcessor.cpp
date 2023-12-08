@@ -71,6 +71,12 @@ VmpcProcessor::VmpcProcessor()
   {
     mpc::AutoSave::restoreAutoSavedState(mpc);
   }
+
+  if (!juce::JUCEApplication::isStandaloneApp())
+  {
+      auto syncScreen = mpc.screens->get<SyncScreen>("sync");
+      syncScreen->modeIn = 1;
+  }
 }
 
 VmpcProcessor::~VmpcProcessor()
