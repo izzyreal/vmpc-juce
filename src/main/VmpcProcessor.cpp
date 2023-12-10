@@ -60,7 +60,7 @@ VmpcProcessor::VmpcProcessor()
   mpc::Logger::l.setPath(mpc.paths->logFilePath().string());
   mpc::Logger::l.log("\n\n-= VMPC2000XL v" + std::string(version::get()) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
 
-  mpc.init(1, 5);
+  mpc.init();
 
   if (juce::PluginHostType::jucePlugInClientCurrentWrapperType != juce::AudioProcessor::wrapperType_LV2)
   {
