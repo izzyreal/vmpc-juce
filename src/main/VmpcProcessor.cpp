@@ -20,6 +20,7 @@
 #include <disk/AbstractDisk.hpp>
 
 #include <sequencer/Sequencer.hpp>
+#include <sequencer/ExternalClock.hpp>
 
 #include <lcdgui/screens/SyncScreen.hpp>
 #include <lcdgui/screens/window/DirectoryScreen.hpp>
@@ -406,6 +407,24 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
 
   processTransport();
   processMidiIn(midiMessages);
+
+  auto playHead = getPlayHead();
+
+  if (playHead != nullptr)
+  {
+      auto info = playHead->getPosition();
+      if (info->getIsPlaying())
+      {
+          auto ppqPos = info->getPpqPosition();
+          if (ppqPos.hasValue())
+          {
+             mpc.getExternalClock()->clearTicks();
+             mpc.getExternalClock()->computeTicksForCurrentBuffer(*ppqPos,
+                                                                  buffer.getNumSamples(), getSampleRate(),
+                                                                  m_Tempo);
+         }
+     }
+  }
 
   auto chDataIn = buffer.getArrayOfReadPointers();
   auto chDataOut = buffer.getArrayOfWritePointers();
