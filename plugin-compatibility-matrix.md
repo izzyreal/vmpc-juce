@@ -53,5 +53,6 @@ This will also serve as a rough indication of VMPC2000XL's MIDI and other contro
 * I have seen occasional absence of keyboard input. This seems to happen due to some issue related to window focus. Close and reopen the plugin window to work around this.
 
 **Some notes on Reaper**
+
 Enable "Send all keyboard input to plug-in" to use VMPC2000XL's full keyboard mapping. This is recommended, else basic keyboard input, like Esc to go to MAIN screen will close the plugin editor, and using F1-F6 keys is not possible.
 <img width="579" alt="image" src="https://github.com/izzyreal/vmpc-juce/assets/3707432/4f90842e-e05f-4948-9662-5be69adb2749">
