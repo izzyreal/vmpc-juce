@@ -352,16 +352,19 @@ void VmpcProcessor::processTransport()
 
   if (syncEnabled)
   {
-    auto info = getPlayHead()->getPosition();
-    double tempo = info->getBpm().orFallback(120);
+    const auto info = getPlayHead()->getPosition();
+    const double tempo = info->getBpm().orFallback(120);
+    const bool isPlaying = info->getIsPlaying();
 
     if (tempo != m_Tempo || mpc.getSequencer()->getTempo() != tempo)
     {
-      mpc.getSequencer()->setTempo(tempo);
+      if (isPlaying)
+      {
+          mpc.getSequencer()->setTempo(tempo);
+      }
+
       m_Tempo = tempo;
     }
-
-    bool isPlaying = info->getIsPlaying();
 
     if (!wasPlaying && isPlaying)
     {
