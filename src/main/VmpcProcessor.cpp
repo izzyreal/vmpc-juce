@@ -20,6 +20,7 @@
 #include <disk/AbstractDisk.hpp>
 
 #include <sequencer/Sequencer.hpp>
+#include <sequencer/ExternalClock.hpp>
 
 #include <lcdgui/screens/SyncScreen.hpp>
 #include <lcdgui/screens/window/DirectoryScreen.hpp>
@@ -60,7 +61,7 @@ VmpcProcessor::VmpcProcessor()
   mpc::Logger::l.setPath(mpc.paths->logFilePath().string());
   mpc::Logger::l.log("\n\n-= VMPC2000XL v" + std::string(version::get()) + " " + timeString.substr(0, timeString.length() - 1) + " =-\n");
 
-  mpc.init(1, 5);
+  mpc.init();
 
   if (juce::PluginHostType::jucePlugInClientCurrentWrapperType != juce::AudioProcessor::wrapperType_LV2)
   {
@@ -351,16 +352,19 @@ void VmpcProcessor::processTransport()
 
   if (syncEnabled)
   {
-    auto info = getPlayHead()->getPosition();
-    double tempo = info->getBpm().orFallback(120);
+    const auto info = getPlayHead()->getPosition();
+    const double tempo = info->getBpm().orFallback(120);
+    const bool isPlaying = info->getIsPlaying();
 
     if (tempo != m_Tempo || mpc.getSequencer()->getTempo() != tempo)
     {
-      mpc.getSequencer()->setTempo(tempo);
+      if (isPlaying)
+      {
+          mpc.getSequencer()->setTempo(tempo);
+      }
+
       m_Tempo = tempo;
     }
-
-    bool isPlaying = info->getIsPlaying();
 
     if (!wasPlaying && isPlaying)
     {
@@ -406,6 +410,25 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
 
   processTransport();
   processMidiIn(midiMessages);
+
+  auto playHead = getPlayHead();
+
+  if (playHead != nullptr)
+  {
+      auto info = playHead->getPosition();
+      if (info->getIsPlaying())
+      {
+          auto ppqPos = info->getPpqPosition();
+          if (ppqPos.hasValue())
+          {
+             mpc.getExternalClock()->clearTicks();
+             mpc.getExternalClock()->computeTicksForCurrentBuffer(*ppqPos,
+                                                                  *info->getPpqPositionOfLastBarStart(),
+                                                                  buffer.getNumSamples(), getSampleRate(),
+                                                                  m_Tempo);
+         }
+     }
+  }
 
   auto chDataIn = buffer.getArrayOfReadPointers();
   auto chDataOut = buffer.getArrayOfWritePointers();
