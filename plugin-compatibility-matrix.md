@@ -51,6 +51,7 @@ This will also serve as a rough indication of VMPC2000XL's MIDI and other contro
 * Side-chain options may be hidden depending on your Logic settings. To see the side-chain option, enable "Show Advanced Tools" in Preferences > Advanced, and make sure the "Audio" checkbox is enabled.
 * You can resize the window, but not via the plugin window's handle. Use the bottom-right of the background of VMPC2000XL itself instead. I've been informed this is a known issue with Logic, and that literally only Apple's own plugins allow that kind of resizing.
 * I have seen occasional absence of keyboard input. This seems to happen due to some issue related to window focus. Close and reopen the plugin window to work around this.
+* Logic seems to block key repeat for certain keys. The `+` and `-` keys that are by default used to turn the DATA wheel do not repeat. This can be annoying, but I don't have a workaround for now. Be aware, though, that as usual Shift and Control can be used for bigger increments. Press them both for even bigger increments.
 
 **Some notes on Reaper**
 
