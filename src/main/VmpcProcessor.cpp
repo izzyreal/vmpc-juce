@@ -420,6 +420,7 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
           {
              mpc.getExternalClock()->clearTicks();
              mpc.getExternalClock()->computeTicksForCurrentBuffer(*ppqPos,
+                                                                  *info->getPpqPositionOfLastBarStart(),
                                                                   buffer.getNumSamples(), getSampleRate(),
                                                                   m_Tempo);
          }
