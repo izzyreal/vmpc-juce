@@ -103,8 +103,8 @@ if (IOS)
       FORMATS AUv3 Standalone
       PRODUCT_NAME "VMPC2000XL")
 
-set_target_properties(vmpc2000xl_Standalone XCODE_ATTRIBUTES_CONFIGURATION_BUILD_DIR "$(inherited)")
-set_target_properties(vmpc2000xl_AUv3 XCODE_ATTRIBUTES_CONFIGURATION_BUILD_DIR "$(inherited)")
+set_target_properties(vmpc2000xl_Standalone PROPERTIES XCODE_ATTRIBUTES_CONFIGURATION_BUILD_DIR "$(inherited)")
+set_target_properties(vmpc2000xl_AUv3 PROPERTIES XCODE_ATTRIBUTES_CONFIGURATION_BUILD_DIR "$(inherited)")
 
 else()
     juce_add_plugin(vmpc2000xl
