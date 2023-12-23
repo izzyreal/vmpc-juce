@@ -51,6 +51,39 @@ void VmpcURLProcessor::initFiles()
         layeredScreen->openScreen(currentScreen);
     }
 }
+
+std::string VmpcExportURLProcessor::destinationDir()
+{
+    return mpc->getDisk()->getAbsolutePath();
+}
+
+bool VmpcExportURLProcessor::destinationExists(const char* filename, const char* relativePath)
+{
+  auto newFilePath = fs::path(destinationDir()).append(relativePath).append(filename);
+  return fs::exists(newFilePath);
+}
+
+std::shared_ptr<std::ostream> VmpcExportURLProcessor::openOutputStream(const char* filename, const char* relativePath)
+{
+  auto newFileDir = fs::path(destinationDir()).append(relativePath);
+  fs::create_directories(newFileDir);
+  auto newFilePath = newFileDir.append(filename);
+  mpc::disk::MpcFile newFile(newFilePath);
+  return newFile.getOutputStream();
+}
+
+void VmpcExportURLProcessor::initFiles()
+{
+    auto layeredScreen = mpc->getLayeredScreen();
+    auto currentScreen = layeredScreen->getCurrentScreenName();
+    if (currentScreen == "load" || currentScreen == "save" || currentScreen == "directory")
+    {
+        layeredScreen->openScreen(currentScreen == "directory" ? "load" : "black");
+        mpc->getDisk()->initFiles();
+        layeredScreen->openScreen(currentScreen);
+    }
+}
+
 #endif
 
 ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAudioSettingsDialog)
@@ -58,6 +91,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 {
 #if JUCE_IOS
     urlProcessor.mpc = &mpc;
+    exportUrlProcessor.mpc = &mpc;
 #endif
     setName("ContentComponent");
 
@@ -212,7 +246,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     exportButton.onClick = [&]() {
         auto uiView = getPeer()->getNativeHandle();
-//        doOpenIosDocumentBrowser(&urlProcessor, uiView);
+        doOpenIosExportDocumentBrowser(&exportUrlProcessor, uiView);
     };
 
     addAndMakeVisible(exportButton);

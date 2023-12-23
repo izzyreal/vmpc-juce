@@ -2,7 +2,7 @@
 #include <TargetConditionals.h>
 #if TARGET_OS_IPHONE
 
-#include "IosDocumentBrowser.h"
+#include "IosExportDocumentBrowser.h"
 
 #include <CoreServices/UTCoreTypes.h>
 #include <UIKit/UIKit.h>
@@ -11,7 +11,7 @@
 
 @interface MyDelegate<UIDocumentBrowserViewControllerDelegate> : NSObject
 
-@property (assign) URLProcessor* urlProcessor;
+@property (assign) ExportURLProcessor* urlProcessor;
 @property (assign) UIProgressView* progressView;
 @property (assign) UIViewController* controller;
 @property (assign) UIAlertController* alert;
@@ -207,7 +207,7 @@
   [[self rootViewController] dismissViewControllerAnimated:true completion:nil];
 }
 
--(void) openIosDocumentBrowser:(URLProcessor*)urlProcessor {
+-(void) openIosDocumentBrowser:(ExportURLProcessor*)urlProcessor {
   NSArray<NSString*> *utis = @[(NSString*)kUTTypeItem];
   UIDocumentBrowserViewController *picker =
   [[UIDocumentBrowserViewController alloc] initForOpeningFilesWithContentTypes:utis];
@@ -232,7 +232,7 @@
 
 /* ------------- */
 
-void doOpenIosDocumentBrowser(URLProcessor* urlProcessor, void* nativeWindowHandle) {
+void doOpenIosExportDocumentBrowser(ExportURLProcessor* urlProcessor, void* nativeWindowHandle) {
   auto uiview = (UIView*) nativeWindowHandle;
   auto window = (UIWindow*)[uiview window];
   [window openIosDocumentBrowser:urlProcessor];
