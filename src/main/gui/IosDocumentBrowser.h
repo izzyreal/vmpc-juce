@@ -9,8 +9,6 @@
 #include <memory>
 #include <fstream>
 
-namespace mpc { class Mpc; }
-
 class URLProcessor {
 public:
   virtual bool destinationExists(const char* /* filename */, const char* /* relativeDir */) = 0;
