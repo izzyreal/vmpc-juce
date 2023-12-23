@@ -18,14 +18,7 @@
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
-#ifdef __APPLE__
-#include <TargetConditionals.h>
-#if TARGET_OS_IPHONE
-#define ENABLE_IMPORT 1
-#endif
-#endif
-
-#if ENABLE_IMPORT
+#if JUCE_IOS
 
 std::string VmpcURLProcessor::destinationDir()
 {
@@ -63,7 +56,7 @@ void VmpcURLProcessor::initFiles()
 ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAudioSettingsDialog)
         : mpc(_mpc), keyEventHandler(mpc.getControls()->getKeyEventHandler())
 {
-#if ENABLE_IMPORT
+#if JUCE_IOS
     urlProcessor.mpc = &mpc;
 #endif
     setName("ContentComponent");
@@ -194,7 +187,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, transparentWhite, resetWindowSizeImg,
                                     1.0, transparentWhite, resetWindowSizeImg, 0.25, transparentWhite);
-#if ENABLE_IMPORT
+#if JUCE_IOS
     importImg = vmpc::ResourceUtil::loadImage("img/import.png");
 
     importButton.setImages(false, true, true, importImg, 0.5, transparentWhite, importImg, 1.0, transparentWhite,
@@ -208,6 +201,22 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     };
 
     addAndMakeVisible(importButton);
+    
+// Maybe the below only when Standalone
+    exportImg = vmpc::ResourceUtil::loadImage("img/export.png");
+
+    exportButton.setImages(false, true, true, exportImg, 0.5, transparentWhite, exportImg, 1.0, transparentWhite,
+                           exportImg, 0.25, transparentWhite);
+
+    exportButton.setTooltip("Export files or folders");
+
+    exportButton.onClick = [&]() {
+        auto uiView = getPeer()->getNativeHandle();
+//        doOpenIosDocumentBrowser(&urlProcessor, uiView);
+    };
+
+    addAndMakeVisible(exportButton);
+
 #endif
   
     versionLabel.setText(version::get(), juce::dontSendNotification);
@@ -361,11 +370,13 @@ void ContentComponent::resized()
         helpButton.setTransform(scaleTransform);
     }
 
-#if ENABLE_IMPORT
+#if JUCE_IOS
     importButton.setBounds(1298 - (145 + 20), 10, 50, 50);
     importButton.setTransform(scaleTransform);
+    
+    exportButton.setBounds(1298 - (275 + 50), 10, 50, 50);
+    exportButton.setTransform(scaleTransform);
 #endif
-
 
     versionLabel.setTransform(scaleTransform);
     versionLabel.setBounds(1152, 114, 100, 20);

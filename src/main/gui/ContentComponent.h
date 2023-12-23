@@ -12,10 +12,7 @@
 
 #include <vector>
 
-#ifdef __APPLE__
-#include <TargetConditionals.h>
-#if TARGET_OS_IPHONE
-
+#if JUCE_IOS
 #include "IosDocumentBrowser.h"
 #include "Paths.hpp"
 
@@ -31,9 +28,6 @@ public:
   void initFiles() override;
 };
 
-#define ENABLE_IMPORT 1
-
-#endif
 #endif
 
 class KeyboardButton : public juce::ImageButton {
@@ -70,7 +64,7 @@ public:
   void globalFocusChanged(juce::Component*) override;
 
 private:
-#if ENABLE_IMPORT
+#if JUCE_IOS
   VmpcURLProcessor urlProcessor;
 #endif
   mpc::Mpc& mpc;
@@ -89,6 +83,7 @@ private:
   juce::Image keyboardImg;
   juce::Image resetWindowSizeImg;
   juce::Image importImg;
+  juce::Image exportImg;
 
   juce::Label versionLabel;
 
@@ -97,6 +92,7 @@ private:
   KeyboardButton keyboardButton;
   juce::ImageButton resetWindowSizeButton;
   juce::ImageButton importButton;
+  juce::ImageButton exportButton;
 
   Background* background;
   DataWheelControl* dataWheel;
