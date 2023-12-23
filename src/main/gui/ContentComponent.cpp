@@ -381,36 +381,72 @@ void ContentComponent::resized()
     volKnob->setBounds(Constants::volKnobRect().getX(), Constants::volKnobRect().getY(), volKnobImg.getWidth() / 2,
                        volKnobImg.getHeight() * 0.01 * 0.5);
 
-    keyboardButton.setBounds(1298 - (100 + 10), 10, 100, 50);
+    // Assuming scaleTransform is a juce::AffineTransform that scales the components
+    float scaleFactor = scaleTransform.getScaleFactor();
+
+    juce::FlexBox flexBox;
+    flexBox.flexDirection = juce::FlexBox::Direction::row;
+    flexBox.justifyContent = juce::FlexBox::JustifyContent::flexEnd;
+    flexBox.alignItems = juce::FlexBox::AlignItems::center;
+    flexBox.flexWrap = juce::FlexBox::Wrap::noWrap;
+
+    // Apply scale transform to each button
     keyboardButton.setTransform(scaleTransform);
+    helpButton.setTransform(scaleTransform);
+    resetWindowSizeButton.setTransform(scaleTransform);
+    gearButton.setTransform(scaleTransform);
+    #if JUCE_IOS
+    importButton.setTransform(scaleTransform);
+    exportButton.setTransform(scaleTransform);
+    #endif
+
+    // Calculate the total width of all buttons, adjusted by the scale factor
+    int totalButtonsWidth = 0;
+    totalButtonsWidth += 100; // Adjusted width of keyboardButton
+    totalButtonsWidth += 45;  // Adjusted width of helpButton
 
     if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS)
     {
-        resetWindowSizeButton.setBounds(1298 - (145 + 20), 13, 45, 45);
-        resetWindowSizeButton.setTransform(scaleTransform);
+        totalButtonsWidth += 45; // Add adjusted width of resetWindowSizeButton
     }
 
     if (juce::JUCEApplicationBase::isStandaloneApp())
     {
-        gearButton.setBounds(1298 - (190 + 30), 13, 45, 45);
-        gearButton.setTransform(scaleTransform);
-
-        helpButton.setBounds(1298 - (235 + 40), 13, 45, 45);
-        helpButton.setTransform(scaleTransform);
-    }
-    else
-    {
-        helpButton.setBounds(1298 - (280 + 50), 13, 45, 45);
-        helpButton.setTransform(scaleTransform);
+        totalButtonsWidth += 45; // Add adjusted width of gearButton
     }
 
-#if JUCE_IOS
-    importButton.setBounds(1298 - (145 + 20), 10, 50, 50);
-    importButton.setTransform(scaleTransform);
-    
-    exportButton.setBounds(1298 - (275 + 50), 10, 50, 50);
-    exportButton.setTransform(scaleTransform);
-#endif
+    #if JUCE_IOS
+    totalButtonsWidth += 50; // Add adjusted width of importButton
+    totalButtonsWidth += 50; // Add adjusted width of exportButton
+    #endif
+
+    // Calculate the number of buttons and add scaled margins between them
+    int numberOfButtons = 1 + 1; // keyboardButton and helpButton
+    if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS)
+        numberOfButtons += 1; // resetWindowSizeButton
+    if (juce::JUCEApplicationBase::isStandaloneApp())
+        numberOfButtons += 1; // gearButton
+    #if JUCE_IOS
+    numberOfButtons += 2; // importButton and exportButton
+    #endif
+    totalButtonsWidth += 10 * (numberOfButtons - 1); // Add scaled margins
+
+    // Add FlexItems in reverse order
+    #if JUCE_IOS
+    flexBox.items.add(juce::FlexItem(exportButton).withMinWidth(50).withMinHeight(50));
+    flexBox.items.add(juce::FlexItem(importButton).withMinWidth(50).withMinHeight(50));
+    #endif
+    if (juce::JUCEApplicationBase::isStandaloneApp())
+        flexBox.items.add(juce::FlexItem(gearButton).withMinWidth(45).withMinHeight(45));
+    if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS)
+        flexBox.items.add(juce::FlexItem(resetWindowSizeButton).withMinWidth(45).withMinHeight(45));
+    flexBox.items.add(juce::FlexItem(helpButton).withMinWidth(45).withMinHeight(45));
+    flexBox.items.add(juce::FlexItem(keyboardButton).withMinWidth(100).withMinHeight(50));
+
+    // Set the area for the FlexBox layout, aligning it to the top-right corner
+    int rightMargin = 10;
+    juce::Rectangle<int> flexBoxArea((getWidth() / scaleFactor) - totalButtonsWidth - rightMargin, 0, totalButtonsWidth, 60);
+    flexBox.performLayout(flexBoxArea);
 
     versionLabel.setTransform(scaleTransform);
     versionLabel.setBounds(1152, 114, 100, 20);

@@ -7,9 +7,45 @@
 #include <CoreServices/UTCoreTypes.h>
 #include <UIKit/UIKit.h>
 
+
+// CustomActivityItemSource.h
+@interface CustomActivityItemSource : NSObject <UIActivityItemSource>
+@end
+
+// CustomActivityItemSource.m
+@implementation CustomActivityItemSource
+
+- (id)activityViewControllerPlaceholderItem:(UIActivityViewController *)activityViewController {
+    return [NSURL fileURLWithPath:@""];
+}
+
+- (id)activityViewController:(UIActivityViewController *)activityViewController itemForActivityType:(UIActivityType)activityType {
+    // Define the file path and name
+    NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:@"foo.txt"];
+    // Binary data - In this case, it's just the string "Hello" converted to data
+    NSData *data = [@"Hello" dataUsingEncoding:NSUTF8StringEncoding];
+
+    // Write the data to a file
+    [data writeToFile:path atomically:YES];
+
+    // Return the file URL
+    return [NSURL fileURLWithPath:path];
+}
+
+- (NSString *)activityViewController:(UIActivityViewController *)activityViewController subjectForActivityType:(nullable UIActivityType)activityType {
+    return @"foo.txt";
+}
+
+- (NSString *)activityViewController:(UIActivityViewController *)activityViewController dataTypeIdentifierForActivityType:(UIActivityType)activityType {
+    return @"public.data";
+}
+
+@end
+
+
 /* ------------- */
 
-@interface MyDelegate<UIDocumentBrowserViewControllerDelegate> : NSObject
+@interface MyExportDelegate<UIDocumentPickerViewControllerDelegate> : NSObject
 
 @property (assign) ExportURLProcessor* urlProcessor;
 @property (assign) UIProgressView* progressView;
@@ -22,7 +58,7 @@
 
 /* ------------- */
 
-@implementation MyDelegate
+@implementation MyExportDelegate
 
 - (void)showCopyProgressView {
   dispatch_sync(dispatch_get_main_queue(), ^{
@@ -207,26 +243,76 @@
   [[self rootViewController] dismissViewControllerAnimated:true completion:nil];
 }
 
--(void) openIosDocumentBrowser:(ExportURLProcessor*)urlProcessor {
-  NSArray<NSString*> *utis = @[(NSString*)kUTTypeItem];
-  UIDocumentBrowserViewController *picker =
-  [[UIDocumentBrowserViewController alloc] initForOpeningFilesWithContentTypes:utis];
-  auto cancelButton = [[UIBarButtonItem alloc]initWithCustomView:self];
-  cancelButton.title = @"Cancel";
-  cancelButton.action = @selector(cancelButtonAction:);
-  cancelButton.target = self;
-  picker.additionalLeadingNavigationBarButtonItems = [NSArray arrayWithObject:cancelButton];
-  picker.allowsDocumentCreation = false;
-  picker.allowsPickingMultipleItems = true;
-  MyDelegate* delegate = [[MyDelegate alloc]init];
-  [delegate setOverwriteAll:false];
-  [delegate setOverwriteNone:false];
-  [delegate setUrlProcessor:urlProcessor];
-  [delegate setController:picker];
-  picker.delegate = (id) delegate;
-  picker.modalPresentationStyle = UIModalPresentationCurrentContext;
-  [[self rootViewController] presentViewController:picker animated:YES completion:nil];
+-(void)openIosDocumentBrowser:(ExportURLProcessor*)urlProcessor {
+    // Create a file URL for "foo.txt" in the temporary directory
+    NSString *tempDirectory = NSTemporaryDirectory();
+    NSString *fooFilePath = [tempDirectory stringByAppendingPathComponent:@"foo.txt"];
+    NSURL *fooFileURL = [NSURL fileURLWithPath:fooFilePath];
+    
+    // Write the binary data "Hello" to "foo.txt"
+    NSData *fooData = [@"Hello" dataUsingEncoding:NSUTF8StringEncoding];
+    [fooData writeToFile:fooFilePath atomically:YES];
+    
+    // Create a file URL for "bar.txt" in the temporary directory
+    NSString *barFilePath = [tempDirectory stringByAppendingPathComponent:@"bar.txt"];
+    NSURL *barFileURL = [NSURL fileURLWithPath:barFilePath];
+    
+    // Write the binary data "World!" to "bar.txt"
+    NSData *barData = [@"World!" dataUsingEncoding:NSUTF8StringEncoding];
+    [barData writeToFile:barFilePath atomically:YES];
+    
+    // Initialize filePathsArray and add the paths of foo.txt and bar.txt
+    NSMutableArray *filePathsArray = [NSMutableArray arrayWithObjects:fooFilePath, barFilePath, nil];
+    
+    // The rest of your code for handling multiple files/directories
+    NSMutableArray *itemsToShare = [[NSMutableArray alloc] init];
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    
+    for (NSString *path in filePathsArray) {
+        BOOL isDirectory;
+        if ([fileManager fileExistsAtPath:path isDirectory:&isDirectory]) {
+            if (isDirectory) {
+                // If it's a directory, recursively add its contents
+                NSDirectoryEnumerator *enumerator = [fileManager enumeratorAtPath:path];
+                NSString *subpath;
+                while (subpath = [enumerator nextObject]) {
+                    NSString *fullSubpath = [path stringByAppendingPathComponent:subpath];
+                    NSURL *fileURL = [NSURL fileURLWithPath:fullSubpath];
+                    [itemsToShare addObject:fileURL];
+                }
+            } else {
+                // If it's a file, just add it directly
+                NSURL *fileURL = [NSURL fileURLWithPath:path];
+                [itemsToShare addObject:fileURL];
+            }
+        }
+    }
+    
+    // Initialize the activity view controller with the array of items
+    UIActivityViewController *activityViewController = [[UIActivityViewController alloc] initWithActivityItems:itemsToShare applicationActivities:nil];
+    
+    // Configure the activity view controller for presentation on iPad
+    activityViewController.modalPresentationStyle = UIModalPresentationPopover;
+    UIPopoverPresentationController *presentationController = [activityViewController popoverPresentationController];
+    presentationController.sourceView = self.rootViewController.view;
+    presentationController.sourceRect = CGRectMake(self.rootViewController.view.bounds.size.width / 2, self.rootViewController.view.bounds.size.height / 4, 0, 0);
+    
+    // Present the activity view controller
+    [activityViewController setCompletionWithItemsHandler:^(UIActivityType _Nullable activityType, BOOL completed, NSArray * _Nullable returnedItems, NSError * _Nullable activityError) {
+        if (completed) {
+            // Cleanup routine to delete all items in filePathsArray
+            for (NSString *path in filePathsArray) {
+                NSError *error;
+                if (![fileManager removeItemAtPath:path error:&error]) {
+                    NSLog(@"Failed to delete %@: %@", path, error);
+                }
+            }
+        }
+    }];
+    
+    [self.rootViewController presentViewController:activityViewController animated:YES completion:nil];
 }
+
 
 @end
 
