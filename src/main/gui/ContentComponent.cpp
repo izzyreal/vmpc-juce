@@ -4,9 +4,6 @@
 
 #include <Mpc.hpp>
 
-#include <disk/AbstractDisk.hpp>
-#include <disk/MpcFile.hpp>
-
 #include <controls/Controls.hpp>
 #include <controls/KeyEvent.hpp>
 #include <controls/KeyEventHandler.hpp>
@@ -18,48 +15,9 @@
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
-#ifdef __APPLE__
-#include <TargetConditionals.h>
-#if TARGET_OS_IPHONE
-#define ENABLE_IMPORT 1
-#endif
-#endif
-
-#if ENABLE_IMPORT
-bool VmpcURLProcessor::destinationExists(const char* filename, const char* relativePath)
-{
-  auto newFilePath = fs::path(destinationDir()).append(relativePath).append(filename);
-  return fs::exists(newFilePath);
-}
-
-std::shared_ptr<std::ostream> VmpcURLProcessor::openOutputStream(const char* filename, const char* relativePath)
-{
-  auto newFileDir = fs::path(destinationDir()).append(relativePath);
-  fs::create_directories(newFileDir);
-  auto newFilePath = newFileDir.append(filename);
-  mpc::disk::MpcFile newFile(newFilePath);
-  return newFile.getOutputStream();
-}
-
-void VmpcURLProcessor::initFiles()
-{
-    auto layeredScreen = mpc->getLayeredScreen();
-    auto currentScreen = layeredScreen->getCurrentScreenName();
-    if (currentScreen == "load" || currentScreen == "save" || currentScreen == "directory")
-    {
-        layeredScreen->openScreen(currentScreen == "directory" ? "load" : "black");
-        mpc->getDisk()->initFiles();
-        layeredScreen->openScreen(currentScreen);
-    }
-}
-#endif
-
 ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAudioSettingsDialog)
         : mpc(_mpc), keyEventHandler(mpc.getControls()->getKeyEventHandler())
 {
-#if ENABLE_IMPORT
-    urlProcessor.mpc = &mpc;
-#endif
     setName("ContentComponent");
 
     keyboard = KeyboardFactory::instance(this);
@@ -177,78 +135,13 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     leds->startTimer(25);
     slider->startTimer(25);
 
-    auto transparentWhite = juce::Colours::transparentWhite;
-
-    keyboardImg = vmpc::ResourceUtil::loadImage("img/keyboard.png");
-
-    keyboardButton.setImages(false, true, true, keyboardImg, 0.5, transparentWhite, keyboardImg, 1.0, transparentWhite,
-                             keyboardImg, 0.25, transparentWhite);
-
-    resetWindowSizeImg = vmpc::ResourceUtil::loadImage("img/reset-window-size.png");
-
-    resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, transparentWhite, resetWindowSizeImg,
-                                    1.0, transparentWhite, resetWindowSizeImg, 0.25, transparentWhite);
-#if ENABLE_IMPORT
-    importImg = vmpc::ResourceUtil::loadImage("img/import.png");
-
-    importButton.setImages(false, true, true, importImg, 0.5, transparentWhite, importImg, 1.0, transparentWhite,
-                           importImg, 0.25, transparentWhite);
-
-    importButton.setTooltip("Import files or folders");
-
-    importButton.onClick = [&]() {
-        auto uiView = getPeer()->getNativeHandle();
-        doOpenIosDocumentBrowser(&urlProcessor, uiView);
-    };
-
-    addAndMakeVisible(importButton);
-#endif
-  
     versionLabel.setText(version::get(), juce::dontSendNotification);
     versionLabel.setColour(juce::Label::textColourId, juce::Colours::grey);
     addAndMakeVisible(versionLabel);
-
-    helpImg = vmpc::ResourceUtil::loadImage("img/help.png");
-    helpButton.setImages(false, true, true, helpImg, 0.5, transparentWhite, helpImg, 1.0, transparentWhite,
-                         helpImg, 0.25, transparentWhite);
-    helpButton.setTooltip("Browse online documentation");
-    helpButton.onClick = [] {
-        juce::URL url("https://vmpcdocs.izmar.nl");
-        url.launchInDefaultBrowser();
-    };
-    helpButton.setWantsKeyboardFocus(false);
-    addAndMakeVisible(helpButton);
-
-    if (juce::JUCEApplicationBase::isStandaloneApp())
-    {
-        gearImg = vmpc::ResourceUtil::loadImage("img/gear.png");
-        gearButton.setImages(false, true, true, gearImg, 0.5, transparentWhite, gearImg, 1.0, transparentWhite,
-                             gearImg, 0.25, transparentWhite);
-        gearButton.setTooltip("Audio/MIDI Settings");
-        gearButton.onClick = [&showAudioSettingsDialog]() {
-            showAudioSettingsDialog();
-        };
-        gearButton.setWantsKeyboardFocus(false);
-        addAndMakeVisible(gearButton);
-    }
-
-    keyboardButton.setTooltip("Configure computer keyboard");
-    keyboardButton.onClick = [&]() {
-        mpc.getLayeredScreen()->openScreen("vmpc-keyboard");
-    };
-
-    keyboardButton.setWantsKeyboardFocus(false);
-    addAndMakeVisible(keyboardButton);
-
-    if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS)
-    {
-        resetWindowSizeButton.setTooltip("Reset window size");
-        resetWindowSizeButton.onClick = [&]() {
-            getParentComponent()->getParentComponent()->getParentComponent()->setSize(1298 / 2, 994 / 2);
-        };
-        resetWindowSizeButton.setWantsKeyboardFocus(false);
-        addAndMakeVisible(resetWindowSizeButton);
-    }
+    
+    topRightMenu = new TopRightMenu(mpc, showAudioSettingsDialog);
+    
+    addAndMakeVisible(topRightMenu);
 
     juce::Desktop::getInstance().addFocusChangeListener(this);
 }
@@ -259,6 +152,8 @@ ContentComponent::~ContentComponent()
   {
     l->deleteObserver(leds);
   }
+    
+    delete topRightMenu;
 
   juce::Desktop::getInstance().removeFocusChangeListener(this);
     delete keyboard;
@@ -331,35 +226,9 @@ void ContentComponent::resized()
     volKnob->setTransform(scaleTransform);
     volKnob->setBounds(Constants::volKnobRect().getX(), Constants::volKnobRect().getY(), volKnobImg.getWidth() / 2,
                        volKnobImg.getHeight() * 0.01 * 0.5);
-
-    keyboardButton.setBounds(1298 - (100 + 10), 10, 100, 50);
-    keyboardButton.setTransform(scaleTransform);
-
-    if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS)
-    {
-        resetWindowSizeButton.setBounds(1298 - (145 + 20), 13, 45, 45);
-        resetWindowSizeButton.setTransform(scaleTransform);
-    }
-
-    if (juce::JUCEApplicationBase::isStandaloneApp())
-    {
-        gearButton.setBounds(1298 - (190 + 30), 13, 45, 45);
-        gearButton.setTransform(scaleTransform);
-
-        helpButton.setBounds(1298 - (235 + 40), 13, 45, 45);
-        helpButton.setTransform(scaleTransform);
-    }
-    else
-    {
-        helpButton.setBounds(1298 - (280 + 50), 13, 45, 45);
-        helpButton.setTransform(scaleTransform);
-    }
-
-#if ENABLE_IMPORT
-    importButton.setBounds(1298 - (145 + 20), 10, 50, 50);
-    importButton.setTransform(scaleTransform);
-#endif
-
+    
+    topRightMenu->setTransform(scaleTransform);
+    topRightMenu->setBounds(0, 10, (getWidth() / scale) - 10, 60);
 
     versionLabel.setTransform(scaleTransform);
     versionLabel.setBounds(1152, 114, 100, 20);

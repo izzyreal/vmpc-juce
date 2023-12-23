@@ -2,7 +2,7 @@
 #include <TargetConditionals.h>
 #if TARGET_OS_IPHONE
 
-#include "IosDocumentBrowser.h"
+#include "ImportDocumentUrlProcessor.h"
 
 #include <CoreServices/UTCoreTypes.h>
 #include <UIKit/UIKit.h>
@@ -11,7 +11,7 @@
 
 @interface MyDelegate<UIDocumentBrowserViewControllerDelegate> : NSObject
 
-@property (assign) URLProcessor* urlProcessor;
+@property (assign) ImportDocumentUrlProcessor* urlProcessor;
 @property (assign) UIProgressView* progressView;
 @property (assign) UIViewController* controller;
 @property (assign) UIAlertController* alert;
@@ -158,26 +158,23 @@
 }
 
 - (void)handleURLs:(NSArray<NSURL*>*)urls relativeDir:(NSString*)relativeDir {
-  for (id url in urls)
-  {
-    [url startAccessingSecurityScopedResource];
-    
-    NSNumber *isDirectory;
-    
-    BOOL success = [url getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
-    
-    if (success && [isDirectory boolValue])
-    {
-      NSString* dirName = [url lastPathComponent];
-      NSString* newRelativeDir = [NSString stringWithFormat:@"%@%@/", relativeDir, dirName];
-      [self handleDir:url relativeDir:newRelativeDir];
+  for (id url in urls) {
+    @autoreleasepool {
+      [url startAccessingSecurityScopedResource];
+
+      NSNumber *isDirectory;
+      BOOL success = [url getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
+
+      if (success && [isDirectory boolValue]) {
+        NSString* dirName = [url lastPathComponent];
+        NSString* newRelativeDir = [NSString stringWithFormat:@"%@%@/", relativeDir, dirName];
+        [self handleDir:url relativeDir:newRelativeDir];
+      } else {
+        [self handleFile:url relativeDir:relativeDir];
+      }
+
+      [url stopAccessingSecurityScopedResource];
     }
-    else
-    {
-      [self handleFile:url relativeDir:relativeDir];
-    }
-    
-    [url stopAccessingSecurityScopedResource];
   }
 }
 
@@ -207,7 +204,7 @@
   [[self rootViewController] dismissViewControllerAnimated:true completion:nil];
 }
 
--(void) openIosDocumentBrowser:(URLProcessor*)urlProcessor {
+-(void) openIosDocumentBrowser:(ImportDocumentUrlProcessor*)urlProcessor {
   NSArray<NSString*> *utis = @[(NSString*)kUTTypeItem];
   UIDocumentBrowserViewController *picker =
   [[UIDocumentBrowserViewController alloc] initForOpeningFilesWithContentTypes:utis];
@@ -232,7 +229,7 @@
 
 /* ------------- */
 
-void doOpenIosDocumentBrowser(URLProcessor* urlProcessor, void* nativeWindowHandle) {
+void doOpenIosImportDocumentBrowser(ImportDocumentUrlProcessor* urlProcessor, void* nativeWindowHandle) {
   auto uiview = (UIView*) nativeWindowHandle;
   auto window = (UIWindow*)[uiview window];
   [window openIosDocumentBrowser:urlProcessor];

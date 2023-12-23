@@ -65,6 +65,21 @@ FetchContent_Declare(tl-expected
   BUILD_COMMAND ""
 )
 
+set(BUILD_EXAMPLES OFF)
+set(BUILD_TESTS OFF)
+set(INSTALL_PROJECT OFF)
+
+if(APPLE)
+if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
+FetchContent_Declare(miniz
+  GIT_REPOSITORY https://github.com/richgel999/miniz
+  GIT_TAG        master
+  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/deps/miniz
+)
+FetchContent_MakeAvailable(miniz)
+endif()
+endif()
+
 FetchContent_MakeAvailable(mpc JUCE juce-raw-keyboard-input-module)
 
 FetchContent_GetProperties(tl-expected)
@@ -74,71 +89,55 @@ if(NOT tl-expected_POPULATED)
 endif()
 
 if (IOS)
-  juce_add_plugin(vmpc2000xl
-      
-      REQUIRES_FULL_SCREEN TRUE
-      BACKGROUND_AUDIO_ENABLED TRUE
-      APP_GROUPS_ENABLED TRUE
-      APP_GROUP_IDS group.nl.izmar.vmpc2000xl
-      FILE_SHARING_ENABLED TRUE
-      DOCUMENT_BROWSER_ENABLED TRUE
-      TARGETED_DEVICE_FAMILY "2"
-  
-      BUNDLE_ID nl.izmar.vmpc2000xl
-  
-      AU_MAIN_TYPE kAudioUnitType_MusicEffect
-  
-      ICON_BIG "src/main/resources/icon.png"
-      COMPANY_NAME Izmar
-      IS_SYNTH TRUE
-      NEEDS_MIDI_INPUT TRUE
-      NEEDS_MIDI_OUTPUT TRUE
-      EDITOR_WANTS_KEYBOARD_FOCUS TRUE
-      PLUGIN_MANUFACTURER_CODE Izmr
-      PLUGIN_CODE 2kXL
-      MICROPHONE_PERMISSION_ENABLED TRUE
-      MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
-      HARDENED_RUNTIME_ENABLED TRUE
-      HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input
-      FORMATS AUv3 Standalone
-      PRODUCT_NAME "VMPC2000XL")
-
-  function(add_dsym target)
-    set_target_properties(${target} PROPERTIES
-      XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "$(inherited)"
-      XCODE_ATTRIBUTE_DEPLOYMENT_POSTPROCESSING[variant=RelWithDebInfo] "YES"
-      XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym"
-      XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES"
-    )
-  endfunction()
-
-  add_dsym(vmpc2000xl_Standalone)
-  add_dsym(vmpc2000xl_AUv3)
-
+    set(IOS_SPECIFIC_SETTINGS
+        REQUIRES_FULL_SCREEN TRUE
+        BACKGROUND_AUDIO_ENABLED TRUE
+        APP_GROUPS_ENABLED TRUE
+        APP_GROUP_IDS group.nl.izmar.vmpc2000xl
+        FILE_SHARING_ENABLED TRUE
+        DOCUMENT_BROWSER_ENABLED TRUE
+        TARGETED_DEVICE_FAMILY "2"
+        FORMATS AUv3 Standalone)
 else()
-    juce_add_plugin(vmpc2000xl
-      BUNDLE_ID nl.izmar.vmpc2000xl
-  
-      AU_MAIN_TYPE kAudioUnitType_MusicEffect
-      VST3_CATEGORIES Instrument Drum OnlyRT Sampler Stereo
-      VST_NUM_MIDI_INS 1
-      VST_NUM_MIDI_OUTS 1
+    set(NON_IOS_SPECIFIC_SETTINGS
+        VST3_CATEGORIES Instrument Drum OnlyRT Sampler Stereo
+        VST_NUM_MIDI_INS 1
+        VST_NUM_MIDI_OUTS 1
+        FORMATS LV2 VST3 AU AUv3 Standalone
+        LV2URI "http://www.izmar.nl/VMPC2000XL")
+endif()
 
-      ICON_BIG "src/main/resources/icon.png"
-      COMPANY_NAME Izmar
-      IS_SYNTH TRUE
-      NEEDS_MIDI_INPUT TRUE
-      NEEDS_MIDI_OUTPUT TRUE
-      EDITOR_WANTS_KEYBOARD_FOCUS TRUE
-      PLUGIN_MANUFACTURER_CODE Izmr
-      PLUGIN_CODE 2kXL
-      MICROPHONE_PERMISSION_ENABLED TRUE
-      MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
-      HARDENED_RUNTIME_ENABLED TRUE
-      HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input
-      FORMATS LV2 VST3 AU AUv3 Standalone
-      LV2URI "http://www.izmar.nl/VMPC2000XL"
-      PRODUCT_NAME "VMPC2000XL")
+# Single call to juce_add_plugin with conditional settings
+juce_add_plugin(vmpc2000xl
+    BUNDLE_ID nl.izmar.vmpc2000xl
+    AU_MAIN_TYPE kAudioUnitType_MusicEffect
+    ICON_BIG "src/main/resources/icon.png"
+    COMPANY_NAME Izmar
+    IS_SYNTH TRUE
+    NEEDS_MIDI_INPUT TRUE
+    NEEDS_MIDI_OUTPUT TRUE
+    EDITOR_WANTS_KEYBOARD_FOCUS TRUE
+    PLUGIN_MANUFACTURER_CODE Izmr
+    PLUGIN_CODE 2kXL
+    MICROPHONE_PERMISSION_ENABLED TRUE
+    MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
+    HARDENED_RUNTIME_ENABLED TRUE
+    HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input
+    PRODUCT_NAME "VMPC2000XL"
+    ${IOS_SPECIFIC_SETTINGS}
+    ${NON_IOS_SPECIFIC_SETTINGS})
+
+if (IOS)
+    function(add_dsym target)
+        set_target_properties(${target} PROPERTIES
+            XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "$(inherited)"
+            XCODE_ATTRIBUTE_DEPLOYMENT_POSTPROCESSING[variant=RelWithDebInfo] "YES"
+            XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym"
+            XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+    endfunction()
+
+    add_dsym(vmpc2000xl_Standalone)
+    add_dsym(vmpc2000xl_AUv3)
 endif()
 
 target_include_directories(vmpc2000xl PUBLIC
@@ -189,6 +188,10 @@ if (UNIX AND NOT APPLE)
     include(FindPkgConfig)
     pkg_search_module(udisks2 REQUIRED udisks2)
     target_link_libraries(vmpc2000xl PRIVATE ${udisks2_LIBRARIES} X11)
+endif()
+
+if (IOS)
+  target_link_libraries(vmpc2000xl PRIVATE miniz)
 endif()
 
 target_link_libraries(vmpc2000xl
