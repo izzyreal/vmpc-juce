@@ -26,6 +26,12 @@
 #endif
 
 #if ENABLE_IMPORT
+
+std::string VmpcURLProcessor::destinationDir()
+{
+    return mpc->getDisk()->getAbsolutePath();
+}
+
 bool VmpcURLProcessor::destinationExists(const char* filename, const char* relativePath)
 {
   auto newFilePath = fs::path(destinationDir()).append(relativePath).append(filename);

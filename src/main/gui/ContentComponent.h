@@ -23,9 +23,7 @@ namespace mpc { class Mpc; }
 
 class VmpcURLProcessor : public URLProcessor {
 private:
-    std::string destinationDir() {
-        return mpc->paths->defaultLocalVolumePath();
-    }
+    std::string destinationDir();
 public:
   mpc::Mpc* mpc;
   bool destinationExists(const char* filename, const char* relativePath) override;
