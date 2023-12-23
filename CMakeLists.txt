@@ -103,8 +103,17 @@ if (IOS)
       FORMATS AUv3 Standalone
       PRODUCT_NAME "VMPC2000XL")
 
-set_target_properties(vmpc2000xl_Standalone PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "$(inherited)")
-set_target_properties(vmpc2000xl_AUv3 PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "$(inherited)")
+  function(add_dsym target)
+    set_target_properties(${target} PROPERTIES
+      XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "$(inherited)"
+      XCODE_ATTRIBUTE_DEPLOYMENT_POSTPROCESSING[variant=RelWithDebInfo] "YES"
+      XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym"
+      XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES"
+    )
+  endfunction()
+
+  add_dsym(vmpc2000xl_Standalone)
+  add_dsym(vmpc2000xl_AUv3)
 
 else()
     juce_add_plugin(vmpc2000xl
