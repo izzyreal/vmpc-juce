@@ -243,31 +243,46 @@
   [[self rootViewController] dismissViewControllerAnimated:true completion:nil];
 }
 
--(void)openIosDocumentBrowser:(ExportURLProcessor*)urlProcessor {
-    // Create a file URL for "foo.txt" in the temporary directory
+-(void)presentShareOptions {
     NSString *tempDirectory = NSTemporaryDirectory();
-    NSString *fooFilePath = [tempDirectory stringByAppendingPathComponent:@"foo.txt"];
-    NSURL *fooFileURL = [NSURL fileURLWithPath:fooFilePath];
+     NSString *fooFilePath = [tempDirectory stringByAppendingPathComponent:@"foo.txt"];
+     NSURL *fooFileURL = [NSURL fileURLWithPath:fooFilePath];
+     
+     // Write the binary data "Hello" to "foo.txt"
+     NSData *fooData = [@"Hello" dataUsingEncoding:NSUTF8StringEncoding];
+     [fooData writeToFile:fooFilePath atomically:YES];
+     
+     // Create a file URL for "bar.txt" in the temporary directory
+     NSString *barFilePath = [tempDirectory stringByAppendingPathComponent:@"bar.txt"];
+     NSURL *barFileURL = [NSURL fileURLWithPath:barFilePath];
+     
+     // Write the binary data "World!" to "bar.txt"
+     NSData *barData = [@"World!" dataUsingEncoding:NSUTF8StringEncoding];
+     [barData writeToFile:barFilePath atomically:YES];
+     
+     // Initialize filePathsArray and add the paths of foo.txt and bar.txt
+     NSMutableArray *filePathsArray = [NSMutableArray arrayWithObjects:fooFilePath, barFilePath, nil];
     
-    // Write the binary data "Hello" to "foo.txt"
-    NSData *fooData = [@"Hello" dataUsingEncoding:NSUTF8StringEncoding];
-    [fooData writeToFile:fooFilePath atomically:YES];
-    
-    // Create a file URL for "bar.txt" in the temporary directory
-    NSString *barFilePath = [tempDirectory stringByAppendingPathComponent:@"bar.txt"];
-    NSURL *barFileURL = [NSURL fileURLWithPath:barFilePath];
-    
-    // Write the binary data "World!" to "bar.txt"
-    NSData *barData = [@"World!" dataUsingEncoding:NSUTF8StringEncoding];
-    [barData writeToFile:barFilePath atomically:YES];
-    
-    // Initialize filePathsArray and add the paths of foo.txt and bar.txt
-    NSMutableArray *filePathsArray = [NSMutableArray arrayWithObjects:fooFilePath, barFilePath, nil];
-    
-    // The rest of your code for handling multiple files/directories
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Share Options" message:@"Choose an option to share" preferredStyle:UIAlertControllerStyleAlert];
+
+    UIAlertAction *shareAllAction = [UIAlertAction actionWithTitle:@"Share APS and ALL of current project" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [self openActivityView:filePathsArray];
+    }];
+
+    UIAlertAction *shareSelectedAction = [UIAlertAction actionWithTitle:@"Share selected file or directory" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+        [self openActivityView:filePathsArray];
+    }];
+
+    [alertController addAction:shareAllAction];
+    [alertController addAction:shareSelectedAction];
+
+    [self.rootViewController presentViewController:alertController animated:YES completion:nil];
+}
+
+-(void)openActivityView:(NSArray *)filePathsArray {
+    // The rest of your code remains the same, starting from handling multiple files/directories
     NSMutableArray *itemsToShare = [[NSMutableArray alloc] init];
     NSFileManager *fileManager = [NSFileManager defaultManager];
-    
     for (NSString *path in filePathsArray) {
         BOOL isDirectory;
         if ([fileManager fileExistsAtPath:path isDirectory:&isDirectory]) {
@@ -318,10 +333,10 @@
 
 /* ------------- */
 
-void doOpenIosExportDocumentBrowser(ExportURLProcessor* urlProcessor, void* nativeWindowHandle) {
+void doPresentShareOptions(void* nativeWindowHandle) {
   auto uiview = (UIView*) nativeWindowHandle;
   auto window = (UIWindow*)[uiview window];
-  [window openIosDocumentBrowser:urlProcessor];
+  [window presentShareOptions];
 }
 
 #endif

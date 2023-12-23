@@ -18,7 +18,7 @@ public:
   virtual void initFiles() = 0;
 };
 
-void doOpenIosExportDocumentBrowser(ExportURLProcessor*, void* nativeWindowHandle);
+void doPresentShareOptions(void* nativeWindowHandle);
 
 #endif
 #endif

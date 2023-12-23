@@ -246,7 +246,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     exportButton.onClick = [&]() {
         auto uiView = getPeer()->getNativeHandle();
-        doOpenIosExportDocumentBrowser(&exportUrlProcessor, uiView);
+        doPresentShareOptions(uiView);
     };
 
     addAndMakeVisible(exportButton);
