@@ -213,7 +213,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     exportButton.onClick = [&]() {
         auto uiView = getPeer()->getNativeHandle();
-        doPresentShareOptions(uiView);
+        doPresentShareOptions(uiView, &mpc);
     };
 
     addAndMakeVisible(exportButton);

@@ -2,36 +2,43 @@
 #include <TargetConditionals.h>
 #if TARGET_OS_IPHONE
 
+#include <vector>
+
 #include "IosExportDocumentBrowser.h"
 
 #include <CoreServices/UTCoreTypes.h>
 #include <UIKit/UIKit.h>
 
+#include "Mpc.hpp"
+#include "file/aps/ApsParser.hpp"
+
 @implementation UIWindow (DocumentBrowser)
 
--(void)presentShareOptions {
+- (NSMutableArray<NSString *> *)writeApsAllAndSnd:(mpc::Mpc *)mpc {
     NSString *tempDirectory = NSTemporaryDirectory();
-     NSString *fooFilePath = [tempDirectory stringByAppendingPathComponent:@"foo.txt"];
-     NSURL *fooFileURL = [NSURL fileURLWithPath:fooFilePath];
-     
-     // Write the binary data "Hello" to "foo.txt"
-     NSData *fooData = [@"Hello" dataUsingEncoding:NSUTF8StringEncoding];
-     [fooData writeToFile:fooFilePath atomically:YES];
-     
-     // Create a file URL for "bar.txt" in the temporary directory
-     NSString *barFilePath = [tempDirectory stringByAppendingPathComponent:@"bar.txt"];
-     NSURL *barFileURL = [NSURL fileURLWithPath:barFilePath];
-     
-     // Write the binary data "World!" to "bar.txt"
-     NSData *barData = [@"World!" dataUsingEncoding:NSUTF8StringEncoding];
-     [barData writeToFile:barFilePath atomically:YES];
-     
-     // Initialize filePathsArray and add the paths of foo.txt and bar.txt
-     NSMutableArray *filePathsArray = [NSMutableArray arrayWithObjects:fooFilePath, barFilePath, nil];
+    NSMutableArray<NSString *> *filePathsArray = [NSMutableArray array];
+
+    std::vector<char> apsData = mpc::file::aps::ApsParser(*mpc, "ALL_PGMS").saveBytes;
+    NSData *data = [NSData dataWithBytes:apsData.data() length:apsData.size()];
     
-    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Share Options" message:@"Choose an option to share" preferredStyle:UIAlertControllerStyleAlert];
+    NSString *apsDataFilePath = [tempDirectory stringByAppendingPathComponent:@"ALL_PGMS.APS"];
+    if ([data writeToFile:apsDataFilePath atomically:YES]) {
+        [filePathsArray addObject:apsDataFilePath];
+    }
+
+    // Add other file paths if needed
+
+    return filePathsArray;
+}
+
+-(void)presentShareOptions:(mpc::Mpc*)mpc {
+    NSMutableArray<NSString *> *filePathsArray = [NSMutableArray array];
 
     UIAlertAction *shareAllAction = [UIAlertAction actionWithTitle:@"Share APS and ALL of current project" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+
+        NSMutableArray<NSString *> *generatedFilePaths = [self writeApsAllAndSnd:mpc];
+        [filePathsArray addObjectsFromArray:generatedFilePaths];
+
         [self openActivityView:filePathsArray];
     }];
 
@@ -39,9 +46,15 @@
         [self openActivityView:filePathsArray];
     }];
 
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action){}];
+
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Share Options" message:nil
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+    
     [alertController addAction:shareAllAction];
     [alertController addAction:shareSelectedAction];
-
+    [alertController addAction:cancelAction];
+    
     [self.rootViewController presentViewController:alertController animated:YES completion:nil];
 }
 
@@ -96,10 +109,10 @@
 
 @end
 
-void doPresentShareOptions(void* nativeWindowHandle) {
+void doPresentShareOptions(void* nativeWindowHandle, mpc::Mpc* mpc) {
   auto uiview = (UIView*) nativeWindowHandle;
   auto window = (UIWindow*)[uiview window];
-  [window presentShareOptions];
+  [window presentShareOptions:mpc];
 }
 
 #endif

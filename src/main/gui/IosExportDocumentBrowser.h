@@ -4,7 +4,11 @@
 #include <TargetConditionals.h>
 #if TARGET_OS_IPHONE
 
-void doPresentShareOptions(void* nativeWindowHandle);
+#include <stdio.h>
+
+namespace mpc { class Mpc; }
+
+void doPresentShareOptions(void* nativeWindowHandle, mpc::Mpc*);
 
 #endif
 #endif
