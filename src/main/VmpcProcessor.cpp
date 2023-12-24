@@ -542,7 +542,7 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
 
         auto sound = sounds[i];
         SndWriter sndWriter(sound.get());
-        auto data = sndWriter.getSndFileArray();
+        auto& data = sndWriter.getSndFileArray();
 
         juce::MemoryOutputStream encodedSound;
         juce::Base64::convertToBase64(encodedSound, &data[0], data.size());
