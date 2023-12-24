@@ -65,6 +65,21 @@ FetchContent_Declare(tl-expected
   BUILD_COMMAND ""
 )
 
+set(BUILD_EXAMPLES OFF)
+set(BUILD_TESTS OFF)
+set(INSTALL_PROJECT OFF)
+
+if(APPLE)
+if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
+FetchContent_Declare(miniz
+  GIT_REPOSITORY https://github.com/richgel999/miniz
+  GIT_TAG        master
+  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/deps/miniz
+)
+FetchContent_MakeAvailable(miniz)
+endif()
+endif()
+
 FetchContent_MakeAvailable(mpc JUCE juce-raw-keyboard-input-module)
 
 FetchContent_GetProperties(tl-expected)
@@ -189,6 +204,10 @@ if (UNIX AND NOT APPLE)
     include(FindPkgConfig)
     pkg_search_module(udisks2 REQUIRED udisks2)
     target_link_libraries(vmpc2000xl PRIVATE ${udisks2_LIBRARIES} X11)
+endif()
+
+if (IOS)
+  target_link_libraries(vmpc2000xl PRIVATE miniz)
 endif()
 
 target_link_libraries(vmpc2000xl

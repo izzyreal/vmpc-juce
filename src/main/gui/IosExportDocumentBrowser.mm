@@ -18,9 +18,12 @@
 #include "disk/AbstractDisk.hpp"
 #include "disk/MpcFile.hpp"
 
+#include "miniz.h"
+
 @implementation UIWindow (DocumentBrowser)
 
 - (NSMutableArray<NSString *> *)writeApsAllAndSnd:(mpc::Mpc *)mpc {
+    
     NSString *tempDirectory = NSTemporaryDirectory();
     NSMutableArray<NSString *> *filePathsArray = [NSMutableArray array];
 
@@ -50,6 +53,7 @@
 }
 
 - (NSMutableArray<NSString *> *)getSelectedFileOrDirectory:(mpc::Mpc *)mpc {
+    
     const auto selectedFile = mpc->screens->get<mpc::lcdgui::screens::LoadScreen>("load")->getSelectedFile();
     const bool isDirectory = selectedFile->isDirectory();
     const auto selectedFilePath = selectedFile->getPath();
@@ -58,12 +62,35 @@
     NSMutableArray<NSString *> *filePathsArray = [NSMutableArray array];
 
     if (isDirectory) {
+        NSString *tempDirectory = NSTemporaryDirectory();
+        NSString *zipFileName = [[NSString stringWithUTF8String:selectedFilePath.c_str()] lastPathComponent];
+        NSString *zipFilePath = [tempDirectory stringByAppendingPathComponent:[zipFileName stringByAppendingString:@".zip"]];
+
+        mz_zip_archive zip_archive;
+        memset(&zip_archive, 0, sizeof(zip_archive));
+        mz_bool status = mz_zip_writer_init_file(&zip_archive, zipFilePath.UTF8String, 0);
+
+        if (!status) {
+            NSLog(@"Failed to open zip archive for writing");
+            return filePathsArray;
+        }
+
         for (const auto& entry : fs::recursive_directory_iterator(selectedFilePath)) {
             if (!entry.is_directory()) {
-                NSString *filePath = [NSString stringWithUTF8String:entry.path().c_str()];
-                [filePathsArray addObject:filePath];
+                std::string relativePath = fs::relative(entry.path(), currentDirectory).string();
+                mz_bool file_added = mz_zip_writer_add_file(&zip_archive, relativePath.c_str(), entry.path().c_str(), "", 0, MZ_BEST_COMPRESSION);
+                if (!file_added) {
+                    NSLog(@"Failed to add file to zip archive: %s", entry.path().c_str());
+                    mz_zip_writer_end(&zip_archive);
+                    return filePathsArray;
+                }
             }
         }
+
+        mz_zip_writer_finalize_archive(&zip_archive);
+        mz_zip_writer_end(&zip_archive);
+
+        [filePathsArray addObject:zipFilePath];
     } else {
         NSString *filePath = [NSString stringWithUTF8String:selectedFilePath.c_str()];
         [filePathsArray addObject:filePath];
@@ -104,7 +131,12 @@
         UIAlertAction *shareSelectedAction = [UIAlertAction actionWithTitle:title style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             NSMutableArray<NSString *> *generatedFilePaths = [self getSelectedFileOrDirectory:mpc];
             [filePathsArray addObjectsFromArray:generatedFilePaths];
-            bool shouldCleanUpAfter = false;
+            
+            // We only clean up if the user has shared a directory, because in this
+            // case an intermediate zip file is created in the temp directory.
+            // Individual files are shared directly from their source location.
+            bool shouldCleanUpAfter = isDirectory;
+            
             [self openActivityView:filePathsArray shouldCleanUpAfter:shouldCleanUpAfter];
         }];
         
@@ -132,7 +164,7 @@
 }
 
 -(void)openActivityView:(NSArray *)filePathsArray shouldCleanUpAfter:(BOOL)shouldCleanUpAfter {
-    // The rest of your code remains the same, starting from handling multiple files/directories
+
     NSMutableArray *itemsToShare = [[NSMutableArray alloc] init];
     NSFileManager *fileManager = [NSFileManager defaultManager];
     
@@ -159,7 +191,7 @@
     // Initialize the activity view controller with the array of items
     UIActivityViewController *activityViewController = [[UIActivityViewController alloc] initWithActivityItems:itemsToShare applicationActivities:nil];
     
-    // Configure the activity view controller for presentation on iPad
+    // Configure the activity view controller
     activityViewController.modalPresentationStyle = UIModalPresentationPopover;
     UIPopoverPresentationController *presentationController = [activityViewController popoverPresentationController];
     presentationController.sourceView = self.rootViewController.view;
