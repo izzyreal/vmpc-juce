@@ -15,6 +15,7 @@
 #include "file/all/AllParser.hpp"
 #include "file/sndwriter/SndWriter.hpp"
 #include "lcdgui/screens/LoadScreen.hpp"
+#include "disk/AbstractDisk.hpp"
 #include "disk/MpcFile.hpp"
 
 @implementation UIWindow (DocumentBrowser)
@@ -52,6 +53,7 @@
     const auto selectedFile = mpc->screens->get<mpc::lcdgui::screens::LoadScreen>("load")->getSelectedFile();
     const bool isDirectory = selectedFile->isDirectory();
     const auto selectedFilePath = selectedFile->getPath();
+    const auto currentDirectory = mpc->getDisk()->getAbsolutePath();
     
     NSMutableArray<NSString *> *filePathsArray = [NSMutableArray array];
 
@@ -81,7 +83,9 @@
         NSMutableArray<NSString *> *generatedFilePaths = [self writeApsAllAndSnd:mpc];
         [filePathsArray addObjectsFromArray:generatedFilePaths];
 
-        [self openActivityView:filePathsArray];
+        bool shouldCleanUpAfter = true;
+        
+        [self openActivityView:filePathsArray shouldCleanUpAfter:shouldCleanUpAfter];
     }];
     
     [alertController addAction:shareApsSndsAllAction];
@@ -100,7 +104,8 @@
         UIAlertAction *shareSelectedAction = [UIAlertAction actionWithTitle:title style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             NSMutableArray<NSString *> *generatedFilePaths = [self getSelectedFileOrDirectory:mpc];
             [filePathsArray addObjectsFromArray:generatedFilePaths];
-            [self openActivityView:filePathsArray];
+            bool shouldCleanUpAfter = false;
+            [self openActivityView:filePathsArray shouldCleanUpAfter:shouldCleanUpAfter];
         }];
         
         [alertController addAction:shareSelectedAction];
@@ -126,10 +131,11 @@
     [self.rootViewController presentViewController:alertController animated:YES completion:nil];
 }
 
--(void)openActivityView:(NSArray *)filePathsArray {
+-(void)openActivityView:(NSArray *)filePathsArray shouldCleanUpAfter:(BOOL)shouldCleanUpAfter {
     // The rest of your code remains the same, starting from handling multiple files/directories
     NSMutableArray *itemsToShare = [[NSMutableArray alloc] init];
     NSFileManager *fileManager = [NSFileManager defaultManager];
+    
     for (NSString *path in filePathsArray) {
         BOOL isDirectory;
         if ([fileManager fileExistsAtPath:path isDirectory:&isDirectory]) {
@@ -161,7 +167,7 @@
     
     // Present the activity view controller
     [activityViewController setCompletionWithItemsHandler:^(UIActivityType _Nullable activityType, BOOL completed, NSArray * _Nullable returnedItems, NSError * _Nullable activityError) {
-        if (completed) {
+        if (completed && shouldCleanUpAfter) {
             // Cleanup routine to delete all items in filePathsArray
             for (NSString *path in filePathsArray) {
                 NSError *error;
