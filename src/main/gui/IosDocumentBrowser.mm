@@ -158,26 +158,23 @@
 }
 
 - (void)handleURLs:(NSArray<NSURL*>*)urls relativeDir:(NSString*)relativeDir {
-  for (id url in urls)
-  {
-    [url startAccessingSecurityScopedResource];
-    
-    NSNumber *isDirectory;
-    
-    BOOL success = [url getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
-    
-    if (success && [isDirectory boolValue])
-    {
-      NSString* dirName = [url lastPathComponent];
-      NSString* newRelativeDir = [NSString stringWithFormat:@"%@%@/", relativeDir, dirName];
-      [self handleDir:url relativeDir:newRelativeDir];
+  for (id url in urls) {
+    @autoreleasepool {
+      [url startAccessingSecurityScopedResource];
+
+      NSNumber *isDirectory;
+      BOOL success = [url getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
+
+      if (success && [isDirectory boolValue]) {
+        NSString* dirName = [url lastPathComponent];
+        NSString* newRelativeDir = [NSString stringWithFormat:@"%@%@/", relativeDir, dirName];
+        [self handleDir:url relativeDir:newRelativeDir];
+      } else {
+        [self handleFile:url relativeDir:relativeDir];
+      }
+
+      [url stopAccessingSecurityScopedResource];
     }
-    else
-    {
-      [self handleFile:url relativeDir:relativeDir];
-    }
-    
-    [url stopAccessingSecurityScopedResource];
   }
 }
 
