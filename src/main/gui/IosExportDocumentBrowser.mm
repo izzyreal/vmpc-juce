@@ -11,6 +11,7 @@
 
 #include "Mpc.hpp"
 #include "file/aps/ApsParser.hpp"
+#include "file/all/AllParser.hpp"
 
 @implementation UIWindow (DocumentBrowser)
 
@@ -20,13 +21,13 @@
 
     std::vector<char> apsData = mpc::file::aps::ApsParser(*mpc, "ALL_PGMS").saveBytes;
     NSData *data = [NSData dataWithBytes:apsData.data() length:apsData.size()];
-    
     NSString *apsDataFilePath = [tempDirectory stringByAppendingPathComponent:@"ALL_PGMS.APS"];
-    if ([data writeToFile:apsDataFilePath atomically:YES]) {
-        [filePathsArray addObject:apsDataFilePath];
-    }
+    if ([data writeToFile:apsDataFilePath atomically:YES]) { [filePathsArray addObject:apsDataFilePath]; }
 
-    // Add other file paths if needed
+    std::vector<char> allData = mpc::file::all::AllParser(*mpc).saveBytes;
+    data = [NSData dataWithBytes:allData.data() length:allData.size()];
+    NSString *allDataFilePath = [tempDirectory stringByAppendingPathComponent:@"ALL_SEQS.ALL"];
+    if ([data writeToFile:allDataFilePath atomically:YES]) { [filePathsArray addObject:allDataFilePath]; }
 
     return filePathsArray;
 }
@@ -34,7 +35,7 @@
 -(void)presentShareOptions:(mpc::Mpc*)mpc {
     NSMutableArray<NSString *> *filePathsArray = [NSMutableArray array];
 
-    UIAlertAction *shareAllAction = [UIAlertAction actionWithTitle:@"Share APS and ALL of current project" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    UIAlertAction *shareAllAction = [UIAlertAction actionWithTitle:@"Share APS, SNDs and ALL of current project" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
 
         NSMutableArray<NSString *> *generatedFilePaths = [self writeApsAllAndSnd:mpc];
         [filePathsArray addObjectsFromArray:generatedFilePaths];
