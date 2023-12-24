@@ -14,6 +14,8 @@
 #include "file/aps/ApsParser.hpp"
 #include "file/all/AllParser.hpp"
 #include "file/sndwriter/SndWriter.hpp"
+#include "lcdgui/screens/LoadScreen.hpp"
+#include "disk/MpcFile.hpp"
 
 @implementation UIWindow (DocumentBrowser)
 
@@ -46,28 +48,79 @@
     return filePathsArray;
 }
 
--(void)presentShareOptions:(mpc::Mpc*)mpc {
+- (NSMutableArray<NSString *> *)getSelectedFileOrDirectory:(mpc::Mpc *)mpc {
+    const auto selectedFile = mpc->screens->get<mpc::lcdgui::screens::LoadScreen>("load")->getSelectedFile();
+    const bool isDirectory = selectedFile->isDirectory();
+    const auto selectedFilePath = selectedFile->getPath();
+    
     NSMutableArray<NSString *> *filePathsArray = [NSMutableArray array];
 
-    UIAlertAction *shareAllAction = [UIAlertAction actionWithTitle:@"Share APS, SNDs and ALL of current project" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+    if (isDirectory) {
+        for (const auto& entry : fs::recursive_directory_iterator(selectedFilePath)) {
+            if (!entry.is_directory()) {
+                NSString *filePath = [NSString stringWithUTF8String:entry.path().c_str()];
+                [filePathsArray addObject:filePath];
+            }
+        }
+    } else {
+        NSString *filePath = [NSString stringWithUTF8String:selectedFilePath.c_str()];
+        [filePathsArray addObject:filePath];
+    }
+
+    return filePathsArray;
+}
+
+-(void)presentShareOptions:(mpc::Mpc*)mpc {
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Share Options" message:nil
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+
+    NSMutableArray<NSString *> *filePathsArray = [NSMutableArray array];
+
+    UIAlertAction *shareApsSndsAllAction = [UIAlertAction actionWithTitle:@"Share APS, SNDs and ALL of current project" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
 
         NSMutableArray<NSString *> *generatedFilePaths = [self writeApsAllAndSnd:mpc];
         [filePathsArray addObjectsFromArray:generatedFilePaths];
 
         [self openActivityView:filePathsArray];
     }];
-
-    UIAlertAction *shareSelectedAction = [UIAlertAction actionWithTitle:@"Share selected file or directory" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-        [self openActivityView:filePathsArray];
-    }];
-
-    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action){}];
-
-    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Share Options" message:nil
-                                                                      preferredStyle:UIAlertControllerStyleAlert];
     
-    [alertController addAction:shareAllAction];
-    [alertController addAction:shareSelectedAction];
+    [alertController addAction:shareApsSndsAllAction];
+
+    const auto selectedFile = mpc->screens->get<mpc::lcdgui::screens::LoadScreen>("load")->getSelectedFile();
+    
+    if (selectedFile) {
+        const bool isDirectory = selectedFile->isDirectory();
+        const std::string name = selectedFile->getName();
+
+        NSString *nameNSString = [NSString stringWithUTF8String:name.c_str()];
+
+        NSString *title = isDirectory ? [NSString stringWithFormat:@"Share selected directory (%@)", nameNSString]
+                                      : [NSString stringWithFormat:@"Share selected file (%@)", nameNSString];
+
+        UIAlertAction *shareSelectedAction = [UIAlertAction actionWithTitle:title style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            NSMutableArray<NSString *> *generatedFilePaths = [self getSelectedFileOrDirectory:mpc];
+            [filePathsArray addObjectsFromArray:generatedFilePaths];
+            [self openActivityView:filePathsArray];
+        }];
+        
+        [alertController addAction:shareSelectedAction];
+    } else {
+        UIAlertAction *noFileSelectedAction = [UIAlertAction actionWithTitle:@"Share selected file or directory" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            UIAlertController *noFileAlertController = [UIAlertController alertControllerWithTitle:@"No selected file or directory available"
+                                                                                           message:@"Select a file or directory in the LOAD screen to use this option."
+                                                                                    preferredStyle:UIAlertControllerStyleAlert];
+
+            UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
+
+            [noFileAlertController addAction:okAction];
+            [self.rootViewController presentViewController:noFileAlertController animated:YES completion:nil];
+        }];
+
+        [alertController addAction:noFileSelectedAction];
+    }
+    
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action){}];
+    
     [alertController addAction:cancelAction];
     
     [self.rootViewController presentViewController:alertController animated:YES completion:nil];
