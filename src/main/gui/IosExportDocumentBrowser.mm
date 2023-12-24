@@ -10,8 +10,10 @@
 #include <UIKit/UIKit.h>
 
 #include "Mpc.hpp"
+#include "sampler/Sampler.hpp"
 #include "file/aps/ApsParser.hpp"
 #include "file/all/AllParser.hpp"
+#include "file/sndwriter/SndWriter.hpp"
 
 @implementation UIWindow (DocumentBrowser)
 
@@ -19,16 +21,28 @@
     NSString *tempDirectory = NSTemporaryDirectory();
     NSMutableArray<NSString *> *filePathsArray = [NSMutableArray array];
 
-    std::vector<char> apsData = mpc::file::aps::ApsParser(*mpc, "ALL_PGMS").saveBytes;
+    const std::vector<char>& apsData = mpc::file::aps::ApsParser(*mpc, "ALL_PGMS").saveBytes;
     NSData *data = [NSData dataWithBytes:apsData.data() length:apsData.size()];
     NSString *apsDataFilePath = [tempDirectory stringByAppendingPathComponent:@"ALL_PGMS.APS"];
     if ([data writeToFile:apsDataFilePath atomically:YES]) { [filePathsArray addObject:apsDataFilePath]; }
 
-    std::vector<char> allData = mpc::file::all::AllParser(*mpc).saveBytes;
+    const std::vector<char>& allData = mpc::file::all::AllParser(*mpc).saveBytes;
     data = [NSData dataWithBytes:allData.data() length:allData.size()];
     NSString *allDataFilePath = [tempDirectory stringByAppendingPathComponent:@"ALL_SEQS.ALL"];
     if ([data writeToFile:allDataFilePath atomically:YES]) { [filePathsArray addObject:allDataFilePath]; }
 
+    for (auto& sound : mpc->getSampler()->getSounds()) {
+        
+        const std::vector<char>& sndData = mpc::file::sndwriter::SndWriter(sound.get()).getSndFileArray();
+        
+        data = [NSData dataWithBytes:sndData.data() length:sndData.size()];
+        std::string soundName = sound->getName();
+        NSString *soundNameNSString = [NSString stringWithUTF8String:soundName.c_str()];
+        NSString *uppercasedSoundName = [soundNameNSString uppercaseString];
+        NSString *sndDataFilePath = [tempDirectory stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.SND", uppercasedSoundName]];
+        if ([data writeToFile:sndDataFilePath atomically:YES]) { [filePathsArray addObject:sndDataFilePath]; }
+    }
+    
     return filePathsArray;
 }
 
