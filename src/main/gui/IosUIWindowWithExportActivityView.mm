@@ -83,6 +83,40 @@
     [filePathsArray addObject:zipFilePath];
 }
 
+#include "miniz.h"
+
+- (void)createRecordingZip:(fs::path)dirPath filePathsArray:(NSMutableArray<NSString *> *)filePathsArray {
+
+    mz_zip_archive zipArchive;
+    memset(&zipArchive, 0, sizeof(zipArchive));
+
+    NSString *zipFileName = [[NSString stringWithUTF8String:dirPath.filename().c_str()] stringByAppendingString:@".zip"];
+    NSString *zipFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:zipFileName];
+
+    mz_bool status = mz_zip_writer_init_file(&zipArchive, [zipFilePath UTF8String], 0);
+
+    if (!status) {
+        NSLog(@"Failed to initialize zip file");
+        return;
+    }
+
+    for (const auto& entry : fs::directory_iterator(dirPath)) {
+        if (!entry.is_directory()) {
+            std::string filePath = entry.path().string();
+            mz_zip_writer_add_file(&zipArchive, entry.path().filename().string().c_str(), filePath.c_str(), "", 0, MZ_BEST_COMPRESSION);
+        }
+    }
+
+    mz_zip_writer_finalize_archive(&zipArchive);
+    mz_zip_writer_end(&zipArchive);
+
+    if (status) {
+        [filePathsArray addObject:zipFilePath];
+    } else {
+        NSLog(@"Failed to create zip file");
+    }
+}
+
 - (NSMutableArray<NSString *> *)getSelectedFileOrDirectory:(mpc::Mpc *)mpc {
     const auto selectedFile = mpc->screens->get<mpc::lcdgui::screens::LoadScreen>("load")->getSelectedFile();
     const bool isDirectory = selectedFile->isDirectory();
@@ -132,6 +166,35 @@
     }];
 }
 
+-(UIAlertAction *)createShareDirectToDiskRecordingAction:(mpc::Mpc*)mpc filePathsArray:(NSMutableArray<NSString *> *)filePathsArray {
+
+    const fs::path directToDiskRecordingsDirectory = mpc->paths->recordingsPath();
+
+    UIAlertAction *action = [UIAlertAction actionWithTitle:@"Share Direct to Disk Recordings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull /* action */) {
+        
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Recordings" message:@"Select a directory" preferredStyle:UIAlertControllerStyleAlert];
+
+        for (const auto& entry : fs::directory_iterator(directToDiskRecordingsDirectory)) {
+            if (entry.is_directory()) {
+                const auto entryPath = entry.path();
+                NSString *dirName = [NSString stringWithUTF8String:entryPath.filename().string().c_str()];
+                [alertController addAction:[UIAlertAction actionWithTitle:dirName style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull /* action */) {
+                    [self createRecordingZip:entryPath filePathsArray:filePathsArray];
+                    const bool shouldCleanUpAfter = true;
+                    [self openActivityView:filePathsArray shouldCleanUpAfter:shouldCleanUpAfter];
+                }]];
+            }
+        }
+
+        [alertController addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+
+        [self.rootViewController presentViewController:alertController animated:YES completion:nil];
+    }];
+
+    return action;
+}
+
+
 -(UIAlertAction *)createCancelAction {
     return [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * /* action */){}];
 }
@@ -171,8 +234,11 @@
         [alertController addAction:noFileSelectedAction];
     }
     
-    UIAlertAction *cancelAction = [self createCancelAction];
-    [alertController addAction:cancelAction];
+    UIAlertAction *shareDirectToDiskRecordingAction = [self createShareDirectToDiskRecordingAction:mpc filePathsArray:filePathsArray];
+
+    [alertController addAction:shareDirectToDiskRecordingAction];
+    
+    [alertController addAction:[self createCancelAction]];
     
     [self.rootViewController presentViewController:alertController animated:YES completion:nil];
 }
