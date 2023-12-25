@@ -4,8 +4,6 @@
 
 #include <vector>
 
-#include "IosExportDocumentBrowser.h"
-
 #include <CoreServices/UTCoreTypes.h>
 #include <UIKit/UIKit.h>
 
@@ -20,7 +18,7 @@
 
 #include "miniz.h"
 
-@implementation UIWindow (DocumentBrowser)
+@implementation UIWindow (WithExportActivityView)
 
 - (NSMutableArray<NSString *> *)writeApsAllAndSnd:(mpc::Mpc *)mpc {
     

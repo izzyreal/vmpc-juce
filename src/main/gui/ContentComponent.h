@@ -14,7 +14,9 @@
 
 #if JUCE_IOS
 #include "IosDocumentBrowser.h"
-#include "IosExportDocumentBrowser.h"
+
+void doPresentShareOptions(void* nativeWindowHandle, mpc::Mpc*);
+
 #include "Paths.hpp"
 
 namespace mpc { class Mpc; }
