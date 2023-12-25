@@ -52,8 +52,40 @@
     return filePathsArray;
 }
 
+- (void)createDirectoryZip:(const std::string &)selectedFilePath currentDirectory:(const std::string &)currentDirectory
+            filePathsArray:(NSMutableArray<NSString *> *)filePathsArray {
+    NSString *tempDirectory = NSTemporaryDirectory();
+    NSString *zipFileName = [[NSString stringWithUTF8String:selectedFilePath.c_str()] lastPathComponent];
+    NSString *zipFilePath = [tempDirectory stringByAppendingPathComponent:[zipFileName stringByAppendingString:@".zip"]];
+
+    mz_zip_archive zip_archive;
+    memset(&zip_archive, 0, sizeof(zip_archive));
+    mz_bool status = mz_zip_writer_init_file(&zip_archive, zipFilePath.UTF8String, 0);
+
+    if (!status) {
+        NSLog(@"Failed to open zip archive for writing");
+        return;
+    }
+
+    for (const auto &entry : fs::recursive_directory_iterator(selectedFilePath)) {
+        if (!entry.is_directory()) {
+            std::string relativePath = fs::relative(entry.path(), currentDirectory).string();
+            mz_bool file_added = mz_zip_writer_add_file(&zip_archive, relativePath.c_str(), entry.path().c_str(), "", 0, MZ_BEST_COMPRESSION);
+            if (!file_added) {
+                NSLog(@"Failed to add file to zip archive: %s", entry.path().c_str());
+                mz_zip_writer_end(&zip_archive);
+                return;
+            }
+        }
+    }
+
+    mz_zip_writer_finalize_archive(&zip_archive);
+    mz_zip_writer_end(&zip_archive);
+
+    [filePathsArray addObject:zipFilePath];
+}
+
 - (NSMutableArray<NSString *> *)getSelectedFileOrDirectory:(mpc::Mpc *)mpc {
-    
     const auto selectedFile = mpc->screens->get<mpc::lcdgui::screens::LoadScreen>("load")->getSelectedFile();
     const bool isDirectory = selectedFile->isDirectory();
     const auto selectedFilePath = selectedFile->getPath();
@@ -62,35 +94,7 @@
     NSMutableArray<NSString *> *filePathsArray = [NSMutableArray array];
 
     if (isDirectory) {
-        NSString *tempDirectory = NSTemporaryDirectory();
-        NSString *zipFileName = [[NSString stringWithUTF8String:selectedFilePath.c_str()] lastPathComponent];
-        NSString *zipFilePath = [tempDirectory stringByAppendingPathComponent:[zipFileName stringByAppendingString:@".zip"]];
-
-        mz_zip_archive zip_archive;
-        memset(&zip_archive, 0, sizeof(zip_archive));
-        mz_bool status = mz_zip_writer_init_file(&zip_archive, zipFilePath.UTF8String, 0);
-
-        if (!status) {
-            NSLog(@"Failed to open zip archive for writing");
-            return filePathsArray;
-        }
-
-        for (const auto& entry : fs::recursive_directory_iterator(selectedFilePath)) {
-            if (!entry.is_directory()) {
-                std::string relativePath = fs::relative(entry.path(), currentDirectory).string();
-                mz_bool file_added = mz_zip_writer_add_file(&zip_archive, relativePath.c_str(), entry.path().c_str(), "", 0, MZ_BEST_COMPRESSION);
-                if (!file_added) {
-                    NSLog(@"Failed to add file to zip archive: %s", entry.path().c_str());
-                    mz_zip_writer_end(&zip_archive);
-                    return filePathsArray;
-                }
-            }
-        }
-
-        mz_zip_writer_finalize_archive(&zip_archive);
-        mz_zip_writer_end(&zip_archive);
-
-        [filePathsArray addObject:zipFilePath];
+        [self createDirectoryZip:selectedFilePath currentDirectory:currentDirectory filePathsArray:filePathsArray];
     } else {
         NSString *filePath = [NSString stringWithUTF8String:selectedFilePath.c_str()];
         [filePathsArray addObject:filePath];
@@ -99,108 +103,90 @@
     return filePathsArray;
 }
 
+-(UIAlertAction *)createShareApsSndsAllAction:
+    (mpc::Mpc*)mpc filePathsArray:(NSMutableArray<NSString *> *)filePathsArray {
+    return [UIAlertAction actionWithTitle:@"Share APS, SNDs and ALL of current project" style:UIAlertActionStyleDefault
+                                  handler:^(UIAlertAction * _Nonnull /* action */) {
+        NSMutableArray<NSString *> *generatedFilePaths = [self writeApsAllAndSnd:mpc];
+        [filePathsArray addObjectsFromArray:generatedFilePaths];
+
+        const bool shouldCleanUpAfter = true;
+        [self openActivityView:filePathsArray shouldCleanUpAfter:shouldCleanUpAfter];
+    }];
+}
+
+-(UIAlertAction *)createShareSelectedAction:(mpc::Mpc*)mpc filePathsArray:(NSMutableArray<NSString *> *)filePathsArray {
+    const auto selectedFile = mpc->screens->get<mpc::lcdgui::screens::LoadScreen>("load")->getSelectedFile();
+    bool isDirectory = selectedFile->isDirectory();
+    std::string name = selectedFile->getName();
+
+    NSString *nameNSString = [NSString stringWithUTF8String:name.c_str()];
+    NSString *title = isDirectory ? [NSString stringWithFormat:@"Share selected directory (%@)", nameNSString]
+                                  : [NSString stringWithFormat:@"Share selected file (%@)", nameNSString];
+
+    return [UIAlertAction actionWithTitle:title style:UIAlertActionStyleDefault
+                                  handler:^(UIAlertAction * _Nonnull /* action */) {
+        NSMutableArray<NSString *> *generatedFilePaths = [self getSelectedFileOrDirectory:mpc];
+        [filePathsArray addObjectsFromArray:generatedFilePaths];
+        
+        const bool shouldCleanUpAfter = isDirectory;
+        [self openActivityView:filePathsArray shouldCleanUpAfter:shouldCleanUpAfter];
+    }];
+}
+
+-(UIAlertAction *)createCancelAction {
+    return [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * /* action */){}];
+}
+
+-(UIAlertAction *)createNoFileSelectedAction {
+    return [UIAlertAction actionWithTitle:@"Share selected file or directory"
+                                    style:UIAlertActionStyleDefault
+                                  handler:^(UIAlertAction * _Nonnull /* action */) {
+        UIAlertController *noFileAlertController =
+        [UIAlertController alertControllerWithTitle:@"No selected file or directory available"
+                                            message:@"Select a file or directory in the LOAD screen to use this option."
+                                     preferredStyle:UIAlertControllerStyleAlert];
+
+        UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
+        [noFileAlertController addAction:okAction];
+        [self.rootViewController presentViewController:noFileAlertController animated:YES completion:nil];
+    }];
+}
+
 -(void)presentShareOptions:(mpc::Mpc*)mpc {
-    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Share Options" message:nil
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Share Options"
+                                                                             message:nil
                                                                       preferredStyle:UIAlertControllerStyleAlert];
 
     NSMutableArray<NSString *> *filePathsArray = [NSMutableArray array];
 
-    UIAlertAction *shareApsSndsAllAction = [UIAlertAction actionWithTitle:@"Share APS, SNDs and ALL of current project" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-
-        NSMutableArray<NSString *> *generatedFilePaths = [self writeApsAllAndSnd:mpc];
-        [filePathsArray addObjectsFromArray:generatedFilePaths];
-
-        bool shouldCleanUpAfter = true;
-        
-        [self openActivityView:filePathsArray shouldCleanUpAfter:shouldCleanUpAfter];
-    }];
-    
+    UIAlertAction *shareApsSndsAllAction = [self createShareApsSndsAllAction:mpc filePathsArray:filePathsArray];
     [alertController addAction:shareApsSndsAllAction];
 
     const auto selectedFile = mpc->screens->get<mpc::lcdgui::screens::LoadScreen>("load")->getSelectedFile();
     
     if (selectedFile) {
-        const bool isDirectory = selectedFile->isDirectory();
-        const std::string name = selectedFile->getName();
-
-        NSString *nameNSString = [NSString stringWithUTF8String:name.c_str()];
-
-        NSString *title = isDirectory ? [NSString stringWithFormat:@"Share selected directory (%@)", nameNSString]
-                                      : [NSString stringWithFormat:@"Share selected file (%@)", nameNSString];
-
-        UIAlertAction *shareSelectedAction = [UIAlertAction actionWithTitle:title style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            NSMutableArray<NSString *> *generatedFilePaths = [self getSelectedFileOrDirectory:mpc];
-            [filePathsArray addObjectsFromArray:generatedFilePaths];
-            
-            // We only clean up if the user has shared a directory, because in this
-            // case an intermediate zip file is created in the temp directory.
-            // Individual files are shared directly from their source location.
-            bool shouldCleanUpAfter = isDirectory;
-            
-            [self openActivityView:filePathsArray shouldCleanUpAfter:shouldCleanUpAfter];
-        }];
-        
+        UIAlertAction *shareSelectedAction = [self createShareSelectedAction:mpc filePathsArray:filePathsArray];
         [alertController addAction:shareSelectedAction];
     } else {
-        UIAlertAction *noFileSelectedAction = [UIAlertAction actionWithTitle:@"Share selected file or directory" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
-            UIAlertController *noFileAlertController = [UIAlertController alertControllerWithTitle:@"No selected file or directory available"
-                                                                                           message:@"Select a file or directory in the LOAD screen to use this option."
-                                                                                    preferredStyle:UIAlertControllerStyleAlert];
-
-            UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil];
-
-            [noFileAlertController addAction:okAction];
-            [self.rootViewController presentViewController:noFileAlertController animated:YES completion:nil];
-        }];
-
+        UIAlertAction *noFileSelectedAction = [self createNoFileSelectedAction];
         [alertController addAction:noFileSelectedAction];
     }
     
-    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action){}];
-    
+    UIAlertAction *cancelAction = [self createCancelAction];
     [alertController addAction:cancelAction];
     
     [self.rootViewController presentViewController:alertController animated:YES completion:nil];
 }
 
--(void)openActivityView:(NSArray *)filePathsArray shouldCleanUpAfter:(BOOL)shouldCleanUpAfter {
 
-    NSMutableArray *itemsToShare = [[NSMutableArray alloc] init];
-    NSFileManager *fileManager = [NSFileManager defaultManager];
+- (UIActivityViewControllerCompletionWithItemsHandler)createActivityViewCompletionHandler:(NSArray<NSString *> *)filePathsArray shouldCleanUpAfter:(BOOL)shouldCleanUpAfter {
     
-    for (NSString *path in filePathsArray) {
-        BOOL isDirectory;
-        if ([fileManager fileExistsAtPath:path isDirectory:&isDirectory]) {
-            if (isDirectory) {
-                // If it's a directory, recursively add its contents
-                NSDirectoryEnumerator *enumerator = [fileManager enumeratorAtPath:path];
-                NSString *subpath;
-                while (subpath = [enumerator nextObject]) {
-                    NSString *fullSubpath = [path stringByAppendingPathComponent:subpath];
-                    NSURL *fileURL = [NSURL fileURLWithPath:fullSubpath];
-                    [itemsToShare addObject:fileURL];
-                }
-            } else {
-                // If it's a file, just add it directly
-                NSURL *fileURL = [NSURL fileURLWithPath:path];
-                [itemsToShare addObject:fileURL];
-            }
-        }
-    }
-    
-    // Initialize the activity view controller with the array of items
-    UIActivityViewController *activityViewController = [[UIActivityViewController alloc] initWithActivityItems:itemsToShare applicationActivities:nil];
-    
-    // Configure the activity view controller
-    activityViewController.modalPresentationStyle = UIModalPresentationPopover;
-    UIPopoverPresentationController *presentationController = [activityViewController popoverPresentationController];
-    presentationController.sourceView = self.rootViewController.view;
-    presentationController.sourceRect = CGRectMake(self.rootViewController.view.bounds.size.width / 2, self.rootViewController.view.bounds.size.height / 4, 0, 0);
-    
-    // Present the activity view controller
-    [activityViewController setCompletionWithItemsHandler:^(UIActivityType _Nullable activityType, BOOL completed, NSArray * _Nullable returnedItems, NSError * _Nullable activityError) {
+    UIActivityViewControllerCompletionWithItemsHandler handler = ^(UIActivityType _Nullable /* activityType */, BOOL completed, NSArray * _Nullable /* returnedItems */, NSError * _Nullable /* activityError */) {
+        
+        NSFileManager *fileManager = [NSFileManager defaultManager];
+        
         if (completed && shouldCleanUpAfter) {
-            // Cleanup routine to delete all items in filePathsArray
             for (NSString *path in filePathsArray) {
                 NSError *error;
                 if (![fileManager removeItemAtPath:path error:&error]) {
@@ -208,8 +194,39 @@
                 }
             }
         }
-    }];
+    };
     
+    return [handler copy];
+}
+
+- (UIActivityViewController *)createActivityViewController:(NSArray *)itemsToShare shouldCleanUpAfter:(BOOL)shouldCleanUpAfter {
+    
+    UIActivityViewController *activityViewController = [[UIActivityViewController alloc] initWithActivityItems:itemsToShare applicationActivities:nil];
+
+    activityViewController.modalPresentationStyle = UIModalPresentationPopover;
+    UIPopoverPresentationController *presentationController = [activityViewController popoverPresentationController];
+    presentationController.sourceView = self.rootViewController.view;
+    presentationController.sourceRect = CGRectMake(self.rootViewController.view.bounds.size.width / 2, self.rootViewController.view.bounds.size.height / 4, 0, 0);
+
+    activityViewController.completionWithItemsHandler = [self createActivityViewCompletionHandler:itemsToShare shouldCleanUpAfter:shouldCleanUpAfter];
+
+    return activityViewController;
+}
+
+-(void)openActivityView:(NSArray *)filePathsArray shouldCleanUpAfter:(BOOL)shouldCleanUpAfter {
+    
+    NSMutableArray *itemsToShare = [[NSMutableArray alloc] init];
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+
+    for (NSString *path in filePathsArray) {
+        if ([fileManager fileExistsAtPath:path]) {
+            NSURL *fileURL = [NSURL fileURLWithPath:path];
+            [itemsToShare addObject:fileURL];
+        }
+    }
+
+    UIActivityViewController *activityViewController = [self createActivityViewController:itemsToShare shouldCleanUpAfter:shouldCleanUpAfter];
+
     [self.rootViewController presentViewController:activityViewController animated:YES completion:nil];
 }
 
@@ -223,3 +240,5 @@ void doPresentShareOptions(void* nativeWindowHandle, mpc::Mpc* mpc) {
 
 #endif
 #endif
+
+
