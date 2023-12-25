@@ -13,24 +13,7 @@
 #include <vector>
 
 #if JUCE_IOS
-#include "IosDocumentBrowser.h"
-
-void doPresentShareOptions(void* nativeWindowHandle, mpc::Mpc*);
-
-#include "Paths.hpp"
-
-namespace mpc { class Mpc; }
-
-class VmpcURLProcessor : public URLProcessor {
-private:
-    std::string destinationDir();
-public:
-  mpc::Mpc* mpc;
-  bool destinationExists(const char* filename, const char* relativePath) override;
-  std::shared_ptr<std::ostream> openOutputStream(const char* filename, const char* relativePath) override;
-  void initFiles() override;
-};
-
+#include "ImportDocumentUrlProcessor.h"
 #endif
 
 class KeyboardButton : public juce::ImageButton {
@@ -68,7 +51,7 @@ public:
 
 private:
 #if JUCE_IOS
-  VmpcURLProcessor urlProcessor;
+  ImportDocumentUrlProcessor importDocumentUrlProcessor;
 #endif
   mpc::Mpc& mpc;
   std::weak_ptr<mpc::controls::KeyEventHandler> keyEventHandler;

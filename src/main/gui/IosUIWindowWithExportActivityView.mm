@@ -238,5 +238,3 @@ void doPresentShareOptions(void* nativeWindowHandle, mpc::Mpc* mpc) {
 
 #endif
 #endif
-
-

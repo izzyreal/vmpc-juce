@@ -4,9 +4,6 @@
 
 #include <Mpc.hpp>
 
-#include <disk/AbstractDisk.hpp>
-#include <disk/MpcFile.hpp>
-
 #include <controls/Controls.hpp>
 #include <controls/KeyEvent.hpp>
 #include <controls/KeyEventHandler.hpp>
@@ -20,46 +17,15 @@
 
 #if JUCE_IOS
 
-std::string VmpcURLProcessor::destinationDir()
-{
-    return mpc->getDisk()->getAbsolutePath();
-}
+void doPresentShareOptions(void* nativeWindowHandle, mpc::Mpc*);
 
-bool VmpcURLProcessor::destinationExists(const char* filename, const char* relativePath)
-{
-  auto newFilePath = fs::path(destinationDir()).append(relativePath).append(filename);
-  return fs::exists(newFilePath);
-}
-
-std::shared_ptr<std::ostream> VmpcURLProcessor::openOutputStream(const char* filename, const char* relativePath)
-{
-  auto newFileDir = fs::path(destinationDir()).append(relativePath);
-  fs::create_directories(newFileDir);
-  auto newFilePath = newFileDir.append(filename);
-  mpc::disk::MpcFile newFile(newFilePath);
-  return newFile.getOutputStream();
-}
-
-void VmpcURLProcessor::initFiles()
-{
-    auto layeredScreen = mpc->getLayeredScreen();
-    auto currentScreen = layeredScreen->getCurrentScreenName();
-    if (currentScreen == "load" || currentScreen == "save" || currentScreen == "directory")
-    {
-        layeredScreen->openScreen(currentScreen == "directory" ? "load" : "black");
-        mpc->getDisk()->initFiles();
-        layeredScreen->openScreen(currentScreen);
-    }
-}
+void doOpenIosImportDocumentBrowser(ImportDocumentUrlProcessor*, void* nativeWindowHandle);
 
 #endif
 
 ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAudioSettingsDialog)
         : mpc(_mpc), keyEventHandler(mpc.getControls()->getKeyEventHandler())
 {
-#if JUCE_IOS
-    urlProcessor.mpc = &mpc;
-#endif
     setName("ContentComponent");
 
     keyboard = KeyboardFactory::instance(this);
@@ -188,7 +154,10 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, transparentWhite, resetWindowSizeImg,
                                     1.0, transparentWhite, resetWindowSizeImg, 0.25, transparentWhite);
+
 #if JUCE_IOS
+    importDocumentUrlProcessor.mpc = &mpc;
+    
     importImg = vmpc::ResourceUtil::loadImage("img/import.png");
 
     importButton.setImages(false, true, true, importImg, 0.5, transparentWhite, importImg, 1.0, transparentWhite,
@@ -198,12 +167,11 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     importButton.onClick = [&]() {
         auto uiView = getPeer()->getNativeHandle();
-        doOpenIosDocumentBrowser(&urlProcessor, uiView);
+        doOpenIosImportDocumentBrowser(&importDocumentUrlProcessor, uiView);
     };
 
     addAndMakeVisible(importButton);
     
-// Maybe the below only when Standalone
     exportImg = vmpc::ResourceUtil::loadImage("img/export.png");
 
     exportButton.setImages(false, true, true, exportImg, 0.5, transparentWhite, exportImg, 1.0, transparentWhite,
@@ -217,7 +185,6 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     };
 
     addAndMakeVisible(exportButton);
-
 #endif
   
     versionLabel.setText(version::get(), juce::dontSendNotification);
