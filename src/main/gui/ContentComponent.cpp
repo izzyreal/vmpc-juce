@@ -15,14 +15,6 @@
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
-#if JUCE_IOS
-
-void doPresentShareOptions(void* nativeWindowHandle, mpc::Mpc*);
-
-void doOpenIosImportDocumentBrowser(ImportDocumentUrlProcessor*, void* nativeWindowHandle);
-
-#endif
-
 ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAudioSettingsDialog)
         : mpc(_mpc), keyEventHandler(mpc.getControls()->getKeyEventHandler())
 {
@@ -143,95 +135,13 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     leds->startTimer(25);
     slider->startTimer(25);
 
-    auto transparentWhite = juce::Colours::transparentWhite;
-
-    keyboardImg = vmpc::ResourceUtil::loadImage("img/keyboard.png");
-
-    keyboardButton.setImages(false, true, true, keyboardImg, 0.5, transparentWhite, keyboardImg, 1.0, transparentWhite,
-                             keyboardImg, 0.25, transparentWhite);
-
-    resetWindowSizeImg = vmpc::ResourceUtil::loadImage("img/reset-window-size.png");
-
-    resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, transparentWhite, resetWindowSizeImg,
-                                    1.0, transparentWhite, resetWindowSizeImg, 0.25, transparentWhite);
-
-#if JUCE_IOS
-    importDocumentUrlProcessor.mpc = &mpc;
-    
-    importImg = vmpc::ResourceUtil::loadImage("img/import.png");
-
-    importButton.setImages(false, true, true, importImg, 0.5, transparentWhite, importImg, 1.0, transparentWhite,
-                           importImg, 0.25, transparentWhite);
-
-    importButton.setTooltip("Import files or folders");
-
-    importButton.onClick = [&]() {
-        auto uiView = getPeer()->getNativeHandle();
-        doOpenIosImportDocumentBrowser(&importDocumentUrlProcessor, uiView);
-    };
-
-    addAndMakeVisible(importButton);
-    
-    exportImg = vmpc::ResourceUtil::loadImage("img/export.png");
-
-    exportButton.setImages(false, true, true, exportImg, 0.5, transparentWhite, exportImg, 1.0, transparentWhite,
-                           exportImg, 0.25, transparentWhite);
-
-    exportButton.setTooltip("Export files or folders");
-
-    exportButton.onClick = [&]() {
-        auto uiView = getPeer()->getNativeHandle();
-        doPresentShareOptions(uiView, &mpc);
-    };
-
-    addAndMakeVisible(exportButton);
-#endif
-  
     versionLabel.setText(version::get(), juce::dontSendNotification);
     versionLabel.setColour(juce::Label::textColourId, juce::Colours::grey);
     addAndMakeVisible(versionLabel);
-
-    helpImg = vmpc::ResourceUtil::loadImage("img/help.png");
-    helpButton.setImages(false, true, true, helpImg, 0.5, transparentWhite, helpImg, 1.0, transparentWhite,
-                         helpImg, 0.25, transparentWhite);
-    helpButton.setTooltip("Browse online documentation");
-    helpButton.onClick = [] {
-        juce::URL url("https://vmpcdocs.izmar.nl");
-        url.launchInDefaultBrowser();
-    };
-    helpButton.setWantsKeyboardFocus(false);
-    addAndMakeVisible(helpButton);
-
-    if (juce::JUCEApplicationBase::isStandaloneApp())
-    {
-        gearImg = vmpc::ResourceUtil::loadImage("img/gear.png");
-        gearButton.setImages(false, true, true, gearImg, 0.5, transparentWhite, gearImg, 1.0, transparentWhite,
-                             gearImg, 0.25, transparentWhite);
-        gearButton.setTooltip("Audio/MIDI Settings");
-        gearButton.onClick = [&showAudioSettingsDialog]() {
-            showAudioSettingsDialog();
-        };
-        gearButton.setWantsKeyboardFocus(false);
-        addAndMakeVisible(gearButton);
-    }
-
-    keyboardButton.setTooltip("Configure computer keyboard");
-    keyboardButton.onClick = [&]() {
-        mpc.getLayeredScreen()->openScreen("vmpc-keyboard");
-    };
-
-    keyboardButton.setWantsKeyboardFocus(false);
-    addAndMakeVisible(keyboardButton);
-
-    if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS)
-    {
-        resetWindowSizeButton.setTooltip("Reset window size");
-        resetWindowSizeButton.onClick = [&]() {
-            getParentComponent()->getParentComponent()->getParentComponent()->setSize(1298 / 2, 994 / 2);
-        };
-        resetWindowSizeButton.setWantsKeyboardFocus(false);
-        addAndMakeVisible(resetWindowSizeButton);
-    }
+    
+    topRightMenu = new TopRightMenu(mpc, showAudioSettingsDialog);
+    
+    addAndMakeVisible(topRightMenu);
 
     juce::Desktop::getInstance().addFocusChangeListener(this);
 }
@@ -242,6 +152,8 @@ ContentComponent::~ContentComponent()
   {
     l->deleteObserver(leds);
   }
+    
+    delete topRightMenu;
 
   juce::Desktop::getInstance().removeFocusChangeListener(this);
     delete keyboard;
@@ -314,73 +226,9 @@ void ContentComponent::resized()
     volKnob->setTransform(scaleTransform);
     volKnob->setBounds(Constants::volKnobRect().getX(), Constants::volKnobRect().getY(), volKnobImg.getWidth() / 2,
                        volKnobImg.getHeight() * 0.01 * 0.5);
-
-    // Assuming scaleTransform is a juce::AffineTransform that scales the components
-    float scaleFactor = scaleTransform.getScaleFactor();
-
-    juce::FlexBox flexBox;
-    flexBox.flexDirection = juce::FlexBox::Direction::row;
-    flexBox.justifyContent = juce::FlexBox::JustifyContent::flexEnd;
-    flexBox.alignItems = juce::FlexBox::AlignItems::center;
-    flexBox.flexWrap = juce::FlexBox::Wrap::noWrap;
-
-    // Apply scale transform to each button
-    keyboardButton.setTransform(scaleTransform);
-    helpButton.setTransform(scaleTransform);
-    resetWindowSizeButton.setTransform(scaleTransform);
-    gearButton.setTransform(scaleTransform);
-    #if JUCE_IOS
-    importButton.setTransform(scaleTransform);
-    exportButton.setTransform(scaleTransform);
-    #endif
-
-    // Calculate the total width of all buttons, adjusted by the scale factor
-    int totalButtonsWidth = 0;
-    totalButtonsWidth += 100; // Adjusted width of keyboardButton
-    totalButtonsWidth += 45;  // Adjusted width of helpButton
-
-    if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS)
-    {
-        totalButtonsWidth += 45; // Add adjusted width of resetWindowSizeButton
-    }
-
-    if (juce::JUCEApplicationBase::isStandaloneApp())
-    {
-        totalButtonsWidth += 45; // Add adjusted width of gearButton
-    }
-
-    #if JUCE_IOS
-    totalButtonsWidth += 50; // Add adjusted width of importButton
-    totalButtonsWidth += 50; // Add adjusted width of exportButton
-    #endif
-
-    // Calculate the number of buttons and add scaled margins between them
-    int numberOfButtons = 1 + 1; // keyboardButton and helpButton
-    if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS)
-        numberOfButtons += 1; // resetWindowSizeButton
-    if (juce::JUCEApplicationBase::isStandaloneApp())
-        numberOfButtons += 1; // gearButton
-    #if JUCE_IOS
-    numberOfButtons += 2; // importButton and exportButton
-    #endif
-    totalButtonsWidth += 10 * (numberOfButtons - 1); // Add scaled margins
-
-    // Add FlexItems in reverse order
-    #if JUCE_IOS
-    flexBox.items.add(juce::FlexItem(exportButton).withMinWidth(50).withMinHeight(50));
-    flexBox.items.add(juce::FlexItem(importButton).withMinWidth(50).withMinHeight(50));
-    #endif
-    if (juce::JUCEApplicationBase::isStandaloneApp())
-        flexBox.items.add(juce::FlexItem(gearButton).withMinWidth(45).withMinHeight(45));
-    if (juce::SystemStats::getOperatingSystemType() != juce::SystemStats::OperatingSystemType::iOS)
-        flexBox.items.add(juce::FlexItem(resetWindowSizeButton).withMinWidth(45).withMinHeight(45));
-    flexBox.items.add(juce::FlexItem(helpButton).withMinWidth(45).withMinHeight(45));
-    flexBox.items.add(juce::FlexItem(keyboardButton).withMinWidth(100).withMinHeight(50));
-
-    // Set the area for the FlexBox layout, aligning it to the top-right corner
-    int rightMargin = 10;
-    juce::Rectangle<int> flexBoxArea((getWidth() / scaleFactor) - totalButtonsWidth - rightMargin, 0, totalButtonsWidth, 60);
-    flexBox.performLayout(flexBoxArea);
+    
+    topRightMenu->setTransform(scaleTransform);
+    topRightMenu->setBounds(0, 10, (getWidth() / scale) - 10, 60);
 
     versionLabel.setTransform(scaleTransform);
     versionLabel.setBounds(1152, 114, 100, 20);
