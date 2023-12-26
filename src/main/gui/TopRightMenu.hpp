@@ -16,19 +16,19 @@ private:
     juce::Image helpImg;
     juce::Image gearImg;
     juce::Image keyboardImg;
-    juce::Image resetWindowSizeImg;
-    juce::Image importImg;
-    juce::Image exportImg;
     juce::ImageButton helpButton;
     juce::ImageButton gearButton;
-    juce::ImageButton resetWindowSizeButton;
-    juce::ImageButton importButton;
-    juce::ImageButton exportButton;
     KeyboardButton keyboardButton;
 
-    
 #if JUCE_IOS
   ImportDocumentUrlProcessor importDocumentUrlProcessor;
+    juce::Image importImg;
+    juce::Image exportImg;
+    juce::ImageButton importButton;
+    juce::ImageButton exportButton;
+#else
+    juce::Image resetWindowSizeImg;
+    juce::ImageButton resetWindowSizeButton;
 #endif
 
 public:
