@@ -14,18 +14,20 @@ class TopRightMenu : public juce::Component {
 
 private:
     juce::Image helpImg;
-    juce::Image gearImg;
-    juce::Image keyboardImg;
     juce::ImageButton helpButton;
+    juce::Image gearImg;
     juce::ImageButton gearButton;
+    juce::Image keyboardImg;
     KeyboardButton keyboardButton;
 
 #if JUCE_IOS
-  ImportDocumentUrlProcessor importDocumentUrlProcessor;
+    ImportDocumentUrlProcessor importDocumentUrlProcessor;
     juce::Image importImg;
-    juce::Image exportImg;
     juce::ImageButton importButton;
+    juce::Image exportImg;
     juce::ImageButton exportButton;
+    juce::Image recordingManagerImg;
+    juce::ImageButton recordingManagerButton;
 #else
     juce::Image resetWindowSizeImg;
     juce::ImageButton resetWindowSizeButton;

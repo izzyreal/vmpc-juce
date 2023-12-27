@@ -10,11 +10,12 @@ void doPresentShareOptions(void* nativeWindowHandle, mpc::Mpc*);
 
 void doOpenIosImportDocumentBrowser(ImportDocumentUrlProcessor*, void* nativeWindowHandle);
 
+void doPresentRecordingManager(void* nativeWindowHandle, mpc::Mpc*);
+
 #endif
 
 TopRightMenu::TopRightMenu(mpc::Mpc& mpc, std::function<void()>& showAudioSettingsDialog)
 {
-
     auto transparentWhite = juce::Colours::transparentWhite;
 
     keyboardImg = vmpc::ResourceUtil::loadImage("img/keyboard.png");
@@ -52,6 +53,19 @@ TopRightMenu::TopRightMenu(mpc::Mpc& mpc, std::function<void()>& showAudioSettin
     };
 
     addAndMakeVisible(exportButton);
+    
+    recordingManagerImg = vmpc::ResourceUtil::loadImage("img/folder.png");
+    
+    recordingManagerButton.setImages(false, true, true, recordingManagerImg, 0.5, transparentWhite, recordingManagerImg, 1.0, transparentWhite, recordingManagerImg, 0.25, transparentWhite);
+
+    recordingManagerButton.setTooltip("Manage recordings");
+
+    recordingManagerButton.onClick = [&]() {
+        auto uiView = getPeer()->getNativeHandle();
+        doPresentRecordingManager(uiView, &mpc);
+    };
+
+    addAndMakeVisible(recordingManagerButton);
 #endif
     helpImg = vmpc::ResourceUtil::loadImage("img/help.png");
     helpButton.setImages(false, true, true, helpImg, 0.5, transparentWhite, helpImg, 1.0, transparentWhite,
@@ -108,6 +122,7 @@ void TopRightMenu::resized()
     flexBox.flexWrap = juce::FlexBox::Wrap::noWrap;
     
 #if JUCE_IOS
+    flexBox.items.add(juce::FlexItem(recordingManagerButton).withMinWidth(50).withMinHeight(60));
     flexBox.items.add(juce::FlexItem(exportButton).withMinWidth(50).withMinHeight(60));
     flexBox.items.add(juce::FlexItem(importButton).withMinWidth(60).withMinHeight(60));
 #endif
