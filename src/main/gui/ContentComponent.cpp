@@ -228,7 +228,7 @@ void ContentComponent::resized()
                        volKnobImg.getHeight() * 0.01 * 0.5);
     
     topRightMenu->setTransform(scaleTransform);
-    topRightMenu->setBounds(0, 10, (getWidth() / scale) - 10, 60);
+    topRightMenu->setBounds(0, 20, (getWidth() / scale) - 30, 70);
 
     versionLabel.setTransform(scaleTransform);
     versionLabel.setBounds(1152, 114, 100, 20);
