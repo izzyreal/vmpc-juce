@@ -5,8 +5,10 @@
 
 class KeyboardButton : public juce::ImageButton {
 public:
-    void mouseEnter(const juce::MouseEvent&) override
+    void mouseEnter(const juce::MouseEvent& e) override
     {
+        juce::ImageButton::mouseEnter(e);
+
         for (auto& c1 : getParentComponent()->getParentComponent()->getChildren())
         {
             if (auto c2 = dynamic_cast<VmpcTooltipComponent*>(c1))

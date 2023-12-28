@@ -106,7 +106,7 @@ TopRightMenu::TopRightMenu(mpc::Mpc& mpc, std::function<void()>& showAudioSettin
 
     resetWindowSizeButton.setTooltip("Reset window size");
     resetWindowSizeButton.onClick = [&]() {
-        getParentComponent()->getParentComponent()->getParentComponent()->setSize(1298 / 2, 994 / 2);
+        getParentComponent()->getParentComponent()->getParentComponent()->getParentComponent()->setSize(1298 / 2, 994 / 2);
     };
     resetWindowSizeButton.setWantsKeyboardFocus(false);
     addAndMakeVisible(resetWindowSizeButton);
