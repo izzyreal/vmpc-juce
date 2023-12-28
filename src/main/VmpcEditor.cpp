@@ -79,8 +79,8 @@ void VmpcEditor::showDisclaimer()
 
 void VmpcEditor::resized()
 {
-  if (juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS)
-  {
+
+#if JUCE_IOS
     if (juce::PluginHostType::jucePlugInClientCurrentWrapperType == juce::AudioProcessor::wrapperType_AudioUnitv3)
     {
         auto ratio = 1298.0 / 994.0;
@@ -89,29 +89,18 @@ void VmpcEditor::resized()
         return;
     }
     
-    auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
+    const auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
   
     if (primaryDisplay != nullptr)
     {
-      auto area = primaryDisplay->userArea;
+      const auto area = primaryDisplay->userArea;
       setSize(area.getWidth(), area.getHeight());
       viewport.setBounds(primaryDisplay->userArea);
       
-      auto portrait = area.getWidth() < area.getHeight();
-      auto ratio = 1298.0 / 994.0;
-      
-      if (portrait)
-      {
-        viewport.getViewedComponent()->setBounds(0, 0, area.getHeight() * ratio, area.getHeight());
-      }
-      else
-      {
-        viewport.getViewedComponent()->setBounds(0, 0, area.getWidth(), getWidth() / ratio);
-      }
+      const auto ratio = 1298.0 / 994.0;
+      viewport.getViewedComponent()->setBounds(0, 0, area.getWidth(), getWidth() / ratio);
     }
-  }
-  else
-  {
+#else
     auto new_w = getWidth();
     auto new_h = getWidth() / (1298/994.f);
 
@@ -125,8 +114,8 @@ void VmpcEditor::resized()
     getProcessor().lastUIHeight = new_h;
     viewport.setBounds((getWidth() - new_w) / 2.f, (getHeight() - new_h) / 2.f, new_w, new_h);
     viewport.getViewedComponent()->setBounds(0, 0, new_w, new_h);
-  }
-  
+#endif
+    
   if (vmpcSplashScreen != nullptr && vmpcSplashScreen->isVisible())
   {
     int width = 468;

@@ -91,6 +91,7 @@ endif()
 if (IOS)
     set(IOS_SPECIFIC_SETTINGS
         REQUIRES_FULL_SCREEN TRUE
+        IPAD_SCREEN_ORIENTATIONS UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         BACKGROUND_AUDIO_ENABLED TRUE
         APP_GROUPS_ENABLED TRUE
         APP_GROUP_IDS group.nl.izmar.vmpc2000xl
