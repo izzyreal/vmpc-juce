@@ -72,11 +72,11 @@ VmpcProcessor::VmpcProcessor()
   {
     mpc::AutoSave::restoreAutoSavedState(mpc);
   }
-
-  if (!juce::JUCEApplication::isStandaloneApp())
+  else
   {
       auto syncScreen = mpc.screens->get<SyncScreen>("sync");
       syncScreen->modeIn = 1;
+      mpc.setPluginModeEnabled(true);
   }
 }
 
