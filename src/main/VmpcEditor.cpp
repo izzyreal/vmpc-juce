@@ -79,13 +79,22 @@ void VmpcEditor::showDisclaimer()
 
 void VmpcEditor::resized()
 {
+    const auto ratio = 1298.0 / 994.0;
 
 #if JUCE_IOS
     if (juce::PluginHostType::jucePlugInClientCurrentWrapperType == juce::AudioProcessor::wrapperType_AudioUnitv3)
     {
-        auto ratio = 1298.0 / 994.0;
-        viewport.getViewedComponent()->setBounds(0, 0, getWidth(), getWidth() / ratio);
-        viewport.setBounds(0, 0, getWidth(), getWidth() / ratio);
+        auto new_w = getWidth();
+        auto new_h = new_w / ratio;
+        
+        if (new_h > getHeight())
+        {
+            new_h = getHeight();
+            new_w = new_h * ratio;
+        }
+        
+        viewport.setBounds((getWidth() - new_w) / 2, (getHeight() - new_h) / 2, getWidth(), getHeight());
+        viewport.getViewedComponent()->setBounds(0, 0, new_w, new_h);
         return;
     }
     
@@ -97,17 +106,16 @@ void VmpcEditor::resized()
       setSize(area.getWidth(), area.getHeight());
       viewport.setBounds(primaryDisplay->userArea);
       
-      const auto ratio = 1298.0 / 994.0;
       viewport.getViewedComponent()->setBounds(0, 0, area.getWidth(), getWidth() / ratio);
     }
 #else
     auto new_w = getWidth();
-    auto new_h = getWidth() / (1298/994.f);
+    auto new_h = getWidth() / ratio;
 
     if (new_h > getHeight())
     {
       new_h = getHeight();
-      new_w = getHeight() * (1298/994.f);
+      new_w = getHeight() * ratio;
     }
 
     getProcessor().lastUIWidth = new_w;
