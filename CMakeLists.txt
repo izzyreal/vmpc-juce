@@ -8,9 +8,9 @@ find_package(Git)
 
 # Note that IOS (as of CMake 3.14) is not set until the project() call is made.
 if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
-  set(VMPC_VERSION 0.5.13)
+  set(VMPC_VERSION 0.5.14)
 else()
-  set(VMPC_VERSION 0.5.13)
+  set(VMPC_VERSION 0.5.14)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
