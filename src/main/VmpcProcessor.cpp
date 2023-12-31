@@ -368,12 +368,15 @@ void VmpcProcessor::processTransport()
 
     if (!wasPlaying && isPlaying)
     {
-      mpc.getSequencer()->playFromStart();
+        mpc.getSequencer()->setSongModeEnabled(mpc.getLayeredScreen()->getCurrentScreenName() == "song");
+        mpc.getSequencer()->playFromStart();
     }
 
-    if (wasPlaying && !isPlaying) {
+    if (wasPlaying && !isPlaying)
+    {
       mpc.getSequencer()->stop();
     }
+
     wasPlaying = isPlaying;
   }
 }
