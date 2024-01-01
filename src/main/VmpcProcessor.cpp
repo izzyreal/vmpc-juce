@@ -1,5 +1,8 @@
 #include "VmpcProcessor.h"
+
 #include "VmpcEditor.h"
+#include "VmpcParameters.h"
+
 #include "version.h"
 
 #include "lcdgui/screens/VmpcSettingsScreen.hpp"
@@ -77,6 +80,13 @@ VmpcProcessor::VmpcProcessor()
       auto syncScreen = mpc.screens->get<SyncScreen>("sync");
       syncScreen->modeIn = 1;
       mpc.setPluginModeEnabled(true);
+  }
+
+  vmpcParameters = std::make_unique<VmpcParameters>(mpc);
+
+  for (auto& p : vmpcParameters->getParameters())
+  {
+      addParameter(p);
   }
 }
 

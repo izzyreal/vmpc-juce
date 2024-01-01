@@ -6,6 +6,8 @@
 
 namespace mpc::engine::midi { class ShortMessage; }
 
+class VmpcParameters;
+
 class VmpcProcessor  : public juce::AudioProcessor
 {
 public:
@@ -58,6 +60,7 @@ private:
   int framesProcessed = 0;
 
   std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>> midiOutputBuffer = std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>>(100);
+    std::unique_ptr<VmpcParameters> vmpcParameters;
 
 public:
   bool shouldShowDisclaimer = true;
