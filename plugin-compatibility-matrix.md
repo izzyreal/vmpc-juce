@@ -57,3 +57,21 @@ This will also serve as a rough indication of VMPC2000XL's MIDI and other contro
 
 Enable "Send all keyboard input to plug-in" to use VMPC2000XL's full keyboard mapping. This is recommended, else basic keyboard input, like Esc to go to MAIN screen will close the plugin editor, and using F1-F6 keys is not possible.
 <img width="579" alt="image" src="https://github.com/izzyreal/vmpc-juce/assets/3707432/4f90842e-e05f-4948-9662-5be69adb2749">
+
+**Some notes on AUv3**
+VMPC2000XL is exposed as both an AUv3 [music device/`aumu`](https://developer.apple.com/documentation/audiotoolbox/1584142-audio_unit_types/kaudiounittype_musicdevice), as well as an AUv3 [music effect/`aumf`](https://developer.apple.com/documentation/audiotoolbox/1584142-audio_unit_types/kaudiounittype_musiceffect).
+
+An AUv3 music device supports:
+* MIDI input
+* audio output
+
+An AUv3 music effect supports:
+* MIDI input
+* audio output
+* audio input
+
+In order to use VMPC2000XL AUv3 as a sampler, you _have_ to insert it as an effect on the channel you want to sample. This channel you want to sample can be a mix bus to which some audio source is sent, or it can be directly on a channel that has an audio source like an instrument plugin.
+
+Below is the mix bus approach used on a scenario where VMPC2000XL samples audio coming from Model D:
+
+<img width="579" alt="image" src="https://github.com/izzyreal/vmpc-juce/assets/3707432/e71271cd-6049-4073-8603-cb4beaaa36ca">
