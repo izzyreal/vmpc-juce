@@ -52,7 +52,7 @@ FetchContent_Declare(juce-raw-keyboard-input-module
 
 FetchContent_Declare(mpc
   GIT_REPOSITORY https://github.com/izzyreal/mpc.git
-  GIT_TAG        master
+  GIT_TAG        auv3-app-resources
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/mpc
 )
 
@@ -155,7 +155,7 @@ if (IOS)
     RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
     "${_src_root_path}/*.c*"
     "${_src_root_path}/*.h*"
-        "${_src_root_path}/*.m*"
+    "${_src_root_path}/*.m*"
   )
 else()
   file(

@@ -9,19 +9,19 @@ function(_bundle_vmpc_juce_resources _target_name)
   _add_resource_files(${_target_name} ${_vmpc_juce_resources_root} img png "${total_list}")
   _add_resource_files(${_target_name} ${_vmpc_juce_resources_root} img gif "${total_list}")
 
-  if (APPLE AND NOT IOS)
+  if (APPLE)
 
-      file(GLOB_RECURSE MPC_RESOURCES "${CMAKE_SOURCE_DIR}/editables/mpc/resources/*")
+    file(GLOB_RECURSE MPC_RESOURCES "${CMAKE_SOURCE_DIR}/editables/mpc/resources/*")
 
-      list(FILTER MPC_RESOURCES EXCLUDE REGEX "${CMAKE_SOURCE_DIR}/editables/mpc/resources/test/.*")
+    list(FILTER MPC_RESOURCES EXCLUDE REGEX "${CMAKE_SOURCE_DIR}/editables/mpc/resources/test/.*")
 
-      foreach(RESOURCE ${MPC_RESOURCES})
-          get_filename_component(SOURCE_DIR "${RESOURCE}" DIRECTORY)
-          string(REPLACE "${CMAKE_SOURCE_DIR}/editables/mpc/resources" "" RELATIVE_DIR "${SOURCE_DIR}")
-          set_source_files_properties(${RESOURCE} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources${RELATIVE_DIR}")
-      endforeach()
+    foreach(RESOURCE ${MPC_RESOURCES})
+        get_filename_component(SOURCE_DIR "${RESOURCE}" DIRECTORY)
+        string(REPLACE "${CMAKE_SOURCE_DIR}/editables/mpc/resources" "" RELATIVE_DIR "${SOURCE_DIR}")
+        set_source_files_properties(${RESOURCE} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources${RELATIVE_DIR}")
+    endforeach()
 
-      target_sources(vmpc2000xl PUBLIC ${MPC_RESOURCES})
+    target_sources(vmpc2000xl_Standalone PRIVATE ${MPC_RESOURCES})
 
     set_source_files_properties(
             ${total_list}
@@ -29,7 +29,7 @@ function(_bundle_vmpc_juce_resources _target_name)
             MACOSX_PACKAGE_LOCATION Resources/img
     )
 
-    target_sources(vmpc2000xl PUBLIC
+    target_sources(vmpc2000xl_Standalone PRIVATE
             ${total_list}
     )
 
