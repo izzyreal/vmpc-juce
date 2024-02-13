@@ -21,7 +21,7 @@ function(_bundle_vmpc_juce_resources _target_name)
         set_source_files_properties(${RESOURCE} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources${RELATIVE_DIR}")
     endforeach()
 
-    target_sources(vmpc2000xl_Standalone PRIVATE ${MPC_RESOURCES})
+    target_sources(vmpc2000xl_AUv3 PRIVATE ${MPC_RESOURCES})
 
     set_source_files_properties(
             ${total_list}
@@ -29,7 +29,7 @@ function(_bundle_vmpc_juce_resources _target_name)
             MACOSX_PACKAGE_LOCATION Resources/img
     )
 
-    target_sources(vmpc2000xl_Standalone PRIVATE
+    target_sources(vmpc2000xl_AUv3 PRIVATE
             ${total_list}
     )
 
