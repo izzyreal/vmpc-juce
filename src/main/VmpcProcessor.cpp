@@ -78,6 +78,8 @@ VmpcProcessor::VmpcProcessor()
       syncScreen->modeIn = 1;
       mpc.setPluginModeEnabled(true);
   }
+  
+  mpc.startMidiDeviceDetector();
 }
 
 VmpcProcessor::~VmpcProcessor()
