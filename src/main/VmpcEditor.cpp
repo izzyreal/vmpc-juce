@@ -8,6 +8,13 @@
 VmpcEditor::VmpcEditor(VmpcProcessor& p)
 : AudioProcessorEditor(&p), vmpcProcessor(p), mpc(p.mpc)
 {
+  HMODULE hModule = LoadLibrary(TEXT("hello_resources.dll"));
+  HRSRC hRes = FindResource(hModule, TEXT("resources/img/disclaimer.gif"), RT_RCDATA);
+  HGLOBAL hData = LoadResource(hModule, hRes);
+  void* pData = LockResource(hData);
+  DWORD dataSize = SizeofResource(hModule, hRes);
+  FreeLibrary(hModule);
+
   auto content = new ContentComponent(mpc, p.showAudioSettingsDialog);
   
   const bool deleteContentWhenNotUsedAnymore = true;

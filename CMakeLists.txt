@@ -234,6 +234,12 @@ if(GIT_FOUND)
   endif()
 endif()
 
+add_library(hello_resources MODULE resources.rc)
+set_target_properties(hello_resources PROPERTIES LINK_FLAGS "/ENTRY:dummyFunction /NOENTRY")
+get_target_property(VMPC2000XL_OUTPUT_DIR vmpc2000xl_Standalone RUNTIME_OUTPUT_DIRECTORY)
+set_target_properties(hello_resources PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${VMPC2000XL_OUTPUT_DIR})
+add_dependencies(vmpc2000xl hello_resources)
+
 set(CPACK_SOURCE_GENERATOR "TGZ")
 set(CPACK_SOURCE_IGNORE_FILES
     /.git
