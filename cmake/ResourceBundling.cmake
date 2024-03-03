@@ -22,6 +22,7 @@ function(_bundle_vmpc_juce_resources _target_name)
     endforeach()
 
     target_sources(vmpc2000xl_AUv3 PRIVATE ${MPC_RESOURCES})
+    target_sources(vmpc2000xl_VST3 PRIVATE ${MPC_RESOURCES})
 
     set_source_files_properties(
             ${total_list}
@@ -29,15 +30,12 @@ function(_bundle_vmpc_juce_resources _target_name)
             MACOSX_PACKAGE_LOCATION Resources/img
     )
 
-    target_sources(vmpc2000xl_AUv3 PRIVATE
-            ${total_list}
-    )
+    target_sources(vmpc2000xl_AUv3 PRIVATE ${total_list})
+    target_sources(vmpc2000xl_VST3 PRIVATE ${total_list})
 
     string(REPLACE "resources" "Resources" total_list_upper_case ${total_list})
 
-    set_target_properties(vmpc2000xl PROPERTIES
-            RESOURCE ${total_list_upper_case}
-    )
+    set_target_properties(vmpc2000xl PROPERTIES RESOURCE ${total_list_upper_case})
   else()
     cmrc_add_resource_library(
             vmpc_juce_resources
