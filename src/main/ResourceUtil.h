@@ -4,7 +4,6 @@
 
 #ifdef __APPLE__
 #include "MacBundleResources.h"
-#define MAC_BUNDLE_RESOURCES 1
 #endif
 
 namespace vmpc {
@@ -14,10 +13,10 @@ public:
     static juce::Image loadImage(const std::string &path);
 
 private:
-#ifdef MAC_BUNDLE_RESOURCES
-
+#ifdef __APPLE__
         static juce::Image loadImageFromMacBundleResources(const std::string &path);
-
+#elif WIN32
+        static juce::Image loadImageFromWindowsResourceLibrary(const std::string& path);
 #else
         static juce::Image loadImageFromInMemoryFS(const std::string& path);
 #endif
