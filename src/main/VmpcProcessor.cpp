@@ -28,6 +28,9 @@
 #include <engine/audio/server/NonRealTimeAudioServer.hpp>
 #include <engine/midi/ShortMessage.hpp>
 
+#include <hardware/Hardware.hpp>
+#include <hardware/HwComponent.hpp>
+
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 using namespace mpc::lcdgui::screens::window;
@@ -77,6 +80,14 @@ VmpcProcessor::VmpcProcessor()
       auto syncScreen = mpc.screens->get<SyncScreen>("sync");
       syncScreen->modeIn = 1;
       mpc.setPluginModeEnabled(true);
+
+      for (auto& component : mpc.getHardware()->getComponents())
+      {
+          const auto label = component->getLabel();
+          parameters.emplace_back(new VmpcParameter(*component));
+          addParameter(parameters.back());
+          parameters.back()->addListener(this);
+      }
   }
   
   mpc.startMidiDeviceDetector();
@@ -671,7 +682,7 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
         auto currentDir = fs::path(mpc_ui->getStringAttribute("currentDir").toStdString());
         auto relativePath = fs::relative(currentDir, mpc.paths->defaultLocalVolumePath());
 
-        for (auto& pathSegment : relativePath)
+        for (auto pathSegment : relativePath)
         {
             mpc.getDisk()->moveForward(pathSegment.string());
             mpc.getDisk()->initFiles();
@@ -715,6 +726,26 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
 
         layeredScreen->setDirty();
     }
+}
+
+static void* handleComponentParameterValueChange(void* parameter)
+{
+    VmpcParameter* vmpcParameter = (VmpcParameter*) parameter;
+    const int newValue = vmpcParameter->get();
+    if (newValue > 0) vmpcParameter->component.push(vmpcParameter->get());
+    else vmpcParameter->component.release();
+    return nullptr;
+}
+
+void VmpcProcessor::parameterValueChanged(int parameterIndex, float newValue)
+{
+    auto mm = juce::MessageManager::getInstance();
+    auto parameter = parameters[static_cast<size_t>(parameterIndex)];
+    mm->callFunctionOnMessageThread(handleComponentParameterValueChange, parameter);
+}
+
+void VmpcProcessor::parameterGestureChanged(int parameterIndex, bool gestureIsStarting) {
+
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

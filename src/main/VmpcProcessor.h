@@ -4,9 +4,11 @@
 
 #include <Mpc.hpp>
 
+#include "VmpcParameter.h"
+
 namespace mpc::engine::midi { class ShortMessage; }
 
-class VmpcProcessor  : public juce::AudioProcessor
+class VmpcProcessor  : public juce::AudioProcessor, public juce::AudioProcessorParameter::Listener
 {
 public:
   //==============================================================================
@@ -47,6 +49,7 @@ public:
   int lastUIWidth = 1298/2, lastUIHeight = 994/2;
   
 private:
+  std::vector<VmpcParameter*> parameters;
   void processMidiIn(juce::MidiBuffer& midiMessages);
   void processMidiOut(juce::MidiBuffer& midiMessages, bool discard);
   void processTransport();
@@ -65,4 +68,8 @@ public:
   mpc::Mpc mpc;
   //==============================================================================
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcProcessor)
+
+    void parameterValueChanged(int parameterIndex, float newValue) override;
+
+    void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override;
 };

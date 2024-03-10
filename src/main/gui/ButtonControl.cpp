@@ -1,5 +1,6 @@
 #include "ButtonControl.hpp"
 #include "hardware/Button.hpp"
+#include "hardware/HwComponent.hpp"
 #include "controls/Controls.hpp"
 
 ButtonControl::ButtonControl(mpc::Mpc& mpc, juce::Rectangle<int> _rect,
@@ -132,7 +133,7 @@ void ButtonControl::mouseDoubleClick(const juce::MouseEvent&)
 
 void ButtonControl::mouseDown(const juce::MouseEvent&)
 {
-    button.lock()->push();
+    std::dynamic_pointer_cast<mpc::hardware::HwComponent>(button.lock())->push();
 }
 
 void ButtonControl::mouseUp(const juce::MouseEvent&)
