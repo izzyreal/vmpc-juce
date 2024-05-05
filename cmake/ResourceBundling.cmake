@@ -11,9 +11,12 @@ function(_bundle_vmpc_juce_resources _target_name)
   if (APPLE)
     set_source_files_properties(${VMPC_JUCE_RESOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/img)
 
-    target_sources(vmpc2000xl_AU PRIVATE ${VMPC_JUCE_RESOURCES})
     target_sources(vmpc2000xl_AUv3 PRIVATE ${VMPC_JUCE_RESOURCES})
-    target_sources(vmpc2000xl_VST3 PRIVATE ${VMPC_JUCE_RESOURCES})
+    
+    if (NOT IOS)
+      target_sources(vmpc2000xl_AU PRIVATE ${VMPC_JUCE_RESOURCES})
+      target_sources(vmpc2000xl_VST3 PRIVATE ${VMPC_JUCE_RESOURCES})
+    endif()
 
     file(GLOB_RECURSE MPC_RESOURCES "${_mpc_resources_root}/*")
     list(FILTER MPC_RESOURCES EXCLUDE REGEX "\\.DS_Store$")
@@ -24,9 +27,13 @@ function(_bundle_vmpc_juce_resources _target_name)
         set_source_files_properties(${RESOURCE} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources${RELATIVE_DIR}")
     endforeach()
 
-    target_sources(vmpc2000xl_AU PRIVATE ${MPC_RESOURCES})
     target_sources(vmpc2000xl_AUv3 PRIVATE ${MPC_RESOURCES})
-    target_sources(vmpc2000xl_VST3 PRIVATE ${MPC_RESOURCES})
+    
+    if (NOT IOS)
+      target_sources(vmpc2000xl_AU PRIVATE ${MPC_RESOURCES})
+      target_sources(vmpc2000xl_VST3 PRIVATE ${MPC_RESOURCES})
+    endif()
+    
   else()
     cmrc_add_resource_library(
             vmpc_juce_resources
