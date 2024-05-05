@@ -84,10 +84,11 @@ VmpcProcessor::VmpcProcessor()
       for (auto& component : mpc.getHardware()->getComponents())
       {
           const auto label = component->getLabel();
-          parameters.emplace_back(new VmpcParameter(*component));
-          addParameter(parameters.back());
-          parameters.back()->addListener(this);
+//          addParameter(new VmpcParameter(*component));
+//          (*getParameters().end())->addListener(this);
       }
+
+      addParameter(new juce::AudioParameterInt(juce::ParameterID("slider", 1), "slider", 0, 127, 0));
   }
   
   mpc.startMidiDeviceDetector();
@@ -740,7 +741,7 @@ static void* handleComponentParameterValueChange(void* parameter)
 void VmpcProcessor::parameterValueChanged(int parameterIndex, float newValue)
 {
     auto mm = juce::MessageManager::getInstance();
-    auto parameter = parameters[static_cast<size_t>(parameterIndex)];
+    auto parameter = getParameters()[parameterIndex];
     mm->callFunctionOnMessageThread(handleComponentParameterValueChange, parameter);
 }
 

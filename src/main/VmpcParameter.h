@@ -4,7 +4,7 @@
 
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 
-class VmpcParameter : public juce::AudioParameterInt {
+class VmpcParameter : public juce::AudioParameterBool {
 public:
     VmpcParameter(mpc::hardware::HwComponent& component);
     mpc::hardware::HwComponent& component;

@@ -3,9 +3,10 @@
 const int VERSION_HINT = 1;
 
 VmpcParameter::VmpcParameter(mpc::hardware::HwComponent &componentToUse)
-: juce::AudioParameterInt(
+: juce::AudioParameterBool(
         juce::ParameterID(componentToUse.getLabel(), VERSION_HINT),
         componentToUse.getLabel(),
-        0, 127, 0), component(componentToUse)
+        false,
+        juce::AudioParameterBoolAttributes()), component(componentToUse)
 {
 }

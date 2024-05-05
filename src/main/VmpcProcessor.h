@@ -49,7 +49,6 @@ public:
   int lastUIWidth = 1298/2, lastUIHeight = 994/2;
   
 private:
-  std::vector<VmpcParameter*> parameters;
   void processMidiIn(juce::MidiBuffer& midiMessages);
   void processMidiOut(juce::MidiBuffer& midiMessages, bool discard);
   void processTransport();

@@ -1,6 +1,7 @@
 #include "ContentComponent.h"
 #include "Constants.h"
 #include "../ResourceUtil.h"
+#include "../VmpcProcessor.h"
 
 #include <Mpc.hpp>
 
@@ -15,7 +16,7 @@
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
-ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAudioSettingsDialog)
+ContentComponent::ContentComponent(mpc::Mpc &_mpc, VmpcProcessor& p)
         : mpc(_mpc), keyEventHandler(mpc.getControls()->getKeyEventHandler())
 {
     setName("ContentComponent");
@@ -106,7 +107,14 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
         sliderImg = vmpc::ResourceUtil::loadImage("img/sliders.jpg");
     }
 
-    slider = new SliderControl(mpc.getHardware()->getSlider());
+    juce::AudioProcessorParameter* sliderParameter;
+
+    for (auto& parameter : p.getParameters())
+    {
+        if (parameter->getName(16).contains("slider")) { sliderParameter = parameter; break; }
+    }
+
+    slider = new SliderControl(mpc.getHardware()->getSlider(), sliderParameter);
     slider->setImage(sliderImg);
     addAndMakeVisible(slider);
 
@@ -139,7 +147,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     versionLabel.setColour(juce::Label::textColourId, juce::Colours::grey);
     addAndMakeVisible(versionLabel);
     
-    topRightMenu = new TopRightMenu(mpc, showAudioSettingsDialog);
+    topRightMenu = new TopRightMenu(mpc, p.showAudioSettingsDialog);
     
     addAndMakeVisible(topRightMenu);
 

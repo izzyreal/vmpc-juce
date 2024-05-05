@@ -8,7 +8,7 @@
 VmpcEditor::VmpcEditor(VmpcProcessor& p)
 : AudioProcessorEditor(&p), vmpcProcessor(p), mpc(p.mpc)
 {
-  auto content = new ContentComponent(mpc, p.showAudioSettingsDialog);
+  auto content = new ContentComponent(mpc, p);
   
   const bool deleteContentWhenNotUsedAnymore = true;
   viewport.setViewedComponent(content, deleteContentWhenNotUsedAnymore);

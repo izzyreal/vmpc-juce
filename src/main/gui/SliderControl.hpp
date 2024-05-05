@@ -3,6 +3,8 @@
 
 #include "MouseWheelControllable.hpp"
 
+#include <juce_audio_utils/juce_audio_utils.h>
+
 #include <memory>
 
 namespace mpc::hardware {
@@ -14,6 +16,7 @@ class SliderControl
 {
     
 private:
+    juce::AudioProcessorParameter* parameter;
     MouseWheelControllable mouseWheelControllable;
     std::weak_ptr<mpc::hardware::Slider> slider;
     int sliderIndex{ 0 };
@@ -28,11 +31,12 @@ public:
     
 public:
     void paint(juce::Graphics& g) override;
+    void mouseDown(const juce::MouseEvent& event) override;
     void mouseDrag(const juce::MouseEvent& event) override;
     void mouseUp(const juce::MouseEvent& event) override;
     void mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails&) override;
 
     void timerCallback() override;
     
-    SliderControl(std::weak_ptr<mpc::hardware::Slider> slider);
+    SliderControl(std::weak_ptr<mpc::hardware::Slider> slider, juce::AudioProcessorParameter* parameter);
 };

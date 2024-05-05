@@ -9,16 +9,22 @@ static inline void clampIndex(int& sliderIndex)
         sliderIndex = 99;
 }
 
-SliderControl::SliderControl(std::weak_ptr<mpc::hardware::Slider> _slider)
-: slider (_slider), sliderIndex (static_cast<int>(_slider.lock()->getValue() / 1.27))
+SliderControl::SliderControl(std::weak_ptr<mpc::hardware::Slider> _slider, juce::AudioProcessorParameter* parameterToUse)
+: parameter(parameterToUse), slider (_slider), sliderIndex (static_cast<int>(_slider.lock()->getValue() / 1.27))
 {
     clampIndex(sliderIndex);
+}
+
+void SliderControl::mouseDown(const juce::MouseEvent&)
+{
+    parameter->beginChangeGesture();
 }
 
 void SliderControl::mouseUp(const juce::MouseEvent& event)
 {
     lastDy = 0;
     Component::mouseUp(event);
+    parameter->endChangeGesture();
 }
 
 void SliderControl::mouseDrag(const juce::MouseEvent& event)

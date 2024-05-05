@@ -14,6 +14,7 @@
 #include <vector>
 
 class Keyboard;
+class VmpcProcessor;
 
 namespace mpc { class Mpc; }
 namespace mpc::controls { class KeyEventHandler; }
@@ -21,7 +22,7 @@ namespace mpc::controls { class KeyEventHandler; }
 class ContentComponent : public juce::Component, juce::FocusChangeListener
 {
 public:
-  ContentComponent(mpc::Mpc&, std::function<void()>& showAudioSettingsDialog);
+  ContentComponent(mpc::Mpc&, VmpcProcessor&);
   ~ContentComponent() override;
 
   Keyboard* keyboard = nullptr;
