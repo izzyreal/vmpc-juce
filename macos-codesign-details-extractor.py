@@ -13,7 +13,7 @@ class MyParser(argparse.ArgumentParser):
 parser = MyParser(description='Return the first valid Apple Development organisational unit found in your macOS keychain')
 args = parser.parse_args()
 
-first_cert = subprocess.check_output("security find-certificate -c \"Apple Development\" -p | openssl x509 -subject", universal_newlines=True, shell=True, stderr=subprocess.STDOUT)
+first_cert = subprocess.check_output("security find-certificate -c \"Apple Development\" -p | /usr/bin/openssl x509 -subject", universal_newlines=True, shell=True, stderr=subprocess.STDOUT)
 
 begin = "/OU="
 
