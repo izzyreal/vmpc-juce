@@ -632,7 +632,13 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
             auto sndData = decodeBase64(candidate);
             SndReader sndReader(sndData);
 
-            auto sound = mpc.getSampler()->addSound(sndReader.getSampleRate());
+            auto sound = mpc.getSampler()->addSound(sndReader.getSampleRate(), "");
+
+            if (sound == nullptr)
+            {
+                return;
+            }
+
             sound->setMono(sndReader.isMono());
             sndReader.readData(*sound->getSampleData());
             sound->setName(sndReader.getName());

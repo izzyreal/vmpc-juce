@@ -74,7 +74,12 @@ void PadControl::loadFile(const String path, bool shouldBeConverted, std::string
         auto layeredScreen = mpc.getLayeredScreen();
 
         SoundLoaderResult result;
-        auto sound = mpc.getSampler()->addSound();
+        auto sound = mpc.getSampler()->addSound(screenToReturnTo);
+
+        if (sound == nullptr)
+        {
+            return;
+        }
 
         soundLoader.loadSound(file, result, sound, shouldBeConverted);
         auto popupScreen = mpc.screens->get<PopupScreen>("popup");
