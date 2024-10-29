@@ -25,7 +25,7 @@ if(APPLE)
   if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE INTERNAL "Minimum iOS deployment version")
   else()
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE INTERNAL "Minimum OS X deployment version")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE INTERNAL "Minimum OS X deployment version")
   endif()
 endif()
 
@@ -54,7 +54,7 @@ FetchContent_Declare(juce-raw-keyboard-input-module
 
 FetchContent_Declare(mpc
   GIT_REPOSITORY https://github.com/izzyreal/mpc.git
-  GIT_TAG        master
+  GIT_TAG        std-fs
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/mpc
 )
 
