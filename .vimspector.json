@@ -19,7 +19,7 @@
         "name": "Launch",
         "type": "lldb",
         "request": "launch",
-        "program": "${workspaceRoot}/Debug/vmpc2000xl_artefacts/Debug/Standalone/VMPC2000XL.app/Contents/MacOS/VMPC2000XL",
+        "program": "${workspaceRoot}/build/vmpc2000xl_artefacts/Debug/Standalone/VMPC2000XL.app/Contents/MacOS/VMPC2000XL",
         "args": [],
         "cwd": "${workspaceRoot}",
         "stopOnEntry": false
