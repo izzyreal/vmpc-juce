@@ -4,10 +4,12 @@
 
 #include <functional>
 
+namespace mpc { class Mpc; }
+
 class View : public juce::Component {
 
     public:
-        View(const std::function<float()>& getScale, const std::function<juce::Font&()> &getNimbusSansScaled);
+        View(mpc::Mpc &mpc, const std::function<float()>& getScale, const std::function<juce::Font&()> &getNimbusSansScaled);
         ~View() override;
 
         void resized() override;

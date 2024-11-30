@@ -153,7 +153,7 @@ static void from_json(const json& j, node& n)
 #endif
 }
 
-View::View(const std::function<float()> &getScaleToUse, const std::function<juce::Font&()> &getNimbusSansScaledToUse)
+View::View(mpc::Mpc &mpc, const std::function<float()> &getScaleToUse, const std::function<juce::Font&()> &getNimbusSansScaledToUse)
     : getScale(getScaleToUse), getNimbusSansScaled(getNimbusSansScaledToUse)
 {
     const auto jsonFileData = mpc::ResourceUtil::get_resource_data("json/" + name + ".json");
@@ -161,7 +161,7 @@ View::View(const std::function<float()> &getScaleToUse, const std::function<juce
 
     view_root = data.template get<node>();
 
-    ViewUtil::createComponent(view_root, components, this, getScale, getNimbusSansScaled);
+    ViewUtil::createComponent(mpc, view_root, components, this, getScale, getNimbusSansScaled);
 }
 
 View::~View()

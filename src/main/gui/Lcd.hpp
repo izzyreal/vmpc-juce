@@ -1,60 +1,173 @@
 #pragma once
+#include "Observer.hpp"
 #include "juce_graphics/juce_graphics.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "Constants.hpp"
 #include "melatonin_blur/melatonin/shadows.h"
 
-class Lcd : public juce::Component {
+#include "Mpc.hpp"
+#include "lcdgui/Screens.hpp"
+#include "lcdgui/Layer.hpp"
+#include "lcdgui/screens/OthersScreen.hpp"
+
+#include "../bitmap-gui/AuxLCDWindow.hpp"
+
+using namespace mpc::lcdgui::screens;
+
+class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
     public:
+        Lcd(mpc::Mpc &mpcToUse) : mpc(mpcToUse)
+    {
+        drawPixelsToImg();
+        startTimer(25);
+        auto othersScreen = mpc.screens->get<OthersScreen>("others");
+        othersScreen->addObserver(this);
+    }
+
+        void update(mpc::Observable *, mpc::Message message) override
+        {
+            const auto msg = std::get<std::string>(message);
+
+            if (msg == "contrast")
+            {
+                mpc.getLayeredScreen()->getFocusedLayer()->SetDirty(); // Could be done less invasively by just redrawing the current pixels of the LCD screens, but with updated colors
+                repaint();
+            }
+        }
+
         void paint(juce::Graphics &g) override
         {
-            g.fillAll(Constants::lcdOffBacklit);
             g.setImageResamplingQuality(juce::Graphics::highResamplingQuality);
-            std::vector<std::vector<bool>> rawPixels(60, std::vector<bool>(248));
 
-            juce::Path p;
-            juce::Image img(juce::Image::PixelFormat::RGB, 248*2, 60*2, false);
+            const auto layeredScreen = mpc.getLayeredScreen();
 
             const auto asp_ratio = 60.f/248.f;
             const auto w = float(getWidth()) * magicMultiplier;
             const auto h = w * asp_ratio;
-
             const auto img_scale = w / (248 * 2);
             const auto unused_h_px = getWidth() - w;
             const auto unused_v_px = getHeight() - h;
             const auto x_offset = unused_h_px * 0.5f;
             const auto y_offset = unused_v_px * 0.5f;
 
-            for (uint8_t y = 0; y < 60; y++)
-            {
-                for (uint8_t x = 0; x < 248; x++)
-                {
-                    const bool on = rawPixels[y][x];
-                    drawLcdPixel(img, x, y, on);
-                    if (!on) p.addRectangle(x*2, y*2, 2, 2);
-                }
-            }
+            juce::AffineTransform t;
+            t = t.scaled(img_scale);
+            t = t.translated(x_offset, y_offset);
 
+            g.drawImageTransformed(img, t);
+            //////////// SHADOW ///////////////
             auto color = Constants::lcdOffBacklit.brighter().withAlpha(0.4f);
             int radius = (int) std::round<float>((float)getWidth() / 248.f);
             juce::Point<int> offset = { 0, 0 };
             int spread = 0.f;
             melatonin::DropShadow shadow = { color, radius, offset, spread };
-            
-            juce::AffineTransform t;
-            t = t.scaled(img_scale);
-            t = t.translated(x_offset, y_offset);
+
+            juce::Path p;
+
+            const auto &rawPixels = *layeredScreen->getPixels();
+
+            for (uint8_t y = 0; y < 60; y++)
+            {
+                for (uint8_t x = 0; x < 248; x++)
+                {
+                    const bool on = rawPixels[x][y];
+                    if (!on) p.addRectangle(x*2, y*2, 2, 2);
+                }
+            }
 
             p.applyTransform(t);
-            g.drawImageTransformed(img, t);
-
             shadow.render(g, p);
+        }
+
+        void checkLsDirty()
+        {
+            const auto layeredScreen = mpc.getLayeredScreen();
+
+            if (!layeredScreen->IsDirty())
+            {
+                return;
+            }
+
+            auto dirtyArea = layeredScreen->getDirtyArea();
+            dirtyRect = juce::Rectangle<int>(dirtyArea.L, dirtyArea.T, dirtyArea.W(), dirtyArea.H());
+            layeredScreen->Draw();
+            drawPixelsToImg();
+            auto dirtyRect_x2 = juce::Rectangle<int>(dirtyArea.L * 2, dirtyArea.T * 2, dirtyArea.W() * 2, dirtyArea.H() * 2);
+            repaint(dirtyRect_x2.expanded(1));
+
+            if (auxWindow != nullptr)
+            {
+                auto auxBounds = auxWindow->auxLcd->getLocalBounds();
+
+                auto scale = auxBounds.getWidth() / (248.f);
+
+                auto auxRepaintBounds = juce::Rectangle<int>(dirtyArea.L * scale, dirtyArea.T * scale, dirtyArea.W() * scale, dirtyArea.H() * scale);
+
+                auxWindow->auxLcd->repaint(auxRepaintBounds.expanded(3));
+            }
+        }
+
+        void timerCallback() override
+        {
+            checkLsDirty();
+        }
+
+        void drawPixelsToImg()
+        {
+            const auto layeredScreen = mpc.getLayeredScreen();
+
+            const auto pixels = layeredScreen->getPixels();
+
+            auto othersScreen = mpc.screens->get<OthersScreen>("others");
+            auto contrast = othersScreen->getContrast();
+
+            juce::Colour c;
+
+            auto halfOn = Constants::lcdOnLight.darker(static_cast<float>(contrast * 0.02));
+            auto on = Constants::lcdOn.darker(static_cast<float>(contrast * 0.02));
+            auto off = Constants::lcdOff.brighter(static_cast<float>(contrast * 0.01428));
+
+            const auto rectX = dirtyRect.getX();
+            const auto rectY = dirtyRect.getY();
+            const auto rectRight = dirtyRect.getRight();
+            const auto rectBottom = dirtyRect.getBottom();
+
+            for (int x = rectX; x < rectRight; x++)
+            {
+                for (int y = rectY; y < rectBottom; y++)
+                {
+                    const auto x_x2 = x * 2;
+                    const auto y_x2 = y * 2;
+
+                    if ((*pixels)[x][y])
+                    {
+                        c = halfOn;
+                        img.setPixelAt(x_x2, y_x2, on);
+                    }
+                    else
+                    {
+                        c = off;
+                        img.setPixelAt(x_x2, y_x2, c);
+                    }
+
+                    img.setPixelAt(x_x2 + 1, y_x2, c);
+                    img.setPixelAt(x_x2 + 1, y_x2 + 1, c);
+                    img.setPixelAt(x_x2, y_x2 + 1, c);
+                }
+            }
+
+            dirtyRect = juce::Rectangle<int>();
         }
 
         float magicMultiplier = 0.55f;
 
     private:
+        mpc::Mpc &mpc;
+        AuxLCDWindow* auxWindow = nullptr;
+        juce::Rectangle<int> dirtyRect;
+        juce::Image img = juce::Image(juce::Image::PixelFormat::RGB, 248*2, 60*2, false);
+
         void drawLcdPixel(juce::Image &img, const uint8_t lcdX, const uint8_t lcdY, const bool on)
         {
             const juce::Colour c1 = on ? Constants::lcdOn : Constants::lcdOffBacklit;

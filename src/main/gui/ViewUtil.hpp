@@ -6,6 +6,8 @@
 #include <vector>
 #include <functional>
 
+namespace mpc { class Mpc; }
+
 class ViewUtil
 {
     public:
@@ -13,6 +15,7 @@ class ViewUtil
                 const std::function<float()> &getScale);
 
         static void createComponents(
+                mpc::Mpc &mpc,
                 node &n,
                 std::vector<juce::Component*> &components,
                 juce::Component* parent,
@@ -20,6 +23,7 @@ class ViewUtil
                 const std::function<juce::Font&()> &getNimbusSansScaled);
 
         static void createComponent(
+                mpc::Mpc &mpc,
                 node &n,
                 std::vector<juce::Component*> &components,
                 juce::Component *parent,

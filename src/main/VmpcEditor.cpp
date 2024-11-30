@@ -1,13 +1,13 @@
 #define ENABLE_GUI_INSPECTOR 0
 
 #include "VmpcEditor.hpp"
+#include "VmpcProcessor.hpp"
 #include "gui/Constants.hpp"
 #include "ResourceUtil.h"
 
-VmpcEditor::VmpcEditor(VmpcProcessor& p)
-        : AudioProcessorEditor(&p), pluginProcessor(p)
+VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
+        : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
 {
-
     const auto fontData = mpc::ResourceUtil::get_resource_data("fonts/mpc2000xl_faceplate_label_font.otf");
 
     nimbusSans = juce::Font(juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size()));
@@ -18,7 +18,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor& p)
         return nimbusSans;
     };
 
-    view = new View(getScale, getNimbusSansScaled);
+    view = new View(vmpcProcessor.mpc, getScale, getNimbusSansScaled);
 
     setSize((int) (initial_width * initial_scale), (int) (initial_height * initial_scale));
     setWantsKeyboardFocus(true);
