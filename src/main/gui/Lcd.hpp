@@ -79,14 +79,14 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
                 return;
             }
 
-            auto dirtyArea = layeredScreen->getDirtyArea();
+            const auto dirtyArea = layeredScreen->getDirtyArea();
             dirtyRect = juce::Rectangle<int>(dirtyArea.L, dirtyArea.T, dirtyArea.W(), dirtyArea.H());
+            const auto dirtyRectT = dirtyRect.toFloat().transformedBy(juce::AffineTransform().scaled(2.f)).transformedBy(getTransform());
+
             layeredScreen->Draw();
             drawPixelsToImg();
-            auto dirtyRect_x2 = juce::Rectangle<int>(dirtyArea.L * 2, dirtyArea.T * 2, dirtyArea.W() * 2, dirtyArea.H() * 2);
-            dirtyRect_x2 = dirtyRect.transformedBy(getTransform());
-            dirtyRect_x2 = getLocalBounds();
-            repaint(dirtyRect_x2.expanded(1));
+
+            repaint(dirtyRectT.toNearestInt().expanded(1));
 
             if (auxWindow != nullptr)
             {
