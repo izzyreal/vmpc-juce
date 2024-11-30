@@ -10,7 +10,7 @@
       "type" : "grid",
       "area" : [ 1, 1, 1, 3 ],
       "row_fractions" : [ 0, 40, 2 ],
-      "column_fractions" : [ 150, 20, 1 ],
+      "column_fractions" : [ 150, 20, 2 ],
       "children" : [
         { 
           "name" : "display_shadow",

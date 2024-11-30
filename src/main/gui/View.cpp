@@ -1,3 +1,6 @@
+#include "controls/Controls.hpp"
+#include "controls/KeyEvent.hpp"
+#include "controls/KeyEventHandler.hpp"
 #define DEBUG_NODES 0
 
 #include "View.hpp"
@@ -7,6 +10,9 @@
 #include "ViewUtil.hpp"
 
 #include "ResourceUtil.h"
+#include "Mpc.hpp"
+
+#include <raw_keyboard_input/raw_keyboard_input.h>
 
 #include <nlohmann/json.hpp>
 
@@ -156,6 +162,18 @@ static void from_json(const json& j, node& n)
 View::View(mpc::Mpc &mpc, const std::function<float()> &getScaleToUse, const std::function<juce::Font&()> &getNimbusSansScaledToUse)
     : getScale(getScaleToUse), getNimbusSansScaled(getNimbusSansScaledToUse)
 {
+    keyboard = KeyboardFactory::instance(this);
+
+    keyboard->onKeyDownFn = [&](int keyCode) {
+        mpc.getControls()->getKeyEventHandler().lock()->handle(mpc::controls::KeyEvent(keyCode, true));
+    };
+
+    keyboard->onKeyUpFn = [&](int keyCode) {
+        mpc.getControls()->getKeyEventHandler().lock()->handle(mpc::controls::KeyEvent(keyCode, false));
+    };
+
+    setWantsKeyboardFocus(true);
+
     const auto jsonFileData = mpc::ResourceUtil::get_resource_data("json/" + name + ".json");
     json data = json::parse(jsonFileData);
 
