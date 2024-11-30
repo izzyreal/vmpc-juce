@@ -46,10 +46,27 @@ FetchContent_Declare(JUCE
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/JUCE
 )
 
+FetchContent_Declare(melatonin_blur
+    GIT_REPOSITORY https://github.com/sudara/melatonin_blur.git
+    GIT_TAG origin/main
+    SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/melatonin_blur)
+
+FetchContent_Declare (melatonin_inspector
+        GIT_REPOSITORY https://github.com/sudara/melatonin_inspector.git
+        GIT_TAG main
+        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/melatonin_inspector)
+
 FetchContent_Declare(juce-raw-keyboard-input-module
   GIT_REPOSITORY https://github.com/izzyreal/juce-raw-keyboard-input-module.git
   GIT_TAG        main
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/juce-raw-keyboard-input-module
+)
+
+FetchContent_Declare(json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG        v3.11.3
+  GIT_SHALLOW    ON
+  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/deps/json
 )
 
 FetchContent_Declare(mpc
@@ -82,7 +99,7 @@ FetchContent_MakeAvailable(miniz)
 endif()
 endif()
 
-FetchContent_MakeAvailable(mpc JUCE juce-raw-keyboard-input-module)
+FetchContent_MakeAvailable(mpc JUCE juce-raw-keyboard-input-module melatonin_inspector melatonin_blur json)
 
 FetchContent_GetProperties(tl-expected)
 
@@ -200,6 +217,9 @@ endif()
 target_link_libraries(vmpc2000xl
   PRIVATE
     juce::juce_audio_utils
+    nlohmann_json::nlohmann_json
+    melatonin_blur
+    melatonin_inspector
     raw_keyboard_input
     mpc
   PUBLIC

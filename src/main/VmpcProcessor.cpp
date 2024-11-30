@@ -1,5 +1,5 @@
-#include "VmpcProcessor.h"
-#include "VmpcEditor.h"
+#define USE_BITMAP_GUI 0
+#include "VmpcProcessor.hpp"
 #include "version.h"
 
 #include "lcdgui/screens/VmpcSettingsScreen.hpp"
@@ -27,6 +27,12 @@
 
 #include <engine/audio/server/NonRealTimeAudioServer.hpp>
 #include <engine/midi/ShortMessage.hpp>
+
+#if USE_BITMAP_GUI == 1
+#include "VmpcBitmapEditor.hpp"
+#else
+#include "VmpcEditor.hpp"
+#endif
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
@@ -488,7 +494,11 @@ bool VmpcProcessor::hasEditor() const
 juce::AudioProcessorEditor* VmpcProcessor::createEditor()
 {
   mpc.getLayeredScreen()->setDirty();
+#if USE_BITMAP_GUI == 1
+  return new VmpcBitmapEditor(*this);
+#else
   return new VmpcEditor (*this);
+#endif
 }
 
 void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)

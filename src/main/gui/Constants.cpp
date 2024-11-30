@@ -1,35 +1,21 @@
-#include "Constants.h"
+#pragma once
 
-juce::Rectangle<int>& Constants::dataWheelRect()
-{
-    static auto rect = juce::Rectangle<int>(378, 415, 171, 171);
-	return rect;
-}
+#include "Constants.hpp"
 
-juce::Rectangle<int>& Constants::lcdRect()
-{
-    static auto rect = juce::Rectangle<int>(116, 102, 496, 120);
-    return rect;
-}
+juce::Colour Constants::chassisColour = juce::Colour::fromRGB(230, 238, 233);
+juce::Colour Constants::labelColour = juce::Colour::fromRGB(90, 90, 90);
+juce::Colour Constants::darkLabelColour = labelColour.darker();
+juce::Colour Constants::greyFacePaintColour = juce::Colour::fromRGB(139, 151, 163);
+juce::Colour Constants::betweenChassisAndLabelColour = chassisColour.darker(0.2f);
 
-const juce::Colour Constants::LCD_ON = juce::Colour::fromRGB(86, 61, 145);
-const juce::Colour Constants::LCD_OFF = juce::Colour::fromRGB(170, 248, 218);
-const juce::Colour Constants::LCD_HALF_ON = juce::Colour::fromRGB(128, 154, 181);
+juce::Colour Constants::lcdOn = juce::Colour::fromRGB(86, 61, 135).darker().darker();
+juce::Colour Constants::lcdOnLight = Constants::lcdOn.brighter(0.8f).darker();
+//juce::Colour Constants::lcdOffBacklit = juce::Colour::fromRGB(170, 225, 180).brighter(0.f);
+juce::Colour Constants::lcdOffBacklit = juce::Colours::yellowgreen.brighter();
+juce::Colour Constants::lcdOff = lcdOffBacklit/*.darker(0.4f)*/;
 
-juce::Rectangle<int>& Constants::recKnobRect()
-{
-    static auto rect = juce::Rectangle<int>(1014, 183, 72, 73);
-	return rect;
-}
+float Constants::BASE_FONT_SIZE = 5.0f;
+float Constants::LINE_SIZE = BASE_FONT_SIZE * 0.1f;
 
-juce::Rectangle<int>& Constants::volKnobRect()
-{
-    static auto rect = juce::Rectangle<int>(1137, 181, 74, 75);
-	return rect;
-}
-
-juce::Rectangle<int>& Constants::sliderRect()
-{
-    static auto rect = juce::Rectangle<int>(33, 668, 128, 247);
-	return rect;
-}
+float Constants::lineThickness1 = 0.5f;
+float Constants::lineThickness2 = 3.f;

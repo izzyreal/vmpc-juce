@@ -9,7 +9,12 @@ function(_bundle_vmpc_juce_resources _target_name)
   list(FILTER VMPC_JUCE_RESOURCES EXCLUDE REGEX "\\.DS_Store$")
 
   if (APPLE)
-    set_source_files_properties(${VMPC_JUCE_RESOURCES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/img)
+    foreach(resource ${VMPC_JUCE_RESOURCES})
+      get_filename_component(parent_dir ${resource} DIRECTORY)
+      get_filename_component(final_segment ${parent_dir} NAME)
+      set(resource_path "Resources/${final_segment}")
+      set_source_files_properties(${resource} PROPERTIES MACOSX_PACKAGE_LOCATION ${resource_path})
+    endforeach()
 
     if (TARGET vmpc2000xl_AUv3)
       target_sources(vmpc2000xl_AUv3 PRIVATE ${VMPC_JUCE_RESOURCES})

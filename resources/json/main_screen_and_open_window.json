@@ -1,0 +1,21 @@
+{
+  "name" : "main_screen_and_open_window_container",
+  "type" : "grid",
+  "row_fractions" : [ 1 ],
+  "column_fractions" : [ 10, 10 ],
+  "shadow_size" : 1,
+  "children" :  [
+    {
+      "name" : "main_screen",
+      "svg" : "medium_key.svg",
+      "label" : "MAIN SCREEN",
+      "area" : [ 1, 1, 1, 1 ]
+    },
+    {
+      "name" : "open_window",
+      "svg" : "medium_key_yellow.svg",
+      "label" : "OPEN WINDOW",
+      "area" : [ 1, 2, 1, 2 ]
+    }
+  ]
+}

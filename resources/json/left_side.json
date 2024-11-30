@@ -1,0 +1,66 @@
+{
+  "name" : "left_side_container",
+  "type" : "grid",
+  "row_fractions" : [ 15, 11, 8, 9 ],
+  "column_fractions" : [ 4, 4, 8, 2 ],
+  "children":
+  [
+    { "include" : "display_and_f_keys", "area" : [ 1, 1, 1, 4 ] },
+    { "include" : "num_keys", "area" : [ 2, 1, 2, 2 ] },
+    {
+      "name" : "main_screen_and_open_window_and_data_wheel_and_cursor_keys_container",
+      "area" : [ 2, 3, 3, 3 ],
+      "type" : "grid",
+      "row_fractions" : [ 4, 2, 15, 1, 8, 2 ],
+      "column_fractions" : [ 1, 18, 5 ],
+      "children" : [
+        { "include" : "main_screen_and_open_window", "area" : [ 1, 2, 1, 2 ] },
+        { "name" : "cursor_keys", "shadow_size" : 1, "svg" : "cursor_keys.svg", "label" : "CURSOR", "area" : [ 5, 2, 5, 2 ] },
+        { "name" : "cursor_bottom_label", "label" : "<  DIGIT  >", "label_style" : "cursor_digit", "area" : [ 6, 2, 6, 2 ] },
+        {
+          "name" : "data_wheel",
+          "type" : "data_wheel",
+          "area" : [ 3, 2, 3, 2 ],
+          "shadow_size" : 7
+        },
+        { "name" : "data_label", "label" : "DATA", "area" : [ 2, 2, 2, 2 ] }
+      ]
+    },
+    {
+      "name" : "slider_misc_container",
+      "area" : [ 3, 1, 4, 1 ],
+      "type" : "grid",
+      "row_fractions" : [ 1, 4, 2, 3 ],
+      "column_fractions" : [ 2, 10, 2 ],
+      "children" : [
+        { "name" : "after_label", "label" : "AFTER", "margin" : [ 0, 0, 40, 0 ], "area" : [ 2, 2, 2, 2 ] },
+        { "name" : "after_led", "type" : "green_led", "margin" : [ 0, 0, 30, 0 ], "area" : [ 2, 2, 2, 2 ] },
+        { "name" : "after", "shadow_size" : 1, "svg" : "medium_key.svg", "margin" : [ 0, 0, 16, 0 ], "area" : [ 2, 2, 2, 2 ] },
+        { "name" : "assign_label", "label" : "ASSIGN", "margin" : [ 0, 0, 0, 0 ], "label_style" : "cursor_digit", "area" : [ 2, 2, 2, 2 ] }
+      ]
+    },
+    {
+      "name" : "slider",
+      "type" : "slider",
+      "area" : [ 3, 1, 4, 1 ],
+      "margin" : [ 0, 5, 0, 5 ],
+      "shadow_size" : 5
+    },
+    {
+      "name" : "tap_tempo_note_repeat_and_undo_seq_and_erase_container",
+      "area" : [ 3, 2, 3, 2 ],
+      "type" : "grid",
+      "row_fractions" : [ 1, 5, 6 ],
+      "column_fractions" : [ 1, 1 ],
+      "children" : [
+        { "name" : "tape_tempo_note_repeat", "shadow_size" : 1, "svg" : "big_key.svg", "label" : "TAP TEMPO\nNOTE REPEAT", "area" : [ 2, 1, 2, 2 ] },
+        { "name" : "undo_seq_label", "label" : "UNDO SEQ", "margin" : [ 0, 0, 10, 0 ], "area" : [ 3, 1, 3, 1 ] },
+        { "name" : "undo_seq_led", "type" : "green_led", "area" : [ 3, 1, 3, 1 ] },
+        { "name" : "undo_seq", "shadow_size" : 1, "svg" : "medium_key.svg", "margin" : [ 15, 0, 0, 0 ], "area" : [ 3, 1, 3, 1 ] },
+        { "name" : "erase_label", "label" : "ERASE", "margin" : [ 0, 0, 3, 0 ], "area" : [ 3, 2, 3, 2 ] },
+        { "name" : "erase", "shadow_size" : 1, "svg" : "medium_key.svg", "margin" : [ 15, 0, 0, 0 ], "area" : [ 3, 2, 3, 2 ] }
+      ]
+    },
+    { "include" : "transport_and_locate", "area" : [ 4, 2, 4, 4 ] }
+  ]
+}

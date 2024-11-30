@@ -1,4 +1,4 @@
-#include "StandaloneFilter.h"
+#include "StandaloneFilter.hpp"
 
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 
