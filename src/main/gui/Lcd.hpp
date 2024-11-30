@@ -4,6 +4,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "Constants.hpp"
+#include "View.hpp"
 #include "melatonin_blur/melatonin/shadows.h"
 
 #include "Mpc.hpp"
@@ -42,18 +43,7 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
             const auto layeredScreen = mpc.getLayeredScreen();
 
-            const auto asp_ratio = 60.f/248.f;
-            const auto w = float(getWidth()) * magicMultiplier;
-            const auto h = w * asp_ratio;
-            const auto img_scale = w / (248 * 2);
-            const auto unused_h_px = getWidth() - w;
-            const auto unused_v_px = getHeight() - h;
-            const auto x_offset = unused_h_px * 0.5f;
-            const auto y_offset = unused_v_px * 0.5f;
-
-            juce::AffineTransform t;
-            t = t.scaled(img_scale);
-            t = t.translated(x_offset, y_offset);
+            const auto t = getTransform();
 
             g.drawImageTransformed(img, t);
             //////////// SHADOW ///////////////
@@ -94,6 +84,8 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             layeredScreen->Draw();
             drawPixelsToImg();
             auto dirtyRect_x2 = juce::Rectangle<int>(dirtyArea.L * 2, dirtyArea.T * 2, dirtyArea.W() * 2, dirtyArea.H() * 2);
+            dirtyRect_x2 = dirtyRect.transformedBy(getTransform());
+            dirtyRect_x2 = getLocalBounds();
             repaint(dirtyRect_x2.expanded(1));
 
             if (auxWindow != nullptr)
@@ -160,6 +152,31 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             dirtyRect = juce::Rectangle<int>();
         }
 
+        void mouseDoubleClick (const juce::MouseEvent&) override
+        {
+            auto view = dynamic_cast<View*>(getParentComponent());
+
+            if (auxWindow == nullptr)
+            {
+                //auxWindow = new AuxLCDWindow(this, contentComponent->keyboard);
+                //contentComponent->keyboard->setAuxParent(auxWindow);
+            }
+            else
+            {
+                //contentComponent->keyboard->setAuxParent(nullptr);
+                //delete auxWindow;
+                //auxWindow = nullptr;
+            }
+        }
+
+        void mouseDown(const juce::MouseEvent& e) override {
+            getParentComponent()->mouseDown(e);
+        }
+
+        void mouseDrag(const juce::MouseEvent& e) override {
+            getParentComponent()->mouseDrag(e);
+        }
+
         float magicMultiplier = 0.55f;
 
     private:
@@ -168,14 +185,21 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
         juce::Rectangle<int> dirtyRect;
         juce::Image img = juce::Image(juce::Image::PixelFormat::RGB, 248*2, 60*2, false);
 
-        void drawLcdPixel(juce::Image &img, const uint8_t lcdX, const uint8_t lcdY, const bool on)
+        juce::AffineTransform getTransform()
         {
-            const juce::Colour c1 = on ? Constants::lcdOn : Constants::lcdOffBacklit;
-            const juce::Colour c2 = on ? Constants::lcdOnLight : Constants::lcdOffBacklit;
-            img.setPixelAt(lcdX*2, lcdY*2, c1);
-            img.setPixelAt(lcdX*2 + 1, lcdY*2, c2);
-            img.setPixelAt(lcdX*2 + 1, lcdY*2 + 1, c2);
-            img.setPixelAt(lcdX*2, lcdY*2 + 1, c2);
+            const auto asp_ratio = 60.f/248.f;
+            const auto w = float(getWidth()) * magicMultiplier;
+            const auto h = w * asp_ratio;
+            const auto img_scale = w / (248 * 2);
+            const auto unused_h_px = getWidth() - w;
+            const auto unused_v_px = getHeight() - h;
+            const auto x_offset = unused_h_px * 0.5f;
+            const auto y_offset = unused_v_px * 0.5f;
+
+            juce::AffineTransform t;
+            t = t.scaled(img_scale);
+            t = t.translated(x_offset, y_offset);
+            return t; 
         }
 };
 
