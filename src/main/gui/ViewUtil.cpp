@@ -44,6 +44,7 @@ static void addShadow(const node &n, const std::function<float()> &getScale, Svg
 }
 
 void ViewUtil::createComponent(
+        mpc::Mpc &mpc,
         node &n,
         std::vector<juce::Component*> &components,
         juce::Component* parent,
@@ -66,7 +67,7 @@ void ViewUtil::createComponent(
     if (n.node_type == "grid")
     {
         auto gridWrapper = new GridWrapper(n, getScale);
-        createComponents(n, gridWrapper->components, gridWrapper, getScale, getNimbusSansScaled);
+        createComponents(mpc, n, gridWrapper->components, gridWrapper, getScale, getNimbusSansScaled);
         components.emplace_back(gridWrapper);
         parent->addAndMakeVisible(components.back());
         n.grid_wrapper_component = components.back();
@@ -75,7 +76,7 @@ void ViewUtil::createComponent(
     else if (n.node_type == "flex_box")
     {
         auto flexBoxWrapper = new FlexBoxWrapper(n, getScale);
-        createComponents(n, flexBoxWrapper->components, flexBoxWrapper, getScale, getNimbusSansScaled);
+        createComponents(mpc, n, flexBoxWrapper->components, flexBoxWrapper, getScale, getNimbusSansScaled);
         components.emplace_back(flexBoxWrapper);
         parent->addAndMakeVisible(components.back());
         n.flex_box_wrapper_component = components.back();
@@ -153,7 +154,7 @@ void ViewUtil::createComponent(
     }
     else if (n.node_type == "lcd")
     {
-        auto lcd = new Lcd();
+        auto lcd = new Lcd(mpc);
         if (n.magic_multiplier > 0.f) lcd->magicMultiplier = n.magic_multiplier;
         n.lcd_component = lcd;
         parent->addAndMakeVisible(lcd);
@@ -279,6 +280,7 @@ void ViewUtil::createComponent(
 }
 
 void ViewUtil::createComponents(
+        mpc::Mpc &mpc,
         node &n,
         std::vector<juce::Component*> &components,
         juce::Component *parent,
@@ -287,7 +289,7 @@ void ViewUtil::createComponents(
 {
     for (auto& c : n.children)
     {
-        createComponent(c, components, parent, getScale, getNimbusSansScaled);
+        createComponent(mpc, c, components, parent, getScale, getNimbusSansScaled);
     }
 }
 

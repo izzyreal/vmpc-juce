@@ -6,6 +6,7 @@
 
 class Keyboard;
 class LCDControl;
+class Lcd;
 
 class AuxLCDWindowMaximizeButton : public juce::Button {
 public:
@@ -77,6 +78,7 @@ private:
                                            int newMaximumHeight) noexcept;
 
     friend class LCDControl;
+    friend class Lcd;
 };
 
 class MyResizableCornerComponent : public juce::ResizableCornerComponent {

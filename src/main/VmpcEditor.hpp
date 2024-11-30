@@ -16,7 +16,7 @@ public:
 
 private:
     melatonin::Inspector* inspector = nullptr;
-    VmpcProcessor &pluginProcessor;
+    VmpcProcessor &vmpcProcessor;
     View* view = nullptr;
     const float initial_width =  445.f;
     const float initial_height = 342.f;
