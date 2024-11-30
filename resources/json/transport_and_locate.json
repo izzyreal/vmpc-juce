@@ -1,0 +1,16 @@
+{
+  "name" : "transport_and_locate_container",
+  "type" : "grid",
+  "row_fractions" : [ 1, 4, 10, 2, 13 ],
+  "column_fractions" : [ 17, 2 ],
+  "children" : [
+    {
+      "name" : "locate_label",
+      "area" : [ 2, 1, 2, 1 ],
+      "type" : "line_flanked_label",
+      "label" : "LOCATE"
+    },
+    { "include" : "locate", "area" : [ 3, 1, 3, 1 ] },
+    { "include" : "transport_keys", "area" : [ 5, 1, 5, 1 ] }
+  ]
+}

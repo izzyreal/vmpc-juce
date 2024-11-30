@@ -1,4 +1,4 @@
-#include "AudioMidiSettingsComponent.h"
+#include "AudioMidiSettingsComponent.hpp"
 
 AudioMidiSettingsComponent::AudioMidiSettingsComponent(juce::AudioDeviceManager& deviceManagerToUse,
                                                        int maxAudioInputChannels,

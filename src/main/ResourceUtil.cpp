@@ -1,4 +1,4 @@
-#include "ResourceUtil.h"
+#include "ResourceUtil.hpp"
 
 #ifdef MAC_BUNDLE_RESOURCES
 #include "MacBundleResources.h"

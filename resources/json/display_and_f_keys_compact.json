@@ -1,0 +1,65 @@
+{
+  "name" : "display_and_f_keys_container",
+  "type" : "grid",
+  "row_fractions" : [ 80, 7, 13, 5 ],
+  "column_fractions" : [ 4, 9, 4 ],
+  "margin" : [ 0, 7, 0, 0 ],
+  "children" : [
+    {
+      "name" : "display_shadow_container",
+      "type" : "grid",
+      "area" : [ 1, 1, 1, 3 ],
+      "row_fractions" : [ 0, 40, 2 ],
+      "column_fractions" : [ 150, 20, 1 ],
+      "children" : [
+        { 
+          "name" : "display_shadow",
+          "svg" : "display_shadow_compact.svg",
+          "area" : [ 2, 2, 2, 2 ],
+          "hide_svg" : true,
+          "shadow_size" : 3,
+          "shadow_darkness" : 0.9
+        }
+      ]
+    },
+    {
+      "name" : "lcd_container",
+      "type" : "grid",
+      "row_fractions" : [ 11, 120, 4 ],
+      "column_fractions" : [ 0, 30, 1 ],
+      "area" : [ 1, 1, 1, 3 ],
+      "margin" : [ 3, 7, 3, 7 ],
+      "children" : [
+        {
+          "name" : "lcd_background",
+          "type" : "lcd_rectangle",
+          "area" : [ 2, 2, 2, 2 ]
+        },
+        {
+          "name" : "lcd",
+          "type" : "lcd",
+          "magic_multiplier" : 0.81,
+          "area" : [ 2, 2, 2, 2 ]
+        }
+      ]
+    },
+    {
+      "name" : "display_inner_shadow",
+      "svg" : "display_inner_shadow_compact.svg",
+      "area" : [ 1, 1, 1, 3 ],
+      "margin" : [ 0, 7, 0, 0 ],
+      "shadow_size" : 3,
+      "hide_svg" : true,
+      "is_inner_shadow" : true,
+      "width" : "auto"
+    },    
+    {
+      "name" : "display",
+      "svg" : "display_compact.svg",
+      "area" : [ 1, 1, 1, 3 ],
+      "width" : "auto",
+      "margin" : [ 0, 7, 0, 0 ]
+    },
+    { "include" : "f_keys", "area" : [ 3, 2, 3, 2 ] }
+  ]
+}

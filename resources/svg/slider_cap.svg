@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25)"
+   sodipodi:docname="slider_cap.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="3.3638608"
+     inkscape:cx="59.455492"
+     inkscape:cy="54.699053"
+     inkscape:window-width="1312"
+     inkscape:window-height="743"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1">
+    <mask
+       id="mask30_1_2"
+       maskUnits="userSpaceOnUse"
+       x="-76"
+       y="-81"
+       width="9677"
+       height="5444">
+      <path
+         d="M -75.5906,-80.0015 H 9600 V 5362.52 H -75.5906 Z"
+         fill="#ffffff"
+         id="path66" />
+    </mask>
+    <mask
+       id="mask31_1_2"
+       maskUnits="userSpaceOnUse"
+       x="-76"
+       y="-81"
+       width="9677"
+       height="5444">
+      <path
+         d="M -75.5906,-80.0015 H 9600 V 5362.52 H -75.5906 Z"
+         fill="#ffffff"
+         id="path68" />
+    </mask>
+    <mask
+       id="mask32_1_2"
+       maskUnits="userSpaceOnUse"
+       x="-76"
+       y="-81"
+       width="9677"
+       height="5444">
+      <path
+         d="M -75.5906,-80.0015 H 9600 V 5362.52 H -75.5906 Z"
+         fill="#ffffff"
+         id="path70" />
+    </mask>
+    <mask
+       id="mask33_1_2"
+       maskUnits="userSpaceOnUse"
+       x="-76"
+       y="-81"
+       width="9677"
+       height="5444">
+      <path
+         d="M -75.5906,-80.0015 H 9600 V 5362.52 H -75.5906 Z"
+         fill="#ffffff"
+         id="path72" />
+    </mask>
+    <mask
+       id="mask34_1_2"
+       maskUnits="userSpaceOnUse"
+       x="-76"
+       y="-81"
+       width="9677"
+       height="5444">
+      <path
+         d="M -75.5906,-80.0015 H 9600 V 5362.52 H -75.5906 Z"
+         fill="#ffffff"
+         id="path74" />
+    </mask>
+    <linearGradient
+       id="paint0_linear_1_2"
+       x1="65.389801"
+       y1="466.18201"
+       x2="65.389801"
+       y2="449.68201"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.26458333,0,0,0.26458333,-5.5487876,-118.44396)">
+      <stop
+         stop-color="#E9ECCB"
+         id="stop690" />
+      <stop
+         offset="0.0083799"
+         stop-color="#E9ECCB"
+         id="stop691" />
+      <stop
+         offset="0.00917"
+         stop-color="#E9ECCB"
+         id="stop692" />
+      <stop
+         offset="0.63128"
+         stop-color="#8D8A69"
+         id="stop693" />
+      <stop
+         offset="1"
+         stop-color="#8D8A69"
+         id="stop694" />
+    </linearGradient>
+    <mask
+       id="mask35_1_2"
+       maskUnits="userSpaceOnUse"
+       x="-76"
+       y="-81"
+       width="9677"
+       height="5444">
+      <path
+         d="M -75.5906,-80.0015 H 9600 V 5362.52 H -75.5906 Z"
+         fill="#ffffff"
+         id="path77" />
+    </mask>
+    <linearGradient
+       id="paint1_linear_1_2"
+       x1="65.389801"
+       y1="498.681"
+       x2="65.389801"
+       y2="508.28101"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.26458333,0,0,0.26458333,-5.5487876,-118.44396)">
+      <stop
+         stop-color="#EEF1D0"
+         id="stop695" />
+      <stop
+         offset="0.0019182"
+         stop-color="#EEF1D0"
+         id="stop696" />
+      <stop
+         offset="0.60894"
+         stop-color="#8D8A69"
+         id="stop697" />
+      <stop
+         offset="1"
+         stop-color="#8D8A69"
+         id="stop698" />
+    </linearGradient>
+    <mask
+       id="mask36_1_2"
+       maskUnits="userSpaceOnUse"
+       x="-76"
+       y="-81"
+       width="9677"
+       height="5444">
+      <path
+         d="M -75.5906,-80.0015 H 9600 V 5362.52 H -75.5906 Z"
+         fill="#ffffff"
+         id="path80" />
+    </mask>
+    <linearGradient
+       id="paint2_linear_1_2"
+       x1="66.239799"
+       y1="481.78201"
+       x2="66.239799"
+       y2="485.082"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.26458333,0,0,0.26458333,-5.5487876,-118.44396)">
+      <stop
+         stop-color="#8D8A69"
+         id="stop699" />
+      <stop
+         offset="0.029319"
+         stop-color="#8D8A69"
+         id="stop700" />
+      <stop
+         offset="0.53352"
+         stop-color="#918E6D"
+         id="stop701" />
+      <stop
+         offset="0.53382"
+         stop-color="#918E6D"
+         id="stop702" />
+      <stop
+         offset="1"
+         stop-color="#EEF1D0"
+         id="stop703" />
+    </linearGradient>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       mask="url(#mask30_1_2)"
+       id="g67"
+       transform="matrix(0.26458333,0,0,0.26458333,-5.5487876,-118.44396)">
+      <path
+         d="m 25.5603,479.682 v 5.39 h 68.7711 l 13.5926,-2.39 v -5.57 l -13.6086,2.57 z"
+         fill="#2c437b"
+         id="path67" />
+    </g>
+    <g
+       mask="url(#mask31_1_2)"
+       id="g69"
+       transform="matrix(0.26458333,0,0,0.26458333,-5.5487876,-118.44396)">
+      <path
+         d="m 93.5995,484.382 v -4.7 l 12.9735,-3.18 1.347,0.61 v 4.7 l -2.541,5.08 -9.9586,-0.28 z"
+         fill="#00305f"
+         id="path69" />
+    </g>
+    <g
+       mask="url(#mask32_1_2)"
+       id="g71"
+       transform="matrix(0.26458333,0,0,0.26458333,-5.5487876,-118.44396)">
+      <path
+         d="m 109.489,482.182 v 26.949 l -1.906,-0.84 -15.3495,-9.61 2.093,-13.569 z"
+         fill="#4d4d4d"
+         id="path71" />
+    </g>
+    <g
+       mask="url(#mask33_1_2)"
+       id="g73"
+       transform="matrix(0.26458333,0,0,0.26458333,-5.5487876,-118.44396)">
+      <path
+         d="m 107.469,449.682 h 2.025 v 27.16 l -12.5326,2.4 -2.645,0.47 v -17.19 z"
+         fill="#4d4d4d"
+         id="path73" />
+    </g>
+    <g
+       mask="url(#mask34_1_2)"
+       id="g75"
+       transform="matrix(0.26458333,0,0,0.26458333,-5.5487876,-118.44396)">
+      <path
+         d="M 94.3195,479.682 H 22.9844 v -13.56 h 71.3351 z"
+         fill="#fcffe9"
+         id="path75" />
+    </g>
+    <path
+       d="M 3.1036158,0.52913383 C 2.8998868,0.82282383 2.7421948,2.1563205 2.5606908,2.5293805 1.9447411,3.8046696 0.52128313,4.0401496 0.52919413,4.886559 H 19.40718 c -0.003,-0.8493194 2.42046,-1.0821494 3.04038,-2.3571785 0.18097,-0.37306 0.33523,-1.70681667 0.53869,-2.00024667 z"
+       fill="url(#paint0_linear_1_2)"
+       id="path76"
+       style="fill:url(#paint0_linear_1_2);stroke-width:0.264583" />
+    <g
+       mask="url(#mask35_1_2)"
+       id="g78"
+       transform="matrix(0.26458333,0,0,0.26458333,-5.5487876,-118.44396)">
+      <path
+         d="M 94.3295,485.081 H 22.9944 v 13.57 h 71.3351 z"
+         fill="#fcffe9"
+         id="path78" />
+    </g>
+    <path
+       d="m 2.5648978,14.86901 c 0.18071,0.2196 0.339222,0.99748 0.541893,1.16946 H 22.98572 C 22.78226,15.86649 22.62801,15.08861 22.44703,14.86901 21.82764,14.12818 19.40678,13.99059 19.41099,13.49582 H 0.53199813 c -0.0074,0.49477 1.41599697,0.63236 2.03199967,1.37584"
+       fill="url(#paint1_linear_1_2)"
+       id="path79"
+       style="fill:url(#paint1_linear_1_2);stroke-width:0.264583" />
+    <g
+       mask="url(#mask36_1_2)"
+       id="g81"
+       transform="matrix(0.26458333,0,0,0.26458333,-5.5487876,-118.44396)">
+      <path
+         d="m 32.2202,508.281 1.756,0.84 h 75.5178 l -1.652,-0.84 z"
+         fill="#4d4d4d"
+         id="path81" />
+    </g>
+    <path
+       d="M 19.21919,9.7191633 H 1.2162111 l -0.67892097,0.18521 H 19.41128 l 4.012057,-0.7752297 -0.397397,-0.0902 z"
+       fill="url(#paint2_linear_1_2)"
+       id="path82"
+       style="fill:url(#paint2_linear_1_2);stroke-width:0.264583" />
+  </g>
+</svg>

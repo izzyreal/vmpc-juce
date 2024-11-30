@@ -1,0 +1,64 @@
+{
+  "name" : "locate_container",
+  "type" : "grid",
+  "row_fractions" : [ 1, 3, 2 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    {
+      "name" : "j_and_l_shape_container",
+      "type" : "grid",
+      "row_fractions" : [ 9, 7 ],
+      "column_fractions" : [ 10, 50, 1, 50, 10 ],
+      "area" : [ 3, 1, 3, 1 ],
+      "children" : [
+        { "name" : "locate_j_decoration", "type" : "j_shape", "area" : [ 1, 2, 1, 2 ] },
+        { "name" : "locate_l_decoration", "type" : "l_shape", "area" : [ 1, 4, 1, 4 ] }
+      ]
+    },
+    {
+      "name" : "event_label_container",
+      "type" : "grid",
+      "row_fractions" : [ 1 ],
+      "column_fractions" : [ 1, 2, 7 ],
+      "area" : [ 3, 1, 3, 1 ],
+      "children" : [
+        { "name" : "event_label", "label" : "EVENT", "label_style" : "chassis_background", "area" : [ 1, 2, 1, 2 ] }
+      ]
+    },
+    {
+      "name" : "step_and_bar_label_container",
+      "type" : "grid",
+      "row_fractions" : [ 1, 2 ],
+      "column_fractions" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ],
+      "area" : [ 1, 1, 3, 1 ],
+      "children" : [
+        { "name" : "step_label", "label" : "STEP", "area" : [ 1, 2, 1, 3 ] },
+        { "name" : "bar_label", "label" : "BAR", "area" : [ 1, 8, 1, 9 ] }
+      ]
+    },
+    { 
+      "name" : "key_container",
+      "type" : "grid",
+      "area" : [ 1, 1, 3, 1 ],
+      "row_fractions" : [ 1, 1, 1 ],
+      "column_fractions" : [ 1, 1, 1, 1, 1 ],
+      "shadow_size" : 1,
+      "children" : [
+        { "name" : "previous_step_label", "label" : "<", "area" : [ 1, 1, 1, 1 ] },
+        { "name" : "next__step_label", "label" : ">", "area" : [ 1, 2, 1, 2 ] },
+        { "name" : "go_to_label", "label" : "GO TO", "area" : [ 1, 3, 1, 3 ] },
+        { "name" : "previous_bar_label", "label" : "<<", "area" : [ 1, 4, 1, 4 ] },
+        { "name" : "next_bar_label", "label" : ">>", "area" : [ 1, 5, 1, 5 ] },
+        { "name" : "previous_step_or_event", "svg" : "medium_key.svg", "area" : [ 2, 1, 2, 1 ] },
+        { "name" : "next_step_or_event", "svg" : "medium_key.svg", "area" : [ 2, 2, 2, 2 ] },
+        { "name" : "go_to", "svg" : "medium_key.svg", "area" : [ 2, 3, 2, 3 ] },
+        { "name" : "previous_bar_or_start", "svg" : "medium_key.svg", "area" : [ 2, 4, 2, 4 ] },
+        { "name" : "next_bar_or_end", "svg" : "medium_key.svg", "area" : [ 2, 5, 2, 5 ] },
+        { "name" : "previous_event_label", "label" : "|<", "label_style" : "rounded", "label_text_to_calculate_width" : "START", "area" : [ 3, 1, 3, 1 ] },
+        { "name" : "next_event_label", "label" : ">|", "label_style" : "rounded", "label_text_to_calculate_width" : "START", "area" : [ 3, 2, 3, 2 ] },
+        { "name" : "start_label", "label" : "START", "label_style" : "rounded", "label_text_to_calculate_width" : "START", "area" : [ 3, 4, 3, 4 ] },
+        { "name" : "end_label", "label" : "END", "label_style" : "rounded", "label_text_to_calculate_width" : "START", "area" : [ 3, 5, 3, 5 ] }
+      ]
+    }
+  ]
+}
