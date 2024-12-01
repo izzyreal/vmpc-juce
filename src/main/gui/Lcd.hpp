@@ -24,11 +24,21 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
     public:
         Lcd(mpc::Mpc &mpcToUse) : mpc(mpcToUse)
     {
+        resetAuxWindowF = [&] { resetAuxWindow(); };
+        resetKeyboardAuxParent = [&] { getView()->keyboard->setAuxParent(nullptr); };
+        getLcdImage = [&]() -> juce::Image& { return img; };
         drawPixelsToImg();
         startTimer(25);
         auto othersScreen = mpc.screens->get<OthersScreen>("others");
         othersScreen->addObserver(this);
     }
+
+        ~Lcd() override
+        {
+            auto othersScreen = mpc.screens->get<OthersScreen>("others");
+            othersScreen->deleteObserver(this);
+            delete auxWindow;
+        }
 
         void update(mpc::Observable *, mpc::Message message) override
         {
@@ -85,6 +95,7 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
             const auto dirtyArea = layeredScreen->getDirtyArea();
             dirtyRect = juce::Rectangle<int>(dirtyArea.L, dirtyArea.T, dirtyArea.W(), dirtyArea.H());
+            const auto dirtyRectForAuxLcd = dirtyRect;
             const auto dirtyRectT = dirtyRect.toFloat().transformedBy(juce::AffineTransform().scaled(2.f)).transformedBy(getTransform());
 
             layeredScreen->Draw();
@@ -94,7 +105,7 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
             if (auxWindow != nullptr)
             {
-                auxWindow->repaintAuxLcdLocalBounds(dirtyRect);
+                auxWindow->repaintAuxLcdLocalBounds(dirtyRectForAuxLcd);
             }
         }
 
@@ -152,20 +163,11 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
         void mouseDoubleClick (const juce::MouseEvent&) override
         {
-            juce::Component *ancestor = getParentComponent();
+            auto view = getView();
 
-            while(dynamic_cast<View*>(ancestor) == nullptr)
-            {
-                ancestor = ancestor->getParentComponent();
-            }
-
-            auto view = dynamic_cast<View*>(ancestor);
-
-            assert(view != nullptr);
-/*
             if (auxWindow == nullptr)
             {
-                auxWindow = new AuxLCDWindow(this, view->keyboard);
+                auxWindow = new AuxLCDWindow(resetAuxWindowF, getLcdImage, resetKeyboardAuxParent);
                 view->keyboard->setAuxParent(auxWindow);
             }
             else
@@ -174,7 +176,6 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
                 delete auxWindow;
                 auxWindow = nullptr;
             }
-            */
         }
 
         void mouseDown(const juce::MouseEvent& e) override {
@@ -185,15 +186,6 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             getParentComponent()->mouseDrag(e);
         }
 
-        void resetAuxWindow()
-        {
-            if (auxWindow != nullptr)
-            {
-                auxWindow->removeFromDesktop();
-                delete auxWindow; auxWindow = nullptr;
-            }
-        }
-
         float magicMultiplier = 0.55f;
 
     private:
@@ -201,6 +193,10 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
         AuxLCDWindow* auxWindow = nullptr;
         juce::Rectangle<int> dirtyRect;
         juce::Image img = juce::Image(juce::Image::PixelFormat::RGB, 248*2, 60*2, false);
+
+        std::function<void()> resetAuxWindowF;
+        std::function<void()> resetKeyboardAuxParent;
+        std::function<juce::Image&()> getLcdImage;
 
         juce::AffineTransform getTransform()
         {
@@ -217,6 +213,27 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             t = t.scaled(img_scale);
             t = t.translated(x_offset, y_offset);
             return t; 
+        }
+
+        void resetAuxWindow()
+        {
+            if (auxWindow != nullptr)
+            {
+                auxWindow->removeFromDesktop();
+                delete auxWindow; auxWindow = nullptr;
+            }
+        }
+
+        View* getView()
+        {
+            juce::Component *ancestor = getParentComponent();
+
+            while(dynamic_cast<View*>(ancestor) == nullptr)
+            {
+                ancestor = ancestor->getParentComponent();
+            }
+
+            return dynamic_cast<View*>(ancestor);
         }
 };
 

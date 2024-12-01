@@ -35,6 +35,8 @@ class SvgComponent : public juce::Component
         SvgComponent(std::string svg_path, juce::Component *commonParentWithShadowToUse, const float shadowSizeToUse, const std::function<float()> &getScaleToUse)
             : commonParentWithShadow(commonParentWithShadowToUse), shadowSize(shadowSizeToUse), getScale(getScaleToUse)
         {
+            if (svg_path == "display.svg" || svg_path == "display_compact.svg") setInterceptsMouseClicks(false, false);
+
             setSvgPath(svg_path);
 
             if (commonParentWithShadow != nullptr)

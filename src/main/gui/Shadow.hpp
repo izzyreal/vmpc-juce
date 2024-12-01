@@ -10,7 +10,10 @@ class Shadow : public juce::Component {
 
     public:
         Shadow(const std::function<float()> &getScaleToUse, const std::function<juce::Path()> getPathToUse, const float shadowSizeToUse, const float shadowDarknessToUse, const bool isInnerToUse) :
-            getPath(getPathToUse), getScale(getScaleToUse), shadowSize(shadowSizeToUse), shadowDarkness(shadowDarknessToUse), isInner(isInnerToUse) {}
+            getPath(getPathToUse), getScale(getScaleToUse), shadowSize(shadowSizeToUse), shadowDarkness(shadowDarknessToUse), isInner(isInnerToUse)
+        {
+            setInterceptsMouseClicks(false, false);
+        }
 
         void paint(juce::Graphics &g) override
         {
