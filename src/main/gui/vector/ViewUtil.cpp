@@ -29,7 +29,7 @@ using namespace vmpc_juce::gui::vector;
 class MpcHardwareMouseListener : public juce::MouseListener {
     public:
         MpcHardwareMouseListener(mpc::Mpc &mpcToUse, const std::string labelToUse) : label(labelToUse), mpc(mpcToUse) {}
-        
+
         void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override
         {
             if (label == "data-wheel")
@@ -333,7 +333,7 @@ void ViewUtil::createComponent(
             svgWithLabelGrid->components.push_back(svgComponent);
 
             components.push_back(svgWithLabelGrid);
-            
+
             addShadow(n, getScale, svgComponent, parent, components);
 
             parent->addAndMakeVisible(svgWithLabelGrid);
@@ -386,7 +386,7 @@ void ViewUtil::createComponent(
     {
         auto mouseListener = new MpcHardwareMouseListener(mpc, n.hardware_label);
         mouseListeners.push_back(mouseListener);
-        
+
         for (auto it = components.rbegin(); it != components.rend(); ++it)
         {
             if (dynamic_cast<Shadow*>(*it) != nullptr)
@@ -395,6 +395,17 @@ void ViewUtil::createComponent(
             }
 
             (*it)->addMouseListener(mouseListener, true);
+
+            if (auto dataWheelComponent = dynamic_cast<DataWheel*>(*it); dataWheelComponent != nullptr)
+            {
+                auto hwDataWheel = mpc.getHardware()->getDataWheel();
+                hwDataWheel->updateUi = [dataWheelComponent](int increment) {
+                    juce::MessageManager::callAsync ([dataWheelComponent, increment] {
+                        dataWheelComponent->setAngle(dataWheelComponent->getAngle() + (increment * 0.02f));
+                    });
+                };
+
+            }
             break;
         }
     }

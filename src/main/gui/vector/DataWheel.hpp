@@ -103,6 +103,9 @@ namespace vmpc_juce::gui::vector {
 
             SvgComponent *backgroundSvg = nullptr;
 
+            float getAngle() { return angle; }
+            void setAngle(float newAngle) { angle = newAngle; handleAngleChanged(); }
+
         private:
             SvgComponent *dimpleSvg = nullptr;
             DataWheelLines *lines = nullptr;
