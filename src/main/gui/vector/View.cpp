@@ -6,7 +6,7 @@
 #include "FlexBoxWrapper.hpp"
 #include "ViewUtil.hpp"
 
-#include "ResourceUtil.h"
+#include "MpcResourceUtil.hpp"
 #include "Mpc.hpp"
 #include "controls/Controls.hpp"
 #include "controls/KeyEvent.hpp"
@@ -26,7 +26,7 @@ namespace vmpc_juce::gui::vector {
     {
         if (j.contains("include"))
         {
-            const auto jsonFileData = mpc::ResourceUtil::get_resource_data("json/" + j.at("include").get<std::string>() + ".json");
+            const auto jsonFileData = mpc::MpcResourceUtil::get_resource_data("json/" + j.at("include").get<std::string>() + ".json");
 
             json data = json::parse(jsonFileData);
             n = data.template get<node>();
@@ -179,7 +179,7 @@ View::View(mpc::Mpc &mpc, const std::function<float()> &getScaleToUse, const std
 
     setWantsKeyboardFocus(true);
 
-    const auto jsonFileData = mpc::ResourceUtil::get_resource_data("json/" + name + ".json");
+    const auto jsonFileData = mpc::MpcResourceUtil::get_resource_data("json/" + name + ".json");
     json data = json::parse(jsonFileData);
 
     view_root = data.template get<node>();

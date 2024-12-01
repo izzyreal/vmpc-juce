@@ -5,7 +5,7 @@
 #include <juce_core/juce_core.h>
 
 #include "ViewUtil.hpp"
-#include "ResourceUtil.h"
+#include "MpcResourceUtil.hpp"
 
 namespace vmpc_juce::gui::vector {
 
@@ -14,7 +14,7 @@ class SvgComponent : public juce::Component
     private:
         void loadSvgFile(const std::string svgPath)
         {
-            const auto svgData = mpc::ResourceUtil::get_resource_data("svg/" + svgPath);
+            const auto svgData = mpc::MpcResourceUtil::get_resource_data("svg/" + svgPath);
 
             if (!svgData.empty())
             {  
