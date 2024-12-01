@@ -40,6 +40,14 @@ namespace vmpc_juce::gui::vector {
                 handleAngleChanged();
             }
 
+            void setAngleFactor(float newAngleFactor)
+            {
+                angleFactor = newAngleFactor;
+                handleAngleChanged();
+            }
+
+            float getAngleFactor() { return angleFactor; }
+
         private:
             float angleFactor = 0.f;
             int32_t previousDragDistanceY = std::numeric_limits<int32_t>::max();

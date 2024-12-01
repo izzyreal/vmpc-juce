@@ -23,6 +23,7 @@
 #include "hardware/Button.hpp"
 #include "hardware/HwPad.hpp"
 #include "hardware/DataWheel.hpp"
+#include "hardware/Pot.hpp"
 
 using namespace vmpc_juce::gui::vector;
 
@@ -35,7 +36,13 @@ class MpcHardwareMouseListener : public juce::MouseListener {
             if (label == "data-wheel")
             {
                 auto dw = mpc.getHardware()->getDataWheel();
-                mouseWheelControllable.processWheelEvent(wheel, [&dw](int increment) { dw->turn(increment); });
+                mouseWheelControllable.processWheelEvent(wheel, [&dw](int increment) { dw->turn(increment, false); });
+            }
+            else if (label == "rec_gain" || label == "main_volume")
+            {
+                auto pot = label == "rec_gain" ? mpc.getHardware()->getRecPot() : mpc.getHardware()->getVolPot();
+                auto knob = dynamic_cast<Knob*>(event.eventComponent);
+                pot->setValue(knob->getAngleFactor() * 100);
             }
         }
 
@@ -102,7 +109,7 @@ class MpcHardwareMouseListener : public juce::MouseListener {
 
                 return;
             }
-            else if (label == "data-wheel")
+            else if (label == "data-wheel" || label == "rec_gain" || label == "main_volume")
             {
                 return;
             }
@@ -118,17 +125,50 @@ class MpcHardwareMouseListener : public juce::MouseListener {
                 const auto padNumber = std::stoi(digitsString);
                 auto pad = mpc.getHardware()->getPad(padNumber - 1);
                 pad->release();
-                return;
             }
-            else if (label == "cursor" || label == "data-wheel")
+            else if (label == "rec_gain" || label == "main_volume")
             {
-                return;
             }
+            else if (label == "cursor")
+            {
+            }
+            else if (label == "data-wheel")
+            {
+                lastDy = 0;
+            }
+            else
+            {
+                mpc.getHardware()->getButton(label)->release();
+            }
+        }
 
-            mpc.getHardware()->getButton(label)->release();
+        void mouseDrag(const juce::MouseEvent &e) override
+        {
+            if (label == "rec_gain" || label == "main_volume")
+            {
+                auto pot = label == "rec_gain" ? mpc.getHardware()->getRecPot() : mpc.getHardware()->getVolPot();
+                auto knob = dynamic_cast<Knob*>(e.eventComponent);
+                pot->setValue(knob->getAngleFactor() * 100.f);
+            }
+            else if (label == "data-wheel")
+            {
+                auto dataWheel = mpc.getHardware()->getDataWheel();
+
+                auto dY = -(e.getDistanceFromDragStartY() - lastDy);
+
+                if (dY == 0)
+                {
+                    return;
+                }
+
+                dataWheel->turn(dY);
+
+                lastDy = e.getDistanceFromDragStartY();
+            }
         }
 
     private:
+        int lastDy = 0;
         mpc::Mpc &mpc;
         const std::string label;
         vmpc_juce::gui::MouseWheelControllable mouseWheelControllable;
@@ -396,19 +436,26 @@ void ViewUtil::createComponent(
 
             (*it)->addMouseListener(mouseListener, true);
 
-            if (auto dataWheelComponent = dynamic_cast<DataWheel*>(*it); dataWheelComponent != nullptr)
+            if (n.name == "rec_gain" || n.name == "main_volume")
+            {
+                auto knob = dynamic_cast<Knob*>(n.svg_component);
+                auto pot = n.name == "rec_gain" ? mpc.getHardware()->getRecPot() : mpc.getHardware()->getVolPot();
+                knob->setAngleFactor(pot->getValue() * 0.01);
+            }
+            else if (auto dataWheelComponent = dynamic_cast<DataWheel*>(*it); dataWheelComponent != nullptr)
             {
                 auto hwDataWheel = mpc.getHardware()->getDataWheel();
                 hwDataWheel->updateUi = [dataWheelComponent](int increment) {
-                    juce::MessageManager::callAsync ([dataWheelComponent, increment] {
-                        dataWheelComponent->setAngle(dataWheelComponent->getAngle() + (increment * 0.02f));
-                    });
+                    juce::MessageManager::callAsync([dataWheelComponent, increment] {
+                            dataWheelComponent->setAngle(dataWheelComponent->getAngle() + (increment * 0.02f));
+                            });
                 };
 
             }
             break;
         }
     }
+
 }
 
 void ViewUtil::createComponents(
