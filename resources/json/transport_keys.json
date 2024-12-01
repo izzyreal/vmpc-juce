@@ -4,18 +4,18 @@
   "row_fractions" : [ 3, 4 ],
   "column_fractions" : [ 1, 1, 1, 1, 1 ],
   "children" : [
-    { "name" : "rec_led", "type" : "red_led", "margin" : [ 0, 10, 0, 0 ], "area" : [ 1, 1, 1, 1 ] },
-    { "name" : "rec_label ", "label" : "REC", "margin" : [ 0, 0, 0, 4 ], "area" : [ 1, 1, 1, 1 ] },
-    { "name" : "over_dub_led", "type" : "red_led", "margin" : [ 0, 13, 0, 0 ], "area" : [ 1, 2, 1, 2 ] },
-    { "name" : "over_dub_label", "label" : "OVER\nDUB", "margin" : [ 0, 0, 0, 4 ], "area" : [ 1, 2, 1, 2 ] },
-    { "name" : "stop_label", "label" : "STOP", "area" : [ 1, 3, 1, 3 ] },
-    { "name" : "play_led", "type" : "green_led", "margin" : [ 0, 12, 0, 0 ], "area" : [ 1, 4, 1, 4 ] },
-    { "name" : "play_label", "label" : "PLAY", "margin" : [ 0, 0, 0, 4 ], "area" : [ 1, 4, 1, 4 ] },
-    { "name" : "play_start_label", "label" : "PLAY\nSTART", "area" : [ 1, 5, 1, 5 ] },
-    { "name" : "rec", "shadow_size" : 1, "svg" : "big_key_red.svg", "area" : [ 2, 1, 2, 1 ] },
-    { "name" : "over_dub", "shadow_size" : 1, "svg" : "big_key_red.svg", "area" : [ 2, 2, 2, 2 ] },
-    { "name" : "stop", "shadow_size" : 1, "svg" : "big_key.svg", "area" : [ 2, 3, 2, 3 ] },
-    { "name" : "play", "shadow_size" : 1, "svg" : "big_key.svg", "area" : [ 2, 4, 2, 4 ] },
-    { "name" : "play_start", "shadow_size" : 1, "svg" : "big_key.svg", "area" : [ 2, 5, 2, 5 ] }
+    { "name" : "rec_led", "hardware_label" : "rec", "type" : "red_led", "margin" : [ 0, 10, 0, 0 ], "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "rec_label ", "hardware_label" : "rec", "label" : "REC", "margin" : [ 0, 0, 0, 4 ], "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "over_dub_led", "hardware_label" : "overdub", "type" : "red_led", "margin" : [ 0, 13, 0, 0 ], "area" : [ 1, 2, 1, 2 ] },
+    { "name" : "over_dub_label", "hardware_label" : "overdub", "label" : "OVER\nDUB", "margin" : [ 0, 0, 0, 4 ], "area" : [ 1, 2, 1, 2 ] },
+    { "name" : "stop_label", "hardware_label" : "stop", "label" : "STOP", "area" : [ 1, 3, 1, 3 ] },
+    { "name" : "play_led", "hardware_label" : "play", "type" : "green_led", "margin" : [ 0, 12, 0, 0 ], "area" : [ 1, 4, 1, 4 ] },
+    { "name" : "play_label", "hardware_label" : "play", "label" : "PLAY", "margin" : [ 0, 0, 0, 4 ], "area" : [ 1, 4, 1, 4 ] },
+    { "name" : "play_start_label", "hardware_label" : "play-start", "label" : "PLAY\nSTART", "area" : [ 1, 5, 1, 5 ] },
+    { "name" : "rec", "hardware_label" : "rec", "shadow_size" : 1, "svg" : "big_key_red.svg", "area" : [ 2, 1, 2, 1 ] },
+    { "name" : "over_dub", "hardware_label" : "overdub", "shadow_size" : 1, "svg" : "big_key_red.svg", "area" : [ 2, 2, 2, 2 ] },
+    { "name" : "stop", "hardware_label" : "stop", "shadow_size" : 1, "svg" : "big_key.svg", "area" : [ 2, 3, 2, 3 ] },
+    { "name" : "play", "hardware_label" : "play", "shadow_size" : 1, "svg" : "big_key.svg", "area" : [ 2, 4, 2, 4 ] },
+    { "name" : "play_start", "hardware_label" : "play-start", "shadow_size" : 1, "svg" : "big_key.svg", "area" : [ 2, 5, 2, 5 ] }
   ]
 }

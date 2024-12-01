@@ -5,11 +5,11 @@
   "column_fractions" : [ 1, 1, 1, 1, 1, 1 ],
   "shadow_size" : 1,
   "children" : [
-    { "name" : "f1", "svg": "small_key.svg", "label" : "F1", "label_style" : "function_key", "area" : [ 1, 1, 1, 1 ] },
-    { "name" : "f2", "svg": "small_key.svg", "label" : "F2", "label_style" : "function_key", "area" : [ 1, 2, 1, 2 ] },
-    { "name" : "f3", "svg": "small_key.svg", "label" : "F3", "label_style" : "function_key", "area" : [ 1, 3, 1, 3 ] },
-    { "name" : "f4", "svg": "small_key.svg", "label" : "F4", "label_style" : "function_key", "area" : [ 1, 4, 1, 4 ] },
-    { "name" : "f5", "svg": "small_key.svg", "label" : "F5", "label_style" : "function_key", "area" : [ 1, 5, 1, 5 ] },
-    { "name" : "f6", "svg": "small_key.svg", "label" : "F6", "label_style" : "function_key", "area" : [ 1, 6, 1, 6 ] }
+    { "name" : "f1", "hardware_label" : "f1", "svg": "small_key.svg", "label" : "F1", "label_style" : "function_key", "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "f2", "hardware_label" : "f2", "svg": "small_key.svg", "label" : "F2", "label_style" : "function_key", "area" : [ 1, 2, 1, 2 ] },
+    { "name" : "f3", "hardware_label" : "f3", "svg": "small_key.svg", "label" : "F3", "label_style" : "function_key", "area" : [ 1, 3, 1, 3 ] },
+    { "name" : "f4", "hardware_label" : "f4", "svg": "small_key.svg", "label" : "F4", "label_style" : "function_key", "area" : [ 1, 4, 1, 4 ] },
+    { "name" : "f5", "hardware_label" : "f5", "svg": "small_key.svg", "label" : "F5", "label_style" : "function_key", "area" : [ 1, 5, 1, 5 ] },
+    { "name" : "f6", "hardware_label" : "f6", "svg": "small_key.svg", "label" : "F6", "label_style" : "function_key", "area" : [ 1, 6, 1, 6 ] }
   ]
 }

@@ -87,6 +87,7 @@ namespace vmpc_juce::gui::vector {
             if (j.contains("shadow_darkness"))  j.at("shadow_darkness").get_to(n.shadow_darkness); else n.shadow_darkness = 0.f;
             if (j.contains("is_inner_shadow"))  j.at("is_inner_shadow").get_to(n.is_inner_shadow); else n.is_inner_shadow = false;
             if (j.contains("magic_multiplier")) j.at("magic_multiplier").get_to(n.magic_multiplier); else n.magic_multiplier = 0.f;
+            if (j.contains("hardware_label"))   j.at("hardware_label").get_to(n.hardware_label);
 
             if (j.contains("shadow_size"))
             {
@@ -184,14 +185,19 @@ View::View(mpc::Mpc &mpc, const std::function<float()> &getScaleToUse, const std
 
     view_root = data.template get<node>();
 
-    ViewUtil::createComponent(mpc, view_root, components, this, getScale, getNimbusSansScaled);
+    ViewUtil::createComponent(mpc, view_root, components, this, getScale, getNimbusSansScaled, mouseListeners);
 }
 
 View::~View()
 {
-    for (auto& c : components)
+    for (auto &c : components)
     {
         delete c;
+    }
+
+    for (auto &m : mouseListeners)
+    {
+        delete m;
     }
 }
 

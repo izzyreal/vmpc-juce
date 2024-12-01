@@ -17,7 +17,29 @@
 #include "Lcd.hpp"
 #include "Led.hpp"
 
+#include "hardware/Hardware.hpp"
+#include "hardware/Button.hpp"
+
 using namespace vmpc_juce::gui::vector;
+
+class MpcHardwareMouseListener : public juce::MouseListener {
+    public:
+        MpcHardwareMouseListener(mpc::Mpc &mpcToUse, const std::string labelToUse) : label(labelToUse), mpc(mpcToUse) {}
+
+        void mouseDown(const juce::MouseEvent &e) override
+        {
+            mpc.getHardware()->getButton(label)->push();
+        }
+
+        void mouseUp(const juce::MouseEvent &e) override
+        {
+            mpc.getHardware()->getButton(label)->release();
+        }
+
+    private:
+        mpc::Mpc &mpc;
+        const std::string label;
+};
 
 float ViewUtil::getLabelHeight(const std::string& text, const std::function<float()>& getScale)
 {
@@ -40,7 +62,7 @@ static void addShadow(const node &n, const std::function<float()> &getScale, Svg
     const auto shadowDarkness = n.shadow_darkness > 0.f ? n.shadow_darkness : 0.4f;
     auto shadow = new Shadow(getScale, getShadowPath, n.shadow_size, shadowDarkness, n.is_inner_shadow);
     svgComponent->shadow = shadow;
-    components.emplace_back(shadow);
+    components.push_back(shadow);
     parent->addAndMakeVisible(shadow);
 
 }
@@ -51,7 +73,8 @@ void ViewUtil::createComponent(
         std::vector<juce::Component*> &components,
         juce::Component* parent,
         const std::function<float()> &getScale,
-        const std::function<juce::Font&()> &getNimbusSansScaled)
+        const std::function<juce::Font&()> &getNimbusSansScaled,
+        std::vector<juce::MouseListener*> &mouseListeners)
 {
     n.svg_component = nullptr;
     n.svg_with_label_grid_component = nullptr;
@@ -69,43 +92,39 @@ void ViewUtil::createComponent(
     if (n.node_type == "grid")
     {
         auto gridWrapper = new GridWrapper(n, getScale);
-        createComponents(mpc, n, gridWrapper->components, gridWrapper, getScale, getNimbusSansScaled);
-        components.emplace_back(gridWrapper);
-        parent->addAndMakeVisible(components.back());
-        n.grid_wrapper_component = components.back();
-        return;
+        createComponents(mpc, n, gridWrapper->components, gridWrapper, getScale, getNimbusSansScaled, mouseListeners);
+        components.push_back(gridWrapper);
+        parent->addAndMakeVisible(gridWrapper);
+        n.grid_wrapper_component = gridWrapper;
     }
     else if (n.node_type == "flex_box")
     {
         auto flexBoxWrapper = new FlexBoxWrapper(n, getScale);
-        createComponents(mpc, n, flexBoxWrapper->components, flexBoxWrapper, getScale, getNimbusSansScaled);
-        components.emplace_back(flexBoxWrapper);
-        parent->addAndMakeVisible(components.back());
-        n.flex_box_wrapper_component = components.back();
-        return;
+        createComponents(mpc, n, flexBoxWrapper->components, flexBoxWrapper, getScale, getNimbusSansScaled, mouseListeners);
+        components.push_back(flexBoxWrapper);
+        parent->addAndMakeVisible(flexBoxWrapper);
+        n.flex_box_wrapper_component = flexBoxWrapper;
     }
     else if (n.node_type == "line_flanked_label")
     {
-        components.emplace_back(new LineFlankedLabel(n.label, getScale, getNimbusSansScaled));
-        parent->addAndMakeVisible(components.back());
-        n.line_flanked_label_component = components.back();
-        return;
+        auto lineFlankedLabel = new LineFlankedLabel(n.label, getScale, getNimbusSansScaled);
+        components.push_back(lineFlankedLabel);
+        parent->addAndMakeVisible(lineFlankedLabel);
+        n.line_flanked_label_component = lineFlankedLabel;
     }
     else if (n.node_type == "j_shape" || n.node_type == "l_shape")
     {
         const auto jOrLShape = new JOrLShape(n.node_type == "j_shape" ? JOrLShape::Shape::J : JOrLShape::Shape::L, getScale);
-        components.emplace_back(jOrLShape);
-        parent->addAndMakeVisible(components.back());
-        n.j_or_l_shape_component = components.back();
-        return;
+        components.push_back(jOrLShape);
+        parent->addAndMakeVisible(jOrLShape);
+        n.j_or_l_shape_component = jOrLShape;
     }
     else if (n.node_type == "face_paint_grey_rectangle" || n.node_type == "chassis_rectangle" || n.node_type == "lcd_rectangle")
     {
         const auto rectangle = new Rectangle(n.node_type == "chassis_rectangle" ? Constants::chassisColour : n.node_type == "lcd_rectangle" ? Constants::lcdOff : Constants::greyFacePaintColour);
-        components.emplace_back(rectangle);
-        parent->addAndMakeVisible(components.back());
+        components.push_back(rectangle);
+        parent->addAndMakeVisible(rectangle);
         n.rectangle_component = rectangle;
-        return;
     }
     else if (n.node_type == "num_key")
     {
@@ -134,7 +153,7 @@ void ViewUtil::createComponent(
         components.push_back(numKey);
         parent->addAndMakeVisible(numKey);
         n.num_key_component = numKey;
-        return;
+
     }
     else if (n.node_type == "slider")
     {
@@ -143,7 +162,6 @@ void ViewUtil::createComponent(
         addShadow(n, getScale, slider->sliderCapSvg, parent, components);
         parent->addAndMakeVisible(n.slider_component);
         components.push_back(n.slider_component);
-        return;
     }
     else if (n.node_type == "data_wheel")
     {
@@ -152,7 +170,6 @@ void ViewUtil::createComponent(
         n.data_wheel_component = dataWheel;
         parent->addAndMakeVisible(dataWheel);
         components.push_back(dataWheel);
-        return;
     }
     else if (n.node_type == "lcd")
     {
@@ -161,7 +178,6 @@ void ViewUtil::createComponent(
         n.lcd_component = lcd;
         parent->addAndMakeVisible(lcd);
         components.push_back(lcd);
-        return;
     }
     else if (n.node_type == "red_led" || n.node_type == "green_led")
     {
@@ -169,24 +185,21 @@ void ViewUtil::createComponent(
         n.led_component = led;
         parent->addAndMakeVisible(led);
         components.push_back(led);
-        return;
     }
-
-    if (!n.svg.empty() && n.label.empty())
+    else if (!n.svg.empty() && n.label.empty())
     {
         auto svgComponent = new SvgComponent(n.svg, parent, n.shadow_size, getScale);
-
-        components.emplace_back(svgComponent);
-
+        components.push_back(svgComponent);
         addShadow(n, getScale, svgComponent, parent, components);
-
         parent->addAndMakeVisible(svgComponent);
         n.svg_component = svgComponent;
-        if (n.hide_svg) svgComponent->setVisible(false);
-        return;
-    }
 
-    if (!n.svg.empty() && !n.label.empty())
+        if (n.hide_svg)
+        {
+            svgComponent->setVisible(false);
+        }
+    }
+    else if (!n.svg.empty() && !n.label.empty())
     {
         LabelComponent* labelComponent;
 
@@ -240,12 +253,8 @@ void ViewUtil::createComponent(
             components.push_back(labelComponent);
             parent->addAndMakeVisible(labelComponent);
         }
-       
-
-        return;
     }
-
-    if (!n.label.empty())
+    else if (!n.label.empty())
     {
         LabelComponent* labelComponent = nullptr;
 
@@ -277,8 +286,25 @@ void ViewUtil::createComponent(
         n.label_component = labelComponent;
         components.push_back(labelComponent);
         parent->addAndMakeVisible(labelComponent);
-        return;
     }
+
+    if (!n.hardware_label.empty())
+    {
+        auto mouseListener = new MpcHardwareMouseListener(mpc, n.hardware_label);
+        mouseListeners.push_back(mouseListener);
+        
+        for (auto it = components.rbegin(); it != components.rend(); ++it)
+        {
+            if (dynamic_cast<Shadow*>(*it) != nullptr)
+            {
+                continue;
+            }
+
+            (*it)->addMouseListener(mouseListener, true);
+            break;
+        }
+    }
+
 }
 
 void ViewUtil::createComponents(
@@ -287,11 +313,12 @@ void ViewUtil::createComponents(
         std::vector<juce::Component*> &components,
         juce::Component *parent,
         const std::function<float()> &getScale,
-        const std::function<juce::Font&()> &getNimbusSansScaled)
+        const std::function<juce::Font&()> &getNimbusSansScaled,
+        std::vector<juce::MouseListener*> &mouseListeners)
 {
     for (auto& c : n.children)
     {
-        createComponent(mpc, c, components, parent, getScale, getNimbusSansScaled);
+        createComponent(mpc, c, components, parent, getScale, getNimbusSansScaled, mouseListeners);
     }
 }
 
