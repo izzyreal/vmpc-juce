@@ -38,6 +38,58 @@ class MpcHardwareMouseListener : public juce::MouseListener {
                 pad->push(velocity);
                 return;
             }
+            else if (label == "cursor")
+            {
+                juce::Path left, top, bottom, right;
+
+                left.startNewSubPath(0.f, 0.f);
+                left.lineTo(0.2f, 0.f);
+                left.lineTo(0.25f, 0.5f);
+                left.lineTo(0.2f, 1.f);
+                left.lineTo(0.f, 1.f);
+                left.closeSubPath();
+
+                top.startNewSubPath(0.2f, 0.f);
+                top.lineTo(0.8f, 0.f);
+                top.lineTo(0.75f, 0.5f);
+                top.lineTo(0.25f, 0.5f);
+                top.lineTo(0.2f, 0.f);
+                top.closeSubPath();
+
+                right = left;
+                right.applyTransform(juce::AffineTransform(-1.0f, 0.0f, 1.f, 0.0f, 1.0f, 0.0f));
+
+                bottom = top;
+                bottom.applyTransform(juce::AffineTransform().verticalFlip(1.f));
+
+                const auto compWidth = e.eventComponent->getWidth();
+                const auto compHeight = e.eventComponent->getHeight();
+                juce::AffineTransform scaleTransform = juce::AffineTransform().scaled(compWidth, compHeight);
+
+                left.applyTransform(scaleTransform);
+                top.applyTransform(scaleTransform);
+                right.applyTransform(scaleTransform);
+                bottom.applyTransform(scaleTransform);
+
+                if (left.contains(e.position))
+                {
+                    mpc.getHardware()->getButton("left")->push();
+                }
+                else if (top.contains(e.position))
+                {
+                    mpc.getHardware()->getButton("up")->push();
+                }
+                else if (right.contains(e.position))
+                {
+                    mpc.getHardware()->getButton("right")->push();
+                }
+                else if (bottom.contains(e.position))
+                {
+                    mpc.getHardware()->getButton("down")->push();
+                }
+
+                return;
+            }
 
             mpc.getHardware()->getButton(label)->push();
         }
@@ -50,6 +102,10 @@ class MpcHardwareMouseListener : public juce::MouseListener {
                 const auto padNumber = std::stoi(digitsString);
                 auto pad = mpc.getHardware()->getPad(padNumber - 1);
                 pad->release();
+                return;
+            }
+            else if (label == "cursor")
+            {
                 return;
             }
 
