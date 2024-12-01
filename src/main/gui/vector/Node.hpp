@@ -26,6 +26,7 @@ namespace vmpc_juce::gui::vector {
         bool hide_svg;
         bool is_inner_shadow;
         float magic_multiplier;
+        std::string hardware_label;
 
         // grid
         std::vector<uint16_t> row_fractions;

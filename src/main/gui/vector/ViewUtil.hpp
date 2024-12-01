@@ -22,7 +22,8 @@ class ViewUtil
                 std::vector<juce::Component*> &components,
                 juce::Component* parent,
                 const std::function<float()> &getScale,
-                const std::function<juce::Font&()> &getNimbusSansScaled);
+                const std::function<juce::Font&()> &getNimbusSansScaled,
+                std::vector<juce::MouseListener*> &mouseListeners);
 
         static void createComponent(
                 mpc::Mpc &mpc,
@@ -30,7 +31,8 @@ class ViewUtil
                 std::vector<juce::Component*> &components,
                 juce::Component *parent,
                 const std::function<float()> &getScale,
-                const std::function<juce::Font&()> &getNimbusSansScaled);
+                const std::function<juce::Font&()> &getNimbusSansScaled,
+                std::vector<juce::MouseListener*> &mouseListeners);
 
         static juce::Point<int> getShadowDimensions(const float shadowSize, const float scale)
         {

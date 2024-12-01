@@ -53,7 +53,7 @@
       "row_fractions" : [ 1, 5, 6 ],
       "column_fractions" : [ 1, 1 ],
       "children" : [
-        { "name" : "tape_tempo_note_repeat", "shadow_size" : 1, "svg" : "big_key.svg", "label" : "TAP TEMPO\nNOTE REPEAT", "area" : [ 2, 1, 2, 2 ] },
+        { "name" : "tap_tempo_note_repeat", "shadow_size" : 1, "svg" : "big_key.svg", "label" : "TAP TEMPO\nNOTE REPEAT", "area" : [ 2, 1, 2, 2 ] },
         { "name" : "undo_seq_label", "label" : "UNDO SEQ", "margin" : [ 0, 0, 10, 0 ], "area" : [ 3, 1, 3, 1 ] },
         { "name" : "undo_seq_led", "type" : "green_led", "area" : [ 3, 1, 3, 1 ] },
         { "name" : "undo_seq", "shadow_size" : 1, "svg" : "medium_key.svg", "margin" : [ 15, 0, 0, 0 ], "area" : [ 3, 1, 3, 1 ] },

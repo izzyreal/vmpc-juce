@@ -23,6 +23,7 @@ namespace vmpc_juce::gui::vector {
         private:
             std::string name = "default_compact";
             std::vector<juce::Component*> components;
+            std::vector<juce::MouseListener*> mouseListeners;
             node view_root;
             const std::function<float()> getScale;
             const std::function<juce::Font&()> getNimbusSansScaled;
