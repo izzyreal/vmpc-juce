@@ -2,8 +2,8 @@
 
 #include "LCDControl.hpp"
 
-AuxLCD::AuxLCD(LCDControl* lcdControlToUse)
-        : Component("auxlcd"), lcdControl(lcdControlToUse)
+AuxLCD::AuxLCD(const std::function<juce::Image&()> &getLcdImageToUse)
+        : Component("auxlcd"), getLcdImage(getLcdImageToUse)
 {
     setWantsKeyboardFocus(false);
     setInterceptsMouseClicks(false, false);
@@ -12,5 +12,5 @@ AuxLCD::AuxLCD(LCDControl* lcdControlToUse)
 void AuxLCD::paint(juce::Graphics& g)
 {
     g.setImageResamplingQuality(g.lowResamplingQuality);
-    g.drawImage(lcdControl->lcd, getLocalBounds().toFloat());
+    g.drawImage(getLcdImage(), getLocalBounds().toFloat());
 }

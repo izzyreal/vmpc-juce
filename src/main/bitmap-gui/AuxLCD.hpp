@@ -1,16 +1,16 @@
 #pragma once
 
+#include <juce_graphics/juce_graphics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
-
-class LCDControl;
+#include <functional>
 
 class AuxLCD : public juce::Component
 {
 public:
-    explicit AuxLCD(LCDControl *lcdControlToUse);
+    explicit AuxLCD(const std::function<juce::Image&()> &getLcdImage);
 
 private:
-    LCDControl *lcdControl;
+    const std::function<juce::Image&()> getLcdImage;
 
     void paint(juce::Graphics& g) override;
 };

@@ -39,8 +39,8 @@ void AuxLCDWindowMaximizeButton::paintButton(juce::Graphics&, bool /*shouldDrawB
 
 }
 
-AuxLCDWindow::AuxLCDWindow(LCDControl *lcdControlToUse, Keyboard *keyboardToUse)
-: TopLevelWindow("auxlcdwindow", /*addToDesktop*/true), keyboard(keyboardToUse), lcdControl(lcdControlToUse)
+AuxLCDWindow::AuxLCDWindow(const std::function<void()> &resetAuxWindowToUse, const std::function<juce::Image&()> &getLcdImageToUse, const std::function<void()> &resetKeyboardAuxParentToUse)
+: TopLevelWindow("auxlcdwindow", /*addToDesktop*/true), resetKeyboardAuxParent(resetKeyboardAuxParentToUse), resetAuxWindow(resetAuxWindowToUse)
 {
     setLookAndFeel(&lookAndFeel);
     setVisible(true);
@@ -51,7 +51,7 @@ AuxLCDWindow::AuxLCDWindow(LCDControl *lcdControlToUse, Keyboard *keyboardToUse)
     const int maxWidth = minWidth * 16;
     const int maxHeight = minHeight * 16;
 
-    auxLcd = new AuxLCD(lcdControlToUse);
+    auxLcd = new AuxLCD(getLcdImageToUse);
     addAndMakeVisible(auxLcd);
     resizableCorner = std::make_unique<MyResizableCornerComponent>(this, &constrainer);
     addAndMakeVisible(resizableCorner.get());
@@ -220,12 +220,23 @@ void AuxLCDWindow::mouseDrag(const juce::MouseEvent& e)
 
 void AuxLCDWindow::mouseDoubleClick(const juce::MouseEvent &)
 {
-    keyboard->setAuxParent(nullptr);
-    lcdControl->resetAuxWindow();
+    resetKeyboardAuxParent();
+    resetAuxWindow();
 }
 
 AuxLCDWindow::~AuxLCDWindow()
 {
     setLookAndFeel(nullptr);
     delete auxLcd;
+}
+
+void AuxLCDWindow::repaintAuxLcdLocalBounds(juce::Rectangle<int> dirtyArea)
+{
+    auto auxBounds = auxLcd->getLocalBounds();
+
+    auto scale = auxBounds.getWidth() / (248.f);
+
+    auto auxRepaintBounds = juce::Rectangle<int>(dirtyArea.getX() * scale, dirtyArea.getY() * scale, dirtyArea.getWidth() * scale, dirtyArea.getHeight() * scale);
+
+    auxLcd->repaint(auxRepaintBounds.expanded(3));
 }

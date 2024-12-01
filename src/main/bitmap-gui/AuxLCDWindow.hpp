@@ -4,10 +4,6 @@
 #include "AuxLCD.hpp"
 #include "VmpcAuxLcdLookAndFeel.hpp"
 
-class Keyboard;
-class LCDControl;
-class Lcd;
-
 class AuxLCDWindowMaximizeButton : public juce::Button {
 public:
     AuxLCDWindowMaximizeButton() : juce::Button("MaximizeButton") {}
@@ -22,7 +18,7 @@ protected:
 class AuxLCDWindow : public juce::TopLevelWindow, public juce::Timer
 {
 public:
-    AuxLCDWindow(LCDControl*, Keyboard*);
+    explicit AuxLCDWindow(const std::function<void()> &resetAuxWindow, const std::function<juce::Image&()> &getLcdImage, const std::function<void()> &resetKeyboardAuxParent);
 
     void timerCallback() override;
 
@@ -48,6 +44,8 @@ public:
 
     void showButtons();
 
+    void repaintAuxLcdLocalBounds(juce::Rectangle<int> dirtyArea);
+
 private:
     static const char MARGIN = 6;
     static const unsigned char LCD_W = 248;
@@ -56,8 +54,8 @@ private:
     AuxLCDWindowMaximizeButton maximizeButton;
     juce::Component maximizeButtonMouseInterceptor;
     int buttonsHaveBeenShownForMs = 0;
-    Keyboard *keyboard;
-    LCDControl *lcdControl;
+    const std::function<void()> resetKeyboardAuxParent;
+    const std::function<void()> resetAuxWindow;
     VmpcAuxLcdLookAndFeel lookAndFeel;
 
     bool dragStarted = false;
@@ -77,8 +75,6 @@ private:
                                            int newMaximumWidth,
                                            int newMaximumHeight) noexcept;
 
-    friend class LCDControl;
-    friend class Lcd;
 };
 
 class MyResizableCornerComponent : public juce::ResizableCornerComponent {

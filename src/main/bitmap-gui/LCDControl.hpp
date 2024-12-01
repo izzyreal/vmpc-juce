@@ -3,11 +3,8 @@
 
 #include <Observer.hpp>
 
-#include <vector>
 #include <memory>
 
-class Keyboard;
-class AuxLCD;
 class AuxLCDWindow;
 
 namespace mpc { class Mpc; }
@@ -28,6 +25,9 @@ private:
 	std::shared_ptr<mpc::lcdgui::LayeredScreen> ls;
 	juce::Image lcd;
     juce::Rectangle<int> dirtyRect;
+    std::function<void()> resetAuxWindowF;
+    std::function<void()> resetKeyboardAuxParent;
+    std::function<juce::Image&()> getLcdImage;
 
 public:
     void resetAuxWindow();
@@ -48,7 +48,4 @@ public:
     ~LCDControl() override;
 
     void update(mpc::Observable* o, mpc::Message) override;
-
-private:
-    friend class AuxLCD;
 };

@@ -14,7 +14,11 @@
 
 #include "../bitmap-gui/AuxLCDWindow.hpp"
 
+#include <raw_keyboard_input/raw_keyboard_input.h>
+
 using namespace mpc::lcdgui::screens;
+
+class AuxLCD;
 
 class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
     public:
@@ -90,13 +94,7 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
             if (auxWindow != nullptr)
             {
-                auto auxBounds = auxWindow->auxLcd->getLocalBounds();
-
-                auto scale = auxBounds.getWidth() / (248.f);
-
-                auto auxRepaintBounds = juce::Rectangle<int>(dirtyArea.L * scale, dirtyArea.T * scale, dirtyArea.W() * scale, dirtyArea.H() * scale);
-
-                auxWindow->auxLcd->repaint(auxRepaintBounds.expanded(3));
+                auxWindow->repaintAuxLcdLocalBounds(dirtyRect);
             }
         }
 
@@ -154,19 +152,29 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
         void mouseDoubleClick (const juce::MouseEvent&) override
         {
-            auto view = dynamic_cast<View*>(getParentComponent());
+            juce::Component *ancestor = getParentComponent();
 
+            while(dynamic_cast<View*>(ancestor) == nullptr)
+            {
+                ancestor = ancestor->getParentComponent();
+            }
+
+            auto view = dynamic_cast<View*>(ancestor);
+
+            assert(view != nullptr);
+/*
             if (auxWindow == nullptr)
             {
-                //auxWindow = new AuxLCDWindow(this, contentComponent->keyboard);
-                //contentComponent->keyboard->setAuxParent(auxWindow);
+                auxWindow = new AuxLCDWindow(this, view->keyboard);
+                view->keyboard->setAuxParent(auxWindow);
             }
             else
             {
-                //contentComponent->keyboard->setAuxParent(nullptr);
-                //delete auxWindow;
-                //auxWindow = nullptr;
+                view->keyboard->setAuxParent(nullptr);
+                delete auxWindow;
+                auxWindow = nullptr;
             }
+            */
         }
 
         void mouseDown(const juce::MouseEvent& e) override {
@@ -175,6 +183,15 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
         void mouseDrag(const juce::MouseEvent& e) override {
             getParentComponent()->mouseDrag(e);
+        }
+
+        void resetAuxWindow()
+        {
+            if (auxWindow != nullptr)
+            {
+                auxWindow->removeFromDesktop();
+                delete auxWindow; auxWindow = nullptr;
+            }
         }
 
         float magicMultiplier = 0.55f;
