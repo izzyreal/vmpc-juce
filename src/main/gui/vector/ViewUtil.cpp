@@ -17,15 +17,27 @@
 #include "Lcd.hpp"
 #include "Led.hpp"
 
+#include "gui/MouseWheelControllable.hpp"
+
 #include "hardware/Hardware.hpp"
 #include "hardware/Button.hpp"
 #include "hardware/HwPad.hpp"
+#include "hardware/DataWheel.hpp"
 
 using namespace vmpc_juce::gui::vector;
 
 class MpcHardwareMouseListener : public juce::MouseListener {
     public:
         MpcHardwareMouseListener(mpc::Mpc &mpcToUse, const std::string labelToUse) : label(labelToUse), mpc(mpcToUse) {}
+        
+        void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override
+        {
+            if (label == "data-wheel")
+            {
+                auto dw = mpc.getHardware()->getDataWheel();
+                mouseWheelControllable.processWheelEvent(wheel, [&dw](int increment) { dw->turn(increment); });
+            }
+        }
 
         void mouseDown(const juce::MouseEvent &e) override
         {
@@ -90,6 +102,10 @@ class MpcHardwareMouseListener : public juce::MouseListener {
 
                 return;
             }
+            else if (label == "data-wheel")
+            {
+                return;
+            }
 
             mpc.getHardware()->getButton(label)->push();
         }
@@ -104,7 +120,7 @@ class MpcHardwareMouseListener : public juce::MouseListener {
                 pad->release();
                 return;
             }
-            else if (label == "cursor")
+            else if (label == "cursor" || label == "data-wheel")
             {
                 return;
             }
@@ -115,6 +131,8 @@ class MpcHardwareMouseListener : public juce::MouseListener {
     private:
         mpc::Mpc &mpc;
         const std::string label;
+        vmpc_juce::gui::MouseWheelControllable mouseWheelControllable;
+
 };
 
 float ViewUtil::getLabelHeight(const std::string& text, const std::function<float()>& getScale)

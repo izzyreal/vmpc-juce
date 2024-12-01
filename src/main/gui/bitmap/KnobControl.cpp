@@ -1,6 +1,8 @@
 #include "KnobControl.hpp"
 #include <hardware/Pot.hpp>
 
+using namespace vmpc_juce::gui::bitmap;
+
 static inline int clampIndex(int knobIndex) {
 	if (knobIndex < 0) {
 		knobIndex = 0;

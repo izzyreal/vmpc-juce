@@ -3,6 +3,7 @@
 
 #include <functional>
 
+namespace vmpc_juce::gui {
 class MouseWheelControllable {
 private:
     const double THRESHOLD = 0.1;
@@ -13,3 +14,4 @@ public:
                            std::function<void(int)> updateFn);
 
 };
+} // namespace vmpc_juce::gui

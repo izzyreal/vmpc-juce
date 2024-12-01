@@ -1,5 +1,7 @@
 #include "MouseWheelControllable.hpp"
 
+using namespace vmpc_juce::gui;
+
 void MouseWheelControllable::processWheelEvent(const juce::MouseWheelDetails& details,
                                                        std::function<void(int)> updateFn)
 {

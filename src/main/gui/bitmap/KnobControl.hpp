@@ -1,7 +1,7 @@
 #pragma once
 #include "VmpcComponent.hpp"
 
-#include "MouseWheelControllable.hpp"
+#include "gui/MouseWheelControllable.hpp"
 
 #include <memory>
 
@@ -9,6 +9,7 @@ namespace mpc::hardware {
 class Pot;
 }
 
+namespace vmpc_juce::gui::bitmap {
 class KnobControl
 : public VmpcComponent
 {
@@ -35,3 +36,4 @@ public:
     ~KnobControl();
 
 };
+} // namespace vmpc_juce::gui::bitmap
