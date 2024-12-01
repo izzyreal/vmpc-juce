@@ -1,6 +1,6 @@
 #include "TopRightMenu.hpp"
 
-#include "../ResourceUtil.hpp"
+#include "ResourceUtil.hpp"
 
 #include "Mpc.hpp"
 #include "juce_gui_basics/juce_gui_basics.h"

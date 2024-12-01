@@ -2,7 +2,7 @@
 #include "mpc_fs.hpp"
 #include "Mpc.hpp"
 
-#include "../ResourceUtil.hpp"
+#include "ResourceUtil.hpp"
 
 Background::Background(mpc::Mpc& mpc)
 {

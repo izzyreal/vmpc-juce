@@ -5,7 +5,7 @@
 #include "Constants.hpp"
 
 #include "ContentComponent.hpp"
-#include "AuxLCDWindow.hpp"
+#include "gui/AuxLCDWindow.hpp"
 
 #include "lcdgui/BasicStructs.hpp"
 

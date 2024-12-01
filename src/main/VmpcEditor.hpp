@@ -1,10 +1,11 @@
 #pragma once
 
 #include "juce_audio_processors/juce_audio_processors.h"
-#include "VmpcProcessor.hpp"
-#include "gui/View.hpp"
 
-#include <melatonin_inspector/melatonin_inspector.h>
+
+class VmpcProcessor;
+class View;
+namespace melatonin { class Inspector; }
 
 class VmpcEditor : public juce::AudioProcessorEditor
 {

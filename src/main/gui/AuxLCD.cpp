@@ -1,7 +1,5 @@
 #include "AuxLCD.hpp"
 
-#include "LCDControl.hpp"
-
 AuxLCD::AuxLCD(const std::function<juce::Image&()> &getLcdImageToUse)
         : Component("auxlcd"), getLcdImage(getLcdImageToUse)
 {

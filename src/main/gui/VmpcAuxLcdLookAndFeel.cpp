@@ -1,5 +1,6 @@
 #include "VmpcAuxLcdLookAndFeel.hpp"
-#include "Constants.hpp"
+
+#include "gui/bitmap/Constants.hpp"
 
 using namespace juce;
 
