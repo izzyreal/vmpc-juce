@@ -1,10 +1,5 @@
 #include "AuxLCDWindow.hpp"
 
-#include "LCDControl.hpp"
-#include "Constants.hpp"
-
-#include <raw_keyboard_input/src/Keyboard.h>
-
 void AuxLCDWindowMaximizeButton::paint(juce::Graphics& g)
 {
     const int rows = 5;
@@ -39,8 +34,8 @@ void AuxLCDWindowMaximizeButton::paintButton(juce::Graphics&, bool /*shouldDrawB
 
 }
 
-AuxLCDWindow::AuxLCDWindow(const std::function<void()> &resetAuxWindowToUse, const std::function<juce::Image&()> &getLcdImageToUse, const std::function<void()> &resetKeyboardAuxParentToUse)
-: TopLevelWindow("auxlcdwindow", /*addToDesktop*/true), resetKeyboardAuxParent(resetKeyboardAuxParentToUse), resetAuxWindow(resetAuxWindowToUse)
+AuxLCDWindow::AuxLCDWindow(const std::function<void()> &resetAuxWindowToUse, const std::function<juce::Image&()> &getLcdImageToUse, const std::function<void()> &resetKeyboardAuxParentToUse, const juce::Colour backgroundColourToUse)
+: TopLevelWindow("auxlcdwindow", /*addToDesktop*/true), resetKeyboardAuxParent(resetKeyboardAuxParentToUse), resetAuxWindow(resetAuxWindowToUse), backgroundColour(backgroundColourToUse)
 {
     setLookAndFeel(&lookAndFeel);
     setVisible(true);
@@ -149,7 +144,7 @@ bool AuxLCDWindow::keyPressed(const juce::KeyPress &k)
 
 void AuxLCDWindow::paint(juce::Graphics &g)
 {
-    g.fillAll(Constants::LCD_OFF);
+    g.fillAll(backgroundColour);
 }
 
 void AuxLCDWindow::setResizeLimits (int newMinimumWidth,
