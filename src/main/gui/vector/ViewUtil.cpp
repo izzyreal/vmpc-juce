@@ -19,6 +19,7 @@
 
 #include "hardware/Hardware.hpp"
 #include "hardware/Button.hpp"
+#include "hardware/HwPad.hpp"
 
 using namespace vmpc_juce::gui::vector;
 
@@ -28,11 +29,30 @@ class MpcHardwareMouseListener : public juce::MouseListener {
 
         void mouseDown(const juce::MouseEvent &e) override
         {
+            if (label.length() >= 4 && label.substr(0, 4) == "pad-")
+            {
+                const auto digitsString = label.substr(4);
+                const auto padNumber = std::stoi(digitsString);
+                auto pad = mpc.getHardware()->getPad(padNumber - 1);
+                const auto velocity = 127 - ((e.position.getY() / e.eventComponent->getBounds().getHeight()) * 127.f);
+                pad->push(velocity);
+                return;
+            }
+
             mpc.getHardware()->getButton(label)->push();
         }
 
         void mouseUp(const juce::MouseEvent &e) override
         {
+            if (label.length() >= 4 && label.substr(0, 4) == "pad-")
+            {
+                const auto digitsString = label.substr(4);
+                const auto padNumber = std::stoi(digitsString);
+                auto pad = mpc.getHardware()->getPad(padNumber - 1);
+                pad->release();
+                return;
+            }
+
             mpc.getHardware()->getButton(label)->release();
         }
 
@@ -304,7 +324,6 @@ void ViewUtil::createComponent(
             break;
         }
     }
-
 }
 
 void ViewUtil::createComponents(
