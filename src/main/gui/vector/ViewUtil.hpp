@@ -8,6 +8,8 @@
 
 namespace mpc { class Mpc; }
 
+namespace vmpc_juce::gui::vector {
+
 class ViewUtil
 {
     public:
@@ -42,4 +44,4 @@ class ViewUtil
             return dimensions.roundToInt();
         }
 };
-
+} // namespace vmpc_juce:gui::vector

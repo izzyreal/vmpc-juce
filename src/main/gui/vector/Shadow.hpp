@@ -6,6 +6,8 @@
 
 #include "ViewUtil.hpp"
 
+namespace vmpc_juce::gui::vector {
+
 class Shadow : public juce::Component {
 
     public:
@@ -49,3 +51,5 @@ class Shadow : public juce::Component {
         const float shadowDarkness;
         const bool isInner;
 };
+
+} // namespace vmpc_juce::gui::vector

@@ -2,16 +2,20 @@
 
 #include "Node.hpp"
 
-class GridWrapper : public juce::Component {
-    public:
-        GridWrapper(node &n, const std::function<float()> &getScale);
-        ~GridWrapper() override;
+namespace vmpc_juce::gui::vector {
 
-        void resized() override;
+    class GridWrapper : public juce::Component {
+        public:
+            GridWrapper(node &n, const std::function<float()> &getScale);
+            ~GridWrapper() override;
 
-        std::vector<juce::Component*> components;
+            void resized() override;
 
-    private:
-        node& node;
-        const std::function<float()> &getScale;
-};
+            std::vector<juce::Component*> components;
+
+        private:
+            node& node;
+            const std::function<float()> &getScale;
+    };
+
+} // namespace vmpc_juce::gui::vector

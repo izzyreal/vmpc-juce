@@ -14,6 +14,8 @@
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 
+using namespace vmpc_juce::gui::bitmap;
+
 LCDControl::LCDControl(mpc::Mpc& _mpc)
     : mpc(_mpc), ls(_mpc.getLayeredScreen())
 {
@@ -89,7 +91,8 @@ void LCDControl::resetAuxWindow()
     if (auxWindow != nullptr)
     {
         auxWindow->removeFromDesktop();
-        delete auxWindow; auxWindow = nullptr;
+        delete auxWindow;
+        auxWindow = nullptr;
     }
 }
 

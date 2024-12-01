@@ -45,6 +45,8 @@ using namespace mpc::disk;
 
 using namespace mpc::engine::midi;
 
+using namespace vmpc_juce;
+
 VmpcProcessor::VmpcProcessor()
 : AudioProcessor (juce::PluginHostType::jucePlugInClientCurrentWrapperType == juce::AudioProcessor::wrapperType_AudioUnitv3 ?
                   BusesProperties()

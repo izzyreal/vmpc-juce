@@ -5,6 +5,8 @@
 #include "gui/AuxLCD.hpp"
 #include "gui/VmpcAuxLcdLookAndFeel.hpp"
 
+namespace vmpc_juce::gui {
+
 class AuxLCDWindowMaximizeButton : public juce::Button {
 public:
     AuxLCDWindowMaximizeButton() : juce::Button("MaximizeButton") {}
@@ -91,4 +93,4 @@ public:
         ResizableCornerComponent::mouseDown(e);
     }
 };
-
+} //namespace vmpc_juce::gui

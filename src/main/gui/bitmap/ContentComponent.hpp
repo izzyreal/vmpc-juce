@@ -18,6 +18,8 @@ class Keyboard;
 namespace mpc { class Mpc; }
 namespace mpc::controls { class KeyEventHandler; }
 
+namespace vmpc_juce::gui::bitmap {
+
 class ContentComponent : public juce::Component, juce::FocusChangeListener
 {
 public:
@@ -60,3 +62,5 @@ private:
   LedControl* leds;
 
 };
+
+}

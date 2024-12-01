@@ -1,9 +1,11 @@
 #include "TopRightMenu.hpp"
 
-#include "ResourceUtil.hpp"
+#include "VmpcJuceResourceUtil.hpp"
 
 #include "Mpc.hpp"
 #include "juce_gui_basics/juce_gui_basics.h"
+
+using namespace vmpc_juce::gui::bitmap;
 
 #if JUCE_IOS
 
@@ -19,7 +21,7 @@ TopRightMenu::TopRightMenu(mpc::Mpc& mpc, std::function<void()>& showAudioSettin
 {
     auto transparentWhite = juce::Colours::transparentWhite;
 
-    keyboardImg = vmpc::ResourceUtil::loadImage("img/keyboard.png");
+    keyboardImg = VmpcJuceResourceUtil::loadImage("img/keyboard.png");
 
     keyboardButton.setImages(false, true, true, keyboardImg, 0.5, transparentWhite, keyboardImg, 1.0, transparentWhite,
                              keyboardImg, 0.25, transparentWhite);
@@ -27,7 +29,7 @@ TopRightMenu::TopRightMenu(mpc::Mpc& mpc, std::function<void()>& showAudioSettin
 #if JUCE_IOS
     importDocumentUrlProcessor.mpc = &mpc;
     
-    importImg = vmpc::ResourceUtil::loadImage("img/import.png");
+    importImg = VmpcJuceResourceUtil::loadImage("img/import.png");
 
     importButton.setImages(false, true, true, importImg, 0.5, transparentWhite, importImg, 1.0, transparentWhite,
                            importImg, 0.25, transparentWhite);
@@ -41,7 +43,7 @@ TopRightMenu::TopRightMenu(mpc::Mpc& mpc, std::function<void()>& showAudioSettin
 
     addAndMakeVisible(importButton);
     
-    exportImg = vmpc::ResourceUtil::loadImage("img/export.png");
+    exportImg = VmpcJuceResourceUtil::loadImage("img/export.png");
 
     exportButton.setImages(false, true, true, exportImg, 0.5, transparentWhite, exportImg, 1.0, transparentWhite,
                            exportImg, 0.25, transparentWhite);
@@ -55,7 +57,7 @@ TopRightMenu::TopRightMenu(mpc::Mpc& mpc, std::function<void()>& showAudioSettin
 
     addAndMakeVisible(exportButton);
     
-    recordingManagerImg = vmpc::ResourceUtil::loadImage("img/folder.png");
+    recordingManagerImg = VmpcJuceResourceUtil::loadImage("img/folder.png");
     
     recordingManagerButton.setImages(false, true, true, recordingManagerImg, 0.5, transparentWhite, recordingManagerImg, 1.0, transparentWhite, recordingManagerImg, 0.25, transparentWhite);
 
@@ -68,7 +70,7 @@ TopRightMenu::TopRightMenu(mpc::Mpc& mpc, std::function<void()>& showAudioSettin
 
     addAndMakeVisible(recordingManagerButton);
 #endif
-    helpImg = vmpc::ResourceUtil::loadImage("img/help.png");
+    helpImg = VmpcJuceResourceUtil::loadImage("img/help.png");
     helpButton.setImages(false, true, true, helpImg, 0.5, transparentWhite, helpImg, 1.0, transparentWhite,
                          helpImg, 0.25, transparentWhite);
     helpButton.setTooltip("Browse online documentation");
@@ -81,7 +83,7 @@ TopRightMenu::TopRightMenu(mpc::Mpc& mpc, std::function<void()>& showAudioSettin
 
     if (juce::JUCEApplication::isStandaloneApp())
     {
-        gearImg = vmpc::ResourceUtil::loadImage("img/gear.png");
+        gearImg = VmpcJuceResourceUtil::loadImage("img/gear.png");
         gearButton.setImages(false, true, true, gearImg, 0.5, transparentWhite, gearImg, 1.0, transparentWhite,
                              gearImg, 0.25, transparentWhite);
         gearButton.setTooltip("Audio/MIDI Settings");
@@ -101,7 +103,7 @@ TopRightMenu::TopRightMenu(mpc::Mpc& mpc, std::function<void()>& showAudioSettin
     addAndMakeVisible(keyboardButton);
 
 #ifndef JUCE_IOS
-    resetWindowSizeImg = vmpc::ResourceUtil::loadImage("img/reset-window-size.png");
+    resetWindowSizeImg = VmpcJuceResourceUtil::loadImage("img/reset-window-size.png");
 
     resetWindowSizeButton.setImages(false, true, true, resetWindowSizeImg, 0.5, transparentWhite, resetWindowSizeImg,
                                     1.0, transparentWhite, resetWindowSizeImg, 0.25, transparentWhite);

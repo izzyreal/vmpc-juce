@@ -17,6 +17,8 @@
 #include "Lcd.hpp"
 #include "Led.hpp"
 
+using namespace vmpc_juce::gui::vector;
+
 float ViewUtil::getLabelHeight(const std::string& text, const std::function<float()>& getScale)
 {
     const auto newlineCount = (float) std::count(text.begin(), text.end(), '\n');

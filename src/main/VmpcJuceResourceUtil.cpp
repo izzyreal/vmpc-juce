@@ -1,4 +1,4 @@
-#include "ResourceUtil.hpp"
+#include "VmpcJuceResourceUtil.hpp"
 
 #ifdef MAC_BUNDLE_RESOURCES
 #include "MacBundleResources.h"
@@ -8,9 +8,9 @@
 CMRC_DECLARE(vmpcjuce);
 #endif
 
-using namespace vmpc;
+using namespace vmpc_juce;
 
-juce::Image ResourceUtil::loadImage(const std::string& path)
+juce::Image VmpcJuceResourceUtil::loadImage(const std::string& path)
 {
 #ifdef MAC_BUNDLE_RESOURCES
     return loadImageFromMacBundleResources(path);
@@ -20,13 +20,13 @@ juce::Image ResourceUtil::loadImage(const std::string& path)
 }
 
 #ifdef MAC_BUNDLE_RESOURCES
-juce::Image ResourceUtil::loadImageFromMacBundleResources(const std::string &path)
+juce::Image VmpcJuceResourceUtil::loadImageFromMacBundleResources(const std::string &path)
 {
     const auto imgPath = mpc::MacBundleResources::getResourcePath(path);
     return juce::ImageFileFormat::loadFrom(juce::File(imgPath));
 }
 #else
-juce::Image ResourceUtil::loadImageFromInMemoryFS(const std::string& path)
+juce::Image VmpceJuceResourceUtil::loadImageFromInMemoryFS(const std::string& path)
 {
   auto fs = cmrc::vmpcjuce::get_filesystem();
   auto file = fs.open(path.c_str());

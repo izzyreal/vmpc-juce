@@ -10,6 +10,9 @@
 
 #include <melatonin_inspector/melatonin_inspector.h>
 
+using namespace vmpc_juce;
+using namespace vmpc_juce::gui::vector;
+
 VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
         : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
 {
@@ -23,7 +26,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
         return nimbusSans;
     };
 
-    view = new View(vmpcProcessor.mpc, getScale, getNimbusSansScaled);
+    view = new vmpc_juce::gui::vector::View(vmpcProcessor.mpc, getScale, getNimbusSansScaled);
 
     setSize((int) (initial_width * initial_scale), (int) (initial_height * initial_scale));
     setWantsKeyboardFocus(true);

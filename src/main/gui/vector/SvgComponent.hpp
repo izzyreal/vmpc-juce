@@ -7,6 +7,8 @@
 #include "ViewUtil.hpp"
 #include "ResourceUtil.h"
 
+namespace vmpc_juce::gui::vector {
+
 class SvgComponent : public juce::Component
 {
     private:
@@ -142,3 +144,5 @@ class SvgComponent : public juce::Component
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SvgComponent)
 };
+
+} // namespace vmpc_juce::gui::vector

@@ -7,43 +7,47 @@
 #include "SvgComponent.hpp"
 #include "RectangleLabel.hpp"
 
-class NumKey : public juce::Component {
-    public:
-        NumKey(const std::function<float()> &getScaleToUse, const std::string topLabelToUse, const std::string bottomLabelToUse, std::string svgPath, juce::Component *commonParentWithShadow, const float shadowSize, const std::function<juce::Font&()> &getNimbusSansScaled)
-        {
-            topLabel = new SimpleLabel(getScaleToUse, topLabelToUse, Constants::darkLabelColour, getNimbusSansScaled);
-            bottomLabel = new RectangleLabel(getScaleToUse, bottomLabelToUse, bottomLabelToUse, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 2.f, getNimbusSansScaled);
-            svgComponent = new SvgComponent(svgPath, commonParentWithShadow, shadowSize, getScaleToUse);
+namespace vmpc_juce::gui::vector {
 
-            addAndMakeVisible(topLabel);
-            addAndMakeVisible(bottomLabel);
-            addAndMakeVisible(svgComponent);
-        }
+    class NumKey : public juce::Component {
+        public:
+            NumKey(const std::function<float()> &getScaleToUse, const std::string topLabelToUse, const std::string bottomLabelToUse, std::string svgPath, juce::Component *commonParentWithShadow, const float shadowSize, const std::function<juce::Font&()> &getNimbusSansScaled)
+            {
+                topLabel = new SimpleLabel(getScaleToUse, topLabelToUse, Constants::darkLabelColour, getNimbusSansScaled);
+                bottomLabel = new RectangleLabel(getScaleToUse, bottomLabelToUse, bottomLabelToUse, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 2.f, getNimbusSansScaled);
+                svgComponent = new SvgComponent(svgPath, commonParentWithShadow, shadowSize, getScaleToUse);
 
-        ~NumKey() override
-        {
-            delete topLabel;
-            delete bottomLabel;
-            delete svgComponent;
-        }
+                addAndMakeVisible(topLabel);
+                addAndMakeVisible(bottomLabel);
+                addAndMakeVisible(svgComponent);
+            }
 
-        void resized() override
-        {
-            juce::Grid grid;
-            grid.templateRows = { juce::Grid::Fr(1), juce::Grid::Fr(1), juce::Grid::Fr(1) };
-            grid.templateColumns = { juce::Grid::Fr(1) };
+            ~NumKey() override
+            {
+                delete topLabel;
+                delete bottomLabel;
+                delete svgComponent;
+            }
 
-            grid.items.add(juce::GridItem(topLabel).withArea(1, 1, 1, 1));
-            grid.items.add(juce::GridItem(svgComponent).withArea(2, 1, 2, 1));
-            grid.items.add(juce::GridItem(bottomLabel).withArea(3, 1, 3, 1));
+            void resized() override
+            {
+                juce::Grid grid;
+                grid.templateRows = { juce::Grid::Fr(1), juce::Grid::Fr(1), juce::Grid::Fr(1) };
+                grid.templateColumns = { juce::Grid::Fr(1) };
 
-            grid.performLayout(getLocalBounds());
-        }
+                grid.items.add(juce::GridItem(topLabel).withArea(1, 1, 1, 1));
+                grid.items.add(juce::GridItem(svgComponent).withArea(2, 1, 2, 1));
+                grid.items.add(juce::GridItem(bottomLabel).withArea(3, 1, 3, 1));
 
-        SvgComponent* getSvgComponent() { return svgComponent; }
+                grid.performLayout(getLocalBounds());
+            }
 
-    private:
-        SimpleLabel* topLabel = nullptr;
-        RectangleLabel* bottomLabel = nullptr;
-        SvgComponent* svgComponent = nullptr;
-};
+            SvgComponent* getSvgComponent() { return svgComponent; }
+
+        private:
+            SimpleLabel* topLabel = nullptr;
+            RectangleLabel* bottomLabel = nullptr;
+            SvgComponent* svgComponent = nullptr;
+    };
+
+} // namespace vmpc_juce::gui::vector

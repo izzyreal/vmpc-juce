@@ -2,16 +2,20 @@
 
 #include "Node.hpp"
 
-class FlexBoxWrapper : public juce::Component {
-    public:
-        FlexBoxWrapper(node &n, const std::function<float()>& getScale);
-        ~FlexBoxWrapper() override;
+namespace vmpc_juce::gui::vector {
 
-        void resized() override;
+    class FlexBoxWrapper : public juce::Component {
+        public:
+            FlexBoxWrapper(node &n, const std::function<float()>& getScale);
+            ~FlexBoxWrapper() override;
 
-        std::vector<juce::Component*> components;
+            void resized() override;
 
-    private:
-        node& node;
-        const std::function<float()> getScale;
-};
+            std::vector<juce::Component*> components;
+
+        private:
+            node& node;
+            const std::function<float()> getScale;
+    };
+
+} // namespace vmpc_juce::gui::vector

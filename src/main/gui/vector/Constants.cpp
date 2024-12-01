@@ -2,6 +2,8 @@
 
 #include "Constants.hpp"
 
+using namespace vmpc_juce::gui::vector;
+
 juce::Colour Constants::chassisColour = juce::Colour::fromRGB(230, 238, 233);
 juce::Colour Constants::labelColour = juce::Colour::fromRGB(90, 90, 90);
 juce::Colour Constants::darkLabelColour = labelColour.darker();

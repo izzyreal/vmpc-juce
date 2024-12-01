@@ -2,40 +2,44 @@
 
 #include "Constants.hpp"
 
-class JOrLShape : public juce::Component {
+namespace vmpc_juce::gui::vector {
 
-    public:
-        enum Shape { J, L };
+    class JOrLShape : public juce::Component {
 
-        JOrLShape(const Shape shapeToUse, const std::function<float()> &getScaleToUse)
-            : shape(shapeToUse), getScale(getScaleToUse)
-    {}
+        public:
+            enum Shape { J, L };
 
-        void paint(juce::Graphics &g) override
-        {
-            g.setColour(Constants::darkLabelColour);
+            JOrLShape(const Shape shapeToUse, const std::function<float()> &getScaleToUse)
+                : shape(shapeToUse), getScale(getScaleToUse)
+            {}
 
-            const auto horizontal_line_thickness = Constants::lineThickness1 * getScale();
-            const auto vertical_line_thickness = Constants::lineThickness2 * getScale();
-
-            const auto half_thickness1 = Constants::lineThickness1 / 2;
-            const auto half_thickness2 = Constants::lineThickness2 / 2;
-
-            g.drawLine(0, getHeight() - std::ceil<float>(half_thickness1), getWidth(), getHeight() - std::ceil<float>(half_thickness1), horizontal_line_thickness);
-
-            switch (shape)
+            void paint(juce::Graphics &g) override
             {
-                case Shape::J:
-                    g.drawLine(getWidth() - half_thickness2, 0, getWidth() - half_thickness2, getHeight() - half_thickness1, vertical_line_thickness);
-                    break;
-                case Shape::L:
-                default:
-                    g.drawLine(0 + half_thickness2, 0, 0 + half_thickness2, getHeight() - half_thickness1, vertical_line_thickness);
-                    break;
-            }
-        }
+                g.setColour(Constants::darkLabelColour);
 
-    private:
-        const Shape shape;
-        const std::function<float()> & getScale;
-};
+                const auto horizontal_line_thickness = Constants::lineThickness1 * getScale();
+                const auto vertical_line_thickness = Constants::lineThickness2 * getScale();
+
+                const auto half_thickness1 = Constants::lineThickness1 / 2;
+                const auto half_thickness2 = Constants::lineThickness2 / 2;
+
+                g.drawLine(0, getHeight() - std::ceil<float>(half_thickness1), getWidth(), getHeight() - std::ceil<float>(half_thickness1), horizontal_line_thickness);
+
+                switch (shape)
+                {
+                    case Shape::J:
+                        g.drawLine(getWidth() - half_thickness2, 0, getWidth() - half_thickness2, getHeight() - half_thickness1, vertical_line_thickness);
+                        break;
+                    case Shape::L:
+                    default:
+                        g.drawLine(0 + half_thickness2, 0, 0 + half_thickness2, getHeight() - half_thickness1, vertical_line_thickness);
+                        break;
+                }
+            }
+
+        private:
+            const Shape shape;
+            const std::function<float()> & getScale;
+    };
+
+} // namespace vmpc_juce::gui::vector

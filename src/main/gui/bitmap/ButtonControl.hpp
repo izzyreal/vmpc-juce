@@ -10,6 +10,8 @@ namespace mpc ::hardware {
 class Button;
 }
 
+namespace vmpc_juce::gui::bitmap {
+
 class ButtonControl : public VmpcTooltipComponent
 {
 public:
@@ -81,3 +83,5 @@ private:
     static juce::Rectangle<int> down;
     static juce::Rectangle<int> right;
 };
+
+} // namespace vmpc_juce::gui::bitmap

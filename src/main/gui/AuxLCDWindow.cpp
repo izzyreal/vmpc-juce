@@ -1,5 +1,7 @@
 #include "AuxLCDWindow.hpp"
 
+using namespace vmpc_juce::gui;
+
 void AuxLCDWindowMaximizeButton::paint(juce::Graphics& g)
 {
     const int rows = 5;

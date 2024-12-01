@@ -16,9 +16,7 @@
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
-using namespace mpc::lcdgui::screens;
-
-class AuxLCD;
+namespace vmpc_juce::gui::vector {
 
 class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
     public:
@@ -29,13 +27,13 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
         getLcdImage = [&]() -> juce::Image& { return img; };
         drawPixelsToImg();
         startTimer(25);
-        auto othersScreen = mpc.screens->get<OthersScreen>("others");
+        auto othersScreen = mpc.screens->get<mpc::lcdgui::screens::OthersScreen>("others");
         othersScreen->addObserver(this);
     }
 
         ~Lcd() override
         {
-            auto othersScreen = mpc.screens->get<OthersScreen>("others");
+            auto othersScreen = mpc.screens->get<mpc::lcdgui::screens::OthersScreen>("others");
             othersScreen->deleteObserver(this);
             delete auxWindow;
         }
@@ -120,7 +118,7 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
             const auto pixels = layeredScreen->getPixels();
 
-            auto othersScreen = mpc.screens->get<OthersScreen>("others");
+            auto othersScreen = mpc.screens->get<mpc::lcdgui::screens::OthersScreen>("others");
             auto contrast = othersScreen->getContrast();
 
             juce::Colour c;
@@ -167,7 +165,7 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
             if (auxWindow == nullptr)
             {
-                auxWindow = new AuxLCDWindow(resetAuxWindowF, getLcdImage, resetKeyboardAuxParent, Constants::lcdOff);
+                auxWindow = new vmpc_juce::gui::AuxLCDWindow(resetAuxWindowF, getLcdImage, resetKeyboardAuxParent, Constants::lcdOff);
                 view->keyboard->setAuxParent(auxWindow);
             }
             else
@@ -190,7 +188,7 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
     private:
         mpc::Mpc &mpc;
-        AuxLCDWindow* auxWindow = nullptr;
+        vmpc_juce::gui::AuxLCDWindow* auxWindow = nullptr;
         juce::Rectangle<int> dirtyRect;
         juce::Image img = juce::Image(juce::Image::PixelFormat::RGB, 248*2, 60*2, false);
 
@@ -236,4 +234,4 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             return dynamic_cast<View*>(ancestor);
         }
 };
-
+} // namespace vmpc_juce::gui::vector
