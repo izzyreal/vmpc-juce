@@ -126,7 +126,7 @@ void LCDControl::mouseDoubleClick(const juce::MouseEvent &)
 {
     if (auxWindow == nullptr)
     {
-        auxWindow = new AuxLCDWindow(resetAuxWindowF, getLcdImage, resetKeyboardAuxParent);
+        auxWindow = new AuxLCDWindow(resetAuxWindowF, getLcdImage, resetKeyboardAuxParent, Constants::LCD_OFF);
         auto contentComponent = dynamic_cast<ContentComponent*>(getParentComponent());
         contentComponent->keyboard->setAuxParent(auxWindow);
     }

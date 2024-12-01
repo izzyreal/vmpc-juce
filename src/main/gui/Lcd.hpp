@@ -167,7 +167,7 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
             if (auxWindow == nullptr)
             {
-                auxWindow = new AuxLCDWindow(resetAuxWindowF, getLcdImage, resetKeyboardAuxParent);
+                auxWindow = new AuxLCDWindow(resetAuxWindowF, getLcdImage, resetKeyboardAuxParent, Constants::lcdOff);
                 view->keyboard->setAuxParent(auxWindow);
             }
             else

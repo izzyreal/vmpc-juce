@@ -18,7 +18,7 @@ protected:
 class AuxLCDWindow : public juce::TopLevelWindow, public juce::Timer
 {
 public:
-    explicit AuxLCDWindow(const std::function<void()> &resetAuxWindow, const std::function<juce::Image&()> &getLcdImage, const std::function<void()> &resetKeyboardAuxParent);
+    explicit AuxLCDWindow(const std::function<void()> &resetAuxWindow, const std::function<juce::Image&()> &getLcdImage, const std::function<void()> &resetKeyboardAuxParent, const juce::Colour backgroundColourToUse);
 
     void timerCallback() override;
 
@@ -57,6 +57,7 @@ private:
     const std::function<void()> resetKeyboardAuxParent;
     const std::function<void()> resetAuxWindow;
     VmpcAuxLcdLookAndFeel lookAndFeel;
+    juce::Colour backgroundColour;
 
     bool dragStarted = false;
     juce::ComponentDragger dragger;
