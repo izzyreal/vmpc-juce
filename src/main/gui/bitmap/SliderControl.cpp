@@ -1,6 +1,8 @@
 #include "SliderControl.hpp"
 #include <hardware/HwSlider.hpp>
 
+using namespace vmpc_juce::gui::bitmap;
+
 static inline void clampIndex(int& sliderIndex)
 {
     if (sliderIndex < 0)
