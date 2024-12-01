@@ -15,7 +15,7 @@
       "column_fractions" : [ 1, 18, 5 ],
       "children" : [
         { "include" : "main_screen_and_open_window", "area" : [ 1, 2, 1, 2 ] },
-        { "name" : "cursor_keys", "shadow_size" : 1, "svg" : "cursor_keys.svg", "label" : "CURSOR", "area" : [ 5, 2, 5, 2 ] },
+        { "name" : "cursor_keys", "hardware_label" : "cursor", "shadow_size" : 1, "svg" : "cursor_keys.svg", "label" : "CURSOR", "area" : [ 5, 2, 5, 2 ] },
         { "name" : "cursor_bottom_label", "label" : "<  DIGIT  >", "label_style" : "cursor_digit", "area" : [ 6, 2, 6, 2 ] },
         {
           "name" : "data_wheel",
