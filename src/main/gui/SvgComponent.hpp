@@ -15,8 +15,10 @@ class SvgComponent : public juce::Component
             const auto svgData = mpc::ResourceUtil::get_resource_data("svg/" + svgPath);
 
             if (!svgData.empty())
-            {   
-                auto svgXml = juce::XmlDocument::parse(svgData.data());
+            {  
+                const auto svgDataString = juce::String(juce::CharPointer_UTF8(svgData.data()));
+
+                auto svgXml = juce::XmlDocument::parse(svgDataString);
                 
                 if (svgXml != nullptr)
                 {   
