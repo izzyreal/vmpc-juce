@@ -7,6 +7,7 @@
 namespace mpc { class Mpc; }
 
 class Keyboard;
+class Lcd;
 
 class View : public juce::Component {
 
@@ -23,5 +24,6 @@ class View : public juce::Component {
         const std::function<float()> getScale;
         const std::function<juce::Font&()> getNimbusSansScaled;
         Keyboard* keyboard = nullptr;
-        
+
+        friend class Lcd;
 };

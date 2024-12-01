@@ -143,9 +143,5 @@ LCDControl::~LCDControl()
 {
     auto othersScreen = mpc.screens->get<OthersScreen>("others");
     othersScreen->deleteObserver(this);
-
-    if (auxWindow != nullptr)
-    {
-        delete auxWindow;
-    }
+    delete auxWindow;
 }

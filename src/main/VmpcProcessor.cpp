@@ -1,4 +1,4 @@
-#define USE_BITMAP_GUI 1
+#define USE_BITMAP_GUI 0
 #include "VmpcProcessor.hpp"
 #include "version.h"
 
