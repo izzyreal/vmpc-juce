@@ -20,6 +20,12 @@ LCDControl::LCDControl(mpc::Mpc& _mpc)
     lcd = juce::Image(juce::Image::RGB, 496, 120, true);
     auto othersScreen = mpc.screens->get<OthersScreen>("others");
     othersScreen->addObserver(this);
+   resetAuxWindowF = [&]{ resetAuxWindow(); };
+   getLcdImage = [&] () -> juce::Image& { return lcd; };
+   resetKeyboardAuxParent = [&] {
+        auto contentComponent = dynamic_cast<ContentComponent *>(getParentComponent());
+        contentComponent->keyboard->setAuxParent(nullptr);
+   };
 }
 
 void LCDControl::update(mpc::Observable *, mpc::Message message)
@@ -93,6 +99,7 @@ void LCDControl::checkLsDirty()
     {
         auto dirtyArea = ls->getDirtyArea();
         dirtyRect = juce::Rectangle<int>(dirtyArea.L, dirtyArea.T, dirtyArea.W(), dirtyArea.H());
+        const auto dirtyRectForAuxLcd = dirtyRect;
         ls->Draw();
         drawPixelsToImg();
         auto dirtyRect_x2 = juce::Rectangle<int>(dirtyArea.L * 2, dirtyArea.T * 2, dirtyArea.W() * 2, dirtyArea.H() * 2);
@@ -100,13 +107,7 @@ void LCDControl::checkLsDirty()
 
         if (auxWindow != nullptr)
         {
-            auto auxBounds = auxWindow->auxLcd->getLocalBounds();
-
-            auto scale = auxBounds.getWidth() / (248.f);
-
-            auto auxRepaintBounds = juce::Rectangle<int>(dirtyArea.L * scale, dirtyArea.T * scale, dirtyArea.W() * scale, dirtyArea.H() * scale);
-
-            auxWindow->auxLcd->repaint(auxRepaintBounds.expanded(3));
+            auxWindow->repaintAuxLcdLocalBounds(dirtyRectForAuxLcd);
         }
     }
 }
@@ -125,13 +126,13 @@ void LCDControl::mouseDoubleClick(const juce::MouseEvent &)
 {
     if (auxWindow == nullptr)
     {
-        auto contentComponent = dynamic_cast<ContentComponent *>(getParentComponent());
-        auxWindow = new AuxLCDWindow(this, contentComponent->keyboard);
+        auxWindow = new AuxLCDWindow(resetAuxWindowF, getLcdImage, resetKeyboardAuxParent);
+        auto contentComponent = dynamic_cast<ContentComponent*>(getParentComponent());
         contentComponent->keyboard->setAuxParent(auxWindow);
     }
     else
     {
-        auto contentComponent = dynamic_cast<ContentComponent *>(getParentComponent());
+        auto contentComponent = dynamic_cast<ContentComponent*>(getParentComponent());
         contentComponent->keyboard->setAuxParent(nullptr);
         delete auxWindow;
         auxWindow = nullptr;
