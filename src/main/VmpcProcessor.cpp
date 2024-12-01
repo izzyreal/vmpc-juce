@@ -206,12 +206,6 @@ void VmpcProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
   monoToStereoBufferOut.setSize(2, samplesPerBlock);
 }
 
-void VmpcProcessor::releaseResources()
-{
-  // When playback stops, you can use this as an opportunity to free up any
-  // spare memory, etc.
-}
-
 bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout&) const
 {
   return true;

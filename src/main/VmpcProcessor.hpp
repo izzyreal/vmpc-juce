@@ -17,7 +17,8 @@ public:
 
   //==============================================================================
   void prepareToPlay (double sampleRate, int samplesPerBlock) override;
-  void releaseResources() override;
+
+  void releaseResources() override {}
   
   bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
   
