@@ -1,8 +1,9 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "AuxLCD.hpp"
-#include "VmpcAuxLcdLookAndFeel.hpp"
+
+#include "gui/AuxLCD.hpp"
+#include "gui/VmpcAuxLcdLookAndFeel.hpp"
 
 class AuxLCDWindowMaximizeButton : public juce::Button {
 public:

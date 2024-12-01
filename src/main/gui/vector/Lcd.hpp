@@ -12,7 +12,7 @@
 #include "lcdgui/Layer.hpp"
 #include "lcdgui/screens/OthersScreen.hpp"
 
-#include "../bitmap-gui/AuxLCDWindow.hpp"
+#include "gui/AuxLCDWindow.hpp"
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 

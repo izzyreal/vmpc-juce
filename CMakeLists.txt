@@ -160,12 +160,13 @@ if (IOS)
     add_dsym(vmpc2000xl_AUv3)
 endif()
 
+set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/src/main")
+
 target_include_directories(vmpc2000xl PUBLIC
+  ${_src_root_path}
   ${mpc_SOURCE_DIR}/src/main
   ${tl-expected_SOURCE_DIR}/include
 )
-
-set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/src/main")
 
 if (IOS)
   file(

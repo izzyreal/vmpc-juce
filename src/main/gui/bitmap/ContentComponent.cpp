@@ -1,6 +1,6 @@
 #include "ContentComponent.hpp"
 #include "Constants.hpp"
-#include "../ResourceUtil.hpp"
+#include "ResourceUtil.hpp"
 
 #include <Mpc.hpp>
 
@@ -11,7 +11,7 @@
 #include <hardware/Hardware.hpp>
 #include <hardware/Led.hpp>
 
-#include "../version.h"
+#include "version.h"
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 

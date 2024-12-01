@@ -2,8 +2,13 @@
 
 #include "VmpcEditor.hpp"
 #include "VmpcProcessor.hpp"
-#include "gui/Constants.hpp"
+
+#include "gui/vector/Constants.hpp"
+#include "gui/vector/View.hpp"
+
 #include "ResourceUtil.h"
+
+#include <melatonin_inspector/melatonin_inspector.h>
 
 VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
         : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)

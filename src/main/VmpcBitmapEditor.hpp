@@ -3,8 +3,8 @@
 #include "juce_gui_basics/juce_gui_basics.h"
 #include "VmpcProcessor.hpp"
 
-#include "bitmap-gui/ContentComponent.hpp"
-#include "bitmap-gui/VmpcLookAndFeel.hpp"
+#include "gui/bitmap/ContentComponent.hpp"
+#include "gui/bitmap/VmpcLookAndFeel.hpp"
 
 namespace mpc { class Mpc; }
 
