@@ -5,7 +5,7 @@
 
 #include <memory>
 
-class AuxLCDWindow;
+namespace vmpc_juce::gui { class AuxLCDWindow; }
 
 namespace mpc { class Mpc; }
 
@@ -13,6 +13,7 @@ namespace mpc::lcdgui {
 	class LayeredScreen;
 }
 
+namespace vmpc_juce::gui::bitmap {
 class LCDControl
 	: public VmpcComponent
 	, public juce::Timer
@@ -20,7 +21,7 @@ class LCDControl
 {
 
 private:
-    AuxLCDWindow* auxWindow = nullptr;
+    vmpc_juce::gui::AuxLCDWindow* auxWindow = nullptr;
     mpc::Mpc& mpc;
 	std::shared_ptr<mpc::lcdgui::LayeredScreen> ls;
 	juce::Image lcd;
@@ -49,3 +50,4 @@ public:
 
     void update(mpc::Observable* o, mpc::Message) override;
 };
+} // namespace vmpc_juce::gui::bitmap

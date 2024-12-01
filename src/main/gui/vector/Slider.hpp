@@ -5,6 +5,8 @@
 #include "SvgComponent.hpp"
 #include "SliderCap.hpp"
 
+namespace vmpc_juce::gui::vector {
+
 class Slider : public juce::Component {
     public:
         Slider(juce::Component *commonParentWithShadowToUse, const std::function<float()> &getScaleToUse, const float shadowSize, const std::function<juce::Font&()> &getNimbusSansScaled)
@@ -142,3 +144,5 @@ class Slider : public juce::Component {
         int32_t previousDragDistanceY = std::numeric_limits<int32_t>::max();
         bool shouldDragCap = false;
 };
+
+} // namespace vmpc_juce::gui::vector

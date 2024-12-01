@@ -4,6 +4,8 @@
 
 #include <vector>
 
+namespace vmpc_juce::gui::vector {
+
 class SvgWithLabelGrid : public juce::Component {
     public:
         SvgWithLabelGrid(const node &n, const std::function<float()>& getScale);
@@ -17,3 +19,5 @@ class SvgWithLabelGrid : public juce::Component {
         const node &node;
         const std::function<float()>& getScale;
 };
+
+} // namespace vmpc_juce::gui::vector

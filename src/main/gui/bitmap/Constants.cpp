@@ -1,5 +1,7 @@
 #include "Constants.hpp"
 
+using namespace vmpc_juce::gui::bitmap;
+
 juce::Rectangle<int>& Constants::dataWheelRect()
 {
     static auto rect = juce::Rectangle<int>(378, 415, 171, 171);

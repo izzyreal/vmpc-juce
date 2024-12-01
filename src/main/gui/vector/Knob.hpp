@@ -2,62 +2,64 @@
 
 #include "SvgComponent.hpp"
 
-class Knob : public SvgComponent {
-    public:
-        enum KnobType { REC_GAIN, MAIN_VOLUME };
+namespace vmpc_juce::gui::vector {
+    class Knob : public SvgComponent {
+        public:
+            enum KnobType { REC_GAIN, MAIN_VOLUME };
 
-        Knob(const KnobType knobTypeToUse, juce::Component *commonParentWithShadowToUse, const std::function<float()> &getScaleToUse)
-            : SvgComponent(knobTypeToUse == REC_GAIN ? "rec_gain.svg" : "main_volume.svg", commonParentWithShadowToUse, 5.f, getScaleToUse)
+            Knob(const KnobType knobTypeToUse, juce::Component *commonParentWithShadowToUse, const std::function<float()> &getScaleToUse)
+                : SvgComponent(knobTypeToUse == REC_GAIN ? "rec_gain.svg" : "main_volume.svg", commonParentWithShadowToUse, 5.f, getScaleToUse)
+                {
+                    handleAngleChanged();
+                }
+
+            void mouseWheelMove(const juce::MouseEvent &, const juce::MouseWheelDetails &wheel) override
             {
+                const auto increment = -wheel.deltaY;
+                angleFactor = std::clamp<float>(angleFactor + increment, 0, 1);
                 handleAngleChanged();
             }
 
-        void mouseWheelMove(const juce::MouseEvent &, const juce::MouseWheelDetails &wheel) override
-        {
-            const auto increment = -wheel.deltaY;
-            angleFactor = std::clamp<float>(angleFactor + increment, 0, 1);
-            handleAngleChanged();
-        }
-
-        void mouseUp(const juce::MouseEvent &) override
-        {
-            previousDragDistanceY = previousDragDistanceY = std::numeric_limits<int32_t>::max();
-        }
-
-        void mouseDrag(const juce::MouseEvent &e) override
-        {
-            if (previousDragDistanceY == std::numeric_limits<int32_t>::max())
+            void mouseUp(const juce::MouseEvent &) override
             {
-                previousDragDistanceY = 0;
+                previousDragDistanceY = previousDragDistanceY = std::numeric_limits<int32_t>::max();
             }
 
-            const auto increment = float(e.getDistanceFromDragStartY() - previousDragDistanceY) * 0.005f * -1.f;
+            void mouseDrag(const juce::MouseEvent &e) override
+            {
+                if (previousDragDistanceY == std::numeric_limits<int32_t>::max())
+                {
+                    previousDragDistanceY = 0;
+                }
 
-            previousDragDistanceY = e.getDistanceFromDragStartY();
+                const auto increment = float(e.getDistanceFromDragStartY() - previousDragDistanceY) * 0.005f * -1.f;
 
-            angleFactor = std::clamp<float>(angleFactor + (float) increment, 0, 1);
-            handleAngleChanged();
-        }
+                previousDragDistanceY = e.getDistanceFromDragStartY();
 
-    private:
-        float angleFactor = 0.f;
-        int32_t previousDragDistanceY = std::numeric_limits<int32_t>::max();
+                angleFactor = std::clamp<float>(angleFactor + (float) increment, 0, 1);
+                handleAngleChanged();
+            }
 
-        void handleAngleChanged()
-        {
-            float startAngle = juce::MathConstants<float>::pi * 2.6f / 4.0f + juce::MathConstants<float>::halfPi;
-            float endAngle = juce::MathConstants<float>::pi * 9.4f / 4.0f + juce::MathConstants<float>::halfPi;
-            float angle = startAngle + angleFactor * (endAngle - startAngle);
+        private:
+            float angleFactor = 0.f;
+            int32_t previousDragDistanceY = std::numeric_limits<int32_t>::max();
 
-            auto bounds = svgDrawable->getDrawableBounds();
-            auto centerX = bounds.getCentreX();
-            auto centerY = bounds.getCentreY();
+            void handleAngleChanged()
+            {
+                float startAngle = juce::MathConstants<float>::pi * 2.6f / 4.0f + juce::MathConstants<float>::halfPi;
+                float endAngle = juce::MathConstants<float>::pi * 9.4f / 4.0f + juce::MathConstants<float>::halfPi;
+                float angle = startAngle + angleFactor * (endAngle - startAngle);
 
-            svgDrawable->setTransform(juce::AffineTransform()
-                    .translated(-centerX, -centerY)
-                    .rotated(angle)
-                    .translated(centerX, centerY));
+                auto bounds = svgDrawable->getDrawableBounds();
+                auto centerX = bounds.getCentreX();
+                auto centerY = bounds.getCentreY();
 
-            repaint();
-        }
-};
+                svgDrawable->setTransform(juce::AffineTransform()
+                        .translated(-centerX, -centerY)
+                        .rotated(angle)
+                        .translated(centerX, centerY));
+
+                repaint();
+            }
+    };
+} // namespace vmpc_juce::gui::vector

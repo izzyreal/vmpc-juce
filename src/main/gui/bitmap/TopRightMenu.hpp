@@ -10,6 +10,8 @@
 
 namespace mpc { class Mpc; }
 
+namespace vmpc_juce::gui::bitmap {
+
 class TopRightMenu : public juce::Component {
 
 private:
@@ -38,3 +40,5 @@ public:
     
     void resized() override;
 };
+
+} // namespace vmpc_juce::gui::bitmap

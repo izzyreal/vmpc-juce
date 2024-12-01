@@ -1,9 +1,12 @@
 #include "VmpcBitmapEditor.hpp"
 
-#include "ResourceUtil.hpp"
+#include "VmpcJuceResourceUtil.hpp"
 
 #include <hardware/Hardware.hpp>
 #include <audiomidi/AudioMidiServices.hpp>
+
+using namespace vmpc_juce;
+using namespace vmpc_juce::gui::bitmap;
 
 VmpcBitmapEditor::VmpcBitmapEditor(VmpcProcessor& p)
 : AudioProcessorEditor(&p), vmpcProcessor(p), mpc(p.mpc)
@@ -42,7 +45,7 @@ void VmpcBitmapEditor::showDisclaimer()
       juce::Image img;
       VmpcSplashScreen() {
         setWantsKeyboardFocus(false);
-        img = vmpc::ResourceUtil::loadImage("img/disclaimer.gif");
+        img = VmpcJuceResourceUtil::loadImage("img/disclaimer.gif");
         startTimer(8000);
       }
       

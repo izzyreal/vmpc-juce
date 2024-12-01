@@ -6,6 +6,8 @@
 
 namespace mpc::engine::midi { class ShortMessage; }
 
+namespace vmpc_juce {
+
 class VmpcProcessor  : public juce::AudioProcessor
 {
 public:
@@ -66,3 +68,5 @@ public:
   //==============================================================================
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcProcessor)
 };
+
+} // namespace vmpc_juce

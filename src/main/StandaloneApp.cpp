@@ -1,4 +1,6 @@
-#include "StandaloneFilter.hpp"
+#include "StandaloneApp.hpp"
+
+#include "PropertiesFileOptions.hpp"
 
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 
@@ -6,16 +8,18 @@
 void* juce_GetIOSCustomDelegateClass()  { return nullptr; }
 #endif
 
-StandaloneFilterApp::StandaloneFilterApp()
+using namespace vmpc_juce;
+
+StandaloneApp::StandaloneApp()
 {
-    appProperties.setStorageParameters(PropertiesFileOptions());
+    appProperties.setStorageParameters(vmpc_juce::PropertiesFileOptions());
 }
 
-StandaloneFilterWindow* StandaloneFilterApp::createWindow()
+StandaloneAppWindow* StandaloneApp::createWindow()
 {
     StandalonePluginHolder::PluginInOuts channels[] = {{2, 10}};
 
-    return new StandaloneFilterWindow(getApplicationName(),
+    return new StandaloneAppWindow(getApplicationName(),
         LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId),
         appProperties.getUserSettings(),
         false,
@@ -25,7 +29,7 @@ StandaloneFilterWindow* StandaloneFilterApp::createWindow()
         true);
 }
 
-void StandaloneFilterApp::initialise(const juce::String&)
+void StandaloneApp::initialise(const juce::String&)
 {
     mainWindow.reset (createWindow());
 
@@ -36,7 +40,7 @@ void StandaloneFilterApp::initialise(const juce::String&)
     mainWindow->setVisible (true);
 }
 
-void StandaloneFilterApp::shutdown()
+void StandaloneApp::shutdown()
 {
 #if JUCE_IOS
     if (mainWindow != nullptr)
@@ -46,7 +50,7 @@ void StandaloneFilterApp::shutdown()
     appProperties.saveIfNeeded();
 }
 
-void StandaloneFilterApp::systemRequestedQuit()
+void StandaloneApp::systemRequestedQuit()
 {
 
 #ifndef JUCE_IOS
@@ -60,7 +64,7 @@ void StandaloneFilterApp::systemRequestedQuit()
         quit();
 }
 
-void StandaloneFilterApp::requestQuit() const
+void StandaloneApp::requestQuit() const
 {
     if (auto app = getInstance())
         app->systemRequestedQuit();
@@ -69,5 +73,5 @@ void StandaloneFilterApp::requestQuit() const
 
 JUCEApplicationBase* juce_CreateApplication()
 {
-    return new StandaloneFilterApp();
+    return new StandaloneApp();
 }

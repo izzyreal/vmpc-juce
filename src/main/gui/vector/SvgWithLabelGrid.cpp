@@ -3,6 +3,8 @@
 #include "ViewUtil.hpp"
 #include "SvgComponent.hpp"
 
+using namespace vmpc_juce::gui::vector;
+
 SvgWithLabelGrid::SvgWithLabelGrid(const struct node &nodeToUse, const std::function<float()>& getScaleToUse)
     : node(nodeToUse), getScale(getScaleToUse)
 {

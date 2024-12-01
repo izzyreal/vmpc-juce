@@ -7,23 +7,28 @@
 namespace mpc { class Mpc; }
 
 class Keyboard;
-class Lcd;
 
-class View : public juce::Component {
+namespace vmpc_juce::gui::vector {
 
-    public:
-        View(mpc::Mpc &mpc, const std::function<float()>& getScale, const std::function<juce::Font&()> &getNimbusSansScaled);
-        ~View() override;
+    class Lcd;
 
-        void resized() override;
+    class View : public juce::Component {
 
-    private:
-        std::string name = "default_compact";
-        std::vector<juce::Component*> components;
-        node view_root;
-        const std::function<float()> getScale;
-        const std::function<juce::Font&()> getNimbusSansScaled;
-        Keyboard* keyboard = nullptr;
+        public:
+            View(mpc::Mpc &mpc, const std::function<float()>& getScale, const std::function<juce::Font&()> &getNimbusSansScaled);
+            ~View() override;
 
-        friend class Lcd;
-};
+            void resized() override;
+
+        private:
+            std::string name = "default_compact";
+            std::vector<juce::Component*> components;
+            node view_root;
+            const std::function<float()> getScale;
+            const std::function<juce::Font&()> getNimbusSansScaled;
+            Keyboard* keyboard = nullptr;
+
+            friend class Lcd;
+    };
+
+} // namespace vmpc_juce::gui::vector

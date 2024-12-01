@@ -4,6 +4,8 @@
 
 namespace mpc { class Mpc; }
 
+namespace vmpc_juce::gui::bitmap {
+
 struct Background : public juce::Component {
 
 public:
@@ -27,3 +29,5 @@ private:
   juce::Image img;
 
 };
+
+} // namespace vmpc_juce::gui::bitmap

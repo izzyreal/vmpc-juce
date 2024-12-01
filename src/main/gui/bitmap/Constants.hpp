@@ -1,6 +1,7 @@
 #pragma once
 #include "juce_graphics/juce_graphics.h"
 
+namespace vmpc_juce::gui::bitmap {
 class Constants {
 
 public:
@@ -14,3 +15,4 @@ public:
 	static juce::Rectangle<int>& lcdRect();
 	static juce::Rectangle<int>& dataWheelRect();
 };
+} // namespace vmpc_juce::gui::bitmap

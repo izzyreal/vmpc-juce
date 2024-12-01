@@ -7,7 +7,9 @@
 #include "VmpcProcessor.hpp"
 #include "AudioMidiSettingsComponent.hpp"
 
-namespace juce
+using namespace juce;
+
+namespace vmpc_juce
 {
 
 class StandalonePluginHolder    : private AudioIODeviceCallback,
@@ -468,12 +470,12 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StandalonePluginHolder)
 };
 
-class StandaloneFilterWindow    : public DocumentWindow
+class StandaloneAppWindow    : public DocumentWindow
 {
 public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
-    StandaloneFilterWindow (const String& title,
+    StandaloneAppWindow (const String& title,
                             Colour backgroundColour,
                             PropertySet* settingsToUse,
                             bool takeOwnershipOfSettings,
@@ -586,7 +588,7 @@ public:
 #endif
     }
 
-    ~StandaloneFilterWindow() override
+    ~StandaloneAppWindow() override
     {
 #if (! JUCE_IOS) && (! JUCE_ANDROID)
         if (auto* props = pluginHolder->settings.get())
@@ -653,7 +655,7 @@ private:
                                   private ComponentListener
     {
     public:
-        MainContentComponent (StandaloneFilterWindow& filterWindow)
+        MainContentComponent (StandaloneAppWindow& filterWindow)
             : owner (filterWindow),
               editor (owner.getAudioProcessor()->hasEditor() ? owner.getAudioProcessor()->createEditorIfNeeded()
                                                              : new GenericAudioProcessorEditor (*owner.getAudioProcessor()))
@@ -740,7 +742,7 @@ private:
         }
 
         //==============================================================================
-        StandaloneFilterWindow& owner;
+        StandaloneAppWindow& owner;
         std::unique_ptr<AudioProcessorEditor> editor;
         bool shouldShowNotification = false;
         bool preventResizingEditor = false;
@@ -822,7 +824,7 @@ private:
     //==============================================================================
     DecoratorConstrainer decoratorConstrainer;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StandaloneFilterWindow)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StandaloneAppWindow)
 };
 
 inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
@@ -834,7 +836,7 @@ inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
         const int numTopLevelWindows = desktop.getNumComponents();
 
         for (int i = 0; i < numTopLevelWindows; ++i)
-            if (auto window = dynamic_cast<StandaloneFilterWindow*> (desktop.getComponent (i)))
+            if (auto window = dynamic_cast<StandaloneAppWindow*> (desktop.getComponent (i)))
                 return window->getPluginHolder();
     }
 #endif

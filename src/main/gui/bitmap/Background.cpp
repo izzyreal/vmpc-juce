@@ -2,7 +2,9 @@
 #include "mpc_fs.hpp"
 #include "Mpc.hpp"
 
-#include "ResourceUtil.hpp"
+#include "VmpcJuceResourceUtil.hpp"
+
+using namespace vmpc_juce::gui::bitmap;
 
 Background::Background(mpc::Mpc& mpc)
 {
@@ -16,7 +18,7 @@ Background::Background(mpc::Mpc& mpc)
   }
   else
   {
-      img = vmpc::ResourceUtil::loadImage("img/bg.jpg");
+      img = VmpcJuceResourceUtil::loadImage("img/bg.jpg");
   }
 
   setBufferedToImage(true);

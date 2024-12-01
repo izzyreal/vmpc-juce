@@ -8,6 +8,8 @@
 
 #include <cassert>
 
+using namespace vmpc_juce::gui::vector;
+
 FlexBoxWrapper::FlexBoxWrapper(struct node &nodeToUse, const std::function<float()>& getScaleToUse)
     : node(nodeToUse), getScale(getScaleToUse)
 {

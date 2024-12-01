@@ -2,6 +2,8 @@
 #include "hardware/Button.hpp"
 #include "controls/Controls.hpp"
 
+using namespace vmpc_juce::gui::bitmap;
+
 ButtonControl::ButtonControl(mpc::Mpc& mpc, juce::Rectangle<int> _rect,
                              std::weak_ptr<mpc::hardware::Button> _button)
 : VmpcTooltipComponent(mpc, _button.lock()), rect(_rect), button(std::move(_button))

@@ -2,7 +2,8 @@
 
 #include "gui/bitmap/Constants.hpp"
 
-using namespace juce;
+using namespace vmpc_juce::gui;
+using namespace vmpc_juce::gui::bitmap;
 
 void VmpcAuxLcdLookAndFeel::drawLcdPixel(juce::Graphics& g, int x, int y)
 {
@@ -12,7 +13,7 @@ void VmpcAuxLcdLookAndFeel::drawLcdPixel(juce::Graphics& g, int x, int y)
     g.fillRect(juce::Rectangle<int>(x * LCD_PIXEL_SIZE, y * LCD_PIXEL_SIZE, LCD_PIXEL_SIZE - 1, LCD_PIXEL_SIZE - 1));
 }
 
-void VmpcAuxLcdLookAndFeel::drawCornerResizer(Graphics& g, int w, int h, bool, bool)
+void VmpcAuxLcdLookAndFeel::drawCornerResizer(juce::Graphics& g, int w, int h, bool, bool)
 {
     const int rows = 5;
     const int xOffset = (w / VmpcAuxLcdLookAndFeel::LCD_PIXEL_SIZE) - rows;

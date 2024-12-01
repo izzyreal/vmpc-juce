@@ -1,6 +1,6 @@
 #include "ContentComponent.hpp"
 #include "Constants.hpp"
-#include "ResourceUtil.hpp"
+#include "VmpcJuceResourceUtil.hpp"
 
 #include <Mpc.hpp>
 
@@ -14,6 +14,8 @@
 #include "version.h"
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
+
+using namespace vmpc_juce::gui::bitmap;
 
 ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAudioSettingsDialog)
         : mpc(_mpc), keyEventHandler(mpc.getControls()->getKeyEventHandler())
@@ -47,7 +49,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     }
     else
     {
-        dataWheelImg = vmpc::ResourceUtil::loadImage("img/datawheels.jpg");
+        dataWheelImg = VmpcJuceResourceUtil::loadImage("img/datawheels.jpg");
     }
 
     dataWheel->setImage(dataWheelImg, 100);
@@ -81,7 +83,7 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     const int padOffsetY = 397;
     int padCounter = 0;
 
-    padHitImg = vmpc::ResourceUtil::loadImage("img/padhit.png");
+    padHitImg = VmpcJuceResourceUtil::loadImage("img/padhit.png");
 
     for (int j = 3; j >= 0; j--)
     {
@@ -108,25 +110,25 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
     }
     else
     {
-        sliderImg = vmpc::ResourceUtil::loadImage("img/sliders.jpg");
+        sliderImg = VmpcJuceResourceUtil::loadImage("img/sliders.jpg");
     }
 
     slider = new SliderControl(mpc.getHardware()->getSlider());
     slider->setImage(sliderImg);
     addAndMakeVisible(slider);
 
-    recKnobImg = vmpc::ResourceUtil::loadImage("img/recknobs.jpg");
+    recKnobImg = VmpcJuceResourceUtil::loadImage("img/recknobs.jpg");
     recKnob = new KnobControl(mpc.getHardware()->getRecPot());
     recKnob->setImage(recKnobImg);
     addAndMakeVisible(recKnob);
 
-    volKnobImg = vmpc::ResourceUtil::loadImage("img/volknobs.jpg");
+    volKnobImg = VmpcJuceResourceUtil::loadImage("img/volknobs.jpg");
     volKnob = new KnobControl(mpc.getHardware()->getVolPot());
     volKnob->setImage(volKnobImg);
     addAndMakeVisible(volKnob);
 
-    ledRedImg = vmpc::ResourceUtil::loadImage("img/led_red.png");
-    ledGreenImg = vmpc::ResourceUtil::loadImage("img/led_green.png");
+    ledRedImg = VmpcJuceResourceUtil::loadImage("img/led_red.png");
+    ledGreenImg = VmpcJuceResourceUtil::loadImage("img/led_green.png");
 
     leds = new LedControl(mpc, ledGreenImg, ledRedImg);
     leds->setPadBankA(true);

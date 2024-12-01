@@ -3,22 +3,24 @@
 
 using namespace juce;
 
-struct PropertiesFileOptions : public PropertiesFile::Options
-{
-    PropertiesFileOptions()
+namespace vmpc_juce {
+    struct PropertiesFileOptions : public PropertiesFile::Options
     {
-        applicationName = JucePlugin_Name;
-        filenameSuffix = ".settings";
-        osxLibrarySubFolder = "Application Support";
-        folderName = getOptionsFolderName();
-    }
+        PropertiesFileOptions()
+        {
+            applicationName = JucePlugin_Name;
+            filenameSuffix = ".settings";
+            osxLibrarySubFolder = "Application Support";
+            folderName = getOptionsFolderName();
+        }
 
-    static String getOptionsFolderName()
-    {
+        static String getOptionsFolderName()
+        {
 #if JUCE_LINUX
-        return "~/.config";
+            return "~/.config";
 #else
-        return "";
+            return "";
 #endif
-    }
-};
+        }
+    };
+} // namespace vmpc_juce
