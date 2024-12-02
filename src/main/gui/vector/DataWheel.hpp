@@ -17,13 +17,13 @@ namespace vmpc_juce::gui::vector {
                     const std::function<float()> &getScaleToUse)
                 : commonParentWithShadow(commonParentWithShadowToUse), shadowSize(shadowSizeToUse), getScale(getScaleToUse)
             {
-                backgroundSvg = new SvgComponent("data_wheel_without_dimple_and_lines.svg", commonParentWithShadow, shadowSize, getScale);
+                backgroundSvg = new SvgComponent({"data_wheel_without_dimple_and_lines.svg"}, commonParentWithShadow, shadowSize, getScale);
                 addAndMakeVisible(backgroundSvg);
 
                 lines = new DataWheelLines(getScale);
                 addAndMakeVisible(lines);
 
-                dimpleSvg = new SvgComponent("data_wheel_dimple.svg", commonParentWithShadow, 0.f, getScale);
+                dimpleSvg = new SvgComponent({"data_wheel_dimple.svg"}, commonParentWithShadow, 0.f, getScale);
                 addAndMakeVisible(dimpleSvg);
 
                 backgroundSvg->setInterceptsMouseClicks(false, false);
