@@ -12,6 +12,7 @@ using namespace vmpc_juce::gui::vector;
 GridWrapper::GridWrapper(struct node &nodeToUse, const std::function<float()> &getScaleToUse)
     : node(nodeToUse), getScale(getScaleToUse)
 {
+    setInterceptsMouseClicks(false, true);
 }
 
 GridWrapper::~GridWrapper()
