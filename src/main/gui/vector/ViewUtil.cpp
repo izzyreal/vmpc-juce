@@ -16,6 +16,7 @@
 #include "Knob.hpp"
 #include "Lcd.hpp"
 #include "Led.hpp"
+#include "Pad.hpp"
 
 #include "gui/MouseWheelControllable.hpp"
 
@@ -346,6 +347,18 @@ void ViewUtil::createComponent(
         n.led_component = led;
         parent->addAndMakeVisible(led);
         components.push_back(led);
+    }
+    else if (n.node_type == "pad")
+    {
+        assert(n.name.length() == 5 || n.name.length() == 6);
+        const auto digitsString = n.name.substr(4);
+        const auto padNumber = std::stoi(digitsString);
+        auto hwPad = mpc.getHardware()->getPad(padNumber - 1);
+        auto pad = new Pad(parent, n.shadow_size, getScale, mpc, hwPad);
+        n.svg_component = pad;
+        components.push_back(pad);
+        addShadow(n, getScale, pad, parent, components);
+        parent->addAndMakeVisible(pad);
     }
     else if (!n.svg.empty() && n.label.empty())
     {
