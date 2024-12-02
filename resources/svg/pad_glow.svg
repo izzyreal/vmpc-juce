@@ -1,0 +1,17 @@
+<svg width="210mm" height="297mm" version="1.1" viewBox="0 0 210 297" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs>
+  <radialGradient id="radialGradient6-39" cx="18.607" cy="18.96" r="17.507" gradientTransform="matrix(1 0 0 1.0001 0 -.001762)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#ff8e37" offset="0"/>
+   <stop stop-color="#f60" stop-opacity="0" offset="1"/>
+  </radialGradient>
+  <radialGradient id="radialGradient6-3-0" cx="18.607" cy="18.96" r="17.507" gradientTransform="matrix(.43458 0 0 .43462 10.521 10.72)" gradientUnits="userSpaceOnUse">
+   <stop stop-color="#ffa661" offset="0"/>
+   <stop stop-color="#f60" stop-opacity="0" offset="1"/>
+  </radialGradient>
+ </defs>
+ <g transform="matrix(1.0399 0 0 1.0397 .81247 -.45065)">
+  <ellipse cx="18.607" cy="18.96" rx="17.507" ry="17.509" fill="url(#radialGradient6-39)" fill-rule="evenodd" stroke-width=".26447" style="-inkscape-stroke:none"/>
+  <ellipse cx="18.607" cy="18.96" rx="7.6082" ry="7.6089" fill="url(#radialGradient6-3-0)" fill-rule="evenodd" stroke-width=".11493" style="-inkscape-stroke:none"/>
+  <path d="m36.114 2.6204v32.67c0 0.12356-0.01852 0.23998-0.05292 0.35295-0.03175 0.10927-0.08202 0.21167-0.14817 0.30321v0.0037c-0.21167 0.3138-0.56886 0.51858-0.97102 0.51858h-32.67c-0.04233 0-0.08202-0.0037-0.11906-0.0071-0.1905-0.02117-0.36777-0.08467-0.52388-0.1905-0.03704-0.02117-0.07673-0.04948-0.11112-0.08123-0.254-0.21167-0.41804-0.53605-0.41804-0.89588v-32.668c0-0.37042 0.16933-0.6985 0.43921-0.91361 0.19579-0.16589 0.45508-0.26114 0.7329-0.26114h32.67c0.26723 0 0.51594 0.08811 0.71173 0.24342 0.04233 0.02831 0.08202 0.0635 0.11642 0.09869 0.0291 0.02831 0.05821 0.05662 0.07408 0.08467 0.05027 0.05662 0.0926 0.12012 0.127 0.18706 0.01852 0.03519 0.03704 0.06694 0.05027 0.10239 0.01323 0.03519 0.0291 0.07408 0.03969 0.10927 0.01058 0.03519 0.02117 0.07408 0.02646 0.11298 0.0079 0.03863 0.01588 0.07752 0.01852 0.11642 0.0026 0.03863 0.0079 0.07408 0.0079 0.11271z" fill="#ff8e37" fill-opacity=".23"/>
+ </g>
+</svg>
