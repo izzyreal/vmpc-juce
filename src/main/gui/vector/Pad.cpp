@@ -208,8 +208,6 @@ void Pad::timerCallback()
 
 void Pad::update(mpc::Observable *, mpc::Message message)
 {
-    const juce::MessageManagerLock lock(juce::Thread::getCurrentThread());
-
     const auto handleUpdate = [message, this] {
 
         int velocity = std::get<int>(message);
@@ -233,7 +231,7 @@ void Pad::update(mpc::Observable *, mpc::Message message)
         }
     };
 
-    if (lock.lockWasGained())
+    if (juce::MessageManager::getInstance()->isThisTheMessageThread())
     {
         handleUpdate();
     }
