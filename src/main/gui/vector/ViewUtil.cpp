@@ -24,6 +24,7 @@
 #include "hardware/HwPad.hpp"
 #include "hardware/DataWheel.hpp"
 #include "hardware/Pot.hpp"
+#include "hardware/HwSlider.hpp"
 
 using namespace vmpc_juce::gui::vector;
 
@@ -43,6 +44,10 @@ class MpcHardwareMouseListener : public juce::MouseListener {
                 auto pot = label == "rec_gain" ? mpc.getHardware()->getRecPot() : mpc.getHardware()->getVolPot();
                 auto knob = dynamic_cast<Knob*>(event.eventComponent);
                 pot->setValue(knob->getAngleFactor() * 100);
+            }
+            else if (label == "slider")
+            {
+                syncMpcSliderModelWithUi(event.eventComponent);
             }
         }
 
@@ -109,7 +114,7 @@ class MpcHardwareMouseListener : public juce::MouseListener {
 
                 return;
             }
-            else if (label == "data-wheel" || label == "rec_gain" || label == "main_volume")
+            else if (label == "data-wheel" || label == "rec_gain" || label == "main_volume" || label == "slider")
             {
                 return;
             }
@@ -129,7 +134,7 @@ class MpcHardwareMouseListener : public juce::MouseListener {
             else if (label == "rec_gain" || label == "main_volume")
             {
             }
-            else if (label == "cursor")
+            else if (label == "cursor" || label == "slider")
             {
             }
             else if (label == "data-wheel")
@@ -165,6 +170,10 @@ class MpcHardwareMouseListener : public juce::MouseListener {
 
                 lastDy = e.getDistanceFromDragStartY();
             }
+            else if (label == "slider")
+            {
+                syncMpcSliderModelWithUi(e.eventComponent);
+            }
         }
 
     private:
@@ -172,6 +181,20 @@ class MpcHardwareMouseListener : public juce::MouseListener {
         mpc::Mpc &mpc;
         const std::string label;
         vmpc_juce::gui::MouseWheelControllable mouseWheelControllable;
+
+        void syncMpcSliderModelWithUi(juce::Component *eventComponent)
+        {
+                const auto sliderComponent = dynamic_cast<Slider*>(eventComponent);
+
+                if (sliderComponent == nullptr)
+                {
+                    return;
+                }
+                
+                auto hwSlider = mpc.getHardware()->getSlider();
+                const auto yPosFraction = sliderComponent->getSliderYPosFraction();
+                hwSlider->setValue(yPosFraction * 127.f);
+        }
 
 };
 
@@ -296,6 +319,10 @@ void ViewUtil::createComponent(
         addShadow(n, getScale, slider->sliderCapSvg, parent, components);
         parent->addAndMakeVisible(n.slider_component);
         components.push_back(n.slider_component);
+
+        const auto sliderValue = mpc.getHardware()->getSlider()->getValue();
+
+        slider->setSliderYPosFraction(1.f - (sliderValue / 127.f));
     }
     else if (n.node_type == "data_wheel")
     {

@@ -30,6 +30,7 @@
     {
       "name" : "slider",
       "type" : "slider",
+      "hardware_label" : "slider",
       "area" : [ 3, 1, 4, 1 ],
       "margin" : [ 0, 5, 0, 5 ],
       "shadow_size" : 5
