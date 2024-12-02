@@ -135,6 +135,16 @@ class Slider : public juce::Component {
             g.fillRoundedRectangle(notch_rect, 0.4f * scale);
         }
 
+        void setSliderYPosFraction(float newFraction)
+        {
+            sliderYPosFraction = newFraction;
+            handleSliderYPosChanged();
+        }
+
+        const float getSliderYPosFraction() { return sliderYPosFraction; }
+
+        const bool isDraggingSliderCap() { return shouldDragCap; }
+
         SvgComponent *sliderCapSvg = nullptr;
 
     private:
