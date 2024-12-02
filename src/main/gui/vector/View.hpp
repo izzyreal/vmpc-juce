@@ -11,6 +11,7 @@ class Keyboard;
 namespace vmpc_juce::gui::vector {
 
     class Lcd;
+    class LedController;
 
     class View : public juce::Component {
 
@@ -27,7 +28,8 @@ namespace vmpc_juce::gui::vector {
             node view_root;
             const std::function<float()> getScale;
             const std::function<juce::Font&()> getNimbusSansScaled;
-            Keyboard* keyboard = nullptr;
+            Keyboard *keyboard = nullptr;
+            LedController *ledController = nullptr;
 
             friend class Lcd;
     };

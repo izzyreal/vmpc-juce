@@ -41,10 +41,10 @@
       "row_fractions" : [ 8, 4, 2, 5, 4, 12 ],
       "column_fractions" : [ 2, 10, 2 ],
       "children" : [
-        { "name" : "after_label", "hardware_label" : "after", "label" : "AFTER", "margin" : [ 3, 0, 0, 0 ], "area" : [ 2, 2, 2, 2 ] },
-        { "name" : "after_led", "type" : "green_led", "area" : [ 3, 2, 3, 2 ] },
+        { "name" : "after_label", "hardware_label" : "after", "label" : "AFTER", "margin" : [ 1, 0, 0, 0 ], "area" : [ 2, 2, 2, 2 ] },
+        { "name" : "after_led", "type" : "green_led", "margin" : [ 0, 0, 1, 0 ], "area" : [ 3, 2, 3, 2 ] },
         { "name" : "after", "hardware_label" : "after", "shadow_size" : 1, "svg" : "medium_key.svg", "area" : [ 4, 2, 4, 2 ] },
-        { "name" : "assign_label", "hardware_label" : "after", "label" : "ASSIGN", "label_style" : "cursor_digit", "area" : [ 5, 2, 5, 2 ] }
+        { "name" : "assign_label", "hardware_label" : "after", "margin" : [ 0, 0, 1, 0 ], "label" : "ASSIGN", "label_style" : "cursor_digit", "area" : [ 5, 2, 5, 2 ] }
       ]
     },
     {

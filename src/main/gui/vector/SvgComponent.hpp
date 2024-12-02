@@ -14,18 +14,17 @@ class SvgComponent : public juce::Component
     private:
         void loadSvgFile(const std::string svgPath)
         {
-            const auto svgData = mpc::MpcResourceUtil::get_resource_data("svg/" + svgPath);
+            std::vector<char> svgData = mpc::MpcResourceUtil::get_resource_data("svg/" + svgPath);
 
             if (!svgData.empty())
             {  
-                const auto svgDataString = juce::String(juce::CharPointer_UTF8(svgData.data()));
+                const auto svgDataString = juce::String(svgData.data(), svgData.size());
 
                 auto svgXml = juce::XmlDocument::parse(svgDataString);
                 
                 if (svgXml != nullptr)
                 {   
                     svgDrawable = juce::Drawable::createFromSVG(*svgXml);
-                    svgDrawable->getDrawableBounds();
 
                     const auto hashCode = juce::String(svgPath).hashCode();
                     randomColor = juce::Colour::fromRGB(hashCode & 0xFF,
