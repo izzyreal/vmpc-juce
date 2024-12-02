@@ -8,7 +8,8 @@ namespace vmpc_juce::gui::vector {
         public:
             enum LedColor { RED, GREEN };
 
-            Led(const LedColor ledColorToUse, const std::function<float()> &getScaleToUse) : SvgComponent("led_off.svg", nullptr, 0, getScaleToUse), ledColor(ledColorToUse)
+            Led(const std::string ledNameToUse, const LedColor ledColorToUse, const std::function<float()> &getScaleToUse)
+                : SvgComponent("led_off.svg", nullptr, 0, getScaleToUse), ledColor(ledColorToUse), ledName(ledNameToUse)
         {
         }
 
@@ -33,9 +34,12 @@ namespace vmpc_juce::gui::vector {
                 setSvgPath("led_on_green.svg");
             }
 
+            const std::string getLedName() { return ledName; }
+
         private:
             const LedColor ledColor;
             bool ledOnEnabled = false;
+            const std::string ledName;
 
     };
 

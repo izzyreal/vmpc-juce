@@ -5,6 +5,8 @@
 #include "GridWrapper.hpp"
 #include "FlexBoxWrapper.hpp"
 #include "ViewUtil.hpp"
+#include "Led.hpp"
+#include "LedController.hpp"
 
 #include "MpcResourceUtil.hpp"
 #include "Mpc.hpp"
@@ -165,6 +167,25 @@ namespace vmpc_juce::gui::vector {
     }
 } // namespace vmpc_juce::gui::vector
 
+template<class ComponentClass>
+static std::vector<ComponentClass*> getChildComponentsOfClass(juce::Component *parent)
+{
+    std::vector<ComponentClass*> matches;
+
+    for (int i = 0; i < parent->getNumChildComponents(); ++i)
+    {
+        auto *childComp = parent->getChildComponent(i);
+
+        if (auto *c = dynamic_cast<ComponentClass*> (childComp))
+            matches.push_back(c);
+
+        auto childMatches = getChildComponentsOfClass<ComponentClass>(childComp);
+        matches.insert(matches.end(), childMatches.begin(), childMatches.end());
+    }
+
+    return matches;
+}
+
 View::View(mpc::Mpc &mpc, const std::function<float()> &getScaleToUse, const std::function<juce::Font&()> &getNimbusSansScaledToUse)
     : getScale(getScaleToUse), getNimbusSansScaled(getNimbusSansScaledToUse)
 {
@@ -186,6 +207,44 @@ View::View(mpc::Mpc &mpc, const std::function<float()> &getScaleToUse, const std
     view_root = data.template get<node>();
 
     ViewUtil::createComponent(mpc, view_root, components, this, getScale, getNimbusSansScaled, mouseListeners);
+
+    Led *fullLevelLed = nullptr;
+    Led *sixteenLevelsLed = nullptr;
+    Led *nextSeqLed = nullptr;
+    Led *trackMuteLed = nullptr;
+    Led *padBankALed = nullptr;
+    Led *padBankBLed = nullptr;
+    Led *padBankCLed = nullptr;
+    Led *padBankDLed = nullptr;
+    Led *afterLed = nullptr;
+    Led *undoSeqLed = nullptr;
+    Led *recLed = nullptr;
+    Led *overDubLed = nullptr;
+    Led *playLed = nullptr;
+
+    const auto leds = getChildComponentsOfClass<Led>(this);
+
+    for (auto &l : leds)
+    {
+        const auto name = l->getLedName();
+        if (name == "full_level_led") fullLevelLed = l;
+        else if (name == "16_levels_led") sixteenLevelsLed = l;
+        else if (name == "next_seq_led") nextSeqLed = l;
+        else if (name == "track_mute_led") trackMuteLed = l;
+        else if (name == "bank_a_led") padBankALed = l;
+        else if (name == "bank_b_led") padBankBLed = l;
+        else if (name == "bank_c_led") padBankCLed = l;
+        else if (name == "bank_d_led") padBankDLed = l;
+        else if (name == "after_led") afterLed = l;
+        else if (name == "undo_seq_led") undoSeqLed = l;
+        else if (name == "rec_led") recLed = l;
+        else if (name == "over_dub_led") overDubLed = l;
+        else if (name == "play_led") playLed = l;
+    }
+
+    ledController = new LedController(mpc, fullLevelLed, sixteenLevelsLed, nextSeqLed, trackMuteLed, padBankALed, padBankBLed, padBankCLed, padBankDLed, afterLed, undoSeqLed, recLed, overDubLed, playLed);
+
+    ledController->setPadBankA(true);
 }
 
 View::~View()
@@ -199,6 +258,8 @@ View::~View()
     {
         delete m;
     }
+
+    delete ledController;
 }
 
 void View::resized()
