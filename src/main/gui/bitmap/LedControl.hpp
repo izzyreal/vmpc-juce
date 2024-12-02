@@ -1,12 +1,12 @@
 #pragma once
 #include "Led.hpp"
 #include "juce_graphics/juce_graphics.h"
-#include "juce_audio_processors/juce_audio_processors.h"
 
 #include <Observer.hpp>
 
 namespace mpc { class Mpc; }
 
+namespace vmpc_juce::gui::bitmap {
 class LedControl
 : public juce::Timer
     , public mpc::Observer
@@ -73,3 +73,4 @@ public:
     ~LedControl() override;
     
 };
+} // namespace vmpc_juce::gui::bitmap

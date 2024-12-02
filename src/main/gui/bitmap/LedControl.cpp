@@ -8,6 +8,8 @@
 
 #include <string>
 
+using namespace vmpc_juce::gui::bitmap;
+
 LedControl::LedControl(mpc::Mpc& _mpc, juce::Image& _ledGreen, juce::Image& _ledRed)
 : mpc (_mpc), ledGreen (_ledGreen), ledRed (_ledRed)
 {
