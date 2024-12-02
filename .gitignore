@@ -1,6 +1,7 @@
 # Some typical directories for CMake configurations
 # and builds.
 build/
+build-xcode/
 Debug/
 Release/
 
