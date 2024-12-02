@@ -28,10 +28,10 @@ using namespace mpc::lcdgui::screens::window;
 using namespace mpc::lcdgui::screens::dialog2;
 
 Pad::Pad(juce::Component *commonParentWithShadowToUse, const float shadowSizeToUse, const std::function<float()> &getScaleToUse, mpc::Mpc &mpcToUse, std::weak_ptr<mpc::hardware::HwPad> padToUse)
-    : SvgComponent("pad.svg", commonParentWithShadowToUse, shadowSizeToUse, getScaleToUse), mpc(mpcToUse), pad(padToUse)
+    : SvgComponent({"pad.svg", "pressed_pad.svg"}, commonParentWithShadowToUse, shadowSizeToUse, getScaleToUse), mpc(mpcToUse), pad(padToUse)
 {
     pad.lock()->addObserver(this);
-    glowSvg = new SvgComponent("pad_glow.svg", commonParentWithShadowToUse, 0.f, getScaleToUse);
+    glowSvg = new SvgComponent({"pad_glow.svg"}, commonParentWithShadowToUse, 0.f, getScaleToUse);
     glowSvg->setAlpha(0.f);
     addAndMakeVisible(glowSvg);
 }

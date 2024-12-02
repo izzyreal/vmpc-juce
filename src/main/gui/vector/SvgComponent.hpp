@@ -7,12 +7,14 @@
 #include "ViewUtil.hpp"
 #include "MpcResourceUtil.hpp"
 
+#include <map>
+
 namespace vmpc_juce::gui::vector {
 
 class SvgComponent : public juce::Component
 {
     private:
-        void loadSvgFile(const std::string svgPath)
+        std::unique_ptr<juce::Drawable> createDrawable(const std::string svgPath)
         {
             std::vector<char> svgData = mpc::MpcResourceUtil::get_resource_data("svg/" + svgPath);
 
@@ -24,26 +26,33 @@ class SvgComponent : public juce::Component
                 
                 if (svgXml != nullptr)
                 {   
-                    svgDrawable = juce::Drawable::createFromSVG(*svgXml);
-
                     const auto hashCode = juce::String(svgPath).hashCode();
                     randomColor = juce::Colour::fromRGB(hashCode & 0xFF,
                             (hashCode >> 8) & 0xFF,
                             (hashCode >> 16) & 0xFF);
+
+                    return juce::Drawable::createFromSVG(*svgXml);
                 }
             }
+
+            return {};
         }
 
     public:
-        SvgComponent(std::string svg_path, juce::Component *commonParentWithShadowToUse, const float shadowSizeToUse, const std::function<float()> &getScaleToUse)
+        SvgComponent(const std::vector<std::string> &svg_paths, juce::Component *commonParentWithShadowToUse, const float shadowSizeToUse, const std::function<float()> &getScaleToUse)
             : commonParentWithShadow(commonParentWithShadowToUse), shadowSize(shadowSizeToUse), getScale(getScaleToUse)
         {
-            if (svg_path == "display.svg" || svg_path == "display_compact.svg")
+            if (svg_paths[0] == "display.svg" || svg_paths[0] == "display_compact.svg")
             {
                 setInterceptsMouseClicks(false, false);
             }
 
-            setSvgPath(svg_path);
+            for (auto &svg_path : svg_paths)
+            {
+                drawables[svg_path] = createDrawable(svg_path);
+            }
+
+            setSvgPath(svg_paths[0]);
 
             if (commonParentWithShadow != nullptr)
             {
@@ -73,14 +82,14 @@ class SvgComponent : public juce::Component
 
         juce::Rectangle<float> getDrawableBounds()
         {
-            return svgDrawable == nullptr ? juce::Rectangle<float>() : svgDrawable->getDrawableBounds();
+            return drawables[currentDrawable] == nullptr ? juce::Rectangle<float>() : drawables[currentDrawable]->getDrawableBounds();
         }
 
         juce::Path getShadowPath()
         {
-            if (svgDrawable == nullptr) return juce::Path();
+            if (drawables[currentDrawable] == nullptr) return juce::Path();
 
-            juce::Path shadowPath = svgDrawable->getOutlineAsPath();
+            juce::Path shadowPath = drawables[currentDrawable]->getOutlineAsPath();
             auto centred = juce::RectanglePlacement(juce::RectanglePlacement::centred);
             auto transform = centred.getTransformToFit(getDrawableBounds(), getLocalBounds().toFloat());
             shadowPath.applyTransform(transform);
@@ -90,13 +99,13 @@ class SvgComponent : public juce::Component
         void paint(juce::Graphics& g) override
         {
             //g.fillAll(randomColor);
-            if (svgDrawable == nullptr)
+            if (drawables[currentDrawable] == nullptr)
             {
                 g.fillAll(juce::Colours::red);
                 return;
             }
 
-            svgDrawable->drawWithin(g, getLocalBounds().toFloat(), juce::RectanglePlacement::centred, 1.0f);
+            drawables[currentDrawable]->drawWithin(g, getLocalBounds().toFloat(), juce::RectanglePlacement::centred, 1.0f);
         }
 
         juce::Component *shadow = nullptr;
@@ -126,15 +135,20 @@ class SvgComponent : public juce::Component
         }
 
     protected:
-        std::unique_ptr<juce::Drawable> svgDrawable;
-
         void setSvgPath(const std::string newSvgPath)
         {
-            loadSvgFile(newSvgPath);
+            currentDrawable = newSvgPath;
             repaint();
         }
 
+        juce::Drawable* getCurrentDrawable()
+        {
+            return drawables[currentDrawable].get();
+        }
+
     private:
+        std::map<std::string, std::unique_ptr<juce::Drawable>> drawables;
+        std::string currentDrawable;
         juce::Colour randomColor;
         juce::Component *commonParentWithShadow = nullptr;
         juce::ComponentListener *parentSizeAndPositionListener = nullptr;

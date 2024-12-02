@@ -15,7 +15,7 @@ namespace vmpc_juce::gui::vector {
             {
                 topLabel = new SimpleLabel(getScaleToUse, topLabelToUse, Constants::darkLabelColour, getNimbusSansScaled);
                 bottomLabel = new RectangleLabel(getScaleToUse, bottomLabelToUse, bottomLabelToUse, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 2.f, getNimbusSansScaled);
-                svgComponent = new SvgComponent(svgPath, commonParentWithShadow, shadowSize, getScaleToUse);
+                svgComponent = new SvgComponent({svgPath}, commonParentWithShadow, shadowSize, getScaleToUse);
 
                 addAndMakeVisible(topLabel);
                 addAndMakeVisible(bottomLabel);

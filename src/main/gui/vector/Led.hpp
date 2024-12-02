@@ -9,7 +9,7 @@ namespace vmpc_juce::gui::vector {
             enum LedColor { RED, GREEN };
 
             Led(const std::string ledNameToUse, const LedColor ledColorToUse, const std::function<float()> &getScaleToUse)
-                : SvgComponent("led_off.svg", nullptr, 0, getScaleToUse), ledColor(ledColorToUse), ledName(ledNameToUse)
+                : SvgComponent({"led_off.svg", ledColorToUse == RED ? "led_on_red.svg" : "led_on_green.svg" }, nullptr, 0, getScaleToUse), ledColor(ledColorToUse), ledName(ledNameToUse)
         {
         }
 
@@ -25,7 +25,7 @@ namespace vmpc_juce::gui::vector {
                     return;
                 }
 
-                if (ledColor == LedColor::RED)
+                if (ledColor == RED)
                 {
                     setSvgPath("led_on_red.svg");
                     return;

@@ -362,7 +362,7 @@ void ViewUtil::createComponent(
     }
     else if (!n.svg.empty() && n.label.empty())
     {
-        auto svgComponent = new SvgComponent(n.svg, parent, n.shadow_size, getScale);
+        auto svgComponent = new SvgComponent({n.svg}, parent, n.shadow_size, getScale);
         components.push_back(svgComponent);
         addShadow(n, getScale, svgComponent, parent, components);
         parent->addAndMakeVisible(svgComponent);
@@ -398,7 +398,7 @@ void ViewUtil::createComponent(
         }
         else
         {
-            svgComponent = new SvgComponent(n.svg, parent, n.shadow_size, getScale);
+            svgComponent = new SvgComponent({n.svg}, parent, n.shadow_size, getScale);
         }
 
         n.svg_component = svgComponent;
