@@ -7,11 +7,16 @@ namespace vmpc_juce::gui::vector {
 
     class Tooltip : public juce::Component, juce::ComponentListener {
         public:
-            Tooltip(const std::function<std::string()> &getTooltipTextToUse, juce::Component *const positionAnchorToUse)
-                : getTooltipText(getTooltipTextToUse), positionAnchor(positionAnchorToUse)
+            Tooltip(const std::function<std::string()> &getTooltipTextToUse, juce::Component *const positionAnchorToUse, const std::function<juce::Font&()> &getFontToUse)
+                : getTooltipText(getTooltipTextToUse), positionAnchor(positionAnchorToUse), getFont(getFontToUse)
             {
-                setSize(100, 20);
+                setSize(200, 23);
                 positionAnchor->getParentComponent()->addComponentListener(this);
+            }
+
+            ~Tooltip() override
+            {
+                positionAnchor->getParentComponent()->removeComponentListener(this);
             }
 
             void componentMovedOrResized(juce::Component &, bool wasMoved, bool wasResized) override
@@ -34,7 +39,13 @@ namespace vmpc_juce::gui::vector {
             void paint(juce::Graphics &g) override
             {
                 const auto horizontalMarginBetweenTextAndBorder = 4.f;
-                const auto tooltipText = getTooltipText();
+                const auto bidirectionalMarginBetweenTextAndBorder = 5.f;
+                g.setFont(getFont());
+                g.setFont(getHeight() - (bidirectionalMarginBetweenTextAndBorder * 2));
+
+                std::string tooltipText = getTooltipText();
+                for (auto &c : tooltipText) c = toupper(c);
+
                 const auto textWidth = g.getCurrentFont().getStringWidthFloat(tooltipText);
                 const float lineThickness = 2.f;
                 const float radius = 3.f;
@@ -52,12 +63,13 @@ namespace vmpc_juce::gui::vector {
 
                 g.setColour(juce::Colours::black);
                 g.drawRoundedRectangle(rect2, radius, lineThickness);
-                g.drawText(tooltipText, getLocalBounds(), juce::Justification::centred);
+                g.drawText(tooltipText, getLocalBounds().reduced(bidirectionalMarginBetweenTextAndBorder), juce::Justification::centred);
             }
 
         private:
             const std::function<std::string()> getTooltipText;
             juce::Component *const positionAnchor;
+            const std::function<juce::Font&()> &getFont;
     };
 
 } // namespace vmpc_juce::gui::vector

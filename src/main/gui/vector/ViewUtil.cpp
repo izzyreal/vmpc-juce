@@ -338,6 +338,7 @@ void ViewUtil::createComponent(
         n.data_wheel_component = dataWheel;
         parent->addAndMakeVisible(dataWheel);
         components.push_back(dataWheel);
+        tooltipAnchor = dataWheel;
     }
     else if (n.node_type == "lcd")
     {
@@ -510,11 +511,26 @@ void ViewUtil::createComponent(
         {
             const auto getTooltipText = [&mpc, &n]{
                 const auto kbMapping = mpc.getControls()->getKbMapping().lock();
-                const auto keyboardMappingText = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel(n.hardware_label));
+                if (n.node_type == "data_wheel")
+                {
+                    const auto decrement = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel("datawheel-down"), true);
+                    const auto increment = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel("datawheel-up"), true);
+                    return decrement + " / " + increment;
+                }
+                else if (n.hardware_label == "cursor")
+                {
+                    const auto left = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel("left"), true);
+                    const auto right = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel("right"), true);
+                    const auto up = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel("up"), true);
+                    const auto down = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel("down"), true);
+                    return left + " / " + right + " / " + up + " / " + down;
+                }
+
+                const auto keyboardMappingText = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel(n.hardware_label), true);
                 return keyboardMappingText;
             };
 
-            const auto tooltip = new Tooltip(getTooltipText, tooltipAnchor);
+            const auto tooltip = new Tooltip(getTooltipText, tooltipAnchor, getNimbusSansScaled);
             components.push_back(tooltip);
             tooltipOverlay->addAndMakeVisible(tooltip);
         }
