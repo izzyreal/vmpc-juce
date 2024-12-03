@@ -427,7 +427,11 @@ void ViewUtil::createComponent(
 
             parent->addAndMakeVisible(svgWithLabelGrid);
             n.svg_with_label_grid_component = svgWithLabelGrid;
-            tooltipAnchor = svgWithLabelGrid;
+
+            if (n.name != "rec_gain" && n.name != "main_volume")
+            {
+                tooltipAnchor = svgWithLabelGrid;
+            }
         }
         else /* if parent is FlexBoxWrapper */
         {
@@ -530,7 +534,7 @@ void ViewUtil::createComponent(
                 return keyboardMappingText;
             };
 
-            const auto tooltip = new Tooltip(getTooltipText, tooltipAnchor, getNimbusSansScaled);
+            const auto tooltip = new Tooltip(getTooltipText, tooltipAnchor, getNimbusSansScaled, getScale);
             components.push_back(tooltip);
             tooltipOverlay->addAndMakeVisible(tooltip);
         }

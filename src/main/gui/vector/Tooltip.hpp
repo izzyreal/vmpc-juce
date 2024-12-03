@@ -1,17 +1,22 @@
 #pragma once
 
 #include "juce_graphics/juce_graphics.h"
+#include "melatonin_blur/melatonin/shadows.h"
 #include <juce_gui_basics/juce_gui_basics.h>
+
+#include <melatonin_blur/melatonin_blur.h>
 
 namespace vmpc_juce::gui::vector {
 
     class Tooltip : public juce::Component, juce::ComponentListener {
         public:
-            Tooltip(const std::function<std::string()> &getTooltipTextToUse, juce::Component *const positionAnchorToUse, const std::function<juce::Font&()> &getFontToUse)
-                : getTooltipText(getTooltipTextToUse), positionAnchor(positionAnchorToUse), getFont(getFontToUse)
+            Tooltip(const std::function<std::string()> &getTooltipTextToUse, juce::Component *const positionAnchorToUse, const std::function<juce::Font&()> &getFontToUse, const std::function<float()> &getScaleToUse)
+                : getTooltipText(getTooltipTextToUse), positionAnchor(positionAnchorToUse), getFont(getFontToUse), getScale(getScaleToUse)
             {
-                setSize(200, 23);
                 positionAnchor->getParentComponent()->addComponentListener(this);
+                const auto newWidth = 50.f * getScale();
+                const auto newHeight = 18 * getScale();
+                setSize(newWidth, newHeight);
             }
 
             ~Tooltip() override
@@ -28,48 +33,60 @@ namespace vmpc_juce::gui::vector {
                 if (tooltipParent != nullptr)
                     targetCenter = tooltipParent->getLocalPoint(nullptr, targetCenter);
 
-                int tooltipWidth = getWidth();
-                int tooltipHeight = getHeight();
-                int newX = targetCenter.x - (tooltipWidth / 2);
-                int newY = targetCenter.y - (tooltipHeight / 2);
+                const auto newWidth = 100.f * getScale();
+                const auto newHeight = 20 * getScale();
+                int newX = targetCenter.x - (newWidth / 2);
+                int newY = targetCenter.y - (newHeight / 2);
 
-                setBounds(newX, newY, tooltipWidth, tooltipHeight);
+                setBounds(newX, newY, newWidth, newHeight);
             }
 
             void paint(juce::Graphics &g) override
             {
-                const auto horizontalMarginBetweenTextAndBorder = 4.f;
-                const auto bidirectionalMarginBetweenTextAndBorder = 5.f;
-                g.setFont(getFont());
-                g.setFont(getHeight() - (bidirectionalMarginBetweenTextAndBorder * 2));
+                const auto scale = getScale();
+                const float lineThickness = 1.f * scale;
+                const auto horizontalMarginBetweenTextAndBorder = 5.f * scale;
+                const auto bidirectionalMarginBetweenTextAndBorder =  2.f * scale;
+                const auto shadowSize = 6.f + 3.f;
+                const auto fontHeight = (getHeight() - ((bidirectionalMarginBetweenTextAndBorder + lineThickness) * 2)) - (shadowSize * 2);
+
+                g.setFont(getFont().withHeight(fontHeight));
 
                 std::string tooltipText = getTooltipText();
                 for (auto &c : tooltipText) c = toupper(c);
 
-                const auto textWidth = g.getCurrentFont().getStringWidthFloat(tooltipText);
-                const float lineThickness = 2.f;
+                auto textWidth = g.getCurrentFont().getStringWidthFloat(tooltipText);
                 const float radius = 3.f;
+                const auto totalWidthWithoutText = ((lineThickness + horizontalMarginBetweenTextAndBorder + bidirectionalMarginBetweenTextAndBorder) * 2.f) - (shadowSize * 2);
+                const auto totalHeight = g.getCurrentFont().getHeight() + (lineThickness + bidirectionalMarginBetweenTextAndBorder) * 2;
 
-                const auto rect1 = getLocalBounds().toFloat()
-                    .reduced(lineThickness / 2.f)
-                    .reduced((getWidth() - textWidth) / 2.f, 0.f)
-                    .expanded(lineThickness + horizontalMarginBetweenTextAndBorder, 0.f);
-                
-                const auto rect2 = rect1.reduced(lineThickness / 2.f);
+                if (totalWidthWithoutText + textWidth + (shadowSize * 2) > getWidth())
+                {
+                    textWidth = (getWidth() - totalWidthWithoutText) - (shadowSize * 2);
+                    textWidth -= 5.f;
+                }
+
+                const auto outer_rect = juce::Rectangle<float>((getWidth() - (textWidth + totalWidthWithoutText)) / 2, (getHeight() - totalHeight) / 2, textWidth + totalWidthWithoutText, totalHeight);
+                const auto inner_rect = outer_rect.reduced(lineThickness / 2.f);
+
+                juce::Path shadowPath;
+                shadowPath.addRoundedRectangle(inner_rect, radius);
+                shadow.render(g, shadowPath);
 
                 g.setColour(juce::Colours::white);
-                g.drawRoundedRectangle(rect1, radius, lineThickness);
-                g.fillRoundedRectangle(rect2, radius);
+                g.fillRoundedRectangle(inner_rect, radius);
 
                 g.setColour(juce::Colours::black);
-                g.drawRoundedRectangle(rect2, radius, lineThickness);
-                g.drawText(tooltipText, getLocalBounds().reduced(bidirectionalMarginBetweenTextAndBorder), juce::Justification::centred);
+                g.drawRoundedRectangle(inner_rect, radius, lineThickness);
+                g.drawText(tooltipText, outer_rect, juce::Justification::centred);
             }
 
         private:
+            melatonin::DropShadow shadow = {{ juce::Colours::black.withAlpha(0.5f), 6, { 3, 3 }, 1 }};
             const std::function<std::string()> getTooltipText;
             juce::Component *const positionAnchor;
             const std::function<juce::Font&()> &getFont;
+            const std::function<float()> &getScale;
     };
 
 } // namespace vmpc_juce::gui::vector
