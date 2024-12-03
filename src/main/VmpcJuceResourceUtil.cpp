@@ -26,7 +26,7 @@ juce::Image VmpcJuceResourceUtil::loadImageFromMacBundleResources(const std::str
     return juce::ImageFileFormat::loadFrom(juce::File(imgPath));
 }
 #else
-juce::Image VmpceJuceResourceUtil::loadImageFromInMemoryFS(const std::string& path)
+juce::Image VmpcJuceResourceUtil::loadImageFromInMemoryFS(const std::string& path)
 {
   auto fs = cmrc::vmpcjuce::get_filesystem();
   auto file = fs.open(path.c_str());
