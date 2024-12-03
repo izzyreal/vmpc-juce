@@ -12,6 +12,7 @@ namespace vmpc_juce::gui::vector {
 
     class Lcd;
     class LedController;
+    class TooltipOverlay;
 
     class View : public juce::Component {
 
@@ -30,6 +31,7 @@ namespace vmpc_juce::gui::vector {
             const std::function<juce::Font&()> getNimbusSansScaled;
             Keyboard *keyboard = nullptr;
             LedController *ledController = nullptr;
+            TooltipOverlay *tooltipOverlay = nullptr;
 
             friend class Lcd;
     };

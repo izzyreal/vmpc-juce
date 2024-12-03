@@ -1,3 +1,4 @@
+#include "juce_gui_basics/juce_gui_basics.h"
 #define DEBUG_NODES 0
 
 #include "View.hpp"
@@ -7,6 +8,8 @@
 #include "ViewUtil.hpp"
 #include "Led.hpp"
 #include "LedController.hpp"
+#include "TooltipOverlay.hpp"
+#include "Tooltip.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "Mpc.hpp"
@@ -59,7 +62,9 @@ View::View(mpc::Mpc &mpc, const std::function<float()> &getScaleToUse, const std
 
     view_root = data.template get<node>();
 
-    ViewUtil::createComponent(mpc, view_root, components, this, getScale, getNimbusSansScaled, mouseListeners);
+    tooltipOverlay = new TooltipOverlay();
+
+    ViewUtil::createComponent(mpc, view_root, components, this, getScale, getNimbusSansScaled, mouseListeners, tooltipOverlay);
 
     Led *fullLevelLed = nullptr;
     Led *sixteenLevelsLed = nullptr;
@@ -98,6 +103,8 @@ View::View(mpc::Mpc &mpc, const std::function<float()> &getScaleToUse, const std
     ledController = new LedController(mpc, fullLevelLed, sixteenLevelsLed, nextSeqLed, trackMuteLed, padBankALed, padBankBLed, padBankCLed, padBankDLed, afterLed, undoSeqLed, recLed, overDubLed, playLed);
 
     ledController->setPadBankA(true);
+
+    addAndMakeVisible(tooltipOverlay);
 }
 
 View::~View()
@@ -113,6 +120,7 @@ View::~View()
     }
 
     delete ledController;
+    delete tooltipOverlay;
 }
 
 void View::resized()
@@ -125,5 +133,6 @@ void View::resized()
             dynamic_cast<FlexBoxWrapper*>(rootComponent) != nullptr);
 
     rootComponent->setSize(getWidth(), getHeight());
+    tooltipOverlay->setSize(getWidth(), getHeight());
 }
 
