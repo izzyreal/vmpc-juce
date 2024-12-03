@@ -25,6 +25,9 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     const auto getScale = [&] { return (float) getHeight() / (float) initial_height; };
     const auto getNimbusSansScaled = [&, getScale]() -> juce::Font& {
         nimbusSans.setHeight(Constants::BASE_FONT_SIZE * getScale());
+#ifdef _WIN32
+        nimbusSans.setBold(true);
+#endif
         return nimbusSans;
     };
 
