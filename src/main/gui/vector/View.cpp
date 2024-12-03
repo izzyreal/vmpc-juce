@@ -104,7 +104,7 @@ View::View(mpc::Mpc &mpc, const std::function<float()> &getScaleToUse, const std
 
     ledController->setPadBankA(true);
 
-    //addAndMakeVisible(tooltipOverlay);
+    addAndMakeVisible(tooltipOverlay);
 }
 
 View::~View()
