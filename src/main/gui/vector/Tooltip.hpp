@@ -14,7 +14,7 @@ namespace vmpc_juce::gui::vector {
                 : getTooltipText(getTooltipTextToUse), positionAnchor(positionAnchorToUse), getFont(getFontToUse), getScale(getScaleToUse)
             {
                 positionAnchor->getParentComponent()->addComponentListener(this);
-                const auto newWidth = 50.f * getScale();
+                const auto newWidth = 100.f * (getScale()*0.5);
                 const auto newHeight = 18 * getScale();
                 setSize(newWidth, newHeight);
             }
@@ -32,9 +32,9 @@ namespace vmpc_juce::gui::vector {
                 auto tooltipParent = getParentComponent();
                 if (tooltipParent != nullptr)
                     targetCenter = tooltipParent->getLocalPoint(nullptr, targetCenter);
-
-                const auto newWidth = 100.f * getScale();
-                const auto newHeight = 20 * getScale();
+                const float scaleFactor = std::log(getScale() + 2.0f) / std::log(2.0f);
+                const auto newWidth = 100.f * scaleFactor;
+                const auto newHeight = 21 * scaleFactor;
                 int newX = targetCenter.x - (newWidth / 2);
                 int newY = targetCenter.y - (newHeight / 2);
 
@@ -43,7 +43,7 @@ namespace vmpc_juce::gui::vector {
 
             void paint(juce::Graphics &g) override
             {
-                const auto scale = getScale();
+                const float scale = std::log(getScale() + 2.0f) / std::log(2.0f);
                 const float lineThickness = 1.f * scale;
                 const auto horizontalMarginBetweenTextAndBorder = 5.f * scale;
                 const auto bidirectionalMarginBetweenTextAndBorder =  2.f * scale;
