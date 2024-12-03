@@ -549,7 +549,7 @@ public:
 #else
         updateContent();
 
-        const auto windowScreenBounds = [this]() -> Rectangle<int>
+        const auto windowScreenBounds = [this]() -> juce::Rectangle<int>
         {
             const auto width = getWidth();
             const auto height = getHeight();
@@ -733,7 +733,7 @@ private:
             }
         }
 
-        Rectangle<int> getSizeToContainEditor() const
+        juce::Rectangle<int> getSizeToContainEditor() const
         {
             if (editor != nullptr)
                 return getLocalArea (editor.get(), editor->getLocalBounds());
@@ -764,9 +764,9 @@ private:
     */
     struct DecoratorConstrainer : public ComponentBoundsConstrainer
     {
-        void checkBounds (Rectangle<int>& bounds,
-                          const Rectangle<int>& previousBounds,
-                          const Rectangle<int>& limits,
+        void checkBounds (juce::Rectangle<int>& bounds,
+                          const juce::Rectangle<int>& previousBounds,
+                          const juce::Rectangle<int>& limits,
                           bool isStretchingTop,
                           bool isStretchingLeft,
                           bool isStretchingBottom,
