@@ -6,7 +6,7 @@
 #include "gui/vector/Constants.hpp"
 #include "gui/vector/View.hpp"
 
-#include "MpcResourceUtil.hpp"
+#include "VmpcJuceResourceUtil.hpp"
 
 #if ENABLE_GUI_INSPECTOR == 1
 #include <melatonin_inspector/melatonin_inspector.h>
@@ -18,7 +18,7 @@ using namespace vmpc_juce::gui::vector;
 VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
         : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
 {
-    const auto fontData = mpc::MpcResourceUtil::get_resource_data("fonts/mpc2000xl_faceplate_label_font.otf");
+    const auto fontData = VmpcJuceResourceUtil::getResourceData("fonts/mpc2000xl_faceplate_label_font.otf");
 
     nimbusSans = juce::Font(juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size()));
 

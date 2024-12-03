@@ -11,13 +11,14 @@ namespace vmpc_juce {
 
         public:
             static juce::Image loadImage(const std::string &path);
+            static std::vector<char> getResourceData(const std::string& path);
 
         private:
 #ifdef MAC_BUNDLE_RESOURCES
-
+            static std::vector<char> getResourceDataFromMacBundleResources(const std::string& path);
             static juce::Image loadImageFromMacBundleResources(const std::string &path);
-
 #else
+            static std::vector<char> getResourceDataFromInMemoryFS(const std::string& path);
             static juce::Image loadImageFromInMemoryFS(const std::string& path);
 #endif
     };

@@ -5,7 +5,7 @@
 #include <juce_core/juce_core.h>
 
 #include "ViewUtil.hpp"
-#include "MpcResourceUtil.hpp"
+#include "VmpcJuceResourceUtil.hpp"
 
 #include <map>
 
@@ -16,7 +16,7 @@ class SvgComponent : public juce::Component
     private:
         std::unique_ptr<juce::Drawable> createDrawable(const std::string svgPath)
         {
-            std::vector<char> svgData = mpc::MpcResourceUtil::get_resource_data("svg/" + svgPath);
+            std::vector<char> svgData = vmpc_juce::VmpcJuceResourceUtil::getResourceData("svg/" + svgPath);
 
             if (!svgData.empty())
             {  
