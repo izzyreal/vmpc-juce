@@ -2,7 +2,7 @@
 #include <TargetConditionals.h>
 #if TARGET_OS_IPHONE
 
-#include "ImportDocumentUrlProcessor.h"
+#include "ImportDocumentUrlProcessor.hpp"
 
 #include <CoreServices/UTCoreTypes.h>
 #include <UIKit/UIKit.h>
