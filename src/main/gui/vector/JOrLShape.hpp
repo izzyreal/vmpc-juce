@@ -23,7 +23,7 @@ namespace vmpc_juce::gui::vector {
                 const auto half_thickness1 = Constants::lineThickness1 / 2;
                 const auto half_thickness2 = Constants::lineThickness2 / 2;
 
-                g.drawLine(0, getHeight() - std::ceil<float>(half_thickness1), getWidth(), getHeight() - std::ceil<float>(half_thickness1), horizontal_line_thickness);
+                g.drawLine(0, getHeight() - std::ceil(half_thickness1), getWidth(), getHeight() - std::ceil(half_thickness1), horizontal_line_thickness);
 
                 switch (shape)
                 {

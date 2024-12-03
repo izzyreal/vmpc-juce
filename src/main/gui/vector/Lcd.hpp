@@ -60,7 +60,7 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             g.drawImageTransformed(img, t);
             //////////// SHADOW ///////////////
             auto color = Constants::lcdOffBacklit.brighter().withAlpha(0.4f);
-            int radius = (int) std::round<float>((float)getWidth() / 248.f);
+            int radius = (int) std::round((float)getWidth() / 248.f);
             juce::Point<int> offset = { 0, 0 };
             int spread = 0.f;
             melatonin::DropShadow shadow = { color, radius, offset, spread };

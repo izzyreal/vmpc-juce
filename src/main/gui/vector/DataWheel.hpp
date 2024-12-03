@@ -57,7 +57,7 @@ namespace vmpc_juce::gui::vector {
                 const auto xPos = centerX + std::cos(angle + juce::MathConstants<float>::pi) * radius - width / 2.0f;
                 const auto yPos = centerY + std::sin(angle + juce::MathConstants<float>::pi) * radius - height / 2.0f;
 
-                dimpleSvg->setBounds(std::round<float>(xPos), std::round<float>(yPos), width, height);
+                dimpleSvg->setBounds(std::round(xPos), std::round(yPos), width, height);
 
                 lines->setAngle(angle);
 
