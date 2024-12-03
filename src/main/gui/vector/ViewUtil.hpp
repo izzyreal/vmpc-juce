@@ -23,7 +23,8 @@ class ViewUtil
                 juce::Component* parent,
                 const std::function<float()> &getScale,
                 const std::function<juce::Font&()> &getNimbusSansScaled,
-                std::vector<juce::MouseListener*> &mouseListeners);
+                std::vector<juce::MouseListener*> &mouseListeners,
+                juce::Component *tooltipOverlay);
 
         static void createComponent(
                 mpc::Mpc &mpc,
@@ -32,7 +33,8 @@ class ViewUtil
                 juce::Component *parent,
                 const std::function<float()> &getScale,
                 const std::function<juce::Font&()> &getNimbusSansScaled,
-                std::vector<juce::MouseListener*> &mouseListeners);
+                std::vector<juce::MouseListener*> &mouseListeners,
+                juce::Component *tooltipOverlay);
 
         static juce::Point<int> getShadowDimensions(const float shadowSize, const float scale)
         {

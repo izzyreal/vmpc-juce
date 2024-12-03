@@ -17,6 +17,7 @@
 #include "Lcd.hpp"
 #include "Led.hpp"
 #include "Pad.hpp"
+#include "Tooltip.hpp"
 
 #include "gui/MouseWheelControllable.hpp"
 
@@ -26,6 +27,8 @@
 #include "hardware/DataWheel.hpp"
 #include "hardware/Pot.hpp"
 #include "hardware/HwSlider.hpp"
+#include "controls/KbMapping.hpp"
+
 
 using namespace vmpc_juce::gui::vector;
 
@@ -232,8 +235,11 @@ void ViewUtil::createComponent(
         juce::Component* parent,
         const std::function<float()> &getScale,
         const std::function<juce::Font&()> &getNimbusSansScaled,
-        std::vector<juce::MouseListener*> &mouseListeners)
+        std::vector<juce::MouseListener*> &mouseListeners,
+        juce::Component *tooltipOverlay)
 {
+    juce::Component *tooltipAnchor = nullptr;
+
     n.svg_component = nullptr;
     n.svg_with_label_grid_component = nullptr;
     n.label_component = nullptr;
@@ -250,7 +256,7 @@ void ViewUtil::createComponent(
     if (n.node_type == "grid")
     {
         auto gridWrapper = new GridWrapper(n, getScale);
-        createComponents(mpc, n, gridWrapper->components, gridWrapper, getScale, getNimbusSansScaled, mouseListeners);
+        createComponents(mpc, n, gridWrapper->components, gridWrapper, getScale, getNimbusSansScaled, mouseListeners, tooltipOverlay);
         components.push_back(gridWrapper);
         parent->addAndMakeVisible(gridWrapper);
         n.grid_wrapper_component = gridWrapper;
@@ -258,7 +264,7 @@ void ViewUtil::createComponent(
     else if (n.node_type == "flex_box")
     {
         auto flexBoxWrapper = new FlexBoxWrapper(n, getScale);
-        createComponents(mpc, n, flexBoxWrapper->components, flexBoxWrapper, getScale, getNimbusSansScaled, mouseListeners);
+        createComponents(mpc, n, flexBoxWrapper->components, flexBoxWrapper, getScale, getNimbusSansScaled, mouseListeners, tooltipOverlay);
         components.push_back(flexBoxWrapper);
         parent->addAndMakeVisible(flexBoxWrapper);
         n.flex_box_wrapper_component = flexBoxWrapper;
@@ -311,7 +317,7 @@ void ViewUtil::createComponent(
         components.push_back(numKey);
         parent->addAndMakeVisible(numKey);
         n.num_key_component = numKey;
-
+        tooltipAnchor = numKey;
     }
     else if (n.node_type == "slider")
     {
@@ -359,6 +365,7 @@ void ViewUtil::createComponent(
         components.push_back(pad);
         addShadow(n, getScale, pad, parent, components);
         parent->addAndMakeVisible(pad);
+        tooltipAnchor = pad;
     }
     else if (!n.svg.empty() && n.label.empty())
     {
@@ -372,6 +379,7 @@ void ViewUtil::createComponent(
         {
             svgComponent->setVisible(false);
         }
+        tooltipAnchor = svgComponent;
     }
     else if (!n.svg.empty() && !n.label.empty())
     {
@@ -418,6 +426,7 @@ void ViewUtil::createComponent(
 
             parent->addAndMakeVisible(svgWithLabelGrid);
             n.svg_with_label_grid_component = svgWithLabelGrid;
+            tooltipAnchor = svgWithLabelGrid;
         }
         else /* if parent is FlexBoxWrapper */
         {
@@ -426,6 +435,8 @@ void ViewUtil::createComponent(
 
             components.push_back(labelComponent);
             parent->addAndMakeVisible(labelComponent);
+
+            tooltipAnchor = svgComponent;
         }
     }
     else if (!n.label.empty())
@@ -494,8 +505,20 @@ void ViewUtil::createComponent(
             }
             break;
         }
-    }
 
+        if (tooltipAnchor != nullptr)
+        {
+            const auto getTooltipText = [&mpc, &n]{
+                const auto kbMapping = mpc.getControls()->getKbMapping().lock();
+                const auto keyboardMappingText = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel(n.hardware_label));
+                return keyboardMappingText;
+            };
+
+            const auto tooltip = new Tooltip(getTooltipText, tooltipAnchor);
+            components.push_back(tooltip);
+            tooltipOverlay->addAndMakeVisible(tooltip);
+        }
+    }
 }
 
 void ViewUtil::createComponents(
@@ -505,11 +528,12 @@ void ViewUtil::createComponents(
         juce::Component *parent,
         const std::function<float()> &getScale,
         const std::function<juce::Font&()> &getNimbusSansScaled,
-        std::vector<juce::MouseListener*> &mouseListeners)
+        std::vector<juce::MouseListener*> &mouseListeners,
+        juce::Component *tooltipOverlay)
 {
     for (auto& c : n.children)
     {
-        createComponent(mpc, c, components, parent, getScale, getNimbusSansScaled, mouseListeners);
+        createComponent(mpc, c, components, parent, getScale, getNimbusSansScaled, mouseListeners, tooltipOverlay);
     }
 }
 
