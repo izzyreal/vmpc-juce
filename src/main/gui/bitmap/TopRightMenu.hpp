@@ -5,7 +5,7 @@
 #include "KeyboardButton.hpp"
 
 #if JUCE_IOS
-#include "ImportDocumentUrlProcessor.h"
+#include "ImportDocumentUrlProcessor.hpp"
 #endif
 
 namespace mpc { class Mpc; }
