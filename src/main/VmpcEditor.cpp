@@ -8,7 +8,9 @@
 
 #include "MpcResourceUtil.hpp"
 
+#if ENABLE_GUI_INSPECTOR == 1
 #include <melatonin_inspector/melatonin_inspector.h>
+#endif
 
 using namespace vmpc_juce;
 using namespace vmpc_juce::gui::vector;
