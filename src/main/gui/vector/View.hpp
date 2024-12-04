@@ -13,6 +13,7 @@ namespace vmpc_juce::gui::vector {
     class Lcd;
     class LedController;
     class TooltipOverlay;
+    class Menu;
 
     class View : public juce::Component {
 
@@ -32,6 +33,7 @@ namespace vmpc_juce::gui::vector {
             Keyboard *keyboard = nullptr;
             LedController *ledController = nullptr;
             TooltipOverlay *tooltipOverlay = nullptr;
+            Menu *menu = nullptr;
 
             friend class Lcd;
     };
