@@ -9,6 +9,7 @@
 #include "Led.hpp"
 #include "LedController.hpp"
 #include "TooltipOverlay.hpp"
+#include "Menu.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "Mpc.hpp"
@@ -104,6 +105,9 @@ View::View(mpc::Mpc &mpc, const std::function<float()> &getScaleToUse, const std
     ledController->setPadBankA(true);
 
     addAndMakeVisible(tooltipOverlay);
+
+    menu = new Menu(getScale);
+    addAndMakeVisible(menu);
 }
 
 View::~View()
@@ -120,6 +124,7 @@ View::~View()
 
     delete ledController;
     delete tooltipOverlay;
+    delete menu;
 }
 
 void View::resized()
@@ -133,5 +138,11 @@ void View::resized()
 
     rootComponent->setSize(getWidth(), getHeight());
     tooltipOverlay->setSize(getWidth(), getHeight());
+
+    const auto scale = getScale();
+    const auto menuWidth = Menu::widthAtScale1 * scale;
+    const auto menuHeight = Menu::heightAtScale1 * scale;
+    
+    menu->setBounds(getWidth() - menuWidth, 0, menuWidth, menuHeight);
 }
 
