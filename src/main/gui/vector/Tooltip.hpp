@@ -44,18 +44,18 @@ namespace vmpc_juce::gui::vector {
             void paint(juce::Graphics &g) override
             {
                 const float scale = std::log(getScale() + 2.0f) / std::log(2.0f);
-                const float lineThickness = 1.5f * scale;
+                const bool keyboardStyle = getScale() > 1.4f;
+                const float lineThickness = keyboardStyle ? 1.5f * scale : 0.7f * scale;
                 const auto horizontalMarginBetweenTextAndBorder = 5.f * scale;
-                const auto bidirectionalMarginBetweenTextAndBorder =  2.f * scale;
+                const auto bidirectionalMarginBetweenTextAndBorder = 2.f * scale;
                 const auto shadowSize = 6.f + 3.f;
                 const auto fontHeight = (getHeight() - ((bidirectionalMarginBetweenTextAndBorder + lineThickness) * 2)) - (shadowSize * 2);
 
                 g.setFont(getFont().withHeight(fontHeight));
-
                 std::string tooltipText = getTooltipText();
                 for (auto &c : tooltipText) c = toupper(c);
-
                 auto textWidth = g.getCurrentFont().getStringWidthFloat(tooltipText);
+
                 const float radius = 3.f;
                 const auto totalWidthWithoutText = ((lineThickness + horizontalMarginBetweenTextAndBorder + bidirectionalMarginBetweenTextAndBorder) * 2.f) - (shadowSize * 2);
                 const auto totalHeight = g.getCurrentFont().getHeight() + (lineThickness + bidirectionalMarginBetweenTextAndBorder) * 2;
@@ -66,29 +66,44 @@ namespace vmpc_juce::gui::vector {
                     textWidth -= 5.f;
                 }
 
-                auto outer_rect = juce::Rectangle<float>((getWidth() - (textWidth + totalWidthWithoutText)) / 2, (getHeight() - totalHeight) / 2, textWidth + totalWidthWithoutText, totalHeight);
-                auto inner_rect = outer_rect.reduced(lineThickness*0.5);
+                auto outer_rect = juce::Rectangle<float>((getWidth() - (textWidth + totalWidthWithoutText)) / 2, 
+                        (getHeight() - totalHeight) / 2, 
+                        textWidth + totalWidthWithoutText, 
+                        totalHeight);
+                auto inner_rect = outer_rect.reduced(lineThickness * 0.5f);
+
                 const auto most_inner_rect = inner_rect.reduced(scale * 0.9f);
-                outer_rect = outer_rect.translated(0.f, scale * 1.3f); 
-                inner_rect = inner_rect.translated(0.f, scale * 1.3f); 
+
+                if (keyboardStyle)
+                {
+                    outer_rect = outer_rect.translated(0.f, scale * 1.3f);
+                    inner_rect = inner_rect.translated(0.f, scale * 1.3f);
+                }
 
                 juce::Path shadowPath;
                 shadowPath.addRoundedRectangle(inner_rect, radius);
                 shadow.render(g, shadowPath);
 
-                g.setColour(juce::Colours::black);
-                g.drawRoundedRectangle(most_inner_rect, radius, lineThickness);
-                g.setColour(juce::Colours::black);
-                g.drawRoundedRectangle(inner_rect, radius, lineThickness);
-
-                g.setColour(juce::Colours::lightgrey.darker(0.2f));
-                g.fillRoundedRectangle(inner_rect, radius);
-
-                g.setColour(juce::Colours::white);
-                g.fillRoundedRectangle(most_inner_rect, radius);
-
-                g.setColour(juce::Colours::black);
-                g.drawText(tooltipText, outer_rect.translated(0.f, -(scale *1.3f)), juce::Justification::centred);
+                if (keyboardStyle)
+                {
+                    g.setColour(juce::Colours::black);
+                    g.drawRoundedRectangle(most_inner_rect, radius, lineThickness);
+                    g.drawRoundedRectangle(inner_rect, radius, lineThickness);
+                    g.setColour(juce::Colours::lightgrey.darker(0.2f));
+                    g.fillRoundedRectangle(inner_rect, radius);
+                    g.setColour(juce::Colours::white);
+                    g.fillRoundedRectangle(most_inner_rect, radius);
+                    g.setColour(juce::Colours::black);
+                    g.drawText(tooltipText, outer_rect.translated(0.f, -(scale * 1.3f)), juce::Justification::centred);
+                }
+                else
+                {
+                    g.setColour(juce::Colours::white);
+                    g.fillRoundedRectangle(inner_rect, radius);
+                    g.setColour(juce::Colours::black);
+                    g.drawRoundedRectangle(inner_rect, radius, lineThickness);
+                    g.drawText(tooltipText, outer_rect, juce::Justification::centred);
+                }
             }
 
         private:
