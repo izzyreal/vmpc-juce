@@ -18,6 +18,7 @@
 #include "Led.hpp"
 #include "Pad.hpp"
 #include "Tooltip.hpp"
+#include "TooltipOverlay.hpp"
 
 #include "gui/MouseWheelControllable.hpp"
 
@@ -28,16 +29,54 @@
 #include "hardware/Pot.hpp"
 #include "hardware/HwSlider.hpp"
 #include "controls/KbMapping.hpp"
+#include "juce_audio_processors/juce_audio_processors.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 
 using namespace vmpc_juce::gui::vector;
+
+    template<class ComponentClass>
+static ComponentClass* getChildComponentOfClass(juce::Component *parent)
+{
+    for (int i = 0; i < parent->getNumChildComponents(); ++i)
+    {
+        auto* childComp = parent->getChildComponent(i);
+
+        if (auto c = dynamic_cast<ComponentClass*> (childComp))
+            return c;
+
+        if (auto c = getChildComponentOfClass<ComponentClass> (childComp))
+            return c;
+    }
+
+    return nullptr;
+}
 
 class MpcHardwareMouseListener : public juce::MouseListener {
     public:
         MpcHardwareMouseListener(mpc::Mpc &mpcToUse, const std::string labelToUse) : label(labelToUse), mpc(mpcToUse) {}
 
+        void mouseMove(const juce::MouseEvent &e) override
+        {
+            const auto currentModifiers = juce::ModifierKeys::getCurrentModifiers();
+
+            if (!currentModifiers.isAnyModifierKeyDown())
+            {
+                return;
+            }
+
+            setTooltipVisibility(e.eventComponent, true);
+        }
+
+        void mouseExit(const juce::MouseEvent &e) override
+        {
+            setTooltipVisibility(e.eventComponent, false);
+        }
+
         void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override
         {
+            setTooltipVisibility(event.eventComponent, false);
+
             if (label == "data-wheel")
             {
                 auto dw = mpc.getHardware()->getDataWheel();
@@ -57,6 +96,8 @@ class MpcHardwareMouseListener : public juce::MouseListener {
 
         void mouseDown(const juce::MouseEvent &e) override
         {
+            setTooltipVisibility(e.eventComponent, false);
+
             if (label.length() >= 4 && label.substr(0, 4) == "pad-")
             {
                 const auto digitsString = label.substr(4);
@@ -186,18 +227,25 @@ class MpcHardwareMouseListener : public juce::MouseListener {
         const std::string label;
         vmpc_juce::gui::MouseWheelControllable mouseWheelControllable;
 
+        void setTooltipVisibility(juce::Component *c, const bool visibleEnabled)
+        {
+            const auto editor = c->findParentComponentOfClass<juce::AudioProcessorEditor>();
+            auto tooltipOverlay = getChildComponentOfClass<TooltipOverlay>(editor);
+            tooltipOverlay->setTooltipVisibility(label, visibleEnabled);
+        }
+
         void syncMpcSliderModelWithUi(juce::Component *eventComponent)
         {
-                const auto sliderComponent = dynamic_cast<Slider*>(eventComponent);
+            const auto sliderComponent = dynamic_cast<Slider*>(eventComponent);
 
-                if (sliderComponent == nullptr)
-                {
-                    return;
-                }
-                
-                auto hwSlider = mpc.getHardware()->getSlider();
-                const auto yPosFraction = sliderComponent->getSliderYPosFraction();
-                hwSlider->setValue(yPosFraction * 127.f);
+            if (sliderComponent == nullptr)
+            {
+                return;
+            }
+
+            auto hwSlider = mpc.getHardware()->getSlider();
+            const auto yPosFraction = sliderComponent->getSliderYPosFraction();
+            hwSlider->setValue(yPosFraction * 127.f);
         }
 
 };
@@ -534,9 +582,9 @@ void ViewUtil::createComponent(
                 return keyboardMappingText;
             };
 
-            const auto tooltip = new Tooltip(getTooltipText, tooltipAnchor, getNimbusSansScaled, getScale);
+            const auto tooltip = new Tooltip(getTooltipText, tooltipAnchor, getNimbusSansScaled, getScale, n.hardware_label);
             components.push_back(tooltip);
-            tooltipOverlay->addAndMakeVisible(tooltip);
+            tooltipOverlay->addChildComponent(tooltip);
         }
     }
 }

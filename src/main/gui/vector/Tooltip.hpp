@@ -10,10 +10,11 @@ namespace vmpc_juce::gui::vector {
 
     class Tooltip : public juce::Component, juce::ComponentListener {
         public:
-            Tooltip(const std::function<std::string()> &getTooltipTextToUse, juce::Component *const positionAnchorToUse, const std::function<juce::Font&()> &getFontToUse, const std::function<float()> &getScaleToUse)
-                : getTooltipText(getTooltipTextToUse), positionAnchor(positionAnchorToUse), getFont(getFontToUse), getScale(getScaleToUse)
+            Tooltip(const std::function<std::string()> &getTooltipTextToUse, juce::Component *const positionAnchorToUse, const std::function<juce::Font&()> &getFontToUse, const std::function<float()> &getScaleToUse, const std::string hardwareLabelToUse)
+                : getTooltipText(getTooltipTextToUse), positionAnchor(positionAnchorToUse), getFont(getFontToUse), getScale(getScaleToUse), hardwareLabel(hardwareLabelToUse)
             {
-                positionAnchor->getParentComponent()->addComponentListener(this);
+                positionAnchorParent = positionAnchor->getParentComponent();
+                positionAnchorParent->addComponentListener(this);
                 const auto newWidth = 100.f * (getScale()*0.5);
                 const auto newHeight = 18 * getScale();
                 setSize(newWidth, newHeight);
@@ -21,7 +22,7 @@ namespace vmpc_juce::gui::vector {
 
             ~Tooltip() override
             {
-                positionAnchor->getParentComponent()->removeComponentListener(this);
+                positionAnchorParent->removeComponentListener(this);
             }
 
             void componentMovedOrResized(juce::Component &, bool wasMoved, bool wasResized) override
@@ -106,12 +107,19 @@ namespace vmpc_juce::gui::vector {
                 }
             }
 
+            const std::string const getHardwareLabel()
+            {
+                return hardwareLabel;
+            }
+
         private:
             melatonin::DropShadow shadow = {{ juce::Colours::black.withAlpha(0.5f), 6, { 3, 3 }, 1 }};
             const std::function<std::string()> getTooltipText;
             juce::Component *const positionAnchor;
+            juce::Component *positionAnchorParent;
             const std::function<juce::Font&()> &getFont;
             const std::function<float()> &getScale;
+            const std::string hardwareLabel;
     };
 
 } // namespace vmpc_juce::gui::vector

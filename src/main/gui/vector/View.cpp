@@ -9,7 +9,6 @@
 #include "Led.hpp"
 #include "LedController.hpp"
 #include "TooltipOverlay.hpp"
-#include "Tooltip.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "Mpc.hpp"
