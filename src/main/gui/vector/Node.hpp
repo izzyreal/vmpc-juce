@@ -116,7 +116,6 @@ namespace vmpc_juce::gui::vector {
             if (j.contains("justify_items"))    j.at("justify_items").get_to(n.justify_items);
             if (j.contains("width"))            j.at("width").get_to(n.width);
             if (j.contains("hide_svg"))         j.at("hide_svg").get_to(n.hide_svg); else n.hide_svg = false;
-            if (j.contains("shadow_darkness"))  j.at("shadow_darkness").get_to(n.shadow_darkness); else n.shadow_darkness = 0.f;
             if (j.contains("is_inner_shadow"))  j.at("is_inner_shadow").get_to(n.is_inner_shadow); else n.is_inner_shadow = false;
             if (j.contains("magic_multiplier")) j.at("magic_multiplier").get_to(n.magic_multiplier); else n.magic_multiplier = 0.f;
             if (j.contains("hardware_label"))   j.at("hardware_label").get_to(n.hardware_label);
@@ -136,6 +135,23 @@ namespace vmpc_juce::gui::vector {
             else
             {
                 n.shadow_size = 0.f;
+            }
+
+            if (j.contains("shadow_darkness"))
+            {
+                j.at("shadow_darkness").get_to(n.shadow_darkness);
+
+                if (n.shadow_darkness > 0.f)
+                {
+                    for (auto &c : n.children)
+                    {
+                        c.shadow_darkness = n.shadow_darkness;
+                    }
+                }
+            }
+            else
+            {
+                n.shadow_darkness = 0.f;
             }
 
             if (j.contains("label_text_to_calculate_width"))

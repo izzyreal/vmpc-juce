@@ -68,6 +68,7 @@
       "row_fractions" : [ 2, 10, 2, 10, 2, 10, 2, 10, 2 ],
       "column_fractions" : [ 10, 2, 10, 2, 10, 2, 10, 2 ],
       "shadow_size" : 2,
+      "shadow_darkness" : 0.5,
       "children" : [
         { "name" : "pad-13", "type" : "pad", "hardware_label" : "pad-13", "width" : "auto", "area" : [ 2, 1, 2, 1 ] },
         { "name" : "pad-14", "type" : "pad", "hardware_label" : "pad-14", "width" : "auto", "area" : [ 2, 3, 2, 3 ] },
