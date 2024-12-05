@@ -140,9 +140,13 @@ void View::resized()
     tooltipOverlay->setSize(getWidth(), getHeight());
 
     const auto scale = getScale();
+    const auto menuMargin = 4.f;
     const auto menuWidth = Menu::widthAtScale1 * scale;
     const auto menuHeight = Menu::heightAtScale1 * scale;
+    const auto menuWidthWithMargin = (Menu::widthAtScale1 + menuMargin) * scale;
+    const auto menuX = getWidth() - menuWidthWithMargin;
+    const auto menuY = menuMargin * scale;
     
-    menu->setBounds(getWidth() - menuWidth, 0, menuWidth, menuHeight);
+    menu->setBounds(menuX, menuY, menuWidth, menuHeight);
 }
 

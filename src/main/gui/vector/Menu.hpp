@@ -63,7 +63,7 @@ namespace vmpc_juce::gui::vector {
                 helpIcon->setVisible(expanded);
             }
 
-            void resized()
+            void resized() override
             {
                 const auto scale = getScale();
 
@@ -89,15 +89,34 @@ namespace vmpc_juce::gui::vector {
                     const auto drawableBounds = icon->getDrawableBounds();
                     grid.templateColumns.insert(0, juce::Grid::Px(getWidth()/float(iconCount)));
 
-                    auto item = juce::GridItem(icon).withArea(1, idx+1, 1, idx+1).withMargin(juce::GridItem::Margin(3 * scale, 3 * scale, 3 * scale, 0)); 
+                    juce::GridItem::Margin margin { 3 * scale };
+
                     if (icon == menuIcon)
                     {
-                        item = item.withMargin(juce::GridItem::Margin(6 * scale, 3 * scale, 6 * scale, 0));
+                        margin.right *= 2.f;
                     }
+                    else if (icon == keyboardIcon)
+                    {
+                        margin.left *= 0.5f; margin.right *= 0.5f;
+                    }
+
+                    auto item = juce::GridItem(icon).withArea(1, idx+1, 1, idx+1).withMargin(margin);
                     grid.items.add(item);
                 }
 
                 grid.performLayout(getLocalBounds());
+            }
+
+            void paint(juce::Graphics &g) override
+            {
+                const auto scale = getScale();
+                const auto radius = 3.f * scale;
+                const auto lineThickness = 1.f * scale;
+                const auto rect = getLocalBounds().toFloat().reduced(lineThickness);
+                g.setColour(juce::Colours::white);
+                g.fillRoundedRectangle(rect, radius);
+                g.setColour(juce::Colours::black);
+                g.drawRoundedRectangle(rect, radius, lineThickness);
             }
 
             ~Menu()
