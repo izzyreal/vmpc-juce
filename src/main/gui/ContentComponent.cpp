@@ -64,6 +64,11 @@ ContentComponent::ContentComponent(mpc::Mpc &_mpc, std::function<void()>& showAu
 
     for (auto &l: mpc.getHardware()->getButtonLabels())
     {
+        if (ButtonControl::rects.find(l) == ButtonControl::rects.end())
+        {
+            continue;
+        }
+
         auto bc = new ButtonControl(mpc, ButtonControl::rects[l]->expanded(10),
                                     mpc.getHardware()->getButton(l));
         addAndMakeVisible(bc);
