@@ -7,7 +7,7 @@
 
 namespace vmpc_juce::gui::vector {
 
-    class Menu : public juce::Component, juce::ComponentListener {
+    class Menu : public juce::Component, juce::ComponentListener, juce::FocusChangeListener {
 
         public:
             Menu(const std::function<float()> &getScaleToUse,
@@ -21,6 +21,7 @@ namespace vmpc_juce::gui::vector {
                 setKeyboardShortcutTooltipsVisibility(setKeyboardShortcutTooltipsVisibilityToUse),
                 resetWindowSize(resetWindowSizeToUse)
             {
+                juce::Desktop::getInstance().addFocusChangeListener(this);
                 menuIcon = new SvgComponent({"bars_3.svg"}, this, 0.f, getScale);
                 menuIcon->setInterceptsMouseClicks(false, false);
                 addAndMakeVisible(menuIcon);
@@ -48,6 +49,11 @@ namespace vmpc_juce::gui::vector {
                 keyboardIcon = new SvgComponent({"keyboard_icon.svg"}, this, 0.f, getScale);
                 keyboardIcon->setInterceptsMouseClicks(false, false);
                 addAndMakeVisible(keyboardIcon);
+            }
+
+            void globalFocusChanged(juce::Component *c)
+            {
+                setKeyboardShortcutTooltipsVisibility(false);
             }
 
             void mouseMove(const juce::MouseEvent &e) override
