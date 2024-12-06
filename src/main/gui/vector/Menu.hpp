@@ -125,14 +125,16 @@ namespace vmpc_juce::gui::vector {
 
                     if (!expanded)
                     {
-                        for (auto &icon : getPlatformAvailableIcons())
-                        { 
-                            if (icon == menuIcon) continue;
-                            icon->setVisible(false);
-                            icon->setAlpha(1.f);
-                        }
                         mouseOverExpansion = false;
                     }
+
+                    for (auto &icon : getPlatformAvailableIcons())
+                    {
+                        if (icon == menuIcon) continue;
+                        icon->setVisible(expanded);
+                        icon->setAlpha(1.f);
+                    }
+
                     resized();
                     repaint();
                     return;
