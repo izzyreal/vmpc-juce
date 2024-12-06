@@ -267,6 +267,7 @@ namespace vmpc_juce::gui::vector {
 
             ~Menu()
             {
+                juce::Desktop::getInstance().removeFocusChangeListener(this);
                 delete menuIcon;
                 delete speakerIcon;
                 delete importIcon;
