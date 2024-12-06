@@ -111,7 +111,12 @@ View::View(
 
     addAndMakeVisible(tooltipOverlay);
 
-    menu = new Menu(getScale, showAudioSettingsDialog, resetWindowSize);
+    const auto openKeyboardScreen = [&mpc] { mpc.getLayeredScreen()->openScreen("vmpc-keyboard"); };
+    const auto setKeyboardShortcutTooltipsVisibility = [&](const bool visibleEnabled){
+        tooltipOverlay->setAllTooltipsVisibility(visibleEnabled);
+    };
+
+    menu = new Menu(getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility);
     addAndMakeVisible(menu);
 }
 
