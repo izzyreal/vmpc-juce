@@ -68,6 +68,7 @@ namespace vmpc_juce::gui::vector {
             void resized() override
             {
                 const auto scale = getScale();
+                const auto lineThickness = 1.f * scale;
 
                 juce::Grid grid;
                 grid.justifyContent = juce::Grid::JustifyContent::end;
@@ -88,8 +89,7 @@ namespace vmpc_juce::gui::vector {
                 for (int8_t idx = visibleIcons.size() - 1; idx >= 0; idx--)
                 {
                     const auto icon = visibleIcons[idx];
-                    const auto drawableBounds = icon->getDrawableBounds();
-                    grid.templateColumns.insert(0, juce::Grid::Px(getWidth()/float(iconCount)));
+                    grid.templateColumns.insert(0, juce::Grid::Px((getWidth()/float(iconCount)) - (lineThickness * 2)));
 
                     juce::GridItem::Margin margin { 3.f * scale };
 
@@ -97,9 +97,17 @@ namespace vmpc_juce::gui::vector {
                     {
                         margin.right *= 1.5f;
                     }
+                    else if (icon == speakerIcon)
+                    {
+                        margin = { 2.2f * scale };
+                    }
                     else if (icon == keyboardIcon)
                     {
                         margin.left *= 0.5f; margin.right *= 0.5f;
+                    }
+                    else if (icon == helpIcon)
+                    {
+                        margin = { 2.5f * scale };
                     }
 
                     auto item = juce::GridItem(icon).withArea(1, idx+1, 1, idx+1).withMargin(margin);
@@ -114,15 +122,28 @@ namespace vmpc_juce::gui::vector {
                 const auto scale = getScale();
                 const auto radius = 3.f * scale;
                 const auto lineThickness = 1.f * scale;
+                const auto margin = 5.f * scale;
 
-                auto rect = getLocalBounds().toFloat();
+                juce::Rectangle<int> iconBounds;
+
+                for (SvgComponent* icon : {menuIcon, speakerIcon, importIcon, exportIcon, resetZoomIcon, helpIcon, keyboardIcon})
+                {
+                    if (icon->isVisible())
+                        iconBounds = iconBounds.isEmpty() ? icon->getBounds() : iconBounds.getUnion(icon->getBounds());
+                }
+
+                const auto fixedHeight = (heightAtScale1 * scale) - (lineThickness * 3);
+                const auto centerY = (getHeight() - fixedHeight) / 2.0f;
+
+                auto rect = iconBounds.toFloat().expanded(margin, lineThickness);
+                rect.setY(centerY);
+                rect.setHeight(fixedHeight);
+                rect = rect.withTrimmedRight(lineThickness * 2);
 
                 if (!expanded)
                 {
-                    rect = rect.withTrimmedLeft(getWidth() * (6.f/7.f) * 0.99f);
+                    rect = rect.withTrimmedLeft(lineThickness * 2);
                 }
-
-                rect.reduce(lineThickness, lineThickness);
 
                 g.setColour(juce::Colours::white);
                 g.fillRoundedRectangle(rect, radius);
@@ -143,7 +164,7 @@ namespace vmpc_juce::gui::vector {
 
             const static int iconCount = 7;
             constexpr static const float widthAtScale1 = 15.f * iconCount;
-            constexpr static const float heightAtScale1 = 15.f;
+            constexpr static const float heightAtScale1 = 16.f;
 
         private:
             const std::function<float()> &getScale;
