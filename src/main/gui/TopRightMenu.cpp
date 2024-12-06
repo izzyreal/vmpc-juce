@@ -3,6 +3,7 @@
 #include "../ResourceUtil.h"
 
 #include "Mpc.hpp"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 #if JUCE_IOS
 
@@ -78,17 +79,18 @@ TopRightMenu::TopRightMenu(mpc::Mpc& mpc, std::function<void()>& showAudioSettin
     helpButton.setWantsKeyboardFocus(false);
     addAndMakeVisible(helpButton);
 
-#if JUCE_STANDALONE_APPLICATION
-    gearImg = vmpc::ResourceUtil::loadImage("img/gear.png");
-    gearButton.setImages(false, true, true, gearImg, 0.5, transparentWhite, gearImg, 1.0, transparentWhite,
-                         gearImg, 0.25, transparentWhite);
-    gearButton.setTooltip("Audio/MIDI Settings");
-    gearButton.onClick = [&showAudioSettingsDialog]() {
-        showAudioSettingsDialog();
-    };
-    gearButton.setWantsKeyboardFocus(false);
-    addAndMakeVisible(gearButton);
-#endif
+    if (juce::JUCEApplication::isStandaloneApp())
+    {
+        gearImg = vmpc::ResourceUtil::loadImage("img/gear.png");
+        gearButton.setImages(false, true, true, gearImg, 0.5, transparentWhite, gearImg, 1.0, transparentWhite,
+                             gearImg, 0.25, transparentWhite);
+        gearButton.setTooltip("Audio/MIDI Settings");
+        gearButton.onClick = [&showAudioSettingsDialog]() {
+            showAudioSettingsDialog();
+        };
+        gearButton.setWantsKeyboardFocus(false);
+        addAndMakeVisible(gearButton);
+    }
     
     keyboardButton.setTooltip("Configure computer keyboard");
     keyboardButton.onClick = [&]() {
@@ -126,10 +128,11 @@ void TopRightMenu::resized()
     flexBox.items.add(juce::FlexItem(exportButton).withMinWidth(50).withMinHeight(60));
     flexBox.items.add(juce::FlexItem(importButton).withMinWidth(60).withMinHeight(60));
 #endif
-    
-#if JUCE_STANDALONE_APPLICATION
+
+    if (juce::JUCEApplication::isStandaloneApp())
+    {
         flexBox.items.add(juce::FlexItem(gearButton).withMinWidth(50).withMinHeight(50));
-#endif
+    }
 
 #ifndef JUCE_IOS
     flexBox.items.add(juce::FlexItem(resetWindowSizeButton).withMinWidth(50).withMinHeight(50));
