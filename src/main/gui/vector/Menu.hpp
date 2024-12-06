@@ -58,6 +58,12 @@ namespace vmpc_juce::gui::vector {
 
             void mouseMove(const juce::MouseEvent &e) override
             {
+                if(!getIconBounds().contains(e.getPosition()))
+                {
+                    mouseExit(e);
+                    return;
+                }
+
                 const auto iconAtPosition = getIconAtPosition(e.getPosition());
 
                 if (iconAtPosition == menuIcon)
@@ -94,12 +100,14 @@ namespace vmpc_juce::gui::vector {
 
             void mouseExit(const juce::MouseEvent &e) override
             {
+                setKeyboardShortcutTooltipsVisibility(false);
                 mouseOverExpansion = false;
 
                 for (auto &icon : getPlatformAvailableIcons())
                 {
                     if (icon == menuIcon) continue;
                     icon->setVisible(false || expanded);
+                    icon->setAlpha(1.f);
                 }
 
                 resized();
@@ -218,18 +226,10 @@ namespace vmpc_juce::gui::vector {
                 const auto lineThickness = 1.f * scale;
                 const auto margin = 5.f * scale;
 
-                juce::Rectangle<int> iconBounds;
-
-                for (SvgComponent* icon : getPlatformAvailableIcons())
-                {
-                    if (icon->isVisible())
-                        iconBounds = iconBounds.isEmpty() ? icon->getBounds() : iconBounds.getUnion(icon->getBounds());
-                }
-
                 const auto fixedHeight = (heightAtScale1 * scale) - (lineThickness * 3);
                 const auto centerY = (getHeight() - fixedHeight) / 2.0f;
 
-                auto rect = iconBounds.toFloat().expanded(margin, lineThickness);
+                auto rect = getIconBounds().toFloat().expanded(margin, lineThickness);
                 rect.setY(centerY);
                 rect.setHeight(fixedHeight);
                 rect = rect.withTrimmedRight(lineThickness * 2);
@@ -278,6 +278,19 @@ namespace vmpc_juce::gui::vector {
                     }
                 }
                 return nullptr;
+            }
+
+            juce::Rectangle<int> getIconBounds()
+            {
+                juce::Rectangle<int> iconBounds;
+
+                for (SvgComponent* icon : getPlatformAvailableIcons())
+                {
+                    if (icon->isVisible())
+                        iconBounds = iconBounds.isEmpty() ? icon->getBounds() : iconBounds.getUnion(icon->getBounds());
+                }
+
+                return iconBounds;
             }
 
             const std::function<float()> &getScale;
