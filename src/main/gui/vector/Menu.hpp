@@ -20,36 +20,42 @@ namespace vmpc_juce::gui::vector {
                 openKeyboardScreen(openKeyboardScreenToUse),
                 setKeyboardShortcutTooltipsVisibility(setKeyboardShortcutTooltipsVisibilityToUse),
                 resetWindowSize(resetWindowSizeToUse)
-            {
-                juce::Desktop::getInstance().addFocusChangeListener(this);
-                menuIcon = new SvgComponent({"bars_3.svg"}, this, 0.f, getScale);
-                menuIcon->setInterceptsMouseClicks(false, false);
-                addAndMakeVisible(menuIcon);
+        {
+            juce::Desktop::getInstance().addFocusChangeListener(this);
 
+            menuIcon = new SvgComponent({"bars_3.svg"}, this, 0.f, getScale);
+            menuIcon->setInterceptsMouseClicks(false, false);
+            addAndMakeVisible(menuIcon);
+
+            if (juce::JUCEApplicationBase::isStandaloneApp())
+            {
                 speakerIcon = new SvgComponent({"speaker_wave.svg"}, this, 0.f, getScale);
                 speakerIcon->setInterceptsMouseClicks(false, false);
                 addAndMakeVisible(speakerIcon);
-
-                importIcon = new SvgComponent({"arrow_down_on_square.svg"}, this, 0.f, getScale);
-                importIcon->setInterceptsMouseClicks(false, false);
-                addAndMakeVisible(importIcon);
-
-                exportIcon = new SvgComponent({"arrow_up_on_square.svg"}, this, 0.f, getScale);
-                exportIcon->setInterceptsMouseClicks(false, false);
-                addAndMakeVisible(exportIcon);
-
-                resetZoomIcon = new SvgComponent({"arrows_pointing_in.svg"}, this, 0.f, getScale);
-                resetZoomIcon->setInterceptsMouseClicks(false, false);
-                addAndMakeVisible(resetZoomIcon);
-
-                helpIcon = new SvgComponent({"question_mark_circle.svg"}, this, 0.f, getScale);
-                helpIcon->setInterceptsMouseClicks(false, false);
-                addAndMakeVisible(helpIcon);
-
-                keyboardIcon = new SvgComponent({"keyboard_icon.svg"}, this, 0.f, getScale);
-                keyboardIcon->setInterceptsMouseClicks(false, false);
-                addAndMakeVisible(keyboardIcon);
             }
+
+#ifndef JUCE_IOS
+            resetZoomIcon = new SvgComponent({"arrows_pointing_in.svg"}, this, 0.f, getScale);
+            resetZoomIcon->setInterceptsMouseClicks(false, false);
+            addAndMakeVisible(resetZoomIcon);
+#endif
+#if JUCE_IOS
+            importIcon = new SvgComponent({"arrow_down_on_square.svg"}, this, 0.f, getScale);
+            importIcon->setInterceptsMouseClicks(false, false);
+            addAndMakeVisible(importIcon);
+
+            exportIcon = new SvgComponent({"arrow_up_on_square.svg"}, this, 0.f, getScale);
+            exportIcon->setInterceptsMouseClicks(false, false);
+            addAndMakeVisible(exportIcon);
+#endif
+            helpIcon = new SvgComponent({"question_mark_circle.svg"}, this, 0.f, getScale);
+            helpIcon->setInterceptsMouseClicks(false, false);
+            addAndMakeVisible(helpIcon);
+
+            keyboardIcon = new SvgComponent({"keyboard_icon.svg"}, this, 0.f, getScale);
+            keyboardIcon->setInterceptsMouseClicks(false, false);
+            addAndMakeVisible(keyboardIcon);
+        }
 
             void globalFocusChanged(juce::Component *c)
             {
@@ -277,8 +283,34 @@ namespace vmpc_juce::gui::vector {
         private:
             std::vector<SvgComponent*> getPlatformAvailableIcons()
             {
+                if (juce::JUCEApplication::isStandaloneApp())
+                {
+                    return {
+                        menuIcon,
+                            speakerIcon,
+#ifndef JUCE_IOS
+                            resetZoomIcon,
+#endif
+#if JUCE_IOS
+                            importIcon,
+                            exportIcon,
+#endif
+                            helpIcon,
+                            keyboardIcon
+                    };
+                }
+
                 return {
-                    menuIcon, speakerIcon, /* importIcon, exportIcon, */ resetZoomIcon, helpIcon, keyboardIcon
+                    menuIcon,
+#ifndef JUCE_IOS
+                        resetZoomIcon,
+#endif
+#if JUCE_IOS
+                        importIcon,
+                        exportIcon,
+#endif
+                        helpIcon,
+                        keyboardIcon
                 };
             }
 
