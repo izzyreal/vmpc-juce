@@ -105,6 +105,7 @@ View::View(mpc::Mpc &mpc, const std::function<float()> &getScaleToUse, const std
     ledController->setPadBankA(true);
 
     addAndMakeVisible(tooltipOverlay);
+    tooltipOverlay->setAllTooltipsVisibility(true);
 
     menu = new Menu(getScale);
     addAndMakeVisible(menu);
@@ -140,7 +141,7 @@ void View::resized()
     tooltipOverlay->setSize(getWidth(), getHeight());
 
     const auto scale = getScale();
-    const auto menuMargin = 4.f;
+    const auto menuMargin = 2.f;
     const auto menuWidth = Menu::widthAtScale1 * scale;
     const auto menuHeight = Menu::heightAtScale1 * scale;
     const auto menuWidthWithMargin = (Menu::widthAtScale1 + menuMargin) * scale;

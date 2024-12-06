@@ -7,11 +7,11 @@
 
 namespace vmpc_juce::gui::vector {
 
-    class Menu : public juce::Component {
+    class Menu : public juce::Component, juce::ComponentListener {
 
         public:
             Menu(const std::function<float()> &getScaleToUse)
-                : getScale(getScaleToUse)
+                : getScale(getScaleToUse) 
             {
                 menuIcon = new SvgComponent({"bars_3.svg"}, this, 0.f, getScale);
                 menuIcon->setInterceptsMouseClicks(false, false);
@@ -61,6 +61,8 @@ namespace vmpc_juce::gui::vector {
                 exportIcon->setVisible(expanded);
                 resetZoomIcon->setVisible(expanded);
                 helpIcon->setVisible(expanded);
+                resized();
+                repaint();
             }
 
             void resized() override
@@ -89,11 +91,11 @@ namespace vmpc_juce::gui::vector {
                     const auto drawableBounds = icon->getDrawableBounds();
                     grid.templateColumns.insert(0, juce::Grid::Px(getWidth()/float(iconCount)));
 
-                    juce::GridItem::Margin margin { 3 * scale };
+                    juce::GridItem::Margin margin { 3.f * scale };
 
                     if (icon == menuIcon)
                     {
-                        margin.right *= 2.f;
+                        margin.right *= 1.5f;
                     }
                     else if (icon == keyboardIcon)
                     {
@@ -112,7 +114,16 @@ namespace vmpc_juce::gui::vector {
                 const auto scale = getScale();
                 const auto radius = 3.f * scale;
                 const auto lineThickness = 1.f * scale;
-                const auto rect = getLocalBounds().toFloat().reduced(lineThickness);
+
+                auto rect = getLocalBounds().toFloat();
+
+                if (!expanded)
+                {
+                    rect = rect.withTrimmedLeft(getWidth() * (6.f/7.f) * 0.99f);
+                }
+
+                rect.reduce(lineThickness, lineThickness);
+
                 g.setColour(juce::Colours::white);
                 g.fillRoundedRectangle(rect, radius);
                 g.setColour(juce::Colours::black);
@@ -131,8 +142,8 @@ namespace vmpc_juce::gui::vector {
             }
 
             const static int iconCount = 7;
-            constexpr static const float widthAtScale1 = 18.f * iconCount;
-            constexpr static const float heightAtScale1 = 20.f;
+            constexpr static const float widthAtScale1 = 15.f * iconCount;
+            constexpr static const float heightAtScale1 = 15.f;
 
         private:
             const std::function<float()> &getScale;
