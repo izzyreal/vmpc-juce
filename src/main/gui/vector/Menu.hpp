@@ -76,20 +76,20 @@ namespace vmpc_juce::gui::vector {
 
                 std::vector<SvgComponent*> visibleIcons { menuIcon };
 
+                auto iconsToDraw = getPlatformAvailableIcons();
+
                 if (expanded)
                 {
-                    visibleIcons.insert(visibleIcons.begin(), keyboardIcon);
-                    visibleIcons.insert(visibleIcons.begin(), speakerIcon);
-                    visibleIcons.insert(visibleIcons.begin(), importIcon);
-                    visibleIcons.insert(visibleIcons.begin(), exportIcon);
-                    visibleIcons.insert(visibleIcons.begin(), resetZoomIcon);
-                    visibleIcons.insert(visibleIcons.begin(), helpIcon);
+                    for (int i = 1; i < iconsToDraw.size(); i++)
+                    {
+                        visibleIcons.insert(visibleIcons.begin(), iconsToDraw[i]);
+                    }
                 }
 
                 for (int8_t idx = visibleIcons.size() - 1; idx >= 0; idx--)
                 {
                     const auto icon = visibleIcons[idx];
-                    grid.templateColumns.insert(0, juce::Grid::Px((getWidth()/float(iconCount)) - (lineThickness * 2)));
+                    grid.templateColumns.insert(0, juce::Grid::Px((getWidth()/float(totalAvailableIconCount)) - (lineThickness * 2)));
 
                     juce::GridItem::Margin margin { 3.f * scale };
 
@@ -126,7 +126,7 @@ namespace vmpc_juce::gui::vector {
 
                 juce::Rectangle<int> iconBounds;
 
-                for (SvgComponent* icon : {menuIcon, speakerIcon, importIcon, exportIcon, resetZoomIcon, helpIcon, keyboardIcon})
+                for (SvgComponent* icon : getPlatformAvailableIcons())
                 {
                     if (icon->isVisible())
                         iconBounds = iconBounds.isEmpty() ? icon->getBounds() : iconBounds.getUnion(icon->getBounds());
@@ -162,11 +162,18 @@ namespace vmpc_juce::gui::vector {
                 delete keyboardIcon;
             }
 
-            const static int iconCount = 7;
-            constexpr static const float widthAtScale1 = 15.f * iconCount;
+            const static int totalAvailableIconCount = 7;
+            constexpr static const float widthAtScale1 = 15.f * totalAvailableIconCount;
             constexpr static const float heightAtScale1 = 16.f;
 
         private:
+            std::vector<SvgComponent*> getPlatformAvailableIcons()
+            {
+                return {
+                    menuIcon, speakerIcon, /* importIcon, exportIcon, */ resetZoomIcon, helpIcon, keyboardIcon
+                };
+            }
+
             const std::function<float()> &getScale;
             bool expanded = true;
 
