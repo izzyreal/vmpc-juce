@@ -66,7 +66,7 @@ namespace vmpc_juce::gui::vector {
 
                 const auto iconAtPosition = getIconAtPosition(e.getPosition());
 
-                if (iconAtPosition == menuIcon)
+                if (iconAtPosition == menuIcon && !dontExpandUponMove)
                 {
                     mouseOverExpansion = true;
 
@@ -102,6 +102,7 @@ namespace vmpc_juce::gui::vector {
             {
                 setKeyboardShortcutTooltipsVisibility(false);
                 mouseOverExpansion = false;
+                dontExpandUponMove = false;
 
                 for (auto &icon : getPlatformAvailableIcons())
                 {
@@ -119,8 +120,19 @@ namespace vmpc_juce::gui::vector {
                 if (menuIcon->getBounds().contains(e.getPosition()))
                 {
                     expanded = !expanded;
-
+                    dontExpandUponMove = !expanded;
                     menuIcon->setAlpha(expanded ? 1.f : 0.5f);
+
+                    if (!expanded)
+                    {
+                        for (auto &icon : getPlatformAvailableIcons())
+                        { 
+                            if (icon == menuIcon) continue;
+                            icon->setVisible(false);
+                            icon->setAlpha(1.f);
+                        }
+                        mouseOverExpansion = false;
+                    }
                     resized();
                     repaint();
                     return;
@@ -296,6 +308,7 @@ namespace vmpc_juce::gui::vector {
             const std::function<float()> &getScale;
             bool expanded = true;
             bool mouseOverExpansion = false;
+            bool dontExpandUponMove = false;
             const std::function<void()> &showAudioSettingsDialog;
             const std::function<void()> resetWindowSize;
             const std::function<void()> openKeyboardScreen;
