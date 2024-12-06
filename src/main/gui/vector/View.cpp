@@ -42,7 +42,12 @@ static std::vector<ComponentClass*> getChildComponentsOfClass(juce::Component *p
     return matches;
 }
 
-View::View(mpc::Mpc &mpc, const std::function<float()> &getScaleToUse, const std::function<juce::Font&()> &getNimbusSansScaledToUse)
+View::View(
+        mpc::Mpc &mpc,
+        const std::function<float()> &getScaleToUse,
+        const std::function<juce::Font&()> &getNimbusSansScaledToUse,
+        const std::function<void()> &showAudioSettingsDialog,
+        const std::function<void()> &resetWindowSize)
     : getScale(getScaleToUse), getNimbusSansScaled(getNimbusSansScaledToUse)
 {
     keyboard = KeyboardFactory::instance(this);
@@ -105,9 +110,8 @@ View::View(mpc::Mpc &mpc, const std::function<float()> &getScaleToUse, const std
     ledController->setPadBankA(true);
 
     addAndMakeVisible(tooltipOverlay);
-    tooltipOverlay->setAllTooltipsVisibility(true);
 
-    menu = new Menu(getScale);
+    menu = new Menu(getScale, showAudioSettingsDialog, resetWindowSize);
     addAndMakeVisible(menu);
 }
 

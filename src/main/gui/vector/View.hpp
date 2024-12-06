@@ -18,7 +18,11 @@ namespace vmpc_juce::gui::vector {
     class View : public juce::Component {
 
         public:
-            View(mpc::Mpc &mpc, const std::function<float()>& getScale, const std::function<juce::Font&()> &getNimbusSansScaled);
+            View(mpc::Mpc &mpc,
+                    const std::function<float()>& getScale,
+                    const std::function<juce::Font&()> &getNimbusSansScaled,
+                    const std::function<void()> &showAudioSettingsDialog,
+                    const std::function<void()> &resetWindowSize);
             ~View() override;
 
             void resized() override;

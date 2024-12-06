@@ -31,11 +31,14 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
         return nimbusSans;
     };
 
-    view = new vmpc_juce::gui::vector::View(vmpcProcessor.mpc, getScale, getNimbusSansScaled);
+    const std::function<void()> resetWindowSize = [&] {
+        setSize((int) (initial_width * initial_scale), (int) (initial_height * initial_scale));
+    };
 
-    setSize((int) (initial_width * initial_scale), (int) (initial_height * initial_scale));
+    view = new View(vmpcProcessor.mpc, getScale, getNimbusSansScaled, vmpcProcessor.showAudioSettingsDialog, resetWindowSize);
+
     setWantsKeyboardFocus(true);
-
+    resetWindowSize();
     setResizable(true, true);
     getConstrainer()->setFixedAspectRatio(initial_width / initial_height);
     addAndMakeVisible(view);
