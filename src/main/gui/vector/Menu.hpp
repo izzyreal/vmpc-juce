@@ -32,13 +32,20 @@ namespace vmpc_juce::gui::vector {
                 speakerIcon = new SvgComponent({"speaker_wave.svg"}, this, 0.f, getScale);
                 speakerIcon->setInterceptsMouseClicks(false, false);
                 addAndMakeVisible(speakerIcon);
+                
+#ifndef JUCE_IOS
+                resetZoomIcon = new SvgComponent({"arrows_pointing_in.svg"}, this, 0.f, getScale);
+                resetZoomIcon->setInterceptsMouseClicks(false, false);
+                addAndMakeVisible(resetZoomIcon);
+#endif
+            }
+            else
+            {
+                resetZoomIcon = new SvgComponent({"arrows_pointing_in.svg"}, this, 0.f, getScale);
+                resetZoomIcon->setInterceptsMouseClicks(false, false);
+                addAndMakeVisible(resetZoomIcon);
             }
 
-#ifndef JUCE_IOS
-            resetZoomIcon = new SvgComponent({"arrows_pointing_in.svg"}, this, 0.f, getScale);
-            resetZoomIcon->setInterceptsMouseClicks(false, false);
-            addAndMakeVisible(resetZoomIcon);
-#endif
 #if JUCE_IOS
             importIcon = new SvgComponent({"arrow_down_on_square.svg"}, this, 0.f, getScale);
             importIcon->setInterceptsMouseClicks(false, false);
@@ -284,35 +291,27 @@ namespace vmpc_juce::gui::vector {
         private:
             std::vector<SvgComponent*> getPlatformAvailableIcons()
             {
+                std::vector<SvgComponent*> result { menuIcon };
+
                 if (juce::JUCEApplication::isStandaloneApp())
                 {
-                    return {
-                        menuIcon,
-                            speakerIcon,
+                    result.push_back(speakerIcon);
 #ifndef JUCE_IOS
-                            resetZoomIcon,
+                    result.push_back(resetZoomIcon);
 #endif
-#if JUCE_IOS
-                            importIcon,
-                            exportIcon,
-#endif
-                            helpIcon,
-                            keyboardIcon
-                    };
                 }
+                else
+                {
+                    result.push_back(resetZoomIcon);
+                }
+#if JUCE_IO
+                result.push_back(importIcon);
+                result.push_back(exportIcon);
+#endif
+                result.push_back(keyboardIcon);
+                result.push_back(helpIcon);
 
-                return {
-                    menuIcon,
-#ifndef JUCE_IOS
-                        resetZoomIcon,
-#endif
-#if JUCE_IOS
-                        importIcon,
-                        exportIcon,
-#endif
-                        helpIcon,
-                        keyboardIcon
-                };
+                return result;
             }
 
             SvgComponent* getIconAtPosition(const juce::Point<int> &position)
