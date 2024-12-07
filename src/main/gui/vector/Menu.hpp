@@ -68,7 +68,7 @@ namespace vmpc_juce::gui::vector {
             keyboardIcon->setInterceptsMouseClicks(false, false);
             addAndMakeVisible(keyboardIcon);
 
-            infoTooltip = new InfoTooltip(getScale, getNimbusSansScaled, "Browse online documentation", helpIcon, tooltipOverlay);
+            infoTooltip = new InfoTooltip(getScale, getNimbusSansScaled, "Browse online documentation", menuIcon, tooltipOverlay);
             tooltipOverlay->addAndMakeVisible(infoTooltip);
             infoTooltip->setBounds(300, 20, 200, 50);
         }
