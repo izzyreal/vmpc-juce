@@ -109,15 +109,15 @@ View::View(
 
     ledController->setPadBankA(true);
 
-    addAndMakeVisible(tooltipOverlay);
-
     const auto openKeyboardScreen = [&mpc] { mpc.getLayeredScreen()->openScreen("vmpc-keyboard"); };
     const auto setKeyboardShortcutTooltipsVisibility = [&](const bool visibleEnabled){
         tooltipOverlay->setAllKeyTooltipsVisibility(visibleEnabled);
     };
 
     menu = new Menu(getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getNimbusSansScaled);
+
     addAndMakeVisible(menu);
+    addAndMakeVisible(tooltipOverlay);
 }
 
 View::~View()
