@@ -40,11 +40,11 @@ namespace vmpc_juce::gui::vector {
                 auto rectBottomY = rect.getBottom();
                 auto rectLeftX = rect.getX();
                 auto rectRightX = rect.getRight();
-                auto rectCenterX = rect.getCentreX();
+                auto arrowX = getArrowTipPosWithinSelf().x;
 
-                path.startNewSubPath(rectCenterX - triangleWidth / 2, rectTopY);
-                path.lineTo(rectCenterX, rectTopY - arrowHeight);
-                path.lineTo(rectCenterX + triangleWidth / 2, rectTopY);
+                path.startNewSubPath(arrowX - triangleWidth / 2, rectTopY);
+                path.lineTo(arrowX, rectTopY - arrowHeight);
+                path.lineTo(arrowX + triangleWidth / 2, rectTopY);
                 path.lineTo(rectRightX - radius, rectTopY);
                 path.addArc(rectRightX - radius * 2, rectTopY, radius * 2, radius * 2, 0, juce::MathConstants<float>::pi * 0.5f);
                 path.lineTo(rectRightX, rectBottomY - radius);
@@ -73,10 +73,22 @@ namespace vmpc_juce::gui::vector {
                 const auto margin = 3.f * scale;
                 const auto textWidthWithMargin = textWidth + (margin * 2);
                 const auto textHeightWithMargin = textHeight + (margin * 2);
-                const auto tooltipX = arrowTipPos.x - (textWidthWithMargin * 0.5f);
+                const auto tooltipX = (arrowTipPos.x - (textWidthWithMargin * 0.5f));
                 const auto tooltipY = arrowTipPos.y;
                 const auto tooltipHeight = textHeightWithMargin + getArrowHeightScaled();
                 auto rect = juce::Rectangle<int>(tooltipX, tooltipY, textWidthWithMargin, tooltipHeight);
+
+                auto tooltipOverlayBounds = tooltipOverlay->getBounds();
+
+                if (rect.getRight() > tooltipOverlayBounds.getRight())
+                {
+                    rect.setX(tooltipOverlayBounds.getRight() - rect.getWidth());
+                }
+                else if (rect.getX() < tooltipOverlayBounds.getX())
+                {
+                    rect.setX(tooltipOverlayBounds.getX());
+                }
+
                 setBounds(rect);
             }
 
@@ -84,10 +96,23 @@ namespace vmpc_juce::gui::vector {
             juce::Point<int> getArrowTipPosWithinTooltipOverlay()
             {
                 if (anchor == nullptr || tooltipOverlay == nullptr)
+                {
                     return {};
+                }
 
-                auto bottomCenter = anchor->getBounds().getBottomLeft() + juce::Point<int>(anchor->getWidth() / 2, 0);
-                return tooltipOverlay->getLocalPoint(anchor->getParentComponent(), bottomCenter);
+                auto anchorBottomCenter = anchor->getBounds().getBottomLeft() + juce::Point<int>(anchor->getWidth() / 2, 0);
+                return tooltipOverlay->getLocalPoint(anchor->getParentComponent(), anchorBottomCenter).translated(0, 2.f * getScale());
+            }
+
+            juce::Point<int> getArrowTipPosWithinSelf()
+            {
+                if (anchor == nullptr)
+                {
+                    return {};
+                }
+
+                auto anchorBottomCenter = anchor->getBounds().getBottomLeft() + juce::Point<int>(anchor->getWidth() / 2, 0);
+                return getLocalPoint(anchor->getParentComponent(), anchorBottomCenter);
             }
 
             float getTextWidth()

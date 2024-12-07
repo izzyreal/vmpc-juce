@@ -68,9 +68,8 @@ namespace vmpc_juce::gui::vector {
             keyboardIcon->setInterceptsMouseClicks(false, false);
             addAndMakeVisible(keyboardIcon);
 
-            infoTooltip = new InfoTooltip(getScale, getNimbusSansScaled, "Browse online documentation", menuIcon, tooltipOverlay);
+            infoTooltip = new InfoTooltip(getScale, getNimbusSansScaled, "Browse online documentation", speakerIcon, tooltipOverlay);
             tooltipOverlay->addAndMakeVisible(infoTooltip);
-            infoTooltip->setBounds(300, 20, 200, 50);
         }
 
             void globalFocusChanged(juce::Component *c)
