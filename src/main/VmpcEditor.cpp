@@ -38,9 +38,11 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     view = new View(vmpcProcessor.mpc, getScale, getNimbusSansScaled, vmpcProcessor.showAudioSettingsDialog, resetWindowSize);
 
     setWantsKeyboardFocus(true);
+#ifndef JUCE_IOS
     resetWindowSize();
     setResizable(true, true);
     getConstrainer()->setFixedAspectRatio(initial_width / initial_height);
+#endif
     addAndMakeVisible(view);
 #if ENABLE_GUI_INSPECTOR == 1
     inspector = new melatonin::Inspector(*this);
