@@ -14,6 +14,7 @@ namespace vmpc_juce::gui::vector {
     class LedController;
     class TooltipOverlay;
     class Menu;
+    class Disclaimer;
 
     class View : public juce::Component {
 
@@ -28,6 +29,7 @@ namespace vmpc_juce::gui::vector {
             void resized() override;
 
         private:
+            void deleteDisclaimer();
             std::string name = "default_compact";
             std::vector<juce::Component*> components;
             std::vector<juce::MouseListener*> mouseListeners;
@@ -38,6 +40,7 @@ namespace vmpc_juce::gui::vector {
             LedController *ledController = nullptr;
             TooltipOverlay *tooltipOverlay = nullptr;
             Menu *menu = nullptr;
+            Disclaimer *disclaimer = nullptr;
 
             friend class Lcd;
     };
