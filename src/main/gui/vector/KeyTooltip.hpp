@@ -13,6 +13,7 @@ namespace vmpc_juce::gui::vector {
             KeyTooltip(const std::function<std::string()> &getTooltipTextToUse, juce::Component *const positionAnchorToUse, const std::function<juce::Font&()> &getFontToUse, const std::function<float()> &getScaleToUse, const std::string hardwareLabelToUse)
                 : getTooltipText(getTooltipTextToUse), positionAnchor(positionAnchorToUse), getFont(getFontToUse), getScale(getScaleToUse), hardwareLabel(hardwareLabelToUse)
             {
+                shadow.setColor(juce::Colours::black.withAlpha(0.5f));
                 positionAnchorParent = positionAnchor->getParentComponent();
                 positionAnchorParent->addComponentListener(this);
                 const auto newWidth = 100.f * (getScale()*0.5);
@@ -83,6 +84,10 @@ namespace vmpc_juce::gui::vector {
 
                 juce::Path shadowPath;
                 shadowPath.addRoundedRectangle(inner_rect, radius);
+
+                shadow.setRadius(scale * 3);
+                shadow.setOffset(scale * 1.5, scale * 1.5);
+                shadow.setSpread(scale * 0.5);
                 shadow.render(g, shadowPath);
 
                 if (keyboardStyle)
@@ -113,7 +118,7 @@ namespace vmpc_juce::gui::vector {
             }
 
         private:
-            melatonin::DropShadow shadow = {{ juce::Colours::black.withAlpha(0.5f), 6, { 3, 3 }, 1 }};
+            melatonin::DropShadow shadow;
             const std::function<std::string()> getTooltipText;
             juce::Component *const positionAnchor;
             juce::Component *positionAnchorParent;
