@@ -50,7 +50,7 @@ namespace vmpc_juce::gui::vector {
                 const float lineThickness = keyboardStyle ? 1.5f * scale : 0.7f * scale;
                 const auto horizontalMarginBetweenTextAndBorder = 5.f * scale;
                 const auto bidirectionalMarginBetweenTextAndBorder = 2.f * scale;
-                const auto shadowSize = 6.f + 3.f;
+                const auto shadowSize = 4.2f * scale;
                 const auto fontHeight = (getHeight() - ((bidirectionalMarginBetweenTextAndBorder + lineThickness) * 2)) - (shadowSize * 2);
 
                 g.setFont(getFont().withHeight(fontHeight));
@@ -85,7 +85,7 @@ namespace vmpc_juce::gui::vector {
                 juce::Path shadowPath;
                 shadowPath.addRoundedRectangle(inner_rect, radius);
 
-                shadow.setRadius(scale * 3);
+                shadow.setRadius(scale * 2);
                 shadow.setOffset(scale * 1.5, scale * 1.5);
                 shadow.setSpread(scale * 0.5);
                 shadow.render(g, shadowPath);
