@@ -138,6 +138,7 @@ namespace vmpc_juce::gui::vector {
             void mouseExit(const juce::MouseEvent &e) override
             {
                 setKeyboardShortcutTooltipsVisibility(false);
+                infoTooltip->setVisible(false);
                 mouseOverExpansion = false;
                 dontExpandUponMove = false;
 
