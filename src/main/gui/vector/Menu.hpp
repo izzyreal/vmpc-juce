@@ -106,7 +106,10 @@ namespace vmpc_juce::gui::vector {
 
                 const auto iconAtPosition = getIconAtPosition(e.getPosition());
 
-                addTooltip(iconAtPosition);
+                if (iconAtPosition != nullptr)
+                {
+                    addTooltip(iconAtPosition);
+                }
 
                 if (iconAtPosition == menuIcon && !dontExpandUponMove)
                 {
@@ -157,6 +160,16 @@ namespace vmpc_juce::gui::vector {
                 repaint();
             }
 
+            void mouseUp(const juce::MouseEvent &) override
+            {
+                if (speakerIcon != nullptr) speakerIcon->setAlpha(1.f);
+                if (resetZoomIcon != nullptr) resetZoomIcon->setAlpha(1.f);
+                if (exportIcon != nullptr) exportIcon->setAlpha(1.f);
+                if (importIcon != nullptr) importIcon->setAlpha(1.f);
+                helpIcon->setAlpha(1.f);
+                keyboardIcon->setAlpha(1.f);
+            }
+
             void mouseDown(const juce::MouseEvent &e) override
             {
                 if (menuIcon->getBounds().contains(e.getPosition()))
@@ -194,6 +207,8 @@ namespace vmpc_juce::gui::vector {
                     return;
                 }
 
+                clickedIcon->setAlpha(0.5f);
+
                 if (clickedIcon == speakerIcon)
                 {
                     showAudioSettingsDialog();
@@ -219,8 +234,6 @@ namespace vmpc_juce::gui::vector {
                 {
                     resetWindowSize();
                 }
-
-                clickedIcon->setAlpha(1.f);
             }
 
             void resized() override
@@ -319,8 +332,8 @@ namespace vmpc_juce::gui::vector {
             }
 
             const static int totalAvailableIconCount = 7;
-            constexpr static const float widthAtScale1 = 15.f * totalAvailableIconCount;
-            constexpr static const float heightAtScale1 = 16.f;
+            constexpr static const float widthAtScale1 = 15.f * totalAvailableIconCount * 1.1;
+            constexpr static const float heightAtScale1 = 16.f * 1.1;
 
         private:
             void addTooltip(SvgComponent *icon)
