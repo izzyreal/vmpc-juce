@@ -31,6 +31,7 @@ namespace vmpc_juce::gui::vector {
         bool is_inner_shadow;
         float magic_multiplier;
         std::string hardware_label;
+        std::string svg_placement;
 
         // grid
         std::vector<uint16_t> row_fractions;
@@ -119,6 +120,7 @@ namespace vmpc_juce::gui::vector {
             if (j.contains("is_inner_shadow"))  j.at("is_inner_shadow").get_to(n.is_inner_shadow); else n.is_inner_shadow = false;
             if (j.contains("magic_multiplier")) j.at("magic_multiplier").get_to(n.magic_multiplier); else n.magic_multiplier = 0.f;
             if (j.contains("hardware_label"))   j.at("hardware_label").get_to(n.hardware_label);
+            if (j.contains("svg_placement"))    j.at("svg_placement").get_to(n.svg_placement);
 
             if (j.contains("shadow_size"))
             {

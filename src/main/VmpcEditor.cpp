@@ -38,7 +38,26 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     view = new View(vmpcProcessor.mpc, getScale, getNimbusSansScaled, vmpcProcessor.showAudioSettingsDialog, resetWindowSize);
 
     setWantsKeyboardFocus(true);
-#ifndef JUCE_IOS
+#if JUCE_IOS
+    if (juce::JUCEApplication::isStandaloneApp())
+    {
+        const auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
+
+        if (primaryDisplay != nullptr)
+        {
+            const auto area = primaryDisplay->userArea;
+            setSize(area.getWidth(), area.getHeight());
+        }
+        else
+        {
+            resetWindowSize();
+        }
+    }
+    else
+    {
+        resetWindowSize();
+    }
+#else
     resetWindowSize();
     setResizable(true, true);
     getConstrainer()->setFixedAspectRatio(initial_width / initial_height);

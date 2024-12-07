@@ -39,8 +39,8 @@ class SvgComponent : public juce::Component
         }
 
     public:
-        SvgComponent(const std::vector<std::string> &svg_paths, juce::Component *commonParentWithShadowToUse, const float shadowSizeToUse, const std::function<float()> &getScaleToUse)
-            : commonParentWithShadow(commonParentWithShadowToUse), shadowSize(shadowSizeToUse), getScale(getScaleToUse)
+        SvgComponent(const std::vector<std::string> &svg_paths, juce::Component *commonParentWithShadowToUse, const float shadowSizeToUse, const std::function<float()> &getScaleToUse, const std::string svgPlacementToUse = "")
+            : commonParentWithShadow(commonParentWithShadowToUse), shadowSize(shadowSizeToUse), getScale(getScaleToUse), svgPlacement(svgPlacementToUse)
         {
             if (svg_paths[0] == "display.svg" || svg_paths[0] == "display_compact.svg")
             {
@@ -105,7 +105,7 @@ class SvgComponent : public juce::Component
                 return;
             }
 
-            drawables[currentDrawable]->drawWithin(g, getLocalBounds().toFloat(), juce::RectanglePlacement::centred, 1.0f);
+            drawables[currentDrawable]->drawWithin(g, getLocalBounds().toFloat(), svgPlacement == "stretched" ? juce::RectanglePlacement::stretchToFit : juce::RectanglePlacement::centred, 1.0f);
         }
 
         juce::Component *shadow = nullptr;
@@ -154,6 +154,7 @@ class SvgComponent : public juce::Component
         juce::ComponentListener *parentSizeAndPositionListener = nullptr;
         const float shadowSize;
         const std::function<float()> &getScale;
+        const std::string svgPlacement;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SvgComponent)
 };
