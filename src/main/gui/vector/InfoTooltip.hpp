@@ -30,10 +30,7 @@ namespace vmpc_juce::gui::vector {
                 auto arrowHeight = getArrowHeightScaled();
                 auto rect = getLocalBounds().toFloat();
 
-                if (pointsUp)
-                    rect = rect.withTrimmedTop(arrowHeight);
-                else
-                    rect = rect.withTrimmedBottom(arrowHeight);
+                rect = rect.withTrimmedTop(arrowHeight);
 
                 rect.reduce(lineThickness, lineThickness);
 
@@ -45,32 +42,17 @@ namespace vmpc_juce::gui::vector {
                 auto rectRightX = rect.getRight();
                 auto rectCenterX = rect.getCentreX();
 
-                if (pointsUp) {
-                    path.startNewSubPath(rectCenterX - triangleWidth / 2, rectTopY);
-                    path.lineTo(rectCenterX, rectTopY - arrowHeight);
-                    path.lineTo(rectCenterX + triangleWidth / 2, rectTopY);
-                    path.lineTo(rectRightX - radius, rectTopY);
-                    path.addArc(rectRightX - radius * 2, rectTopY, radius * 2, radius * 2, 0, juce::MathConstants<float>::pi * 0.5f);
-                    path.lineTo(rectRightX, rectBottomY - radius);
-                    path.addArc(rectRightX - radius * 2, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi * 0.5f, juce::MathConstants<float>::pi);
-                    path.lineTo(rectLeftX + radius, rectBottomY);
-                    path.addArc(rectLeftX, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi, juce::MathConstants<float>::pi * 1.5f);
-                    path.lineTo(rectLeftX, rectTopY + radius);
-                    path.addArc(rectLeftX, rectTopY, radius * 2, radius * 2, juce::MathConstants<float>::pi * 1.5f, juce::MathConstants<float>::twoPi);
-                } else {
-                    path.startNewSubPath(rectCenterX - triangleWidth / 2, rectBottomY);
-                    path.lineTo(rectCenterX, rectBottomY + arrowHeight);
-                    path.lineTo(rectCenterX + triangleWidth / 2, rectBottomY);
-                    path.lineTo(rectRightX - radius, rectBottomY);
-                    path.addArc(rectRightX - radius * 2, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi, juce::MathConstants<float>::pi * 0.5f);
-                    path.lineTo(rectRightX, rectTopY + radius);
-                    path.addArc(rectRightX - radius * 2, rectTopY, radius * 2, radius * 2, juce::MathConstants<float>::pi * 0.5f, 0);
-                    path.lineTo(rectLeftX + radius, rectTopY);
-                    path.addArc(rectLeftX, rectTopY, radius * 2, radius * 2, 0, juce::MathConstants<float>::pi * -0.5f);
-                    path.lineTo(rectLeftX, rectBottomY - radius);
-                    path.addArc(rectLeftX, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi * -0.5f, -juce::MathConstants<float>::pi);
-                }
-
+                path.startNewSubPath(rectCenterX - triangleWidth / 2, rectTopY);
+                path.lineTo(rectCenterX, rectTopY - arrowHeight);
+                path.lineTo(rectCenterX + triangleWidth / 2, rectTopY);
+                path.lineTo(rectRightX - radius, rectTopY);
+                path.addArc(rectRightX - radius * 2, rectTopY, radius * 2, radius * 2, 0, juce::MathConstants<float>::pi * 0.5f);
+                path.lineTo(rectRightX, rectBottomY - radius);
+                path.addArc(rectRightX - radius * 2, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi * 0.5f, juce::MathConstants<float>::pi);
+                path.lineTo(rectLeftX + radius, rectBottomY);
+                path.addArc(rectLeftX, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi, juce::MathConstants<float>::pi * 1.5f);
+                path.lineTo(rectLeftX, rectTopY + radius);
+                path.addArc(rectLeftX, rectTopY, radius * 2, radius * 2, juce::MathConstants<float>::pi * 1.5f, juce::MathConstants<float>::twoPi);
                 path.closeSubPath();
 
                 g.setColour(juce::Colours::white);
@@ -131,6 +113,5 @@ namespace vmpc_juce::gui::vector {
             juce::Component *tooltipOverlay;
 
             const float arrowHeightAtScale1 = 2.5f;
-            bool pointsUp = true;
     };
 } // namespace vmpc_juce::gui::vector
