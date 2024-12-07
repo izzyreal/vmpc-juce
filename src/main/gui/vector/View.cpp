@@ -173,6 +173,10 @@ void View::resized()
     menu->setBounds(menuX, menuY, menuWidth, menuHeight);
 
     auto rect = getLocalBounds().reduced(getWidth() * 0.25, getHeight() * 0.25);
-    disclaimer->setBounds(rect);
+
+    if (disclaimer != nullptr)
+    {
+        disclaimer->setBounds(rect);
+    }
 }
 
