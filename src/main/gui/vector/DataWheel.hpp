@@ -7,15 +7,21 @@
 #include "SvgComponent.hpp"
 #include "DataWheelLines.hpp"
 
+#include "gui/MouseWheelControllable.hpp"
+
+#include "Mpc.hpp"
+#include "hardware/Hardware.hpp"
+#include "hardware/DataWheel.hpp"
+
 namespace vmpc_juce::gui::vector {
 
     class DataWheel : public juce::Component {
         public:
-            DataWheel(
+            DataWheel(mpc::Mpc &mpcToUse,
                     juce::Component *commonParentWithShadowToUse,
                     const float shadowSizeToUse,
                     const std::function<float()> &getScaleToUse)
-                : commonParentWithShadow(commonParentWithShadowToUse), shadowSize(shadowSizeToUse), getScale(getScaleToUse)
+                : mpc(mpcToUse), commonParentWithShadow(commonParentWithShadowToUse), shadowSize(shadowSizeToUse), getScale(getScaleToUse)
             {
                 backgroundSvg = new SvgComponent({"data_wheel_without_dimple_and_lines.svg"}, commonParentWithShadow, shadowSize, getScale);
                 addAndMakeVisible(backgroundSvg);
@@ -29,10 +35,18 @@ namespace vmpc_juce::gui::vector {
                 backgroundSvg->setInterceptsMouseClicks(false, false);
                 lines->setInterceptsMouseClicks(false, false);
                 dimpleSvg->setInterceptsMouseClicks(false, false);
+
+                mpc.getHardware()->getDataWheel()->updateUi = [this](int increment) {
+                    juce::MessageManager::callAsync([this, increment] {
+                            setAngle(getAngle() + (increment * 0.02f));
+                            });
+                };
+
             }
 
             ~DataWheel() override
             {
+                mpc.getHardware()->getDataWheel()->updateUi = {};
                 delete backgroundSvg;
                 delete lines;
                 delete dimpleSvg;
@@ -64,34 +78,72 @@ namespace vmpc_juce::gui::vector {
                 repaint();
             }
 
-            void mouseUp(const juce::MouseEvent &) override
+            void mouseDown(const juce::MouseEvent &event) override
             {
-                previousDragDistanceY = std::numeric_limits<int32_t>::max();
+                mouseDownEventSources.emplace(event.source.getIndex());
+
+                if (latestMouseDownTime == juce::Time(0))
+                {
+                    latestMouseDownTime = event.mouseDownTime;
+                }
             }
 
-            void mouseDrag(const juce::MouseEvent &e) override
+            void mouseUp(const juce::MouseEvent &event) override
             {
-                if (previousDragDistanceY == std::numeric_limits<int32_t>::max())
+                mouseDownEventSources.erase(event.source.getIndex());
+
+                if (mouseDownEventSources.empty())
                 {
-                    previousDragDistanceY = 0;
+                    latestMouseDownTime = juce::Time(0);
                 }
 
-                const auto distanceToProcessInPixels = e.getDistanceFromDragStartY() - previousDragDistanceY;
-                previousDragDistanceY = e.getDistanceFromDragStartY();
+                lastDy = 0;
+            }
 
-                const auto fractionToAdd = -((float) distanceToProcessInPixels / getWidth());
+            void mouseDrag(const juce::MouseEvent &event) override
+            {
+                if (mouseDownEventSources.size() > 1 && event.source.getLastMouseDownTime() != latestMouseDownTime)
+                {
+                    return;
+                }
 
-                angle = fmod(angle + (float) fractionToAdd, juce::MathConstants<float>::twoPi);
+                auto dY = -(event.getDistanceFromDragStartY() - lastDy);
 
-                handleAngleChanged();
+                if (dY == 0)
+                    return;
+
+                const bool iOS = juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS;
+
+                if (event.mods.isAnyModifierKeyDown() || iOS)
+                {
+                    float iOSMultiplier = 1.0;
+
+                    for (int i = 1; i < mouseDownEventSources.size(); i++)
+                    {
+                        iOSMultiplier *= 10.f;
+                    }
+
+                    pixelCounter += (dY * fineSensitivity * (iOS ? iOSMultiplier : 1.0));
+                    auto candidate = static_cast<int>(pixelCounter);
+                    if (candidate >= 1 || candidate <= -1)
+                    {
+                        pixelCounter -= candidate;
+                        mpc.getHardware()->getDataWheel()->turn(candidate);
+                    }
+
+                }
+                else
+                {
+                    mpc.getHardware()->getDataWheel()->turn(dY);
+                }
+
+                lastDy = event.getDistanceFromDragStartY();
             }
 
             void mouseWheelMove(const juce::MouseEvent &e, const juce::MouseWheelDetails &wheel) override
             {
-                const auto increment = -wheel.deltaY;
-
-                angle = fmod(angle + increment, juce::MathConstants<float>::twoPi);
-                handleAngleChanged();
+                auto dw = mpc.getHardware()->getDataWheel();
+                mouseWheelControllable.processWheelEvent(wheel, [&dw](int increment) { dw->turn(increment); });
             }
 
             void resized() override
@@ -107,13 +159,19 @@ namespace vmpc_juce::gui::vector {
             void setAngle(float newAngle) { angle = newAngle; handleAngleChanged(); }
 
         private:
+            vmpc_juce::gui::MouseWheelControllable mouseWheelControllable;
+            mpc::Mpc &mpc;
+            std::set<int> mouseDownEventSources;
             SvgComponent *dimpleSvg = nullptr;
             DataWheelLines *lines = nullptr;
             juce::Component *commonParentWithShadow;
             const float shadowSize;
             const std::function<float()> &getScale;
             float angle = 0.f;
-            int32_t previousDragDistanceY = std::numeric_limits<int32_t>::max();
+            float lastDy = 0.f;
+            double pixelCounter = 0;
+            double fineSensitivity = 0.06;
+            juce::Time latestMouseDownTime = juce::Time(0);
     };
 
 } // namespace vmpc_juce::gui::vector

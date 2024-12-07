@@ -3,8 +3,6 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "juce_audio_processors/juce_audio_processors.h"
 
-#include "gui/MouseWheelControllable.hpp"
-
 #include "TooltipOverlay.hpp"
 #include "Knob.hpp"
 #include "Slider.hpp"
@@ -62,12 +60,7 @@ namespace vmpc_juce::gui::vector {
             {
                 setKeyTooltipVisibility(event.eventComponent, false);
 
-                if (label == "data-wheel")
-                {
-                    auto dw = mpc.getHardware()->getDataWheel();
-                    mouseWheelControllable.processWheelEvent(wheel, [&dw](int increment) { dw->turn(increment, false); });
-                }
-                else if (label == "rec_gain" || label == "main_volume")
+                if (label == "rec_gain" || label == "main_volume")
                 {
                     auto pot = label == "rec_gain" ? mpc.getHardware()->getRecPot() : mpc.getHardware()->getVolPot();
                     auto knob = dynamic_cast<Knob*>(event.eventComponent);
@@ -169,7 +162,6 @@ namespace vmpc_juce::gui::vector {
                 }
                 else if (label == "data-wheel")
                 {
-                    lastDy = 0;
                 }
                 else
                 {
@@ -185,21 +177,6 @@ namespace vmpc_juce::gui::vector {
                     auto knob = dynamic_cast<Knob*>(e.eventComponent);
                     pot->setValue(knob->getAngleFactor() * 100.f);
                 }
-                else if (label == "data-wheel")
-                {
-                    auto dataWheel = mpc.getHardware()->getDataWheel();
-
-                    auto dY = -(e.getDistanceFromDragStartY() - lastDy);
-
-                    if (dY == 0)
-                    {
-                        return;
-                    }
-
-                    dataWheel->turn(dY);
-
-                    lastDy = e.getDistanceFromDragStartY();
-                }
                 else if (label == "slider")
                 {
                     syncMpcSliderModelWithUi(e.eventComponent);
@@ -207,10 +184,8 @@ namespace vmpc_juce::gui::vector {
             }
 
         private:
-            int lastDy = 0;
             mpc::Mpc &mpc;
             const std::string label;
-            vmpc_juce::gui::MouseWheelControllable mouseWheelControllable;
 
             void setKeyTooltipVisibility(juce::Component *c, const bool visibleEnabled)
             {
@@ -232,7 +207,6 @@ namespace vmpc_juce::gui::vector {
                 const auto yPosFraction = sliderComponent->getSliderYPosFraction();
                 hwSlider->setValue(yPosFraction * 127.f);
             }
-
     };
 
 } // namespace vmpc_juce::gui::vector

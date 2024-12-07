@@ -163,7 +163,7 @@ void ViewUtil::createComponent(
     }
     else if (n.node_type == "data_wheel")
     {
-        auto dataWheel = new DataWheel(parent, n.shadow_size, getScale);
+        auto dataWheel = new DataWheel(mpc, parent, n.shadow_size, getScale);
         addShadow(n, getScale, dataWheel->backgroundSvg, parent, components);
         n.data_wheel_component = dataWheel;
         parent->addAndMakeVisible(dataWheel);
@@ -327,16 +327,6 @@ void ViewUtil::createComponent(
                 auto knob = dynamic_cast<Knob*>(n.svg_component);
                 auto pot = n.name == "rec_gain" ? mpc.getHardware()->getRecPot() : mpc.getHardware()->getVolPot();
                 knob->setAngleFactor(pot->getValue() * 0.01);
-            }
-            else if (auto dataWheelComponent = dynamic_cast<DataWheel*>(*it); dataWheelComponent != nullptr)
-            {
-                auto hwDataWheel = mpc.getHardware()->getDataWheel();
-                hwDataWheel->updateUi = [dataWheelComponent](int increment) {
-                    juce::MessageManager::callAsync([dataWheelComponent, increment] {
-                            dataWheelComponent->setAngle(dataWheelComponent->getAngle() + (increment * 0.02f));
-                            });
-                };
-
             }
             break;
         }
