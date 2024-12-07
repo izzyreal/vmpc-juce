@@ -200,7 +200,7 @@ void ViewUtil::createComponent(
     }
     else if (!n.svg.empty() && n.label.empty())
     {
-        auto svgComponent = new SvgComponent({n.svg}, parent, n.shadow_size, getScale);
+        auto svgComponent = new SvgComponent({n.svg}, parent, n.shadow_size, getScale, n.svg_placement);
         components.push_back(svgComponent);
         addShadow(n, getScale, svgComponent, parent, components);
         parent->addAndMakeVisible(svgComponent);
