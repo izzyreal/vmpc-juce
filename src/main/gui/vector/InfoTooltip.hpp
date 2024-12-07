@@ -1,6 +1,8 @@
 #pragma once
 
+#include "melatonin_blur/melatonin/shadows.h"
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <melatonin_blur/melatonin_blur.h>
 
 namespace vmpc_juce::gui::vector {
 
@@ -35,6 +37,8 @@ namespace vmpc_juce::gui::vector {
                 auto arrowHeight = getArrowHeightScaled();
                 auto rect = getLocalBounds().toFloat();
 
+                rect.reduce(shadowMargin, shadowMargin);
+
                 rect = rect.withTrimmedTop(arrowHeight);
 
                 rect.reduce(lineThickness, lineThickness);
@@ -59,6 +63,11 @@ namespace vmpc_juce::gui::vector {
                 path.lineTo(rectLeftX, rectTopY + radius);
                 path.addArc(rectLeftX, rectTopY, radius * 2, radius * 2, juce::MathConstants<float>::pi * 1.5f, juce::MathConstants<float>::twoPi);
                 path.closeSubPath();
+
+                shadow.setOffset(2 * scale, 2 * scale);
+                shadow.setRadius(scale * 3);
+                shadow.setSpread(scale);
+                shadow.render(g, path);
 
                 g.setColour(juce::Colours::white);
                 g.fillPath(path);
@@ -93,6 +102,8 @@ namespace vmpc_juce::gui::vector {
                 {
                     rect.setX(tooltipOverlayBounds.getX());
                 }
+
+                rect.expand(shadowMargin, shadowMargin);
 
                 setBounds(rect);
             }
@@ -143,5 +154,9 @@ namespace vmpc_juce::gui::vector {
             const juce::Component *tooltipOverlay;
 
             const float arrowHeightAtScale1 = 2.5f;
+
+            const int shadowMargin = 40;
+
+            melatonin::DropShadow shadow { juce::Colours::black.withAlpha(0.6f), 8, {4, 4}, 2 };
     };
 } // namespace vmpc_juce::gui::vector
