@@ -17,7 +17,7 @@
 #include "Lcd.hpp"
 #include "Led.hpp"
 #include "Pad.hpp"
-#include "Tooltip.hpp"
+#include "KeyTooltip.hpp"
 #include "TooltipOverlay.hpp"
 
 #include "gui/MouseWheelControllable.hpp"
@@ -65,17 +65,17 @@ class MpcHardwareMouseListener : public juce::MouseListener {
                 return;
             }
 
-            setTooltipVisibility(e.eventComponent, true);
+            setKeyTooltipVisibility(e.eventComponent, true);
         }
 
         void mouseExit(const juce::MouseEvent &e) override
         {
-            setTooltipVisibility(e.eventComponent, false);
+            setKeyTooltipVisibility(e.eventComponent, false);
         }
 
         void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override
         {
-            setTooltipVisibility(event.eventComponent, false);
+            setKeyTooltipVisibility(event.eventComponent, false);
 
             if (label == "data-wheel")
             {
@@ -96,7 +96,7 @@ class MpcHardwareMouseListener : public juce::MouseListener {
 
         void mouseDown(const juce::MouseEvent &e) override
         {
-            setTooltipVisibility(e.eventComponent, false);
+            setKeyTooltipVisibility(e.eventComponent, false);
 
             if (label.length() >= 4 && label.substr(0, 4) == "pad-")
             {
@@ -227,11 +227,11 @@ class MpcHardwareMouseListener : public juce::MouseListener {
         const std::string label;
         vmpc_juce::gui::MouseWheelControllable mouseWheelControllable;
 
-        void setTooltipVisibility(juce::Component *c, const bool visibleEnabled)
+        void setKeyTooltipVisibility(juce::Component *c, const bool visibleEnabled)
         {
             const auto editor = c->findParentComponentOfClass<juce::AudioProcessorEditor>();
             auto tooltipOverlay = getChildComponentOfClass<TooltipOverlay>(editor);
-            tooltipOverlay->setTooltipVisibility(label, visibleEnabled);
+            tooltipOverlay->setKeyTooltipVisibility(label, visibleEnabled);
         }
 
         void syncMpcSliderModelWithUi(juce::Component *eventComponent)
@@ -582,7 +582,7 @@ void ViewUtil::createComponent(
                 return keyboardMappingText;
             };
 
-            const auto tooltip = new Tooltip(getTooltipText, tooltipAnchor, getNimbusSansScaled, getScale, n.hardware_label);
+            const auto tooltip = new KeyTooltip(getTooltipText, tooltipAnchor, getNimbusSansScaled, getScale, n.hardware_label);
             components.push_back(tooltip);
             tooltipOverlay->addChildComponent(tooltip);
         }
