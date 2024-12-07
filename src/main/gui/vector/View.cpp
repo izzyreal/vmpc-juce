@@ -10,6 +10,7 @@
 #include "LedController.hpp"
 #include "TooltipOverlay.hpp"
 #include "Menu.hpp"
+#include "Disclaimer.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "Mpc.hpp"
@@ -118,6 +119,10 @@ View::View(
 
     addAndMakeVisible(menu);
     addAndMakeVisible(tooltipOverlay);
+
+    const std::function<void()> deleteDisclaimerF = [this] { deleteDisclaimer(); };
+    disclaimer = new Disclaimer(getNimbusSansScaled, deleteDisclaimerF);
+    addAndMakeVisible(disclaimer);
 }
 
 View::~View()
@@ -135,6 +140,14 @@ View::~View()
     delete ledController;
     delete tooltipOverlay;
     delete menu;
+    delete disclaimer;
+}
+
+void View::deleteDisclaimer()
+{
+    removeChildComponent(disclaimer);
+    delete disclaimer;
+    disclaimer = nullptr;
 }
 
 void View::resized()
@@ -158,5 +171,8 @@ void View::resized()
     const auto menuY = menuMargin * scale;
     
     menu->setBounds(menuX, menuY, menuWidth, menuHeight);
+
+    auto rect = getLocalBounds().reduced(getWidth() * 0.25, getHeight() * 0.25);
+    disclaimer->setBounds(rect);
 }
 
