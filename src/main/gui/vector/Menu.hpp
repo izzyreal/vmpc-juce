@@ -63,6 +63,10 @@ namespace vmpc_juce::gui::vector {
             exportIcon = new SvgComponent({"arrow_up_on_square.svg"}, this, 0.f, getScale);
             exportIcon->setInterceptsMouseClicks(false, false);
             addAndMakeVisible(exportIcon);
+
+            folderIcon = new SvgComponent({"folder.svg"}, this, 0.f, getScale);
+            folderIcon->setInterceptsMouseClicks(false, false);
+            addAndMakeVisible(folderIcon);
 #endif
             helpIcon = new SvgComponent({"question_mark_circle.svg"}, this, 0.f, getScale);
             helpIcon->setInterceptsMouseClicks(false, false);
@@ -221,6 +225,10 @@ namespace vmpc_juce::gui::vector {
                 {
                     printf("export\n");
                 }
+                else if (clickedIcon == folderIcon)
+                {
+                    printf("folder\n");
+                }
                 else if (clickedIcon == keyboardIcon)
                 {
                     openKeyboardScreen();
@@ -280,6 +288,15 @@ namespace vmpc_juce::gui::vector {
                     {
                         margin = { 2.5f * scale };
                     }
+                    else if (icon == folderIcon)
+                    {
+                        margin.right = 2.f * scale;
+                    }
+                    else if (icon == importIcon || icon == exportIcon)
+                    {
+                        margin.left = 2.5f * scale;
+                        margin.right = 2.5f * scale;
+                    }
 
                     auto item = juce::GridItem(icon).withArea(1, idx+1, 1, idx+1).withMargin(margin);
                     grid.items.add(item);
@@ -329,9 +346,10 @@ namespace vmpc_juce::gui::vector {
                 delete resetZoomIcon;
                 delete helpIcon;
                 delete keyboardIcon;
+                delete folderIcon;
             }
 
-            const static int totalAvailableIconCount = 7;
+            const static int totalAvailableIconCount = 8;
             constexpr static const float widthAtScale1 = 15.f * totalAvailableIconCount * 1.1;
             constexpr static const float heightAtScale1 = 16.f * 1.1;
 
@@ -359,6 +377,18 @@ namespace vmpc_juce::gui::vector {
                 else if (icon == keyboardIcon)
                 {
                     tooltipText = "Show/configure keyboard";
+                }
+                else if (icon == importIcon)
+                {
+                    tooltipText = "Import";
+                }
+                else if (icon == exportIcon)
+                {
+                    tooltipText = "Export";
+                }
+                else if (icon == folderIcon)
+                {
+                    tooltipText = "Recording manager";
                 }
 
                 if (!tooltipText.empty())
@@ -390,6 +420,7 @@ namespace vmpc_juce::gui::vector {
 #if TARGET_OS_IPHONE
                 result.push_back(importIcon);
                 result.push_back(exportIcon);
+                result.push_back(folderIcon);
 #endif
                 result.push_back(keyboardIcon);
                 result.push_back(helpIcon);
@@ -442,6 +473,7 @@ namespace vmpc_juce::gui::vector {
             SvgComponent *resetZoomIcon = nullptr;
             SvgComponent *helpIcon = nullptr;
             SvgComponent *keyboardIcon = nullptr;
+            SvgComponent *folderIcon = nullptr;
 
             // mouseMove is triggered also when modifier keys have changed.
             // We only want to know about actual mouse moves, so we keep track of
