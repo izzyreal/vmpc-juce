@@ -22,6 +22,7 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
     public:
         Lcd(mpc::Mpc &mpcToUse) : mpc(mpcToUse)
     {
+        shadow.setColor(Constants::lcdOffBacklit.brighter().withAlpha(0.4f));
         resetAuxWindowF = [&] { resetAuxWindow(); };
         resetKeyboardAuxParent = [&] { getView()->keyboard->setAuxParent(nullptr); };
         getLcdImage = [&]() -> juce::Image& { return img; };
@@ -58,12 +59,8 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             const auto t = getTransform();
 
             g.drawImageTransformed(img, t);
-            //////////// SHADOW ///////////////
-            auto color = Constants::lcdOffBacklit.brighter().withAlpha(0.4f);
-            int radius = (int) std::round((float)getWidth() / 248.f);
-            juce::Point<int> offset = { 0, 0 };
-            int spread = 0.f;
-            melatonin::DropShadow shadow = { color, radius, offset, spread };
+
+            shadow.setRadius(std::round((float)getWidth() / 248.f));
 
             juce::Path p;
 
@@ -195,6 +192,8 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
         std::function<void()> resetAuxWindowF;
         std::function<void()> resetKeyboardAuxParent;
         std::function<juce::Image&()> getLcdImage;
+
+        melatonin::DropShadow shadow;
 
         juce::AffineTransform getTransform()
         {

@@ -16,6 +16,7 @@ namespace vmpc_juce::gui::vector {
                 getNimbusSansScaled(getNimbusSansScaledToUse),
                 tooltipOverlay(tooltipOverlayToUse)
         {
+            shadow.setColor(juce::Colours::black.withAlpha(0.6f));
         }
 
             void configure(
@@ -157,6 +158,6 @@ namespace vmpc_juce::gui::vector {
 
             const int shadowMargin = 40;
 
-            melatonin::DropShadow shadow { juce::Colours::black.withAlpha(0.6f), 8, {4, 4}, 2 };
+            melatonin::DropShadow shadow;
     };
 } // namespace vmpc_juce::gui::vector
