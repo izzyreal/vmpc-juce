@@ -2,7 +2,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "Tooltip.hpp"
+#include "KeyTooltip.hpp"
 
 namespace vmpc_juce::gui::vector {
 
@@ -14,11 +14,11 @@ namespace vmpc_juce::gui::vector {
                 setInterceptsMouseClicks(false, false);
             }
 
-            void setAllTooltipsVisibility(const bool visibleEnabled)
+            void setAllKeyTooltipsVisibility(const bool visibleEnabled)
             {
                 for (auto &c : getChildren())
                 {
-                    if (dynamic_cast<Tooltip*>(c) == nullptr)
+                    if (dynamic_cast<KeyTooltip*>(c) == nullptr)
                     {
                         continue;
                     }
@@ -26,11 +26,11 @@ namespace vmpc_juce::gui::vector {
                 }
             }
 
-            void setTooltipVisibility(const std::string label, const bool visibleEnabled)
+            void setKeyTooltipVisibility(const std::string label, const bool visibleEnabled)
             {
                 for (auto &c : getChildren())
                 {
-                    if (auto t = dynamic_cast<Tooltip*>(c); t != nullptr)
+                    if (auto t = dynamic_cast<KeyTooltip*>(c); t != nullptr)
                     {
                         if (t->getHardwareLabel() == label)
                         {

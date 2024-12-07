@@ -8,9 +8,9 @@
 
 namespace vmpc_juce::gui::vector {
 
-    class Tooltip : public juce::Component, juce::ComponentListener {
+    class KeyTooltip : public juce::Component, juce::ComponentListener {
         public:
-            Tooltip(const std::function<std::string()> &getTooltipTextToUse, juce::Component *const positionAnchorToUse, const std::function<juce::Font&()> &getFontToUse, const std::function<float()> &getScaleToUse, const std::string hardwareLabelToUse)
+            KeyTooltip(const std::function<std::string()> &getTooltipTextToUse, juce::Component *const positionAnchorToUse, const std::function<juce::Font&()> &getFontToUse, const std::function<float()> &getScaleToUse, const std::string hardwareLabelToUse)
                 : getTooltipText(getTooltipTextToUse), positionAnchor(positionAnchorToUse), getFont(getFontToUse), getScale(getScaleToUse), hardwareLabel(hardwareLabelToUse)
             {
                 positionAnchorParent = positionAnchor->getParentComponent();
@@ -20,7 +20,7 @@ namespace vmpc_juce::gui::vector {
                 setSize(newWidth, newHeight);
             }
 
-            ~Tooltip() override
+            ~KeyTooltip() override
             {
                 positionAnchorParent->removeComponentListener(this);
             }
