@@ -1,7 +1,5 @@
 #pragma once
 
-#include "juce_core/juce_core.h"
-#include "juce_graphics/juce_graphics.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 
 namespace vmpc_juce::gui::vector {
@@ -11,16 +9,23 @@ namespace vmpc_juce::gui::vector {
             InfoTooltip(
                     const std::function<float()> &getScaleToUse,
                     const std::function<juce::Font&()> &getNimbusSansScaledToUse,
-                    const std::string tooltipTextToUse,
-                    const juce::Component *anchorToUse,
                     juce::Component *tooltipOverlayToUse)
                 : getScale(getScaleToUse),
                 getNimbusSansScaled(getNimbusSansScaledToUse),
-                tooltipText(tooltipTextToUse),
-                anchor(anchorToUse),
                 tooltipOverlay(tooltipOverlayToUse)
         {
         }
+
+            void configure(
+                    const std::string tooltipTextToUse,
+                    const juce::Component *anchorToUse)
+            {
+                tooltipText = tooltipTextToUse;
+                anchor = anchorToUse;
+                resized();
+                repaint();
+            }
+
             void paint(juce::Graphics &g) override
             {
                 const auto scale = getScale();
@@ -133,9 +138,9 @@ namespace vmpc_juce::gui::vector {
 
             const std::function<float()> &getScale;
             const std::function<juce::Font&()> &getNimbusSansScaled;
-            const std::string tooltipText;
-            const juce::Component *anchor;
-            juce::Component *tooltipOverlay;
+            std::string tooltipText;
+            const juce::Component *anchor = nullptr;
+            const juce::Component *tooltipOverlay;
 
             const float arrowHeightAtScale1 = 2.5f;
     };

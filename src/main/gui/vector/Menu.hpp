@@ -68,24 +68,41 @@ namespace vmpc_juce::gui::vector {
             keyboardIcon->setInterceptsMouseClicks(false, false);
             addAndMakeVisible(keyboardIcon);
 
-            infoTooltip = new InfoTooltip(getScale, getNimbusSansScaled, "Browse online documentation", speakerIcon, tooltipOverlay);
-            tooltipOverlay->addAndMakeVisible(infoTooltip);
+            setWantsKeyboardFocus(false);
+
+            infoTooltip = new InfoTooltip(getScale, getNimbusSansScaled, tooltipOverlay);
+            tooltipOverlay->addChildComponent(infoTooltip);
         }
 
-            void globalFocusChanged(juce::Component *c)
+            void globalFocusChanged(juce::Component *c) override
             {
+                if (c != nullptr)
+                {
+                    return;
+                }
+
                 setKeyboardShortcutTooltipsVisibility(false);
+                infoTooltip->setVisible(false);
             }
 
             void mouseMove(const juce::MouseEvent &e) override
             {
-                if(!getIconBounds().contains(e.getPosition()))
+                if (e.getPosition() == lastKnownMousePos)
+                {
+                    return;
+                }
+
+                lastKnownMousePos = e.getPosition();
+
+                if (!getIconBounds().contains(e.getPosition()))
                 {
                     mouseExit(e);
                     return;
                 }
 
                 const auto iconAtPosition = getIconAtPosition(e.getPosition());
+
+                addTooltip(iconAtPosition);
 
                 if (iconAtPosition == menuIcon && !dontExpandUponMove)
                 {
@@ -101,7 +118,6 @@ namespace vmpc_juce::gui::vector {
                     repaint();
                     return;
                 }
-
 
                 for (auto &icon : getPlatformAvailableIcons())
                 {
@@ -252,8 +268,6 @@ namespace vmpc_juce::gui::vector {
                 }
 
                 grid.performLayout(getLocalBounds());
-
-                infoTooltip->resized();
             }
 
             void paint(juce::Graphics &g) override
@@ -285,7 +299,9 @@ namespace vmpc_juce::gui::vector {
             ~Menu()
             {
                 juce::Desktop::getInstance().removeFocusChangeListener(this);
-                
+
+                tooltipOverlay->removeChildComponent(infoTooltip);
+
                 delete infoTooltip;
 
                 delete menuIcon;
@@ -302,6 +318,42 @@ namespace vmpc_juce::gui::vector {
             constexpr static const float heightAtScale1 = 16.f;
 
         private:
+            void addTooltip(SvgComponent *icon)
+            {
+                std::string tooltipText;
+
+                if (icon == menuIcon)
+                {
+                    tooltipText = "Open/close/pin menu";
+                }
+                else if (icon == speakerIcon)
+                {
+                    tooltipText = "Audio/MIDI settings";
+                }
+                else if (icon == resetZoomIcon)
+                {
+                    tooltipText = "Restore default window size";
+                }
+                else if (icon == helpIcon)
+                {
+                    tooltipText = "Browse online documentation";
+                }
+                else if (icon == keyboardIcon)
+                {
+                    tooltipText = "Show/configure keyboard";
+                }
+
+                if (!tooltipText.empty())
+                {
+                    infoTooltip->configure(tooltipText, icon);
+                    infoTooltip->setVisible(true);
+                }
+                else
+                {
+                    infoTooltip->setVisible(false);
+                }
+            }
+
             std::vector<SvgComponent*> getPlatformAvailableIcons()
             {
                 std::vector<SvgComponent*> result { menuIcon };
@@ -361,7 +413,7 @@ namespace vmpc_juce::gui::vector {
             const std::function<void()> openKeyboardScreen;
             const std::function<void(const bool)> setKeyboardShortcutTooltipsVisibility;
             const std::function<juce::Font&()> &getNimbusSansScaled;
-            
+
             TooltipOverlay *tooltipOverlay;
             InfoTooltip *infoTooltip = nullptr;
 
@@ -372,5 +424,10 @@ namespace vmpc_juce::gui::vector {
             SvgComponent *resetZoomIcon = nullptr;
             SvgComponent *helpIcon = nullptr;
             SvgComponent *keyboardIcon = nullptr;
+
+            // mouseMove is triggered also when modifier keys have changed.
+            // We only want to know about actual mouse moves, so we keep track of
+            // the last known mouse position.
+            juce::Point<int> lastKnownMousePos {-1, -1};
     };
 } // namespace vmpc_juce::gui::vector 
