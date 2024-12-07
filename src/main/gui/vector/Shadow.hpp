@@ -15,6 +15,15 @@ class Shadow : public juce::Component {
             getPath(getPathToUse), getScale(getScaleToUse), shadowSize(shadowSizeToUse), shadowDarkness(shadowDarknessToUse), isInner(isInnerToUse)
         {
             setInterceptsMouseClicks(false, false);
+
+            if (isInner)
+            {
+                innerShadow.setColor(juce::Colours::black.withAlpha(shadowDarkness));
+            }
+            else
+            {
+                dropShadow.setColor(juce::Colours::black.withAlpha(shadowDarkness));
+            }
         }
 
         void paint(juce::Graphics &g) override
@@ -23,7 +32,6 @@ class Shadow : public juce::Component {
             auto radius = scale * shadowSize;
             juce::Point<float> offset = { 1.f * scale * shadowSize, 0.1f * scale * shadowSize };
             auto spread = 0.f;
-            auto color = juce::Colours::black.withAlpha(shadowDarkness);
 
             auto path = getPath();
             juce::AffineTransform transform;
@@ -34,17 +42,21 @@ class Shadow : public juce::Component {
 
             if (isInner)
             {
-                melatonin::InnerShadow shadow = { color, radius, offset, spread };
-                shadow.render(g, path);
+                innerShadow.setRadius(radius);
+                innerShadow.setOffset(offset);
+                innerShadow.render(g, path);
             }
             else
             {
-                melatonin::DropShadow shadow = { color, radius, offset, spread };
-                shadow.render(g, path);
+                dropShadow.setRadius(radius);
+                dropShadow.setOffset(offset);
+                dropShadow.render(g, path);
             }
         }
 
     private:
+        melatonin::InnerShadow innerShadow;
+        melatonin::DropShadow dropShadow;
         const std::function<juce::Path()> getPath;
         const std::function<float()> &getScale;
         const float shadowSize;
