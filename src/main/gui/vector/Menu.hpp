@@ -42,7 +42,7 @@ namespace vmpc_juce::gui::vector {
                 speakerIcon->setInterceptsMouseClicks(false, false);
                 addAndMakeVisible(speakerIcon);
                 
-#if TARGET_OS_IPHONE
+#ifndef TARGET_OS_IPHONE
                 resetZoomIcon = new SvgComponent({"arrows_pointing_in.svg"}, this, 0.f, getScale);
                 resetZoomIcon->setInterceptsMouseClicks(false, false);
                 addAndMakeVisible(resetZoomIcon);
@@ -366,7 +366,7 @@ namespace vmpc_juce::gui::vector {
                 if (juce::JUCEApplication::isStandaloneApp())
                 {
                     result.push_back(speakerIcon);
-#if TARGET_OS_IPHONE
+#ifndef TARGET_OS_IPHONE
                     result.push_back(resetZoomIcon);
 #endif
                 }
