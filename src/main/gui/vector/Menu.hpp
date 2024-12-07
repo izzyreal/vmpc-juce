@@ -6,6 +6,10 @@
 #include "TooltipOverlay.hpp"
 #include "InfoTooltip.hpp"
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 namespace vmpc_juce::gui::vector {
 
     class Menu : public juce::Component, juce::ComponentListener, juce::FocusChangeListener {
@@ -38,7 +42,7 @@ namespace vmpc_juce::gui::vector {
                 speakerIcon->setInterceptsMouseClicks(false, false);
                 addAndMakeVisible(speakerIcon);
                 
-#ifndef JUCE_IOS
+#if TARGET_OS_IPHONE
                 resetZoomIcon = new SvgComponent({"arrows_pointing_in.svg"}, this, 0.f, getScale);
                 resetZoomIcon->setInterceptsMouseClicks(false, false);
                 addAndMakeVisible(resetZoomIcon);
@@ -51,7 +55,7 @@ namespace vmpc_juce::gui::vector {
                 addAndMakeVisible(resetZoomIcon);
             }
 
-#if JUCE_IOS
+#if TARGET_OS_IPHONE
             importIcon = new SvgComponent({"arrow_down_on_square.svg"}, this, 0.f, getScale);
             importIcon->setInterceptsMouseClicks(false, false);
             addAndMakeVisible(importIcon);
@@ -362,7 +366,7 @@ namespace vmpc_juce::gui::vector {
                 if (juce::JUCEApplication::isStandaloneApp())
                 {
                     result.push_back(speakerIcon);
-#ifndef JUCE_IOS
+#if TARGET_OS_IPHONE
                     result.push_back(resetZoomIcon);
 #endif
                 }
@@ -370,7 +374,7 @@ namespace vmpc_juce::gui::vector {
                 {
                     result.push_back(resetZoomIcon);
                 }
-#if JUCE_IO
+#if TARGET_OS_IPHONE
                 result.push_back(importIcon);
                 result.push_back(exportIcon);
 #endif
