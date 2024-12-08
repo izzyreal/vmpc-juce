@@ -55,7 +55,7 @@ namespace vmpc_juce::gui::vector {
                 speakerIcon->setInterceptsMouseClicks(false, false);
                 addAndMakeVisible(speakerIcon);
                 
-#ifndef TARGET_OS_IPHONE
+#if !TARGET_OS_IPHONE
                 resetZoomIcon = new SvgComponent({"arrows_pointing_in.svg"}, this, 0.f, getScale);
                 resetZoomIcon->setInterceptsMouseClicks(false, false);
                 addAndMakeVisible(resetZoomIcon);
@@ -108,6 +108,7 @@ namespace vmpc_juce::gui::vector {
                 infoTooltip->setVisible(false);
             }
 
+#if !TARGET_OS_IPHONE
             void mouseMove(const juce::MouseEvent &e) override
             {
                 if (e.getPosition() == lastKnownMousePos)
@@ -178,90 +179,42 @@ namespace vmpc_juce::gui::vector {
                 resized();
                 repaint();
             }
+#endif
 
-            void mouseUp(const juce::MouseEvent &) override
+            void mouseUp(const juce::MouseEvent &e) override
             {
                 if (speakerIcon != nullptr) speakerIcon->setAlpha(1.f);
                 if (resetZoomIcon != nullptr) resetZoomIcon->setAlpha(1.f);
                 if (exportIcon != nullptr) exportIcon->setAlpha(1.f);
                 if (importIcon != nullptr) importIcon->setAlpha(1.f);
+                if (folderIcon != nullptr) folderIcon->setAlpha(1.f);
                 helpIcon->setAlpha(1.f);
                 keyboardIcon->setAlpha(1.f);
+#if TARGET_OS_IPHONE
+                infoTooltip->setVisible(false);
+                handleClick(e);
+#endif
             }
 
             void mouseDown(const juce::MouseEvent &e) override
             {
-                if (menuIcon->getBounds().contains(e.getPosition()))
-                {
-                    expanded = !expanded;
-                    dontExpandUponMove = !expanded;
-                    menuIcon->setAlpha(expanded ? 1.f : 0.5f);
-
-                    if (!expanded)
-                    {
-                        mouseOverExpansion = false;
-                    }
-
-                    for (auto &icon : getPlatformAvailableIcons())
-                    {
-                        if (icon == menuIcon) continue;
-                        icon->setVisible(expanded);
-                        icon->setAlpha(1.f);
-                    }
-
-                    resized();
-                    repaint();
-                    return;
-                }
-
-                if (!expanded && !mouseOverExpansion)
-                {
-                    return;
-                }
-
-                SvgComponent *const clickedIcon = getIconAtPosition(e.getPosition()); 
-
-                if (clickedIcon == nullptr)
-                {
-                    return;
-                }
-
-                clickedIcon->setAlpha(0.5f);
-
-                if (clickedIcon == speakerIcon)
-                {
-                    showAudioSettingsDialog();
-                }
 #if TARGET_OS_IPHONE
-                else if (clickedIcon == importIcon)
+                const auto icon = getIconAtPosition(e.getPosition());
+                
+                if (icon == nullptr || (!expanded && icon != menuIcon))
                 {
-                    auto uiView = getPeer()->getNativeHandle();
-                    doOpenIosImportDocumentBrowser(&importDocumentUrlProcessor, uiView);
+                    return;
                 }
-                else if (clickedIcon == exportIcon)
+
+                if (icon != menuIcon)
                 {
-                    auto uiView = getPeer()->getNativeHandle();
-                    doPresentShareOptions(uiView, &mpc);
+                    icon->setAlpha(0.5f);
                 }
-                else if (clickedIcon == folderIcon)
-                {
-                    auto uiView = getPeer()->getNativeHandle();
-                    doPresentRecordingManager(uiView, &mpc);
-                }
+                
+                addTooltip(icon);
+#else
+                handleClick(e);
 #endif
-                else if (clickedIcon == keyboardIcon)
-                {
-                    openKeyboardScreen();
-                }
-                else if (clickedIcon == helpIcon)
-                {
-                    juce::URL url("https://vmpcdocs.izmar.nl");
-                    url.launchInDefaultBrowser();
-                }
-                else if (clickedIcon == resetZoomIcon)
-                {
-                    resetWindowSize();
-                }
             }
 
             void resized() override
@@ -374,6 +327,81 @@ namespace vmpc_juce::gui::vector {
             constexpr static const float heightAtScale1 = 16.f * 1.1;
 
         private:
+            void handleClick(const juce::MouseEvent e)
+            {
+                if (menuIcon->getBounds().expanded(getScale() * 3).contains(e.getPosition()))
+                {
+                    expanded = !expanded;
+                    dontExpandUponMove = !expanded;
+                    menuIcon->setAlpha(expanded ? 1.f : 0.5f);
+
+                    if (!expanded)
+                    {
+                        mouseOverExpansion = false;
+                    }
+
+                    for (auto &icon : getPlatformAvailableIcons())
+                    {
+                        if (icon == menuIcon) continue;
+                        icon->setVisible(expanded);
+                        icon->setAlpha(1.f);
+                    }
+
+                    resized();
+                    repaint();
+                    return;
+                }
+
+                if (!expanded && !mouseOverExpansion)
+                {
+                    return;
+                }
+
+                SvgComponent *const clickedIcon = getIconAtPosition(e.getPosition()); 
+
+                if (clickedIcon == nullptr)
+                {
+                    return;
+                }
+#if !TARGET_OS_IPHONE
+                clickedIcon->setAlpha(0.5f);
+#endif
+                if (clickedIcon == speakerIcon)
+                {
+                    showAudioSettingsDialog();
+                }
+#if TARGET_OS_IPHONE
+                else if (clickedIcon == importIcon)
+                {
+                    auto uiView = getPeer()->getNativeHandle();
+                    doOpenIosImportDocumentBrowser(&importDocumentUrlProcessor, uiView);
+                }
+                else if (clickedIcon == exportIcon)
+                {
+                    auto uiView = getPeer()->getNativeHandle();
+                    doPresentShareOptions(uiView, &mpc);
+                }
+                else if (clickedIcon == folderIcon)
+                {
+                    auto uiView = getPeer()->getNativeHandle();
+                    doPresentRecordingManager(uiView, &mpc);
+                }
+#endif
+                else if (clickedIcon == keyboardIcon)
+                {
+                    openKeyboardScreen();
+                }
+                else if (clickedIcon == helpIcon)
+                {
+                    juce::URL url("https://vmpcdocs.izmar.nl");
+                    url.launchInDefaultBrowser();
+                }
+                else if (clickedIcon == resetZoomIcon)
+                {
+                    resetWindowSize();
+                }
+            }
+
             void addTooltip(SvgComponent *icon)
             {
                 std::string tooltipText;
@@ -429,7 +457,7 @@ namespace vmpc_juce::gui::vector {
                 if (juce::JUCEApplication::isStandaloneApp())
                 {
                     result.push_back(speakerIcon);
-#ifndef TARGET_OS_IPHONE
+#if !TARGET_OS_IPHONE
                     result.push_back(resetZoomIcon);
 #endif
                 }
@@ -452,7 +480,7 @@ namespace vmpc_juce::gui::vector {
             {
                 for (auto &icon : getPlatformAvailableIcons())
                 {
-                    if (icon->getBounds().contains(position))
+                    if (icon->getBounds().expanded(getScale() * 3).contains(position))
                     {
                         return icon;
                     }
