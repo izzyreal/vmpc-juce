@@ -44,25 +44,44 @@ namespace vmpc_juce::gui::vector {
 
                 rect.reduce(lineThickness, lineThickness);
 
-                juce::Path path;
-                auto triangleWidth = arrowHeight;
-                auto rectTopY = rect.getY();
-                auto rectBottomY = rect.getBottom();
-                auto rectLeftX = rect.getX();
-                auto rectRightX = rect.getRight();
-                auto arrowX = getArrowTipPosWithinSelf().x;
+                const auto triangleWidth = arrowHeight;
+                const auto rectTopY = rect.getY();
+                const auto rectBottomY = rect.getBottom();
+                const auto rectLeftX = rect.getX();
+                const auto rectRightX = rect.getRight();
+                const auto arrowX = tooltipIsPositionedBelowAnchor ? getUpArrowTipPosWithinSelf().x : getDownArrowTipPosWithinSelf().x;
 
-                path.startNewSubPath(arrowX - triangleWidth / 2, rectTopY);
-                path.lineTo(arrowX, rectTopY - arrowHeight);
-                path.lineTo(arrowX + triangleWidth / 2, rectTopY);
-                path.lineTo(rectRightX - radius, rectTopY);
-                path.addArc(rectRightX - radius * 2, rectTopY, radius * 2, radius * 2, 0, juce::MathConstants<float>::pi * 0.5f);
-                path.lineTo(rectRightX, rectBottomY - radius);
-                path.addArc(rectRightX - radius * 2, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi * 0.5f, juce::MathConstants<float>::pi);
-                path.lineTo(rectLeftX + radius, rectBottomY);
-                path.addArc(rectLeftX, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi, juce::MathConstants<float>::pi * 1.5f);
-                path.lineTo(rectLeftX, rectTopY + radius);
-                path.addArc(rectLeftX, rectTopY, radius * 2, radius * 2, juce::MathConstants<float>::pi * 1.5f, juce::MathConstants<float>::twoPi);
+                juce::Path path;
+
+                if (tooltipIsPositionedBelowAnchor)
+                {
+                    path.startNewSubPath(arrowX - triangleWidth / 2, rectTopY);
+                    path.lineTo(arrowX, rectTopY - arrowHeight);
+                    path.lineTo(arrowX + triangleWidth / 2, rectTopY);
+                    path.lineTo(rectRightX - radius, rectTopY);
+                    path.addArc(rectRightX - radius * 2, rectTopY, radius * 2, radius * 2, 0, juce::MathConstants<float>::pi * 0.5f);
+                    path.lineTo(rectRightX, rectBottomY - radius);
+                    path.addArc(rectRightX - radius * 2, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi * 0.5f, juce::MathConstants<float>::pi);
+                    path.lineTo(rectLeftX + radius, rectBottomY);
+                    path.addArc(rectLeftX, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi, juce::MathConstants<float>::pi * 1.5f);
+                    path.lineTo(rectLeftX, rectTopY + radius);
+                    path.addArc(rectLeftX, rectTopY, radius * 2, radius * 2, juce::MathConstants<float>::pi * 1.5f, juce::MathConstants<float>::twoPi);
+                }
+                else
+                {
+                    path.startNewSubPath(arrowX - triangleWidth / 2, rectBottomY);
+                    path.lineTo(arrowX, rectBottomY + arrowHeight);
+                    path.lineTo(arrowX + triangleWidth / 2, rectBottomY);
+                    path.lineTo(rectRightX - radius, rectBottomY);
+                    path.addArc(rectRightX - radius * 2, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi, juce::MathConstants<float>::pi * 0.5f);
+                    path.lineTo(rectRightX, rectTopY + radius);
+                    path.addArc(rectRightX - radius * 2, rectTopY, radius * 2, radius * 2, juce::MathConstants<float>::pi * 0.5f, 0);
+                    path.lineTo(rectLeftX + radius, rectTopY);
+                    path.addArc(rectLeftX, rectTopY, radius * 2, radius * 2, 0, juce::MathConstants<float>::pi * -0.5f);
+                    path.lineTo(rectLeftX, rectBottomY - radius);
+                    path.addArc(rectLeftX, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi * -0.5f, -juce::MathConstants<float>::pi);
+                }
+
                 path.closeSubPath();
 
                 shadow.setOffset(2 * scale, 2 * scale);
@@ -82,22 +101,36 @@ namespace vmpc_juce::gui::vector {
             void resized() override
             {
                 const auto scale = getScale();
-                const auto arrowTipPos = getArrowTipPosWithinTooltipOverlay();
                 const auto textWidth = getTextWidth();
                 const auto textHeight = getFont().getHeight();
                 const auto margin = 3.f * scale;
                 const auto textWidthWithMargin = textWidth + (margin * 2);
                 const auto textHeightWithMargin = textHeight + (margin * 2);
-                const auto tooltipX = (arrowTipPos.x - (textWidthWithMargin * 0.5f));
-                const auto tooltipY = arrowTipPos.y;
                 const auto tooltipHeight = textHeightWithMargin + getArrowHeightScaled();
+
+                const auto tooltipOverlayBounds = tooltipOverlay->getBounds();
+
+                auto arrowTipPos = getUpArrowTipPosWithinTooltipOverlay();
+                auto tooltipX = (arrowTipPos.x - (textWidthWithMargin * 0.5f));
+                auto tooltipY = arrowTipPos.y;
                 auto rect = juce::Rectangle<int>(tooltipX, tooltipY, textWidthWithMargin, tooltipHeight);
 
-                auto tooltipOverlayBounds = tooltipOverlay->getBounds();
-
-                if (rect.getRight() > tooltipOverlayBounds.getRight())
+                if (rect.getBottom() > tooltipOverlayBounds.getBottom())
                 {
-                    rect.setX(tooltipOverlayBounds.getRight() - rect.getWidth());
+                    arrowTipPos = getDownArrowTipPosWithinTooltipOverlay();
+                    tooltipX = (arrowTipPos.x - (textWidthWithMargin * 0.5f));
+                    tooltipY = arrowTipPos.y;
+                    rect = juce::Rectangle<int>(tooltipX, tooltipY - tooltipHeight - (margin * 2), textWidthWithMargin, tooltipHeight);
+                    tooltipIsPositionedBelowAnchor = false;
+                }
+                else
+                {
+                    tooltipIsPositionedBelowAnchor = true;
+                }
+
+                if (rect.getRight() + margin > tooltipOverlayBounds.getRight())
+                {
+                    rect.setX(tooltipOverlayBounds.getRight() - (rect.getWidth() + margin));
                 }
                 else if (rect.getX() < tooltipOverlayBounds.getX())
                 {
@@ -110,7 +143,18 @@ namespace vmpc_juce::gui::vector {
             }
 
         private:
-            juce::Point<int> getArrowTipPosWithinTooltipOverlay()
+            juce::Point<int> getDownArrowTipPosWithinTooltipOverlay()
+            {
+                if (anchor == nullptr || tooltipOverlay == nullptr)
+                {
+                    return {};
+                }
+
+                auto anchorTopCenter = anchor->getBounds().getTopLeft() + juce::Point<int>(anchor->getWidth() / 2, 0);
+                return tooltipOverlay->getLocalPoint(anchor->getParentComponent(), anchorTopCenter).translated(0, 2.f * getScale());
+            }
+
+            juce::Point<int> getUpArrowTipPosWithinTooltipOverlay()
             {
                 if (anchor == nullptr || tooltipOverlay == nullptr)
                 {
@@ -121,7 +165,18 @@ namespace vmpc_juce::gui::vector {
                 return tooltipOverlay->getLocalPoint(anchor->getParentComponent(), anchorBottomCenter).translated(0, 2.f * getScale());
             }
 
-            juce::Point<int> getArrowTipPosWithinSelf()
+            juce::Point<int> getDownArrowTipPosWithinSelf()
+            {
+                if (anchor == nullptr)
+                {
+                    return {};
+                }
+
+                auto anchorTopCenter = anchor->getBounds().getTopLeft() + juce::Point<int>(anchor->getWidth() / 2, 0);
+                return getLocalPoint(anchor->getParentComponent(), anchorTopCenter);
+            }
+
+            juce::Point<int> getUpArrowTipPosWithinSelf()
             {
                 if (anchor == nullptr)
                 {
@@ -159,5 +214,7 @@ namespace vmpc_juce::gui::vector {
             const int shadowMargin = 40;
 
             melatonin::DropShadow shadow;
+
+            bool tooltipIsPositionedBelowAnchor = true;
     };
 } // namespace vmpc_juce::gui::vector

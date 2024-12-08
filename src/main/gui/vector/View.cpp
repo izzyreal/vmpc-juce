@@ -167,8 +167,9 @@ void View::resized()
     const auto menuWidth = Menu::widthAtScale1 * scale;
     const auto menuHeight = Menu::heightAtScale1 * scale;
     const auto menuWidthWithMargin = (Menu::widthAtScale1 + menuMargin) * scale;
+    const auto menuHeightWithMargin = (Menu::heightAtScale1 + menuMargin) * scale;
     const auto menuX = getWidth() - menuWidthWithMargin;
-    const auto menuY = menuMargin * scale;
+    const auto menuY = getHeight() - menuHeightWithMargin;
     
     menu->setBounds(menuX, menuY, menuWidth, menuHeight);
 
