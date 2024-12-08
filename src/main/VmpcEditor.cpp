@@ -3,8 +3,6 @@
 #include "VmpcEditor.hpp"
 #include "VmpcProcessor.hpp"
 
-#include "gui/vector/Constants.hpp"
-
 #include "VmpcJuceResourceUtil.hpp"
 
 #if ENABLE_GUI_INSPECTOR == 1
@@ -12,7 +10,6 @@
 #endif
 
 using namespace vmpc_juce;
-using namespace vmpc_juce::gui::vector;
 
 VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
         : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
