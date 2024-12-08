@@ -5,7 +5,7 @@
 #include "KeyboardButton.hpp"
 
 #if JUCE_IOS
-#include "ImportDocumentUrlProcessor.hpp"
+#include "gui/ios/ImportDocumentUrlProcessor.hpp"
 #endif
 
 namespace mpc { class Mpc; }
@@ -23,7 +23,7 @@ private:
     KeyboardButton keyboardButton;
 
 #if JUCE_IOS
-    ImportDocumentUrlProcessor importDocumentUrlProcessor;
+    vmpc_juce::gui::ios::ImportDocumentUrlProcessor importDocumentUrlProcessor;
     juce::Image importImg;
     juce::ImageButton importButton;
     juce::Image exportImg;

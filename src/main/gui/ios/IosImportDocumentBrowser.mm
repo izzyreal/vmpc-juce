@@ -11,7 +11,7 @@
 
 @interface MyDelegate<UIDocumentBrowserViewControllerDelegate> : NSObject
 
-@property (assign) ImportDocumentUrlProcessor* urlProcessor;
+@property (assign) vmpc_juce::gui::ios::ImportDocumentUrlProcessor* urlProcessor;
 @property (assign) UIProgressView* progressView;
 @property (assign) UIViewController* controller;
 @property (assign) UIAlertController* alert;
@@ -204,7 +204,7 @@
   [[self rootViewController] dismissViewControllerAnimated:true completion:nil];
 }
 
--(void) openIosDocumentBrowser:(ImportDocumentUrlProcessor*)urlProcessor {
+-(void) openIosDocumentBrowser:(vmpc_juce::gui::ios::ImportDocumentUrlProcessor*)urlProcessor {
   NSArray<NSString*> *utis = @[(NSString*)kUTTypeItem];
   UIDocumentBrowserViewController *picker =
   [[UIDocumentBrowserViewController alloc] initForOpeningFilesWithContentTypes:utis];
@@ -229,7 +229,7 @@
 
 /* ------------- */
 
-void doOpenIosImportDocumentBrowser(ImportDocumentUrlProcessor* urlProcessor, void* nativeWindowHandle) {
+void doOpenIosImportDocumentBrowser(vmpc_juce::gui::ios::ImportDocumentUrlProcessor* urlProcessor, void* nativeWindowHandle) {
   auto uiview = (UIView*) nativeWindowHandle;
   auto window = (UIWindow*)[uiview window];
   [window openIosDocumentBrowser:urlProcessor];
