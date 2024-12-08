@@ -439,6 +439,11 @@ namespace vmpc_juce::gui::vector {
                     tooltipText = "Recording manager";
                 }
 
+                if (infoTooltip->isVisible() && infoTooltip->getAnchor() == icon)
+                {
+                    return;
+                }
+
                 if (!tooltipText.empty())
                 {
                     infoTooltip->configure(tooltipText, icon);
