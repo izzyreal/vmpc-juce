@@ -115,7 +115,7 @@ View::View(
         tooltipOverlay->setAllKeyTooltipsVisibility(visibleEnabled);
     };
 
-    menu = new Menu(getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getNimbusSansScaled);
+    menu = new Menu(getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getNimbusSansScaled, mpc);
 
     addAndMakeVisible(menu);
     addAndMakeVisible(tooltipOverlay);
