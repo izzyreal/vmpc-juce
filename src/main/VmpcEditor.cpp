@@ -1,5 +1,3 @@
-#define ENABLE_GUI_INSPECTOR 0
-
 #include "VmpcEditor.hpp"
 #include "VmpcProcessor.hpp"
 
