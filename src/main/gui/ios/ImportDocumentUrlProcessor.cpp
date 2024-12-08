@@ -8,6 +8,8 @@
 #include "disk/AbstractDisk.hpp"
 #include "disk/MpcFile.hpp"
 
+using namespace vmpc_juce::gui::ios;
+
 std::string ImportDocumentUrlProcessor::destinationDir()
 {
     return mpc->getDisk()->getAbsolutePath();

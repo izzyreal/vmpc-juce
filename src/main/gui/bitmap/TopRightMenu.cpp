@@ -11,7 +11,7 @@ using namespace vmpc_juce::gui::bitmap;
 
 void doPresentShareOptions(void* nativeWindowHandle, mpc::Mpc*);
 
-void doOpenIosImportDocumentBrowser(ImportDocumentUrlProcessor*, void* nativeWindowHandle);
+void doOpenIosImportDocumentBrowser(vmpc_juce::gui::ios::ImportDocumentUrlProcessor*, void* nativeWindowHandle);
 
 void doPresentRecordingManager(void* nativeWindowHandle, mpc::Mpc*);
 
