@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #add_definitions(-DJUCE_ENABLE_REPAINT_DEBUGGING)
+#add_compile_definitions(JUCE_IOS_AUDIO_LOGGING=1)
 
 include(FetchContent)
 include(cmake/ResourceBundling.cmake)
