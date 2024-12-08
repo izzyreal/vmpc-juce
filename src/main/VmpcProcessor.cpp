@@ -458,7 +458,11 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
     totalNumOutputChannelsFinal = 2;
   }
 
+
   server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannelsFinal, totalNumOutputChannelsFinal);
+
+    buffer.clear();
+    return;
 
   // I've observed a crash in Ableton Live VST3 indicating what could be allocating MIDI events too soon.
   // So we give it a little bit of leeway of 10000 frames.
