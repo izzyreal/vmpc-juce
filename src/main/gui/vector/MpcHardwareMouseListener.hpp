@@ -191,6 +191,12 @@ namespace vmpc_juce::gui::vector {
             {
                 const auto editor = c->findParentComponentOfClass<juce::AudioProcessorEditor>();
                 auto tooltipOverlay = getChildComponentOfClass<TooltipOverlay>(editor);
+                
+                if (tooltipOverlay == nullptr)
+                {
+                    return;
+                }
+                
                 tooltipOverlay->setKeyTooltipVisibility(label, visibleEnabled);
             }
 
