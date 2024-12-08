@@ -5,9 +5,20 @@
 #include "SvgComponent.hpp"
 #include "TooltipOverlay.hpp"
 #include "InfoTooltip.hpp"
+#include "Mpc.hpp"
 
 #ifdef __APPLE__
 #include <TargetConditionals.h>
+#if TARGET_OS_IPHONE
+#include "gui/ios/ImportDocumentUrlProcessor.hpp"
+
+void doPresentShareOptions(void* nativeWindowHandle, mpc::Mpc*);
+
+void doOpenIosImportDocumentBrowser(vmpc_juce::gui::ios::ImportDocumentUrlProcessor*, void* nativeWindowHandle);
+
+void doPresentRecordingManager(void* nativeWindowHandle, mpc::Mpc*);
+
+#endif
 #endif
 
 namespace vmpc_juce::gui::vector {
@@ -21,14 +32,16 @@ namespace vmpc_juce::gui::vector {
                     const std::function<void()> &openKeyboardScreenToUse,
                     const std::function<void(const bool)> &setKeyboardShortcutTooltipsVisibilityToUse,
                     TooltipOverlay *tooltipOverlayToUse,
-                    const std::function<juce::Font&()> &getNimbusSansScaledToUse)
+                    const std::function<juce::Font&()> &getNimbusSansScaledToUse,
+                    mpc::Mpc &mpcToUse)
                 : getScale(getScaleToUse),
                 showAudioSettingsDialog(showAudioSettingsDialogToUse),
                 openKeyboardScreen(openKeyboardScreenToUse),
                 setKeyboardShortcutTooltipsVisibility(setKeyboardShortcutTooltipsVisibilityToUse),
                 resetWindowSize(resetWindowSizeToUse),
                 tooltipOverlay(tooltipOverlayToUse),
-                getNimbusSansScaled(getNimbusSansScaledToUse)
+                getNimbusSansScaled(getNimbusSansScaledToUse),
+                mpc(mpcToUse)
         {
             juce::Desktop::getInstance().addFocusChangeListener(this);
 
@@ -56,6 +69,8 @@ namespace vmpc_juce::gui::vector {
             }
 
 #if TARGET_OS_IPHONE
+            importDocumentUrlProcessor.mpc = &mpc;
+
             importIcon = new SvgComponent({"arrow_down_on_square.svg"}, this, 0.f, getScale);
             importIcon->setInterceptsMouseClicks(false, false);
             addAndMakeVisible(importIcon);
@@ -217,18 +232,23 @@ namespace vmpc_juce::gui::vector {
                 {
                     showAudioSettingsDialog();
                 }
+#if TARGET_OS_IPHONE
                 else if (clickedIcon == importIcon)
                 {
-                    printf("import\n");
+                    auto uiView = getPeer()->getNativeHandle();
+                    doOpenIosImportDocumentBrowser(&importDocumentUrlProcessor, uiView);
                 }
                 else if (clickedIcon == exportIcon)
                 {
-                    printf("export\n");
+                    auto uiView = getPeer()->getNativeHandle();
+                    doPresentShareOptions(uiView, &mpc);
                 }
                 else if (clickedIcon == folderIcon)
                 {
-                    printf("folder\n");
+                    auto uiView = getPeer()->getNativeHandle();
+                    doPresentRecordingManager(uiView, &mpc);
                 }
+#endif
                 else if (clickedIcon == keyboardIcon)
                 {
                     openKeyboardScreen();
@@ -453,6 +473,7 @@ namespace vmpc_juce::gui::vector {
                 return iconBounds;
             }
 
+            mpc::Mpc &mpc;
             const std::function<float()> &getScale;
             bool expanded = true;
             bool mouseOverExpansion = false;
@@ -479,5 +500,9 @@ namespace vmpc_juce::gui::vector {
             // We only want to know about actual mouse moves, so we keep track of
             // the last known mouse position.
             juce::Point<int> lastKnownMousePos {-1, -1};
+
+#if TARGET_OS_IPHONE 
+            vmpc_juce::gui::ios::ImportDocumentUrlProcessor importDocumentUrlProcessor;
+#endif
     };
 } // namespace vmpc_juce::gui::vector 
