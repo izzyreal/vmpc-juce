@@ -29,6 +29,11 @@ namespace vmpc_juce::gui::vector {
                 repaint();
             }
 
+            const juce::Component const* getAnchor()
+            {
+                return anchor;
+            }
+
             void paint(juce::Graphics &g) override
             {
                 const auto scale = getScale();
