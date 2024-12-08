@@ -106,10 +106,13 @@ View::View(
         else if (name == "play_led") playLed = l;
     }
 
-    ledController = new LedController(mpc, fullLevelLed, sixteenLevelsLed, nextSeqLed, trackMuteLed, padBankALed, padBankBLed, padBankCLed, padBankDLed, afterLed, undoSeqLed, recLed, overDubLed, playLed);
-
-    ledController->setPadBankA(true);
-
+    if (leds.size() == 13)
+    {
+        ledController = new LedController(mpc, fullLevelLed, sixteenLevelsLed, nextSeqLed, trackMuteLed, padBankALed, padBankBLed, padBankCLed, padBankDLed, afterLed, undoSeqLed, recLed, overDubLed, playLed);
+        
+        ledController->setPadBankA(true);
+    }
+    
     const auto openKeyboardScreen = [&mpc] { mpc.getLayeredScreen()->openScreen("vmpc-keyboard"); };
     const auto setKeyboardShortcutTooltipsVisibility = [&](const bool visibleEnabled){
         tooltipOverlay->setAllKeyTooltipsVisibility(visibleEnabled);
