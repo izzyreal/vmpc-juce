@@ -152,7 +152,10 @@ void View::deleteDisclaimer()
 
 void View::resized()
 {
-    assert(!components.empty());
+    if (components.empty())
+    {
+        return;
+    }
 
     auto rootComponent = components.front();
 
