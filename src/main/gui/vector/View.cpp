@@ -11,6 +11,7 @@
 #include "TooltipOverlay.hpp"
 #include "Menu.hpp"
 #include "Disclaimer.hpp"
+#include "About.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "Mpc.hpp"
@@ -126,6 +127,9 @@ View::View(
     const std::function<void()> deleteDisclaimerF = [this] { deleteDisclaimer(); };
     disclaimer = new Disclaimer(getNimbusSansScaled, deleteDisclaimerF);
     addAndMakeVisible(disclaimer);
+
+    about = new About(getScale, getNimbusSansScaled);
+    addAndMakeVisible(about);
 }
 
 View::~View()
@@ -144,6 +148,7 @@ View::~View()
     delete tooltipOverlay;
     delete menu;
     delete disclaimer;
+    delete about;
 }
 
 void View::deleteDisclaimer()
@@ -184,6 +189,11 @@ void View::resized()
     if (disclaimer != nullptr)
     {
         disclaimer->setBounds(rect);
+    }
+
+    if (about != nullptr)
+    {
+        about->setBounds(rect);
     }
 }
 

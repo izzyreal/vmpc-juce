@@ -1,0 +1,67 @@
+Credits and thanks
+
+The vector art is made by https://www.instagram.com/azalvector/
+@azalvector, thanks for your amazing contribution. It made the new VMPC2000XL vector UI idea finally come true after many years.
+
+Much respect and many thanks to the creators, maintainers, and contributors of the following open source tools:
+
+JUCE
+https://github.com/juce-framework/JUCE
+C++ cross-platform graphics, keyboard and mouse input, and audio for Linux, Windows, macOS, iOS, LV2, VST3, AUv2, AUv3, and standalone desktop targets.
+
+melatonin_blur
+https://github.com/sudara/melatonin_blur
+Shadows and glows for JUCE.
+
+rapidjson
+https://github.com/Tencent/rapidjson
+JSON parsing, used for reading LCD screen layout definitions.
+
+nlohmann/json
+https://github.com/nlohmann/json
+JSON parsing, used for reading vector UI layout definitions.
+
+tl-expected
+https://github.com/TartanLlama/expected
+Single header implementation of std::expected with functional-style extensions.
+
+Catch2
+https://github.com/catchorg/Catch2
+C++ unit tests.
+
+gh-filesystem
+https://github.com/gulrak/filesystem
+A std::filesystem implementation that runs on older ABIs.
+
+CMake
+https://cmake.org/
+C/C++ build system.
+
+Inkscape
+https://inkscape.org/
+
+https://heroicons.com/
+
+https://github.com/vim/vim
+
+Special thanks to JetBrains for providing a free license via https://www.jetbrains.com/community/opensource/
+https://www.jetbrains.com/
+
+https://www.sphinx-doc.org/ for the tech behind the documentation at https://vmpcdocs.izmar.nl.
+
+And VMPC2000XL also uses some libraries made by Izmar, the author of VMPC2000XL:
+
+mpc
+https://github.com/izzyreal/mpc
+Platform-independent C++ abstraction of the Akai MPC2000XL.
+
+juce-raw-keyboard-input-module
+https://github.com/izzyreal/juce-raw-keyboard-input-module
+Linux, Windows and macOS raw (game-engine style) keyboard input.
+
+akai-fat
+https://github.com/izzyreal/akaifat
+Based on https://github.com/waldheinz/fat32-lib.
+Provides access to Akai FAT16 volumes with 16.3 filenames.
+
+Many thanks to Ali Ahmet of https://thebeatcommunity.com/, https://x.com/ninobeatz, and everyone who has emailed me for support, reporting bugs, and requesting new features, and to those who have opened GitHub issues for them. And thanks as well to the founders of https://www.theaudioprogrammer.com/ and the members of the Discord server.
