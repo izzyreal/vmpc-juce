@@ -11,6 +11,7 @@
 #include "TooltipOverlay.hpp"
 #include "Menu.hpp"
 #include "Disclaimer.hpp"
+#include "About.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "Mpc.hpp"
@@ -118,7 +119,27 @@ View::View(
         tooltipOverlay->setAllKeyTooltipsVisibility(visibleEnabled);
     };
 
-    menu = new Menu(getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getNimbusSansScaled, mpc);
+    const auto closeAbout = [this] {
+        if (about == nullptr) return;
+        removeChildComponent(about);
+        delete about;
+        about = nullptr;
+    };
+
+    const auto openAbout = [this, closeAbout] {
+        if (about != nullptr)
+        {
+            removeChildComponent(about);
+            delete about;
+            about = nullptr;
+        }
+
+        about = new About(getScale, getNimbusSansScaled, closeAbout);
+        addAndMakeVisible(about);
+        resized();
+    };
+
+    menu = new Menu(getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getNimbusSansScaled, mpc, openAbout);
 
     addAndMakeVisible(menu);
     addAndMakeVisible(tooltipOverlay);
@@ -144,6 +165,7 @@ View::~View()
     delete tooltipOverlay;
     delete menu;
     delete disclaimer;
+    delete about;
 }
 
 void View::deleteDisclaimer()
@@ -184,6 +206,11 @@ void View::resized()
     if (disclaimer != nullptr)
     {
         disclaimer->setBounds(rect);
+    }
+
+    if (about != nullptr)
+    {
+        about->setBounds(rect);
     }
 }
 

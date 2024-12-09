@@ -15,6 +15,7 @@ namespace vmpc_juce::gui::vector {
     class TooltipOverlay;
     class Menu;
     class Disclaimer;
+    class About;
 
     class View : public juce::Component {
 
@@ -41,6 +42,7 @@ namespace vmpc_juce::gui::vector {
             TooltipOverlay *tooltipOverlay = nullptr;
             Menu *menu = nullptr;
             Disclaimer *disclaimer = nullptr;
+            About *about = nullptr;
 
             friend class Lcd;
     };
