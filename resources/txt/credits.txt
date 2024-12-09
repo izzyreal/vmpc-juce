@@ -1,0 +1,80 @@
+Credits and thanks
+
+The vector art is made by <link>https://www.instagram.com/azalvector</link>
+@azalvector, thanks for your amazing contribution. It made the new
+VMPC2000XL vector UI idea finally come true after many years.
+
+Much respect and many thanks to the creators, maintainers, and
+contributors of the following open source tools:
+
+JUCE
+<link>https://github.com/juce-framework/JUCE</link>
+C++ cross-platform graphics, keyboard and mouse input, and audio for
+Linux, Windows, macOS, iOS, LV2, VST3, AUv2, AUv3, and standalone
+desktop targets.
+
+melatonin_blur
+<link>https://github.com/sudara/melatonin_blur</link>
+Shadows and glows for JUCE.
+
+rapidjson
+<link>https://github.com/Tencent/rapidjson</link>
+JSON parsing, used for reading LCD screen layout definitions.
+
+nlohmann/json
+<link>https://github.com/nlohmann/json</link>
+JSON parsing, used for reading vector UI layout definitions.
+
+tl-expected
+<link>https://github.com/TartanLlama/expected</link>
+Single header implementation of std::expected with functional-style
+extensions.
+
+Catch2
+<link>https://github.com/catchorg/Catch2</link>
+C++ unit tests.
+
+gh-filesystem
+<link>https://github.com/gulrak/filesystem</link>
+A std::filesystem implementation that runs on older ABIs.
+
+CMake
+<link>https://cmake.org</link>
+C/C++ build system.
+
+Inkscape
+<link>https://inkscape.org</link>
+
+Heroicons
+<link>https://heroicons.com</link>
+
+VIM
+<link>https://github.com/vim/vim</link>
+
+Special thanks to JetBrains for providing a free license.
+<link>https://www.jetbrains.com</link>
+
+<link>https://www.sphinx-doc.org</link> for the tech behind the documentation at
+<link>https://vmpcdocs.izmar.nl</link>.
+
+VMPC2000XL also uses some libraries made by Izmar:
+
+mpc
+<link>https://github.com/izzyreal/mpc</link>
+Platform-independent C++ abstraction of the Akai MPC2000XL.
+
+juce-raw-keyboard-input-module
+<link>https://github.com/izzyreal/juce-raw-keyboard-input-module</link>
+Linux, Windows and macOS raw (game-engine style) keyboard input.
+
+akai-fat
+<link>https://github.com/izzyreal/akaifat</link>
+Based on <link>https://github.com/waldheinz/fat32-lib</link>.
+Provides access to Akai FAT16 volumes with 16.3 filenames.
+
+Many thanks to Ali Ahmet of <link>https://thebeatcommunity.com</link>,
+<link>https://x.com/ninobeatz</link>, and everyone who has emailed me for support,
+reporting bugs, and requesting new features, and to those who have
+opened GitHub issues for them. And thanks as well to the founders of
+<link>https://www.theaudioprogrammer.com</link> and the members of the Discord
+server.

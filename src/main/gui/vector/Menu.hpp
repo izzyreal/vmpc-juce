@@ -33,7 +33,8 @@ namespace vmpc_juce::gui::vector {
                     const std::function<void(const bool)> &setKeyboardShortcutTooltipsVisibilityToUse,
                     TooltipOverlay *tooltipOverlayToUse,
                     const std::function<juce::Font&()> &getNimbusSansScaledToUse,
-                    mpc::Mpc &mpcToUse)
+                    mpc::Mpc &mpcToUse,
+                    const std::function<void()> &openAboutToUse)
                 : getScale(getScaleToUse),
                 showAudioSettingsDialog(showAudioSettingsDialogToUse),
                 openKeyboardScreen(openKeyboardScreenToUse),
@@ -41,7 +42,8 @@ namespace vmpc_juce::gui::vector {
                 resetWindowSize(resetWindowSizeToUse),
                 tooltipOverlay(tooltipOverlayToUse),
                 getNimbusSansScaled(getNimbusSansScaledToUse),
-                mpc(mpcToUse)
+                mpc(mpcToUse),
+                openAbout(openAboutToUse)
         {
             juce::Desktop::getInstance().addFocusChangeListener(this);
 
@@ -86,6 +88,10 @@ namespace vmpc_juce::gui::vector {
             helpIcon = new SvgComponent({"question_mark_circle.svg"}, this, 0.f, getScale);
             helpIcon->setInterceptsMouseClicks(false, false);
             addAndMakeVisible(helpIcon);
+
+            infoIcon = new SvgComponent({"info_icon.svg"}, this, 0.f, getScale);
+            infoIcon->setInterceptsMouseClicks(false, false);
+            addAndMakeVisible(infoIcon);
 
             keyboardIcon = new SvgComponent({"keyboard_icon.svg"}, this, 0.f, getScale);
             keyboardIcon->setInterceptsMouseClicks(false, false);
@@ -257,7 +263,7 @@ namespace vmpc_juce::gui::vector {
                     {
                         margin.left *= 0.5f; margin.right *= 0.5f;
                     }
-                    else if (icon == helpIcon)
+                    else if (icon == helpIcon || icon == infoIcon)
                     {
                         margin = { 2.5f * scale };
                     }
@@ -320,9 +326,10 @@ namespace vmpc_juce::gui::vector {
                 delete helpIcon;
                 delete keyboardIcon;
                 delete folderIcon;
+                delete infoIcon;
             }
 
-            const static int totalAvailableIconCount = 8;
+            const static int totalAvailableIconCount = 9;
             constexpr static const float widthAtScale1 = 15.f * totalAvailableIconCount * 1.1;
             constexpr static const float heightAtScale1 = 16.f * 1.1;
 
@@ -396,6 +403,10 @@ namespace vmpc_juce::gui::vector {
                     juce::URL url("https://vmpcdocs.izmar.nl");
                     url.launchInDefaultBrowser();
                 }
+                else if (clickedIcon == infoIcon)
+                {
+                    openAbout();
+                }
                 else if (clickedIcon == resetZoomIcon)
                 {
                     resetWindowSize();
@@ -421,6 +432,10 @@ namespace vmpc_juce::gui::vector {
                 else if (icon == helpIcon)
                 {
                     tooltipText = "Browse online documentation";
+                }
+                else if (icon == infoIcon)
+                {
+                    tooltipText = "About";
                 }
                 else if (icon == keyboardIcon)
                 {
@@ -477,7 +492,7 @@ namespace vmpc_juce::gui::vector {
 #endif
                 result.push_back(keyboardIcon);
                 result.push_back(helpIcon);
-
+                result.push_back(infoIcon);
                 return result;
             }
 
@@ -516,6 +531,7 @@ namespace vmpc_juce::gui::vector {
             const std::function<void()> openKeyboardScreen;
             const std::function<void(const bool)> setKeyboardShortcutTooltipsVisibility;
             const std::function<juce::Font&()> &getNimbusSansScaled;
+            const std::function<void()> openAbout;
 
             TooltipOverlay *tooltipOverlay;
             InfoTooltip *infoTooltip = nullptr;
@@ -528,6 +544,7 @@ namespace vmpc_juce::gui::vector {
             SvgComponent *helpIcon = nullptr;
             SvgComponent *keyboardIcon = nullptr;
             SvgComponent *folderIcon = nullptr;
+            SvgComponent *infoIcon = nullptr;
 
             // mouseMove is triggered also when modifier keys have changed.
             // We only want to know about actual mouse moves, so we keep track of
