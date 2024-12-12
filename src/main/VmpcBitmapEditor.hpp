@@ -4,7 +4,7 @@
 #include "VmpcProcessor.hpp"
 
 #include "gui/bitmap/ContentComponent.hpp"
-#include "gui/bitmap/VmpcLookAndFeel.hpp"
+#include "gui/VmpcNoCornerResizerLookAndFeel.hpp"
 
 namespace mpc { class Mpc; }
 
@@ -23,7 +23,7 @@ namespace vmpc_juce {
             void showDisclaimer();
 
         private:
-            VmpcLookAndFeel lookAndFeel;
+            VmpcNoCornerResizerLookAndFeel lookAndFeel;
             VmpcProcessor& vmpcProcessor;
             mpc::Mpc& mpc;
 

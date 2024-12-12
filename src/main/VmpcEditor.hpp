@@ -2,6 +2,8 @@
 
 #include "juce_audio_processors/juce_audio_processors.h"
 
+#include "gui/VmpcNoCornerResizerLookAndFeel.hpp"
+
 namespace vmpc_juce::gui::vector { class View; }
 namespace melatonin { class Inspector; }
 
@@ -26,5 +28,6 @@ private:
     const float initial_scale = (2.0f - 0.1f) * 1.2f;
 
     juce::Font nimbusSans;
+    VmpcNoCornerResizerLookAndFeel lookAndFeel;
 };
 }
