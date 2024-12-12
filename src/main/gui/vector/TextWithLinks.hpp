@@ -22,11 +22,11 @@ class TextWithLinks : public juce::Component
 
         void resized() override
         {
+            updateFont();
             juce::TextLayout layout;
             layout.createLayout(parsedText, getWidth());
 
             updateLinkBounds(layout);
-            updateFont();
 
             setSize(getWidth(), (int)std::ceil(layout.getHeight()));
         }
@@ -34,8 +34,6 @@ class TextWithLinks : public juce::Component
         void mouseMove(const juce::MouseEvent& e) override
         {
             const auto linkIndex = getLinkIndexAtPosition(e.getPosition());
-static int counter = 0;
-            printf("mouseMove %i, linkIndex: %i\n", counter++, linkIndex);
 
             if (linkIndex == currentlyHoveringLinkIndex)
             {
@@ -181,7 +179,6 @@ static int counter = 0;
 
         void updateLinkColor(int index, juce::Colour newColour)
         {
-            printf("Updating color of link %i\n", index);
             int currentLinkIndex = 0;
 
             for (int i = 0; i < parsedText.getNumAttributes(); i++)
