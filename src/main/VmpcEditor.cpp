@@ -61,6 +61,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     resetWindowSize();
     setResizable(true, true);
     getConstrainer()->setFixedAspectRatio(initial_width / initial_height);
+    setLookAndFeel(&lookAndFeel);
 #endif
     addAndMakeVisible(view);
 #if ENABLE_GUI_INSPECTOR == 1
