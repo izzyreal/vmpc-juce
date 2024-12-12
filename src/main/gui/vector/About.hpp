@@ -203,17 +203,7 @@ namespace vmpc_juce::gui::vector {
 
             void mouseWheelMove(const juce::MouseEvent &e, const juce::MouseWheelDetails &w) override
             {
-                const auto oldScrollOffset = scrollOffset;
-
-                scrollOffset = std::clamp<float>(scrollOffset - (150 * w.deltaY), 0, maxScrollOffset);
-
-                if (scrollOffset == oldScrollOffset)
-                {
-                    return;
-                }
-
-                resized();
-                repaint();
+                setScrollOffset(scrollOffset - (150 * w.deltaY));
             }
 
             void resized() override
@@ -244,8 +234,7 @@ namespace vmpc_juce::gui::vector {
                 if (scrollOffset != 0.f)
                 {
                     const auto resizeFactor = newMaxScrollOffset / maxScrollOffset;
-                    scrollOffset = scrollOffset * resizeFactor;
-                    textWithLinks->setTopLeftPosition(margin, margin - scrollOffset);
+                    setScrollOffset(scrollOffset * resizeFactor);
                 }
 
                 maxScrollOffset = newMaxScrollOffset;
@@ -271,7 +260,11 @@ namespace vmpc_juce::gui::vector {
                     return;
                 }
 
-                resized();
+                const auto scale = getScale();
+                const auto margin = marginAtScale1 * scale;
+
+                textWithLinks->setTopLeftPosition(margin, margin - scrollOffset);
+
                 repaint();
             }
 
