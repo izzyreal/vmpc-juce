@@ -16,15 +16,21 @@ namespace vmpc_juce::gui::vector {
                     const std::function<float()>& getScaleToUse,
                     const std::string textToUse,
                     const juce::Colour colourToUse,
-                    const std::function<juce::Font&()>& getNimbusSansScaledToUse)
-                : text(textToUse), getScale(getScaleToUse), colour(colourToUse),
-                getNimbusSansScaled(getNimbusSansScaledToUse)
-        {}
+                    const std::function<juce::Font&()>& getNimbusSansScaled)
+                : text(textToUse), getScale(getScaleToUse), colour(colourToUse)
+        {
+            getFont = [getNimbusSansScaled, this]() -> juce::Font {
+                auto font = getNimbusSansScaled();
+                font.setHeight(font.getHeight() * fontScale);
+                return font;
+            };
+        }
 
             void paint(juce::Graphics& g) override
             {
                 //g.fillAll(juce::Colours::yellowgreen);
-                g.setFont(getNimbusSansScaled());
+
+                g.setFont(getFont());
 
                 int row = 0;
                 std::string buf;
@@ -37,7 +43,7 @@ namespace vmpc_juce::gui::vector {
                 {
                     if (c == '\n')
                     {
-                        g.drawText(buf, 0, yOffset + row * (Constants::BASE_FONT_SIZE + Constants::LINE_SIZE) * getScale(), getWidth(), getHeight(), juce::Justification::centredTop);
+                        g.drawText(buf, 0, std::round(yOffset + row * (Constants::BASE_FONT_SIZE + Constants::LINE_SIZE) * getScale()), getWidth(), getHeight(), juce::Justification::centredTop);
                         row++;
                         should_draw = false;
                         buf.clear();
@@ -49,7 +55,7 @@ namespace vmpc_juce::gui::vector {
 
                 if (should_draw && !buf.empty())
                 {
-                    g.drawText(buf, 0, yOffset + row * (Constants::BASE_FONT_SIZE + Constants::LINE_SIZE) * getScale(), getWidth(), getHeight(), juce::Justification::centredTop);
+                    g.drawText(buf, 0, std::round(yOffset + row * (Constants::BASE_FONT_SIZE + Constants::LINE_SIZE) * getScale()), getWidth(), getHeight(), juce::Justification::centredTop);
                 }
             }
 
@@ -60,11 +66,13 @@ namespace vmpc_juce::gui::vector {
                 std::string buf;
                 bool should_check = true;
 
+                auto font = getFont();
+
                 for (auto c : text)
                 {
                     if (c == '\n')  
                     {
-                        upper = std::max<int>(getNimbusSansScaled().getStringWidth(buf), upper);
+                        upper = std::max<int>(font.getStringWidth(buf), upper);
                         buf.clear();
                         should_check = false;
                         continue;
@@ -76,7 +84,7 @@ namespace vmpc_juce::gui::vector {
 
                 if (should_check && !buf.empty())
                 {
-                    upper = std::max<int>(getNimbusSansScaled().getStringWidth(buf), upper);
+                    upper = std::max<int>(font.getStringWidth(buf), upper);
                 }
 
                 return ((float) upper );
@@ -85,7 +93,7 @@ namespace vmpc_juce::gui::vector {
             float getRequiredHeight() override
             {
                 const auto newlineCount = (float) std::count(text.begin(), text.end(), '\n');
-                const auto labelHeight = ((Constants::BASE_FONT_SIZE * (newlineCount + 1)) + (Constants::LINE_SIZE * newlineCount)) * getScale();
+                const auto labelHeight = ((Constants::BASE_FONT_SIZE * (newlineCount + 1)) + (Constants::LINE_SIZE * newlineCount)) * getScale() * fontScale;
                 return labelHeight;
             }
 
@@ -93,6 +101,6 @@ namespace vmpc_juce::gui::vector {
             std::string text;
             const std::function<float()> &getScale;
             juce::Colour colour;
-            const std::function<juce::Font&()> &getNimbusSansScaled;
+            std::function<juce::Font()> getFont;
     };
 } // namespace vmpc_juce::gui::vector

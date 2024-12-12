@@ -359,6 +359,11 @@ void ViewUtil::createComponent(
             tooltipOverlay->addChildComponent(tooltip);
         }
     }
+
+    if (auto labelComponent = dynamic_cast<LabelComponent*>(n.label_component); labelComponent != nullptr && n.font_scale > 0.f)
+    {
+        labelComponent->setFontScale(n.font_scale);
+    }
 }
 
 void ViewUtil::createComponents(

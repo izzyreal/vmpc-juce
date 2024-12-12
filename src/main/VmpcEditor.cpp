@@ -73,6 +73,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
 
 VmpcEditor::~VmpcEditor()
 {
+    setLookAndFeel(nullptr);
     delete view;
     delete inspector;
 }
