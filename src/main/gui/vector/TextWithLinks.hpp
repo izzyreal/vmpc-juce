@@ -33,25 +33,37 @@ class TextWithLinks : public juce::Component
 
         void mouseMove(const juce::MouseEvent& e) override
         {
-            const auto linkIndex = getLinkIndexAtPosition(e.position);
+            const auto linkIndex = getLinkIndexAtPosition(e.getPosition());
+static int counter = 0;
+            printf("mouseMove %i, linkIndex: %i\n", counter++, linkIndex);
 
-            for (int i = 0; i < links.size(); i++)
+            if (linkIndex == currentlyHoveringLinkIndex)
             {
-                updateLinkColor(i, juce::Colours::blue);
+                return;
             }
 
-            if (linkIndex != -1)
+            if (linkIndex >= 0 && currentlyHoveringLinkIndex == -1)
             {
                 updateLinkColor(linkIndex, juce::Colours::lightblue);
             }
+            else if (linkIndex == -1 && currentlyHoveringLinkIndex >= 0)
+            {
+                updateLinkColor(currentlyHoveringLinkIndex, juce::Colours::blue);
+            }
+            else
+            {
+                updateLinkColor(currentlyHoveringLinkIndex, juce::Colours::blue);
+                updateLinkColor(linkIndex, juce::Colours::lightblue);
+            }
 
+            currentlyHoveringLinkIndex = linkIndex;
             repaint();
         }
 
         void mouseDown(const juce::MouseEvent& e) override
         {
-            const auto linkIndex = getLinkIndexAtPosition(e.position);
-            
+            const auto linkIndex = getLinkIndexAtPosition(e.getPosition());
+
             if (linkIndex == -1)
             {
                 return;
@@ -69,18 +81,22 @@ class TextWithLinks : public juce::Component
             juce::String url;
         };
 
-        int getLinkIndexAtPosition(const juce::Point<float> &p)
+        int getLinkIndexAtPosition(juce::Point<int> p)
         {
             for (int i = 0; i < links.size(); ++i)
             {
                 auto& link = links[i];
 
-                auto screenBounds = link.bounds.translated(getScreenX(), getScreenY());
+                if (link.bounds.toNearestIntEdges().contains(p)) return i;
+
+                /*
+                 auto screenBounds = link.bounds.translated(getScreenX(), getScreenY());
 
                 if (screenBounds.contains(p + getScreenPosition().toFloat()))
                 {
                     return i;
                 }
+                */
             }
 
             return -1;
@@ -90,6 +106,7 @@ class TextWithLinks : public juce::Component
         juce::AttributedString parsedText;
         std::vector<Link> links;
         const std::function<juce::Font&()> &getNimbusSansScaled;
+        int currentlyHoveringLinkIndex = -1;
 
         void parse()
         {
@@ -164,6 +181,7 @@ class TextWithLinks : public juce::Component
 
         void updateLinkColor(int index, juce::Colour newColour)
         {
+            printf("Updating color of link %i\n", index);
             int currentLinkIndex = 0;
 
             for (int i = 0; i < parsedText.getNumAttributes(); i++)
