@@ -1,3 +1,12 @@
+VMPC2000XL, an Akai MPC2000XL emulator by Izmar.
+Version: <version>
+<link>https://www.izmar.nl</link>
+
+MPC® and Akai Professional® are registered trademarks of
+inMusic Brands. Inc. This emulator is not affiliated with
+inMusic and use of the MPC® and Akai Professional® names has
+not been authorized, sponsored or otherwise approved by inMusic.
+
 Credits and thanks
 
 The vector art is made by <link>https://www.instagram.com/azalvector</link>
@@ -44,14 +53,20 @@ C/C++ build system.
 
 Inkscape
 <link>https://inkscape.org</link>
+Used for processing the vector art.
 
 Heroicons
 <link>https://heroicons.com</link>
+Provides all menu icons, except for the keyboard one.
 
 VIM
 <link>https://github.com/vim/vim</link>
+Awesome code editor.
 
-Special thanks to JetBrains for providing a free license.
+Special thanks to JetBrains for providing a free license. I have relied on
+CLion for several years, and I still use TeamCity on-premise to automate
+builds and code signing for binaries, installers, GitHub release publishing,
+and VMPC2000XL HTML and PDF documentation.
 <link>https://www.jetbrains.com</link>
 
 <link>https://www.sphinx-doc.org</link> for the tech behind the documentation at

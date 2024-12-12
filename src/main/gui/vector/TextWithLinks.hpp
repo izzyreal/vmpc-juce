@@ -1,5 +1,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "version.h"
+
 class TextWithLinks : public juce::Component
 {
     public:
@@ -23,7 +25,7 @@ class TextWithLinks : public juce::Component
 
         void resized() override
         {
-            parseLinks();
+            parse();
             juce::TextLayout layout;
             layout.createLayout(parsedText, getWidth() * 100);
             setSize(getWidth(), (int)std::ceil(layout.getHeight()));
@@ -63,7 +65,7 @@ class TextWithLinks : public juce::Component
     private:
         struct Link
         {
-            std::vector<juce::Rectangle<float>> bounds;
+            juce::Rectangle<float> bounds;
             juce::String url;
         };
 
@@ -73,14 +75,11 @@ class TextWithLinks : public juce::Component
             {
                 auto& link = links[i];
 
-                for (auto &b : link.bounds)
-                {
-                    auto screenBounds = b.translated(getScreenX(), getScreenY());
+                auto screenBounds = link.bounds.translated(getScreenX(), getScreenY());
 
-                    if (screenBounds.contains(p + getScreenPosition().toFloat()))
-                    {
-                        return i;
-                    }
+                if (screenBounds.contains(p + getScreenPosition().toFloat()))
+                {
+                    return i;
                 }
             }
 
@@ -92,13 +91,16 @@ class TextWithLinks : public juce::Component
         std::vector<Link> links;
         const std::function<juce::Font&()> &getNimbusSansScaled;
 
-        void parseLinks()
+        void parse()
         {
             links.clear();
             parsedText.clear();
-            juce::String remainingText = rawText;
+
             auto font = getNimbusSansScaled();
             font.setHeight(font.getHeight() * 1.4f);
+
+            juce::String remainingText = rawText;
+            remainingText = remainingText.replace("<version>", version::get());
 
             while (!remainingText.isEmpty())
             {
@@ -136,17 +138,12 @@ class TextWithLinks : public juce::Component
                 {
                     if (run->colour == juce::Colours::blue)
                     {
-                            if (linkIndex >= links.size())
-                            {
-                                // SHOULDN'T HAPPEN (classic)
-                                break;
-                            }
                         const auto xRange = run->getRunBoundsX();
                         const auto y = line.getLineBounds().getY();
                         const auto height = line.getLineBounds().getHeight();
                         const auto linkRect = juce::Rectangle<float>(xRange.getStart(), y, xRange.getLength(), height);
 
-                        links[linkIndex].bounds.push_back(linkRect);
+                        links[linkIndex].bounds = linkRect;
 
                         const auto partialLinkText = parsedText.getText().substring(run->stringRange.getStart(), run->stringRange.getEnd() + 1);
                         currentLinkText.append(partialLinkText, partialLinkText.length());
@@ -163,39 +160,21 @@ class TextWithLinks : public juce::Component
 
         void updateLinkColor(int index, juce::Colour newColour)
         {
-            juce::AttributedString newParsedText;
-            auto font = getNimbusSansScaled();
-            font.setHeight(font.getHeight() * 1.4f);
-            int linkCount = 0;
-            juce::String remainingText = rawText;
+            int currentLinkIndex = 0;
 
-            while (!remainingText.isEmpty())
+            for (int i = 0; i < parsedText.getNumAttributes(); i++)
             {
-                int start = remainingText.indexOf("<link>");
-                int end = remainingText.indexOf("</link>");
-
-                if (start < 0 || end < 0 || end <= start)
+                auto &a = parsedText.getAttribute(i);
+                if (a.colour == juce::Colours::blue || a.colour == juce::Colours::lightblue)
                 {
-                    newParsedText.append(remainingText, font, juce::Colours::black);
+                    if (currentLinkIndex != index)
+                    {
+                        currentLinkIndex++;
+                        continue;
+                    }
+                    parsedText.setColour(a.range, newColour);
                     break;
                 }
-
-                if (start > 0)
-                {
-                    newParsedText.append(remainingText.substring(0, start), font, juce::Colours::black);
-                }
-
-                juce::String linkText = remainingText.substring(start + 6, end);
-
-                if (linkCount == index)
-                    newParsedText.append(linkText, font, newColour);
-                else
-                    newParsedText.append(linkText, font, juce::Colours::blue);
-
-                linkCount++;
-                remainingText = remainingText.substring(end + 7);
             }
-
-            parsedText = newParsedText;
         }
 };
