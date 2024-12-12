@@ -6,5 +6,13 @@ namespace vmpc_juce::gui::vector {
         public:
             virtual float getRequiredWidth() = 0;
             virtual float getRequiredHeight() = 0;
+
+            virtual void setFontScale(const float fontScaleToUse)
+            {
+                fontScale = fontScaleToUse;
+            }
+
+        protected:
+            float fontScale = 1.f;
     };
 } // namespace vmpc_juce::gui::vector
