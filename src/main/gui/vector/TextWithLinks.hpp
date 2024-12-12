@@ -9,25 +9,25 @@ class TextWithLinks : public juce::Component
             : rawText(rawTextToUse), getNimbusSansScaled(getNimbusSansScaledToUse)
     {
         setOpaque(true);
+        parse();
     }
 
         void paint(juce::Graphics& g) override
         {
             g.fillAll(juce::Colours::white);
-
-            auto font = getNimbusSansScaled();
-            font.setHeight(font.getHeight() * 1.4f);
-
             juce::TextLayout layout;
-            layout.createLayout(parsedText, getWidth() * 100);
+            layout.createLayout(parsedText, getWidth());
             layout.draw(g, getLocalBounds().toFloat());
         }
 
         void resized() override
         {
-            parse();
             juce::TextLayout layout;
-            layout.createLayout(parsedText, getWidth() * 100);
+            layout.createLayout(parsedText, getWidth());
+
+            updateLinkBounds(layout);
+            updateFont();
+
             setSize(getWidth(), (int)std::ceil(layout.getHeight()));
         }
 
@@ -96,9 +96,6 @@ class TextWithLinks : public juce::Component
             links.clear();
             parsedText.clear();
 
-            auto font = getNimbusSansScaled();
-            font.setHeight(font.getHeight() * 1.4f);
-
             juce::String remainingText = rawText;
             remainingText = remainingText.replace("<version>", version::get());
 
@@ -109,26 +106,33 @@ class TextWithLinks : public juce::Component
 
                 if (start < 0 || end < 0 || end <= start)
                 {
-                    parsedText.append(remainingText, font, juce::Colours::black);
+                    parsedText.append(remainingText, juce::Colours::black);
                     break;
                 }
 
                 if (start > 0)
                 {
-                    parsedText.append(remainingText.substring(0, start), font, juce::Colours::black);
+                    parsedText.append(remainingText.substring(0, start), juce::Colours::black);
                 }
 
                 juce::String linkText = remainingText.substring(start + 6, end);
-                parsedText.append(linkText, font, juce::Colours::blue);
+                parsedText.append(linkText, juce::Colours::blue);
 
                 links.push_back({ {}, linkText });
 
                 remainingText = remainingText.substring(end + 7);
             }
+        }
 
-            juce::TextLayout layout;
-            layout.createLayout(parsedText, getWidth() * 100);
+        void updateFont()
+        {
+            auto font = getNimbusSansScaled();
+            font.setHeight(font.getHeight() * 1.4f);
+            parsedText.setFont(font);
+        }
 
+        void updateLinkBounds(const juce::TextLayout &layout)
+        {
             int linkIndex = 0;
             juce::String currentLinkText;
 
