@@ -43,7 +43,7 @@ class Shadow : public juce::Component {
             if (isInner)
             {
                 innerShadow.setRadius(radius);
-                innerShadow.setOffset(offset);
+                innerShadow.setOffset(offset.withY(offset.getY() * 4));
                 innerShadow.render(g, path);
             }
             else
