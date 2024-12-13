@@ -6,6 +6,7 @@
 #include "sequencer/Sequencer.hpp"
 #include "hardware/Hardware.hpp"
 #include "hardware/Led.hpp"
+#include "hardware/PadAndButtonKeyboard.hpp"
 #include "controls/Controls.hpp"
 
 using namespace vmpc_juce::gui::vector;
@@ -116,9 +117,18 @@ void LedController::setUndoSeq(bool b)
 
 void LedController::timerCallback()
 {
-    auto seq = mpc.getSequencer();
-    auto controls = mpc.getControls();
-    auto stepEditor = mpc.getLayeredScreen()->getCurrentScreenName() == "step-editor";
+    const auto screenName = mpc.getLayeredScreen()->getCurrentScreenName();
+
+    if (screenName == "name")
+    {
+        const auto isUpperCase = mpc.getHardware()->getPadAndButtonKeyboard()->isUpperCase();
+        setFullLevel(!isUpperCase);
+        return;
+    }
+
+    const auto seq = mpc.getSequencer();
+    const auto controls = mpc.getControls();
+    const auto stepEditor = screenName == "step-editor";
 
     setUndoSeq(seq->isUndoSeqAvailable());
 
@@ -140,7 +150,9 @@ void LedController::timerCallback()
     if (isPlayingButNotRecordingAndRecIsPressed)
     {
         setRec(false);
-    } else {
+    }
+    else
+    {
         setRec(controls->isRecPressed() || seq->isRecording());
     }
 }
