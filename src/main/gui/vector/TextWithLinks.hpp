@@ -12,6 +12,13 @@ class TextWithLinks : public juce::Component
         parse();
     }
 
+        void updateFont()
+        {
+            auto font = getNimbusSansScaled();
+            font.setHeight(font.getHeight() * 1.4f);
+            parsedText.setFont(font);
+        }
+
         void paint(juce::Graphics& g) override
         {
             g.fillAll(juce::Colours::white);
@@ -20,15 +27,18 @@ class TextWithLinks : public juce::Component
             layout.draw(g, getLocalBounds().toFloat());
         }
 
-        void resized() override
+        int getTextLayoutHeight()
         {
-            updateFont();
             juce::TextLayout layout;
             layout.createLayout(parsedText, getWidth());
+            return (int)std::ceil(layout.getHeight());
+        }
 
+        void resized() override
+        {
+            juce::TextLayout layout;
+            layout.createLayout(parsedText, getWidth());
             updateLinkBounds(layout);
-
-            setSize(getWidth(), (int)std::ceil(layout.getHeight()));
         }
 
         void mouseMove(const juce::MouseEvent& e) override
@@ -137,13 +147,6 @@ class TextWithLinks : public juce::Component
 
                 remainingText = remainingText.substring(end + 7);
             }
-        }
-
-        void updateFont()
-        {
-            auto font = getNimbusSansScaled();
-            font.setHeight(font.getHeight() * 1.4f);
-            parsedText.setFont(font);
         }
 
         void updateLinkBounds(const juce::TextLayout &layout)

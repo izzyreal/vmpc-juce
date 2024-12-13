@@ -226,15 +226,21 @@ namespace vmpc_juce::gui::vector {
 
                 aboutScrollBar->setBounds(getWidth() - (scrollBarWidth + margin) + (scale * 2.f), closeAboutWidth, scrollBarWidth, getHeight() - ((margin * 0.5) + closeAboutWidth));
 
-                textWithLinks->setBounds(margin, margin, getWidth() - std::ceil(margin * 2.f), 10000);
+                if (textWithLinks->getWidth() == 0)
+                {
+                    textWithLinks->setBounds(margin, margin, getWidth() - std::ceil(margin * 2.f), 100000);
+                }
 
-                const auto newTextHeight = textWithLinks->getHeight();
+                textWithLinks->updateFont();
+                const auto newTextHeight = textWithLinks->getTextLayoutHeight();
+                textWithLinks->setBounds(margin, margin, getWidth() - std::ceil(margin * 2.f), newTextHeight);
+
                 const auto newMaxScrollOffset = newTextHeight - (getHeight() - (margin * 2));
 
                 if (scrollOffset != 0.f)
                 {
                     const auto resizeFactor = newMaxScrollOffset / maxScrollOffset;
-                    setScrollOffset(scrollOffset * resizeFactor);
+                    setScrollOffset(scrollOffset * resizeFactor, true);
                 }
 
                 maxScrollOffset = newMaxScrollOffset;
@@ -249,13 +255,13 @@ namespace vmpc_juce::gui::vector {
             }
 
         private:
-            void setScrollOffset(float newScrollOffset)
+            void setScrollOffset(float newScrollOffset, bool force = false)
             {
                 const auto oldScrollOffset = scrollOffset;
 
                 scrollOffset = std::clamp<float>(newScrollOffset, 0, maxScrollOffset);
 
-                if (scrollOffset == oldScrollOffset)
+                if (scrollOffset == oldScrollOffset && !force)
                 {
                     return;
                 }
@@ -264,7 +270,6 @@ namespace vmpc_juce::gui::vector {
                 const auto margin = marginAtScale1 * scale;
 
                 textWithLinks->setTopLeftPosition(margin, margin - scrollOffset);
-
                 repaint();
             }
 
