@@ -1,7 +1,7 @@
 {
   "name" : "transport_and_locate_container",
   "type" : "grid",
-  "row_fractions" : [ 1, 4, 10, 2, 13 ],
+  "row_fractions" : [ 3, 2, 10, 2, 13 ],
   "column_fractions" : [ 17, 2 ],
   "children" : [
     {

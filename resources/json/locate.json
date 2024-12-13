@@ -7,22 +7,22 @@
     {
       "name" : "j_and_l_shape_container",
       "type" : "grid",
-      "row_fractions" : [ 9, 7 ],
+      "row_fractions" : [ 3, 9, 7 ],
       "column_fractions" : [ 10, 50, 1, 50, 10 ],
       "area" : [ 3, 1, 3, 1 ],
       "children" : [
-        { "name" : "locate_j_decoration", "type" : "j_shape", "area" : [ 1, 2, 1, 2 ] },
-        { "name" : "locate_l_decoration", "type" : "l_shape", "area" : [ 1, 4, 1, 4 ] }
+        { "name" : "locate_j_decoration", "type" : "j_shape", "area" : [ 2, 2, 2, 2 ] },
+        { "name" : "locate_l_decoration", "type" : "l_shape", "area" : [ 2, 4, 2, 4 ] }
       ]
     },
     {
       "name" : "event_label_container",
       "type" : "grid",
-      "row_fractions" : [ 1 ],
+      "row_fractions" : [ 1, 10 ],
       "column_fractions" : [ 1, 2, 7 ],
       "area" : [ 3, 1, 3, 1 ],
       "children" : [
-        { "name" : "event_label", "font_scale" : 0.8, "label" : "EVENT", "label_style" : "chassis_background", "area" : [ 1, 2, 1, 2 ] }
+        { "name" : "event_label", "font_scale" : 0.9, "label" : "EVENT", "label_style" : "chassis_background", "area" : [ 2, 2, 2, 2 ] }
       ]
     },
     {
@@ -40,24 +40,24 @@
       "name" : "key_container",
       "type" : "grid",
       "area" : [ 1, 1, 3, 1 ],
-      "row_fractions" : [ 1, 1, 1 ],
+      "row_fractions" : [ 10, 11, 2, 6, 2 ],
       "column_fractions" : [ 1, 1, 1, 1, 1 ],
       "shadow_size" : 1,
       "children" : [
-        { "name" : "previous_step_label", "hardware_label" : "prev-step-event", "label" : "<", "area" : [ 1, 1, 1, 1 ] },
-        { "name" : "next__step_label", "hardware_label" : "next-step-event", "label" : ">", "area" : [ 1, 2, 1, 2 ] },
+        { "name" : "previous_step_label", "font_scale" : 0.8, "hardware_label" : "prev-step-event", "label" : "\u0102", "area" : [ 1, 1, 1, 1 ] },
+        { "name" : "next__step_label", "font_scale" : 0.8, "hardware_label" : "next-step-event", "label" : "\u0103", "area" : [ 1, 2, 1, 2 ] },
         { "name" : "go_to_label", "hardware_label" : "go-to", "label" : "GO TO", "area" : [ 1, 3, 1, 3 ] },
-        { "name" : "previous_bar_label", "hardware_label" : "prev-bar-start", "label" : "<<", "area" : [ 1, 4, 1, 4 ] },
-        { "name" : "next_bar_label", "hardware_label" : "next-bar-end", "label" : ">>", "area" : [ 1, 5, 1, 5 ] },
+        { "name" : "previous_bar_label", "font_scale" : 0.8, "hardware_label" : "prev-bar-start", "label" : "\u0104", "area" : [ 1, 4, 1, 4 ] },
+        { "name" : "next_bar_label", "font_scale" : 0.8, "hardware_label" : "next-bar-end", "label" : "\u0105", "area" : [ 1, 5, 1, 5 ] },
         { "name" : "previous_step_or_event", "hardware_label" : "prev-step-event", "svg" : "medium_key.svg", "area" : [ 2, 1, 2, 1 ] },
         { "name" : "next_step_or_event", "hardware_label" : "next-step-event", "svg" : "medium_key.svg", "area" : [ 2, 2, 2, 2 ] },
         { "name" : "go_to", "hardware_label" : "go-to", "svg" : "medium_key.svg", "area" : [ 2, 3, 2, 3 ] },
         { "name" : "previous_bar_or_start", "hardware_label" : "prev-bar-start", "svg" : "medium_key.svg", "area" : [ 2, 4, 2, 4 ] },
         { "name" : "next_bar_or_end", "hardware_label" : "next-bar-end", "svg" : "medium_key.svg", "area" : [ 2, 5, 2, 5 ] },
-        { "name" : "previous_event_label", "hardware_label" : "prev-step-event", "label" : "|<", "label_style" : "rounded", "label_text_to_calculate_width" : "START", "area" : [ 3, 1, 3, 1 ] },
-        { "name" : "next_event_label", "hardware_label" : "next-step-event", "label" : ">|", "label_style" : "rounded", "label_text_to_calculate_width" : "START", "area" : [ 3, 2, 3, 2 ] },
-        { "name" : "start_label", "hardware_label" : "prev-bar-start", "label" : "START", "label_style" : "rounded", "label_text_to_calculate_width" : "START", "area" : [ 3, 4, 3, 4 ] },
-        { "name" : "end_label", "hardware_label" : "next-bar-end", "label" : "END", "label_style" : "rounded", "label_text_to_calculate_width" : "START", "area" : [ 3, 5, 3, 5 ] }
+        { "name" : "previous_event_label", "font_scale" : 0.9, "hardware_label" : "prev-step-event", "label" : "\u0100", "label_style" : "rounded", "label_text_to_calculate_width" : "START", "area" : [ 4, 1, 4, 1 ] },
+        { "name" : "next_event_label", "font_scale" : 0.9, "hardware_label" : "next-step-event", "label" : "\u0101", "label_style" : "rounded", "label_text_to_calculate_width" : "START", "area" : [ 4, 2, 4, 2 ] },
+        { "name" : "start_label", "font_scale" : 0.9, "hardware_label" : "prev-bar-start", "label" : "START", "label_style" : "rounded", "label_text_to_calculate_width" : "START", "area" : [ 4, 4, 4, 4 ] },
+        { "name" : "end_label", "font_scale" : 0.9, "hardware_label" : "next-bar-end", "label" : "END", "label_style" : "rounded", "label_text_to_calculate_width" : "START", "area" : [ 4, 5, 4, 5 ] }
       ]
     }
   ]
