@@ -1,8 +1,8 @@
 {
   "name" : "display_and_f_keys_container",
   "type" : "grid",
-  "row_fractions" : [ 80, 7, 13, 5 ],
-  "column_fractions" : [ 4, 9, 4 ],
+  "row_fractions" : [ 80, 2, 18, 5 ],
+  "column_fractions" : [ 2, 13, 2 ],
   "margin" : [ 0, 7, 0, 0 ],
   "children" : [
     {
