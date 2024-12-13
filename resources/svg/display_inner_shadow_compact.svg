@@ -7,7 +7,7 @@
    viewBox="0 0 210 297"
    version="1.1"
    id="svg1"
-   inkscape:version="1.3.2 (091e20e, 2023-11-25)"
+   inkscape:version="1.4 (e7c3feb1, 2024-10-09)"
    sodipodi:docname="display_inner_shadow_compact.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -24,14 +24,14 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="0.5946522"
+     inkscape:zoom="1.1893044"
      inkscape:cx="284.19974"
-     inkscape:cy="151.34897"
-     inkscape:window-width="1312"
-     inkscape:window-height="449"
+     inkscape:cy="150.92856"
+     inkscape:window-width="1440"
+     inkscape:window-height="798"
      inkscape:window-x="0"
      inkscape:window-y="25"
-     inkscape:window-maximized="0"
+     inkscape:window-maximized="1"
      inkscape:current-layer="layer1" />
   <defs
      id="defs1">
@@ -636,11 +636,11 @@
        transform="matrix(0.08437776,0,0,-0.10803742,9.8940054,70.771623)"
        clip-path="url(#clipPath2050)" />
     <rect
-       style="fill:#68647a;fill-opacity:1;stroke:none;stroke-width:0.153;stroke-opacity:1"
+       style="fill:#68647a;fill-opacity:1;stroke:none;stroke-width:0.154837;stroke-opacity:1"
        id="rect5"
-       width="148.16667"
-       height="44.700474"
-       x="26.725624"
-       y="17.68475" />
+       width="149.94641"
+       height="45.237411"
+       x="25.835749"
+       y="17.416281" />
   </g>
 </svg>
