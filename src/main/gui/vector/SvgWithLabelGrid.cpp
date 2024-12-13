@@ -22,7 +22,8 @@ void SvgWithLabelGrid::resized()
 {
     const auto labelHeight = ViewUtil::getLabelHeight(node.label, getScale);
     const auto drawableBounds = dynamic_cast<SvgComponent*>(node.svg_component)->getDrawableBounds();
-    const auto svgWidth = drawableBounds.getWidth() * getScale();
+    const auto scale = getScale();
+    const auto svgWidth = drawableBounds.getWidth() * scale;
 
     juce::Grid grid;
     grid.justifyItems = juce::Grid::JustifyItems::center;
@@ -31,7 +32,7 @@ void SvgWithLabelGrid::resized()
     grid.templateColumns = { juce::Grid::Fr(1) };
 
     grid.items.add(juce::GridItem(node.label_component).withArea(1, 1, 1, 1));
-    grid.items.add(juce::GridItem(node.svg_component).withArea(3, 1, 3, 1).withWidth(svgWidth));
+    grid.items.add(juce::GridItem(node.svg_component).withArea(3, 1, 3, 1).withWidth(node.width == "auto" ? juce::GridItem::notAssigned : svgWidth));
 
     grid.performLayout(getLocalBounds());
 }
