@@ -34,7 +34,7 @@
 #include "VmpcEditor.hpp"
 #endif
 
-#include <utility>
+#include "InitialWindowDimensions.hpp"
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
@@ -64,6 +64,11 @@ VmpcProcessor::VmpcProcessor()
                   .withOutput("MIX OUT 7/8", juce::AudioChannelSet::stereo(), false)
                   )
 {
+#if USE_BITMAP_GUI == 0
+    const auto dimensions = InitialWindowDimensions::get();
+    lastUIWidth = dimensions.first;
+    lastUIHeight = dimensions.second;
+#endif
     time_t currentTime = time(nullptr);
   struct tm* currentLocalTime = localtime(&currentTime);
   auto timeString = std::string(asctime(currentLocalTime));
@@ -592,33 +597,6 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
     copyXmlToBinary(*root.get(), destData);
 }
 
-static std::pair<int, int> computeInitialWindowDimensions()
-{
-    int w, h;
-
-    if (juce::JUCEApplication::isStandaloneApp())
-    {
-        const auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
-
-        if (primaryDisplay != nullptr)
-        {
-            const auto area = primaryDisplay->userArea;
-            h = area.getHeight();
-            w = h * (VmpcEditor::initial_width / (float)VmpcEditor::initial_height); 
-        }
-        else
-        {
-            w = 445; h = 342;
-        }
-    }
-    else
-    {
-        w = 445; h = 342;
-    }
-
-    return { w, h };
-}
-
 void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     std::shared_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
@@ -631,9 +609,8 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
         lastUIWidth = juce_ui->getIntAttribute("w", 1298 / 2);
         lastUIHeight = juce_ui->getIntAttribute("h", 994 / 2);
 #else
-        const auto dimensions = computeInitialWindowDimensions();
-        lastUIWidth = juce_ui->getIntAttribute("vector_ui_width", dimensions.first);
-        lastUIHeight = juce_ui->getIntAttribute("vector_ui_height", dimensions.second);
+        lastUIWidth = juce_ui->getIntAttribute("vector_ui_width", lastUIWidth);
+        lastUIHeight = juce_ui->getIntAttribute("vector_ui_height", lastUIHeight);
 #endif
     }
 
