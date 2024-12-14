@@ -170,7 +170,7 @@ target_include_directories(vmpc2000xl PUBLIC
   ${tl-expected_SOURCE_DIR}/include
 )
 
-if (IOS)
+if (APPLE)
   file(
     GLOB_RECURSE _source_list
     LIST_DIRECTORIES false
