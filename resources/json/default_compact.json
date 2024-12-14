@@ -7,7 +7,7 @@
     {
       "name" : "chassis",
       "area" : [ 1, 1, 3, 3 ],
-      "svg"  : "chassis_compact.svg",
+      "svg"  : "chassis_compact_fill_rect.svg",
       "width" : "auto",
       "svg_placement" : "stretched"
     },
