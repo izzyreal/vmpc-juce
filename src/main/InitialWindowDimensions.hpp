@@ -55,7 +55,15 @@ namespace vmpc_juce {
 #elif defined(_WIN32) || defined(_WIN64)
                 RECT workArea;
                 SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
-                return workArea.bottom - workArea.top - GetSystemMetrics(SM_CYCAPTION) - (2 * GetSystemMetrics(SM_CYFRAME));
+
+                HDC screen = GetDC(nullptr);
+                int dpi = GetDeviceCaps(screen, LOGPIXELSY);
+                ReleaseDC(nullptr, screen);
+
+                const double scaleFactor = dpi / 96.0;
+                const int totalHeight = workArea.bottom - workArea.top;
+                const int frameHeight = static_cast<int>((GetSystemMetrics(SM_CYCAPTION) + 2 * GetSystemMetrics(SM_CYFRAME)) * scaleFactor);
+                return static_cast<int>((totalHeight - frameHeight - 22) / scaleFactor);
 #elif defined(__linux__)
                 Display* display = XOpenDisplay(nullptr);
 
