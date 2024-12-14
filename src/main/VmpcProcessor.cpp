@@ -509,8 +509,13 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
     {
         auto w = editor->getWidth();
         auto h = editor->getHeight();
+#if USE_BITMAP_GUI == 1
         juce_ui->setAttribute("w", w);
         juce_ui->setAttribute("h", h);
+#else
+        juce_ui->setAttribute("vector_ui_width", w);
+        juce_ui->setAttribute("vector_ui_height", h);
+#endif
     }
 
     if (juce::JUCEApplication::isStandaloneApp())
@@ -593,8 +598,13 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
 
     if (juce_ui != nullptr)
     {
+#if USE_BITMAP_GUI == 1
         lastUIWidth = juce_ui->getIntAttribute("w", 1298 / 2);
         lastUIHeight = juce_ui->getIntAttribute("h", 994 / 2);
+#else
+        lastUIWidth = juce_ui->getIntAttribute("vector_ui_width", 445);
+        lastUIHeight = juce_ui->getIntAttribute("vector_ui_height", 342);
+#endif
     }
 
     if (juce::JUCEApplication::isStandaloneApp())

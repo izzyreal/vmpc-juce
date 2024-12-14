@@ -1,5 +1,6 @@
 #pragma once
 
+#include "juce_graphics/juce_graphics.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include <melatonin_blur/melatonin_blur.h>
@@ -35,7 +36,7 @@ namespace vmpc_juce::gui::vector {
                 font.setHeight(font.getHeight() * 1.5);
                 g.setFont(font);
 
-                auto rect = getLocalBounds().reduced(10);
+                auto rect = getLocalBounds()/*.reduced(10)*/;
                 rect = rect.withTrimmedTop(((getHeight() - (font.getHeight() * 4)) / 2) - font.getHeight());
                 rect = rect.withTrimmedBottom(((getHeight() - (font.getHeight() * 4)) / 2) - font.getHeight());
                 rect.reduce(2.f, 2.f);
