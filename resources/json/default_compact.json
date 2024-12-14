@@ -1,25 +1,43 @@
 {
-  "name" : "root_container",
+  "name" : "root_shadow_container",
   "type" : "grid",
-  "row_fractions" : [ 3, 294, 6 ],
-  "column_fractions" : [ 3, 215, 2 ],
+  "row_fractions" : [ 0, 64, 2 ],
+  "column_fractions" : [ 0, 64, 2 ],
   "children" : [
     {
-      "name" : "chassis",
+      "name" : "root_shadow",
       "area" : [ 1, 1, 3, 3 ],
-      "svg"  : "chassis_compact.svg",
-      "width" : "auto",
-      "svg_placement" : "stretched"
+      "svg" : "chassis_compact.svg",
+      "svg_target_bounds_transform" : [ 0.03, 0.01, 0.9411764706, 0.9411764706 ],
+      "shadow_size" : 7,
+      "shadow_darkness" : 0.7,
+      "hide_svg" : true
     },
     {
-      "name" : "main_container",
+      "name" : "root_container",
       "type" : "grid",
       "area" : [ 2, 2, 2, 2 ],
-      "row_fractions" : [ 1 ],
-      "column_fractions" : [ 95, 85 ],
+      "row_fractions" : [ 3, 294, 6 ],
+      "column_fractions" : [ 3, 215, 2 ],
       "children" : [
-        { "include" : "left_side_compact", "area" : [ 1, 1, 1, 1 ] },
-        { "include" : "right_side", "area" : [ 1, 2, 1, 2 ] }
+        {
+          "name" : "chassis",
+          "area" : [ 1, 1, 3, 3 ],
+          "svg"  : "chassis_compact.svg",
+          "width" : "auto",
+          "svg_placement" : "stretched"
+        },
+        {
+          "name" : "main_container",
+          "type" : "grid",
+          "area" : [ 2, 2, 2, 2 ],
+          "row_fractions" : [ 1 ],
+          "column_fractions" : [ 95, 85 ],
+          "children" : [
+            { "include" : "left_side_compact", "area" : [ 1, 1, 1, 1 ] },
+            { "include" : "right_side", "area" : [ 1, 2, 1, 2 ] }
+          ]
+        }
       ]
     }
   ]

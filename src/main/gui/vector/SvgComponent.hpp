@@ -39,8 +39,8 @@ class SvgComponent : public juce::Component
         }
 
     public:
-        SvgComponent(const std::vector<std::string> &svg_paths, juce::Component *commonParentWithShadowToUse, const float shadowSizeToUse, const std::function<float()> &getScaleToUse, const std::string svgPlacementToUse = "")
-            : commonParentWithShadow(commonParentWithShadowToUse), shadowSize(shadowSizeToUse), getScale(getScaleToUse), svgPlacement(svgPlacementToUse)
+        SvgComponent(const std::vector<std::string> &svg_paths, juce::Component *commonParentWithShadowToUse, const float shadowSizeToUse, const std::function<float()> &getScaleToUse, const std::string svgPlacementToUse = "", const std::vector<float> svgTargetBoundsTransformToUse = {})
+            : commonParentWithShadow(commonParentWithShadowToUse), shadowSize(shadowSizeToUse), getScale(getScaleToUse), svgPlacement(svgPlacementToUse), svgTargetBoundsTransform(svgTargetBoundsTransformToUse)
         {
             if (svg_paths[0] == "display.svg" || svg_paths[0] == "display_compact.svg")
             {
@@ -91,7 +91,13 @@ class SvgComponent : public juce::Component
 
             juce::Path shadowPath = drawables[currentDrawable]->getOutlineAsPath();
             auto centred = juce::RectanglePlacement(juce::RectanglePlacement::centred);
-            auto transform = centred.getTransformToFit(getDrawableBounds(), getLocalBounds().toFloat());
+            const auto localBounds = getLocalBounds().toFloat();
+            auto transform = centred.getTransformToFit(getDrawableBounds(), localBounds);
+            if (!svgTargetBoundsTransform.empty())
+            {
+                transform = transform.scaled(svgTargetBoundsTransform[2], svgTargetBoundsTransform[3]);
+                transform = transform.translated(localBounds.getWidth() * svgTargetBoundsTransform[0], localBounds.getWidth() * svgTargetBoundsTransform[1]);
+            }
             shadowPath.applyTransform(transform);
             return shadowPath;
         }
@@ -105,7 +111,18 @@ class SvgComponent : public juce::Component
                 return;
             }
 
-            drawables[currentDrawable]->drawWithin(g, getLocalBounds().toFloat(), svgPlacement == "stretched" ? juce::RectanglePlacement::stretchToFit : juce::RectanglePlacement::centred, 1.0f);
+            auto targetRect = getLocalBounds().toFloat();
+
+            if (!svgTargetBoundsTransform.empty())
+            {
+                const auto newX = getWidth() * svgTargetBoundsTransform[0];
+                const auto newY = getHeight() * svgTargetBoundsTransform[1];
+                const auto newWidth = getWidth() * svgTargetBoundsTransform[2];
+                const auto newHeight = getHeight() * svgTargetBoundsTransform[3];
+                targetRect = juce::Rectangle<float>(newX, newY, newWidth, newHeight);
+            }
+
+            drawables[currentDrawable]->drawWithin(g, targetRect, svgPlacement == "stretched" ? juce::RectanglePlacement::stretchToFit : juce::RectanglePlacement::centred, 1.0f);
         }
 
         juce::Component *shadow = nullptr;
@@ -155,6 +172,7 @@ class SvgComponent : public juce::Component
         const float shadowSize;
         const std::function<float()> &getScale;
         const std::string svgPlacement;
+        const std::vector<float> svgTargetBoundsTransform;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SvgComponent)
 };

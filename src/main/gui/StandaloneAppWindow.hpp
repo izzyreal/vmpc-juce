@@ -6,6 +6,8 @@
 
 #include "VmpcProcessor.hpp"
 #include "AudioMidiSettingsComponent.hpp"
+#include "juce_graphics/juce_graphics.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 
 using namespace juce;
 
@@ -490,7 +492,8 @@ public:
                             )
         : DocumentWindow (title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::closeButton) {
 #ifndef __linux__
-        setUsingNativeTitleBar(true);
+        //setUsingNativeTitleBar(true);
+        setTitleBarHeight(0);
 #endif
         setConstrainer (&decoratorConstrainer);
 
@@ -586,6 +589,7 @@ public:
             if (auto* editor = processor->getActiveEditor())
                 setResizable (editor->isResizable(), false);
 #endif
+        resizableBorder->setBorderThickness(juce::BorderSize<int>(0));
     }
 
     ~StandaloneAppWindow() override

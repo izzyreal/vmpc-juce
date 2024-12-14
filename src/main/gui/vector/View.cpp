@@ -1,5 +1,5 @@
 #include "juce_gui_basics/juce_gui_basics.h"
-#define DEBUG_NODES 0
+#define DEBUG_NODES 1
 
 #include "View.hpp"
 

@@ -33,6 +33,7 @@ namespace vmpc_juce::gui::vector {
         std::string hardware_label;
         std::string svg_placement;
         float font_scale;
+        std::vector<float> svg_target_bounds_transform;
 
         // grid
         std::vector<uint16_t> row_fractions;
@@ -123,6 +124,7 @@ namespace vmpc_juce::gui::vector {
             if (j.contains("hardware_label"))   j.at("hardware_label").get_to(n.hardware_label);
             if (j.contains("svg_placement"))    j.at("svg_placement").get_to(n.svg_placement);
             if (j.contains("font_scale"))       j.at("font_scale").get_to(n.font_scale); else n.font_scale = 0.f;
+            if (j.contains("svg_target_bounds_transform")) j.at("svg_target_bounds_transform").get_to(n.svg_target_bounds_transform);
 
             if (j.contains("shadow_size"))
             {
@@ -208,6 +210,14 @@ namespace vmpc_juce::gui::vector {
         {
             printf("-       margins:");
             for (auto& f : n.margins)
+                printf(" %f ", f);
+            printf("\n");
+        }
+
+        if (!n.svg_target_bounds_transform.empty())
+        {
+            printf("- svg_target_bounds_transform:");
+            for (auto &f : n.svg_target_bounds_transform)
                 printf(" %f ", f);
             printf("\n");
         }

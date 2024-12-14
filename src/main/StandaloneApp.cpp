@@ -20,7 +20,8 @@ StandaloneAppWindow* StandaloneApp::createWindow()
     StandalonePluginHolder::PluginInOuts channels[] = {{2, 10}};
 
     return new StandaloneAppWindow(getApplicationName(),
-        LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId),
+        //LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId),
+        juce::Colours::transparentBlack,
         appProperties.getUserSettings(),
         false,
         {},

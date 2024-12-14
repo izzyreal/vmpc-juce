@@ -200,7 +200,12 @@ void ViewUtil::createComponent(
     }
     else if (!n.svg.empty() && n.label.empty())
     {
-        auto svgComponent = new SvgComponent({n.svg}, parent, n.shadow_size, getScale, n.svg_placement);
+        if (n.name == "root_shadow")
+        {
+            printf("YYAAY %i\n", n.svg_target_bounds_transform.size());
+        }
+
+        auto svgComponent = new SvgComponent({n.svg}, parent, n.shadow_size, getScale, n.svg_placement, n.svg_target_bounds_transform);
         components.push_back(svgComponent);
         addShadow(n, getScale, svgComponent, parent, components);
         parent->addAndMakeVisible(svgComponent);
