@@ -50,17 +50,17 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
         }
         else
         {
-            resetWindowSize();
+            setSize(vmpcProcessor.lastUIWidth, vmpcProcessor.lastUIHeight);
         }
     }
     else
     {
-        resetWindowSize();
+        setSize(vmpcProcessor.lastUIWidth, vmpcProcessor.lastUIHeight);
     }
 #else
-    resetWindowSize();
+    setSize(vmpcProcessor.lastUIWidth, vmpcProcessor.lastUIHeight);
     setResizable(true, true);
-    getConstrainer()->setFixedAspectRatio(initial_width / initial_height);
+    getConstrainer()->setFixedAspectRatio(initial_width / (float)initial_height);
     setLookAndFeel(&lookAndFeel);
 #endif
     addAndMakeVisible(view);
