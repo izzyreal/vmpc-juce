@@ -314,8 +314,6 @@ namespace vmpc_juce::gui::vector {
             {
                 juce::Desktop::getInstance().removeFocusChangeListener(this);
 
-                tooltipOverlay->removeChildComponent(infoTooltip);
-
                 delete infoTooltip;
 
                 delete menuIcon;
