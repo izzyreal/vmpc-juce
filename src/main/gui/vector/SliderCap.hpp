@@ -10,28 +10,6 @@ namespace vmpc_juce::gui::vector {
             {
             }
 
-            void paint(juce::Graphics &g) override
-            {
-                const auto scale = getScale();
-                const auto bounds = getDrawableBounds().toFloat().transformedBy(juce::AffineTransform().scaled(scale));
-                float height = bounds.getHeight();
-                float topPartHeight = height * 0.8f;
-
-                auto topBounds = bounds.withHeight(topPartHeight);
-                auto bottomBounds = bounds.withTrimmedTop(topPartHeight);
-
-                g.saveState();
-                g.reduceClipRegion(topBounds.toNearestInt());
-                getCurrentDrawable()->draw(g, 1.f, juce::AffineTransform().scaled(scale));
-
-                g.restoreState();
-                g.reduceClipRegion(bottomBounds.toNearestInt());
-
-                const auto verticalScaleFactor = 0.2f + ((1.f - factor) * 0.8f);
-
-                getCurrentDrawable()->draw(g, 1.f, juce::AffineTransform().scaled(scale).scaled(1.f, verticalScaleFactor, bounds.getCentreX(), topBounds.getBottom()));
-            }
-
             void setFactor(const float factorToUse)
             {
                 factor = factorToUse;
