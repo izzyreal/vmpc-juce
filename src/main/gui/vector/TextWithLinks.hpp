@@ -123,6 +123,7 @@ class TextWithLinks : public juce::Component
 
             juce::String remainingText = rawText;
             remainingText = remainingText.replace("<version>", version::get());
+            remainingText = remainingText.replace("<build>", version::getTimeStamp());
 
             while (!remainingText.isEmpty())
             {
