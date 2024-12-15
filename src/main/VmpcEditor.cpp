@@ -18,7 +18,7 @@ using namespace vmpc_juce::gui::vector;
 VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
         : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
 {
-    auto fontData = VmpcJuceResourceUtil::getResourceData("fonts/nimbus-sans-novus-semibold.ttf");
+    auto fontData = VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
     nimbusSans = juce::Font(juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size()));
 
     fontData = VmpcJuceResourceUtil::getResourceData("fonts/mpc2000xl-faceplate-glyphs.ttf");
