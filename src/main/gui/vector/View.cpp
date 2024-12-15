@@ -48,9 +48,10 @@ View::View(
         mpc::Mpc &mpc,
         const std::function<float()> &getScaleToUse,
         const std::function<juce::Font&()> &getNimbusSansScaledToUse,
+        const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaledToUse,
         const std::function<void()> &showAudioSettingsDialog,
         const std::function<void()> &resetWindowSize)
-    : getScale(getScaleToUse), getNimbusSansScaled(getNimbusSansScaledToUse)
+    : getScale(getScaleToUse), getNimbusSansScaled(getNimbusSansScaledToUse), getMpc2000xlFaceplateGlyphsScaled(getMpc2000xlFaceplateGlyphsScaledToUse)
 {
     keyboard = KeyboardFactory::instance(this);
 
@@ -71,7 +72,7 @@ View::View(
 
     tooltipOverlay = new TooltipOverlay();
 
-    ViewUtil::createComponent(mpc, view_root, components, this, getScale, getNimbusSansScaled, mouseListeners, tooltipOverlay);
+    ViewUtil::createComponent(mpc, view_root, components, this, getScale, getNimbusSansScaled, getMpc2000xlFaceplateGlyphsScaled, mouseListeners, tooltipOverlay);
 
     Led *fullLevelLed = nullptr;
     Led *sixteenLevelsLed = nullptr;

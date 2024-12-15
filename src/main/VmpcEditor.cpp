@@ -18,11 +18,14 @@ using namespace vmpc_juce::gui::vector;
 VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
         : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
 {
-    const auto fontData = VmpcJuceResourceUtil::getResourceData("fonts/mpc2000xl_faceplate_label_font.otf");
-
+    auto fontData = VmpcJuceResourceUtil::getResourceData("fonts/nimbus-sans-novus-semibold.ttf");
     nimbusSans = juce::Font(juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size()));
 
+    fontData = VmpcJuceResourceUtil::getResourceData("fonts/mpc2000xl-faceplate-glyphs.ttf");
+    mpc2000xlFaceplateGlyphs = juce::Font(juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size()));
+
     const auto getScale = [&] { return (float) getHeight() / (float) initial_height; };
+
     const auto getNimbusSansScaled = [&, getScale]() -> juce::Font& {
         nimbusSans.setHeight(Constants::BASE_FONT_SIZE * getScale());
 #ifdef _WIN32
@@ -31,11 +34,19 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
         return nimbusSans;
     };
 
+    const auto getMpc2000xlFaceplateGlyphsScaled = [&, getScale]() -> juce::Font& {
+        mpc2000xlFaceplateGlyphs.setHeight(Constants::BASE_FONT_SIZE * getScale());
+#ifdef _WIN32
+        mpc2000xlFaceplateGlyphs.setBold(true);
+#endif
+        return mpc2000xlFaceplateGlyphs;
+    };
+
     const std::function<void()> resetWindowSize = [&] {
         setSize((int) (initial_width * initial_scale), (int) (initial_height * initial_scale));
     };
 
-    view = new View(vmpcProcessor.mpc, getScale, getNimbusSansScaled, vmpcProcessor.showAudioSettingsDialog, resetWindowSize);
+    view = new View(vmpcProcessor.mpc, getScale, getNimbusSansScaled, getMpc2000xlFaceplateGlyphsScaled, vmpcProcessor.showAudioSettingsDialog, resetWindowSize);
 
     setWantsKeyboardFocus(true);
 #if JUCE_IOS

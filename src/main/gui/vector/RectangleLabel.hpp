@@ -15,20 +15,20 @@ namespace vmpc_juce::gui::vector {
                     juce::Colour fgColourToUse,
                     const float radiusToUse,
                     const float backgroundHorizontalMarginToUse,
-                    const std::function<juce::Font&()>& getNimbusSansScaled)
+                    const std::function<juce::Font&()>& getScaledFont)
                 : getScale(getScaleToUse),
                 bgColour(bgColourToUse),
                 textToCalculateWidth(textToCalculateWidthToUse),
                 radius(radiusToUse),
                 backgroundHorizontalMargin(backgroundHorizontalMarginToUse)
         {
-            getFont = [getNimbusSansScaled, this]() -> juce::Font {
-                auto font = getNimbusSansScaled();
+            getFont = [getScaledFont, this]() -> juce::Font {
+                auto font = getScaledFont();
                 font.setHeight(font.getHeight() * fontScale);
                 return font;
             };
 
-            simpleLabel = new SimpleLabel(getScaleToUse, textToUse, fgColourToUse, getNimbusSansScaled);
+            simpleLabel = new SimpleLabel(getScaleToUse, textToUse, fgColourToUse, getScaledFont);
             addAndMakeVisible(simpleLabel);
         }
 

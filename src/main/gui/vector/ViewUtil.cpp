@@ -65,6 +65,7 @@ void ViewUtil::createComponent(
         juce::Component* parent,
         const std::function<float()> &getScale,
         const std::function<juce::Font&()> &getNimbusSansScaled,
+        const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaled,
         std::vector<juce::MouseListener*> &mouseListeners,
         juce::Component *tooltipOverlay)
 {
@@ -86,7 +87,7 @@ void ViewUtil::createComponent(
     if (n.node_type == "grid")
     {
         auto gridWrapper = new GridWrapper(n, getScale);
-        createComponents(mpc, n, gridWrapper->components, gridWrapper, getScale, getNimbusSansScaled, mouseListeners, tooltipOverlay);
+        createComponents(mpc, n, gridWrapper->components, gridWrapper, getScale, getNimbusSansScaled, getMpc2000xlFaceplateGlyphsScaled, mouseListeners, tooltipOverlay);
         components.push_back(gridWrapper);
         parent->addAndMakeVisible(gridWrapper);
         n.grid_wrapper_component = gridWrapper;
@@ -94,7 +95,7 @@ void ViewUtil::createComponent(
     else if (n.node_type == "flex_box")
     {
         auto flexBoxWrapper = new FlexBoxWrapper(n, getScale);
-        createComponents(mpc, n, flexBoxWrapper->components, flexBoxWrapper, getScale, getNimbusSansScaled, mouseListeners, tooltipOverlay);
+        createComponents(mpc, n, flexBoxWrapper->components, flexBoxWrapper, getScale, getNimbusSansScaled, getMpc2000xlFaceplateGlyphsScaled, mouseListeners, tooltipOverlay);
         components.push_back(flexBoxWrapper);
         parent->addAndMakeVisible(flexBoxWrapper);
         n.flex_box_wrapper_component = flexBoxWrapper;
@@ -278,29 +279,31 @@ void ViewUtil::createComponent(
     {
         LabelComponent* labelComponent = nullptr;
 
+        const auto fontGetter = n.font == "faceplate-glyphs" ? getMpc2000xlFaceplateGlyphsScaled : getNimbusSansScaled;
+
         if (n.label_style == "chassis_background")
         {
-            labelComponent = new RectangleLabel(getScale, n.label, n.label_text_to_calculate_width, Constants::chassisColour, Constants::darkLabelColour, 0.f, 2.f, getNimbusSansScaled);
+            labelComponent = new RectangleLabel(getScale, n.label, n.label_text_to_calculate_width, Constants::chassisColour, Constants::darkLabelColour, 0.f, 2.f, fontGetter);
         }
         else if (n.label_style == "rounded")
         {
-            labelComponent = new RectangleLabel(getScale, n.label, n.label_text_to_calculate_width, Constants::darkLabelColour, Constants::chassisColour, 1.5f, 6.f, getNimbusSansScaled);
+            labelComponent = new RectangleLabel(getScale, n.label, n.label_text_to_calculate_width, Constants::darkLabelColour, Constants::chassisColour, 1.5f, 6.f, fontGetter);
         }
         else if (n.label_style == "pad_letters")
         {
-            labelComponent = new SimpleLabel(getScale, n.label, Constants::betweenChassisAndLabelColour, getNimbusSansScaled); 
+            labelComponent = new SimpleLabel(getScale, n.label, Constants::betweenChassisAndLabelColour, fontGetter); 
         }
         else if (n.label_style == "cursor_digit")
         {
-            labelComponent = new RectangleLabel(getScale, n.label, n.label, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 10.f, getNimbusSansScaled);
+            labelComponent = new RectangleLabel(getScale, n.label, n.label, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 10.f, fontGetter);
         }
         else if (n.label_style == "dark")
         {
-            labelComponent = new SimpleLabel(getScale, n.label, Constants::darkLabelColour, getNimbusSansScaled); 
+            labelComponent = new SimpleLabel(getScale, n.label, Constants::darkLabelColour, fontGetter); 
         }
         else
         {
-            labelComponent = new SimpleLabel(getScale, n.label, Constants::labelColour, getNimbusSansScaled);
+            labelComponent = new SimpleLabel(getScale, n.label, Constants::labelColour, fontGetter);
         }
 
         n.label_component = labelComponent;
@@ -373,12 +376,13 @@ void ViewUtil::createComponents(
         juce::Component *parent,
         const std::function<float()> &getScale,
         const std::function<juce::Font&()> &getNimbusSansScaled,
+        const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaled,
         std::vector<juce::MouseListener*> &mouseListeners,
         juce::Component *tooltipOverlay)
 {
     for (auto& c : n.children)
     {
-        createComponent(mpc, c, components, parent, getScale, getNimbusSansScaled, mouseListeners, tooltipOverlay);
+        createComponent(mpc, c, components, parent, getScale, getNimbusSansScaled, getMpc2000xlFaceplateGlyphsScaled, mouseListeners, tooltipOverlay);
     }
 }
 

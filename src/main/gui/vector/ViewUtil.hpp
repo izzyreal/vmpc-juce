@@ -23,6 +23,7 @@ class ViewUtil
                 juce::Component* parent,
                 const std::function<float()> &getScale,
                 const std::function<juce::Font&()> &getNimbusSansScaled,
+                const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaled,
                 std::vector<juce::MouseListener*> &mouseListeners,
                 juce::Component *tooltipOverlay);
 
@@ -33,6 +34,7 @@ class ViewUtil
                 juce::Component *parent,
                 const std::function<float()> &getScale,
                 const std::function<juce::Font&()> &getNimbusSansScaled,
+                const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaled,
                 std::vector<juce::MouseListener*> &mouseListeners,
                 juce::Component *tooltipOverlay);
 

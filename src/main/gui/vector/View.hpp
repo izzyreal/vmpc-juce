@@ -23,6 +23,7 @@ namespace vmpc_juce::gui::vector {
             View(mpc::Mpc &mpc,
                     const std::function<float()>& getScale,
                     const std::function<juce::Font&()> &getNimbusSansScaled,
+                    const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaled,
                     const std::function<void()> &showAudioSettingsDialog,
                     const std::function<void()> &resetWindowSize);
             ~View() override;
@@ -37,6 +38,7 @@ namespace vmpc_juce::gui::vector {
             node view_root;
             const std::function<float()> getScale;
             const std::function<juce::Font&()> getNimbusSansScaled;
+            const std::function<juce::Font&()> getMpc2000xlFaceplateGlyphsScaled;
             Keyboard *keyboard = nullptr;
             LedController *ledController = nullptr;
             TooltipOverlay *tooltipOverlay = nullptr;
