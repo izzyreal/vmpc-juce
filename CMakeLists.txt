@@ -37,7 +37,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 project(vmpc2000xl VERSION ${VMPC_VERSION})
 
-file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/src/main/version.h "#pragma once\nnamespace version { static char const* get(){ return \"${VMPC_VERSION}\";}}")
+string(TIMESTAMP CONFIGURE_TIMESTAMP "%a %d %b %H:%M:%S %Z")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/src/main/version.h "#pragma once\nnamespace version { static char const* get(){ return \"${VMPC_VERSION}\"; } static char const* getTimeStamp(){ return \"${CONFIGURE_TIMESTAMP}\"; }}")
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
