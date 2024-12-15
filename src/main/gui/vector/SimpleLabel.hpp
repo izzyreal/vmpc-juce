@@ -16,11 +16,11 @@ namespace vmpc_juce::gui::vector {
                     const std::function<float()>& getScaleToUse,
                     const std::string textToUse,
                     const juce::Colour colourToUse,
-                    const std::function<juce::Font&()>& getNimbusSansScaled)
+                    const std::function<juce::Font&()>& getScaledFont)
                 : text(textToUse), getScale(getScaleToUse), colour(colourToUse)
         {
-            getFont = [getNimbusSansScaled, this]() -> juce::Font {
-                auto font = getNimbusSansScaled();
+            getFont = [getScaledFont, this]() -> juce::Font {
+                auto font = getScaledFont();
                 font.setHeight(font.getHeight() * fontScale);
                 return font;
             };

@@ -33,6 +33,7 @@ namespace vmpc_juce::gui::vector {
         std::string hardware_label;
         std::string svg_placement;
         float font_scale;
+        std::string font;
 
         // grid
         std::vector<uint16_t> row_fractions;
@@ -123,6 +124,7 @@ namespace vmpc_juce::gui::vector {
             if (j.contains("hardware_label"))   j.at("hardware_label").get_to(n.hardware_label);
             if (j.contains("svg_placement"))    j.at("svg_placement").get_to(n.svg_placement);
             if (j.contains("font_scale"))       j.at("font_scale").get_to(n.font_scale); else n.font_scale = 0.f;
+            if (j.contains("font"))             j.at("font").get_to(n.font);
 
             if (j.contains("shadow_size"))
             {

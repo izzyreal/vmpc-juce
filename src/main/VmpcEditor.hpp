@@ -29,6 +29,7 @@ private:
     const float initial_scale = 1.31f;
 
     juce::Font nimbusSans;
+    juce::Font mpc2000xlFaceplateGlyphs;
     VmpcNoCornerResizerLookAndFeel lookAndFeel;
 };
 }
