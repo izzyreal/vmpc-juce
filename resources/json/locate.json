@@ -137,7 +137,7 @@
           "hardware_label" : "prev-step-event",
           "label" : "a",
           "label_style" : "rounded",
-          "label_text_to_calculate_width" : "START",
+          "label_text_to_calculate_width" : "STARTSTAR",
           "area" : [ 4, 1, 4, 1 ]
         },
         {
@@ -147,7 +147,7 @@
           "hardware_label" : "next-step-event",
           "label" : "b",
           "label_style" : "rounded",
-          "label_text_to_calculate_width" : "START",
+          "label_text_to_calculate_width" : "STARTSTAR",
           "area" : [ 4, 2, 4, 2 ]
         }
       ]
