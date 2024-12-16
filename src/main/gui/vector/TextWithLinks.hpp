@@ -68,12 +68,11 @@ class TextWithLinks : public juce::Component
             repaint();
         }
 
-        void addLineToOrRemoveLineFromSelection(const int lineIndex, bool add)
+        void addLineToOrRemoveLineFromSelection(const int lineIndex, const bool add, const bool forwardSelection)
         {
             juce::TextLayout layout;
             layout.createLayout(parsedText, getWidth());
 
-            const bool forwardSelection = selectionEnd > selectionStart;
             const int increment = forwardSelection ? - 1 : 1;
 
             if (!add)
@@ -103,17 +102,19 @@ class TextWithLinks : public juce::Component
             }
 
             bool mayAdd = !forwardSelection;
+            int charsAdded = 0;
 
             if (lineIndex + increment  >= 0)
             {
-                //printf("Adding remainder of line index %i\n", lineIndex + increment);
+                if (forwardSelection) printf("forward\n"); else printf("backward\n");
+                printf("Adding remainder of line index %i\n", lineIndex + increment);
                 for (const auto &run : layout.getLine(lineIndex + increment).runs)
                 {
                     for (const auto &glyph : run->glyphs)
                     {
                         if (!mayAdd && forwardSelection)
                         {
-                            if (glyph.anchor.getX() == selectionBounds.back().getX())
+                            if (glyph.anchor.getX() >= selectionBounds.back().getX())
                             {
                                 mayAdd = true;
                             }
@@ -122,7 +123,7 @@ class TextWithLinks : public juce::Component
 
                         if (!forwardSelection)
                         {
-                            if (glyph.anchor.getX() == selectionBounds.back().getX())
+                            if (glyph.anchor.getX() >= selectionBounds.back().getX())
                             {
                                 break;
                             }
@@ -133,7 +134,10 @@ class TextWithLinks : public juce::Component
                                 lineBounds[lineIndex + increment].getY(),
                                 glyph.width,
                                 std::ceil(lineBounds[lineIndex + increment].getHeight()));
-                        selectionBounds.push_back(glyphBounds);
+
+                        if (forwardSelection) selectionBounds.push_back(glyphBounds);
+                        else selectionBounds.insert(selectionBounds.begin() + charsAdded, glyphBounds);
+                        charsAdded++;
                     }
                 }
             }
@@ -187,7 +191,8 @@ class TextWithLinks : public juce::Component
                     printf("Line index -1 at %i\n", e.getPosition().getY());
                     return;
                 }
-                const auto forwardSelection = selectionEnd > selectionStart;
+                printf("start: %i end: %i\n", selectionStart, selectionEnd);
+                const auto forwardSelection = (selectionEnd > selectionStart) || (lineIndex > previousLineIndexToUse);
 
                 const auto shouldAdd = (forwardSelection && lineIndex > previousLineIndexToUse) || (!forwardSelection && lineIndex < previousLineIndexToUse);
                 const auto shouldRemove = (forwardSelection && lineIndex < previousLineIndexToUse) || (!forwardSelection && lineIndex > previousLineIndexToUse);
@@ -197,10 +202,10 @@ class TextWithLinks : public juce::Component
                     return;
                 }
 
-                //printf("Line index: %i\n", lineIndex);
-                //if (shouldAdd) printf("shouldAdd\n"); else printf("!shouldAdd, will remove line index %i\n", previousLineIndexToUse);
+                printf("Line index: %i\n", lineIndex);
+                if (shouldAdd) printf("shouldAdd\n"); else printf("!shouldAdd, will remove line index %i\n", previousLineIndexToUse);
                 const auto currentCharsInSelection = selectionBounds.size();
-                addLineToOrRemoveLineFromSelection(shouldAdd ? lineIndex : previousLineIndexToUse, shouldAdd);
+                addLineToOrRemoveLineFromSelection(shouldAdd ? lineIndex : previousLineIndexToUse, shouldAdd, forwardSelection);
                 const auto newCharsInSelection = selectionBounds.size();
                 selectionEnd += (newCharsInSelection - currentCharsInSelection);
                 //printf("Char diff: %i\n", newCharsInSelection - currentCharsInSelection);
@@ -226,6 +231,8 @@ class TextWithLinks : public juce::Component
                     selectionBounds.push_back(characterBounds.back());
                 }
             }
+
+            printf("start: %i end: %i\n", selectionStart, selectionEnd);
 
             repaint();
         }
