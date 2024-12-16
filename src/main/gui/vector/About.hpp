@@ -190,6 +190,53 @@ namespace vmpc_juce::gui::vector {
 
                 aboutScrollBar = new AboutScrollBar(getScale, [this]{ return scrollOffset / maxScrollOffset; }, setScrollOffsetFraction);
                 addAndMakeVisible(aboutScrollBar);
+                setInterceptsMouseClicks(true, false);
+            }
+
+            juce::Rectangle<float> getVisualTextBounds()
+            {
+                const auto scale = getScale();
+                const auto lineThickness = scale;
+                const auto radius = scale * 3;
+                const auto margin = scale * marginAtScale1;
+                auto rect = getLocalBounds().toFloat().reduced(lineThickness * 0.5).withTrimmedLeft(radius).withTrimmedRight(radius);
+                rect = rect.withTrimmedBottom(margin);
+                rect = rect.withTrimmedTop(margin);
+                return rect;
+            }
+
+            void mouseDrag(const juce::MouseEvent &e) override
+            {
+                const auto textBounds = getVisualTextBounds();
+                const auto lastDyToUse = lastDy;
+                lastDy = e.getDistanceFromDragStartY();
+                const auto distanceToProcess = e.getDistanceFromDragStartY() - lastDyToUse;
+                const bool increaseScrollOffset = e.getPosition().getY() > (textBounds.getY() + textBounds.getHeight());
+                const bool decreaseScrollOffset = e.getPosition().getY() < textBounds.getY();
+
+                if ((increaseScrollOffset && distanceToProcess > 0) || (decreaseScrollOffset && distanceToProcess < 0))
+                {
+                    setScrollOffset(scrollOffset + (distanceToProcess));
+                    return;
+                }
+
+                textWithLinks->mouseDrag(e.getEventRelativeTo(textWithLinks));
+            }
+
+            void mouseDown(const juce::MouseEvent &e) override
+            {
+                textWithLinks->mouseDown(e.getEventRelativeTo(textWithLinks));
+            }
+
+            void mouseUp(const juce::MouseEvent &e) override
+            {
+                lastDy = 0;
+                textWithLinks->mouseUp(e.getEventRelativeTo(textWithLinks));
+            }
+
+            void mouseMove(const juce::MouseEvent &e) override
+            {
+                textWithLinks->mouseMove(e.getEventRelativeTo(textWithLinks));
             }
 
             void paint(juce::Graphics &g) override
@@ -283,5 +330,6 @@ namespace vmpc_juce::gui::vector {
             juce::Component *aboutBorder = nullptr;
             juce::Component *closeAbout = nullptr;
             juce::Component *aboutScrollBar = nullptr;
+            int lastDy = 0;
     };
 } // namespace vmpc_juce::gui::vector
