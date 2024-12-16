@@ -90,9 +90,17 @@ class TextWithLinks : public juce::Component
             {
                 updateLinkColor(linkIndex, juce::Colours::blue), juce::URL(links[linkIndex].url).launchInDefaultBrowser();
             }
-            
-            selectionStart = getCharacterIndexAtPosition(e.getPosition());
-            selectionEnd = -1;
+
+            if (e.mods.isShiftDown() && selectionStart != -1)
+            {
+                selectionEnd = getCharacterIndexAtPosition(e.getPosition());
+            }
+            else
+            {
+                selectionStart = getCharacterIndexAtPosition(e.getPosition());
+                selectionEnd = -1;
+            }
+
             repaint();
         }
 
@@ -110,6 +118,46 @@ class TextWithLinks : public juce::Component
             }
             
             updateSelectionEnd(e.getPosition());
+        }
+
+        void mouseDoubleClick(const juce::MouseEvent &e) override
+        {
+            const bool selectLineEnabled = e.getNumberOfClicks() == 3;
+            const auto charIndex = getCharacterIndexAtPosition(e.getPosition());
+            const auto &text = parsedText.getText();
+
+            if (!std::isalpha(text[charIndex]))
+            {
+                return;
+            }
+
+            const auto checkChar = [&] (int i) -> bool {
+                const bool isAlpha = std::isalpha(text[i]);
+                if (!selectLineEnabled && !isAlpha) return false;
+
+                const bool isNewline = text[i] == '\n';
+                if (selectLineEnabled && isNewline) return false;
+
+                return true;
+            };
+
+            int startIndex, endIndex = charIndex;
+
+            for (int i = charIndex; i >= 0; i--)
+            {
+                if (!checkChar(i)) break; 
+                startIndex = i;
+            }
+
+            for (int i = charIndex; i < text.length(); i++)
+            {
+                if (!checkChar(i)) break;
+                endIndex = i;
+            }
+
+            selectionStart = startIndex;
+            selectionEnd = endIndex;
+            repaint();
         }
 
         void mouseUp(const juce::MouseEvent& e) override { }
