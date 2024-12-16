@@ -22,8 +22,19 @@ class TextWithLinks : public juce::Component
         void paint(juce::Graphics& g) override
         {
             g.fillAll(juce::Colours::white);
-            for (const auto& rect : selectionBounds)
-                g.setColour(juce::Colours::lightblue.withAlpha(0.5f)), g.fillRect(rect);
+
+            if (selectionStart != -1 && selectionEnd != -1)
+            {
+                int start = std::min(selectionStart, selectionEnd);
+                int end = std::max(selectionStart, selectionEnd);
+
+                for (int i = start; i <= end; ++i)
+                {
+                    if (i < characterBounds.size())
+                        g.setColour(juce::Colours::lightblue.withAlpha(0.5f)), g.fillRect(characterBounds[i]);
+                }
+            }
+
             juce::TextLayout layout;
             layout.createLayout(parsedText, getWidth());
             layout.draw(g, getLocalBounds().toFloat());
@@ -64,180 +75,19 @@ class TextWithLinks : public juce::Component
             if (linkIndex != -1) updateLinkColor(linkIndex, juce::Colours::blue), juce::URL(links[linkIndex].url).launchInDefaultBrowser();
             selectionStart = getCharacterIndexAtPosition(e.getPosition());
             selectionEnd = -1;
-            selectionBounds.clear();
             repaint();
-        }
-
-        void addLineToOrRemoveLineFromSelection(const int lineIndex, const bool add, const bool forwardSelection)
-        {
-            juce::TextLayout layout;
-            layout.createLayout(parsedText, getWidth());
-
-            const int increment = forwardSelection ? - 1 : 1;
-
-            if (!add)
-            {
-                //printf("Removing line %i\n", lineIndex);
-                jassert(selectionEnd >= 0);
-                int charIndex = selectionBounds.size() - 1;
-                while (charIndex >= 0)
-                {
-                    if (forwardSelection && selectionBounds[charIndex].getY() < layout.getLine(lineIndex).getLineBoundsY().getStart())
-                    {
-                        break;
-                    }
-                    if (!forwardSelection && selectionBounds[charIndex].getY() > layout.getLine(lineIndex).getLineBoundsY().getStart())
-                    {
-                        charIndex--;
-                        continue;
-                    }
-
-                    //printf("Removing char %i with bounds %f %f %f %f\n", charIndex, selectionBounds[charIndex].getX(), selectionBounds[charIndex].getY(), selectionBounds[charIndex].getWidth(), selectionBounds[charIndex].getHeight());
-
-                    selectionBounds.erase(selectionBounds.begin() + charIndex);
-                    charIndex--;
-                }
-
-                return;
-            }
-
-            bool mayAdd = !forwardSelection;
-            int charsAdded = 0;
-
-            if (lineIndex + increment  >= 0)
-            {
-                if (forwardSelection) printf("forward\n"); else printf("backward\n");
-                printf("Adding remainder of line index %i\n", lineIndex + increment);
-                for (const auto &run : layout.getLine(lineIndex + increment).runs)
-                {
-                    for (const auto &glyph : run->glyphs)
-                    {
-                        if (!mayAdd && forwardSelection)
-                        {
-                            if (glyph.anchor.getX() >= selectionBounds.back().getX())
-                            {
-                                mayAdd = true;
-                            }
-                            continue;
-                        }
-
-                        if (!forwardSelection)
-                        {
-                            if (glyph.anchor.getX() >= selectionBounds.back().getX())
-                            {
-                                break;
-                            }
-                        }
-
-                        const auto glyphBounds = juce::Rectangle<float>(
-                                glyph.anchor.getX(),
-                                lineBounds[lineIndex + increment].getY(),
-                                glyph.width,
-                                std::ceil(lineBounds[lineIndex + increment].getHeight()));
-
-                        if (forwardSelection) selectionBounds.push_back(glyphBounds);
-                        else selectionBounds.insert(selectionBounds.begin() + charsAdded, glyphBounds);
-                        charsAdded++;
-                    }
-                }
-            }
-
-            for (const auto &run : layout.getLine(lineIndex).runs)
-            {
-                for (const auto& glyph : run->glyphs)
-                {
-                    const auto glyphBounds = juce::Rectangle<float>(
-                            glyph.anchor.getX(),
-                            lineBounds[lineIndex].getY(),
-                            glyph.width,
-                            std::ceil(lineBounds[lineIndex].getHeight()));
-                    selectionBounds.push_back(glyphBounds);
-                }
-            }
-        }
-
-        int getLineIndexAtPosition(const juce::Point<int> &p)
-        {
-            for (int i = 0; i < lineBounds.size(); i++)
-            {
-                if (lineBounds[i].expanded(1).toNearestInt().contains(p))
-                {
-                    return i;
-                }
-            }
-            return -1;
         }
 
         void mouseDrag(const juce::MouseEvent& e) override
         {
             if (e.getPosition().getY() < 0 || selectionStart == -1)
-            {
                 return;
-            }
 
-            const auto currentSelectionEnd = getCharacterIndexAtPosition(e.getPosition());
-            const auto lineIndex = getLineIndexAtPosition(e.getPosition());
-            const auto previousLineIndexToUse = previousLineIndex;
-
-            if (lineIndex != - 1)
-            {
-                previousLineIndex = lineIndex;
-            }
-
-            if (currentSelectionEnd == -1)
-            {
-                if (lineIndex == - 1)
-                {
-                    printf("Line index -1 at %i\n", e.getPosition().getY());
-                    return;
-                }
-                printf("start: %i end: %i\n", selectionStart, selectionEnd);
-                const auto forwardSelection = (selectionEnd > selectionStart) || (lineIndex > previousLineIndexToUse);
-
-                const auto shouldAdd = (forwardSelection && lineIndex > previousLineIndexToUse) || (!forwardSelection && lineIndex < previousLineIndexToUse);
-                const auto shouldRemove = (forwardSelection && lineIndex < previousLineIndexToUse) || (!forwardSelection && lineIndex > previousLineIndexToUse);
-
-                if (!shouldAdd && !shouldRemove)
-                {
-                    return;
-                }
-
-                printf("Line index: %i\n", lineIndex);
-                if (shouldAdd) printf("shouldAdd\n"); else printf("!shouldAdd, will remove line index %i\n", previousLineIndexToUse);
-                const auto currentCharsInSelection = selectionBounds.size();
-                addLineToOrRemoveLineFromSelection(shouldAdd ? lineIndex : previousLineIndexToUse, shouldAdd, forwardSelection);
-                const auto newCharsInSelection = selectionBounds.size();
-                selectionEnd += (newCharsInSelection - currentCharsInSelection);
-                //printf("Char diff: %i\n", newCharsInSelection - currentCharsInSelection);
-                repaint();
-                return;
-            }
-
-
-            selectionEnd = currentSelectionEnd;
-
-            selectionBounds.clear();
-            int start = std::min(selectionStart, selectionEnd);
-            int end = std::max(selectionStart, selectionEnd);
-
-            for (int i = start; i <= end; ++i)
-            {
-                if (i < characterBounds.size())
-                {
-                    selectionBounds.push_back(characterBounds[i]);
-                }
-                else
-                {
-                    selectionBounds.push_back(characterBounds.back());
-                }
-            }
-
-            printf("start: %i end: %i\n", selectionStart, selectionEnd);
-
+            selectionEnd = getCharacterIndexAtPosition(e.getPosition());
             repaint();
         }
 
-        void mouseUp(const juce::MouseEvent& e) override { previousLineIndex = -1; }
+        void mouseUp(const juce::MouseEvent& e) override { }
 
     private:
         struct Link
@@ -264,13 +114,11 @@ class TextWithLinks : public juce::Component
         juce::AttributedString parsedText;
         std::vector<Link> links;
         std::vector<juce::Rectangle<float>> characterBounds;
-        std::vector<juce::Rectangle<float>> selectionBounds;
         std::vector<juce::Rectangle<float>> lineBounds;
         const std::function<juce::Font&()> &getNimbusSansScaled;
         int currentlyHoveringLinkIndex = -1;
         int selectionStart = -1;
         int selectionEnd = -1;
-        int previousLineIndex = -1;
 
         void parse()
         {
@@ -283,12 +131,18 @@ class TextWithLinks : public juce::Component
             {
                 int start = remainingText.indexOf("<link>");
                 int end = remainingText.indexOf("</link>");
+
                 if (start < 0 || end < 0 || end <= start)
                 {
                     parsedText.append(remainingText, juce::Colours::black);
                     break;
                 }
-                if (start > 0) parsedText.append(remainingText.substring(0, start), juce::Colours::black);
+
+                if (start > 0)
+                {
+                    parsedText.append(remainingText.substring(0, start), juce::Colours::black);
+                }
+
                 juce::String linkText = remainingText.substring(start + 6, end);
                 parsedText.append(linkText, juce::Colours::blue);
                 links.push_back({ {}, linkText });
@@ -357,5 +211,38 @@ class TextWithLinks : public juce::Component
                     break;
                 }
             }
+        }
+
+        int getLineIndexAtPosition(const juce::Point<int> &p)
+        {
+            for (int i = 0; i < lineBounds.size(); i++)
+            {
+                if (lineBounds[i].expanded(1).toNearestInt().contains(p))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        std::pair<int, int> getCharacterRangeOfLineIndex(const int lineIndex)
+        {
+            if (lineIndex < 0 || lineIndex >= lineBounds.size())
+                return { -1, -1 };
+
+            int start = -1;
+            int end = -1;
+
+            for (int i = 0; i < characterBounds.size(); ++i)
+            {
+                if (characterBounds[i].getY() == lineBounds[lineIndex].getY())
+                {
+                    if (start == -1)
+                        start = i;
+                    end = i;
+                }
+            }
+
+            return { start, end };
         }
 };
