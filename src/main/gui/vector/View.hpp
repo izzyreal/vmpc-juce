@@ -31,6 +31,9 @@ namespace vmpc_juce::gui::vector {
             void resized() override;
 
         private:
+            void onKeyUp(int);
+            void onKeyDown(int);
+            mpc::Mpc &mpc;
             void deleteDisclaimer();
             std::string name = "default_compact";
             std::vector<juce::Component*> components;
