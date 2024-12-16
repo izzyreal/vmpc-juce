@@ -45,23 +45,18 @@ static std::vector<ComponentClass*> getChildComponentsOfClass(juce::Component *p
 }
 
 View::View(
-        mpc::Mpc &mpc,
+        mpc::Mpc &mpcToUse,
         const std::function<float()> &getScaleToUse,
         const std::function<juce::Font&()> &getNimbusSansScaledToUse,
         const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaledToUse,
         const std::function<void()> &showAudioSettingsDialog,
         const std::function<void()> &resetWindowSize)
-    : getScale(getScaleToUse), getNimbusSansScaled(getNimbusSansScaledToUse), getMpc2000xlFaceplateGlyphsScaled(getMpc2000xlFaceplateGlyphsScaledToUse)
+    : getScale(getScaleToUse), getNimbusSansScaled(getNimbusSansScaledToUse), getMpc2000xlFaceplateGlyphsScaled(getMpc2000xlFaceplateGlyphsScaledToUse), mpc(mpcToUse)
 {
     keyboard = KeyboardFactory::instance(this);
 
-    keyboard->onKeyDownFn = [&](int keyCode) {
-        mpc.getControls()->getKeyEventHandler().lock()->handle(mpc::controls::KeyEvent(keyCode, true));
-    };
-
-    keyboard->onKeyUpFn = [&](int keyCode) {
-        mpc.getControls()->getKeyEventHandler().lock()->handle(mpc::controls::KeyEvent(keyCode, false));
-    };
+    keyboard->onKeyDownFn = [&](int i) { onKeyDown(i); };
+    keyboard->onKeyUpFn = [&](int i) { onKeyUp(i); };
 
     setWantsKeyboardFocus(true);
 
@@ -115,7 +110,7 @@ View::View(
         ledController->setPadBankA(true);
     }
     
-    const auto openKeyboardScreen = [&mpc] { mpc.getLayeredScreen()->openScreen("vmpc-keyboard"); };
+    const auto openKeyboardScreen = [&] { mpc.getLayeredScreen()->openScreen("vmpc-keyboard"); };
     const auto setKeyboardShortcutTooltipsVisibility = [&](const bool visibleEnabled){
         tooltipOverlay->setAllKeyTooltipsVisibility(visibleEnabled);
     };
@@ -125,6 +120,8 @@ View::View(
         removeChildComponent(about);
         delete about;
         about = nullptr;
+        keyboard->onKeyDownFn = [&](int i) { onKeyDown(i); };
+        keyboard->onKeyUpFn = [&](int i) { onKeyUp(i); };
     };
 
     const auto openAbout = [this, closeAbout] {
@@ -136,6 +133,8 @@ View::View(
         }
 
         about = new About(getScale, getNimbusSansScaled, closeAbout);
+        keyboard->onKeyUpFn = {};
+        keyboard->onKeyDownFn = {};
         addAndMakeVisible(about);
         resized();
     };
@@ -148,7 +147,6 @@ View::View(
     const std::function<void()> deleteDisclaimerF = [this] { deleteDisclaimer(); };
     disclaimer = new Disclaimer(getNimbusSansScaled, deleteDisclaimerF);
     addAndMakeVisible(disclaimer);
-    openAbout();
 }
 
 View::~View()
@@ -214,5 +212,13 @@ void View::resized()
     {
         about->setBounds(rect);
     }
+}
+
+void View::onKeyDown(int keyCode) {
+    mpc.getControls()->getKeyEventHandler().lock()->handle(mpc::controls::KeyEvent(keyCode, true));
+}
+
+void View::onKeyUp(int keyCode) {
+    mpc.getControls()->getKeyEventHandler().lock()->handle(mpc::controls::KeyEvent(keyCode, false));
 }
 
