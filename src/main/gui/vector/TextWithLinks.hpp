@@ -96,20 +96,6 @@ class TextWithLinks : public juce::Component
             juce::String url;
         };
 
-        int getLinkIndexAtPosition(juce::Point<int> p)
-        {
-            for (int i = 0; i < links.size(); ++i)
-                if (links[i].bounds.toNearestIntEdges().contains(p)) return i;
-            return -1;
-        }
-
-        int getCharacterIndexAtPosition(juce::Point<int> p)
-        {
-            for (int i = 0; i < characterBounds.size(); ++i)
-                if (characterBounds[i].contains(p.toFloat())) return i;
-            return -1;
-        }
-
         juce::String rawText;
         juce::AttributedString parsedText;
         std::vector<Link> links;
@@ -119,6 +105,70 @@ class TextWithLinks : public juce::Component
         int currentlyHoveringLinkIndex = -1;
         int selectionStart = -1;
         int selectionEnd = -1;
+
+        int getLinkIndexAtPosition(juce::Point<int> p)
+        {
+            for (int i = 0; i < links.size(); ++i)
+            {
+                if (links[i].bounds.toNearestIntEdges().contains(p))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        int getNthNewlineCharacterIndex(const int n)
+        {
+            int newlineCount = 0;
+
+            for (int i = 0; i < parsedText.getNumAttributes(); ++i)
+            {
+                auto& attribute = parsedText.getAttribute(i);
+                int start = attribute.range.getStart();
+                int end = attribute.range.getEnd();
+
+                for (int j = start; j < end; ++j)
+                {
+                    if (parsedText.getText()[j] == '\n')
+                    {
+                        newlineCount++;
+
+                        if (newlineCount == n)
+                        {
+                            return j;
+                        }
+                    }
+                }
+            }
+
+            return -1;
+        }
+
+        int getCharacterIndexAtPosition(juce::Point<int> p)
+        {
+            for (int i = 0; i < characterBounds.size(); ++i)
+            {
+                if (characterBounds[i].contains(p.toFloat()))
+                {
+                    return i;
+                }
+            }
+
+            const auto lineIndex = getLineIndexAtPosition(p);
+
+            const auto thisLineBounds = lineBounds[lineIndex];
+
+            const auto newLineIndex = p.getX() < thisLineBounds.getX() ? lineIndex - 1 : lineIndex + 1;
+
+            if (newLineIndex < 0)
+            {
+                return 0;
+            }
+
+            return getNthNewlineCharacterIndex(newLineIndex);
+        }
 
         void parse()
         {
@@ -175,10 +225,12 @@ class TextWithLinks : public juce::Component
             lineBounds.clear();
 
             juce::Range<float> lineBoundsY;
+
             for (const auto& line : layout)
             {
                 lineBounds.push_back(line.getLineBounds().withWidth(getWidth()));
                 lineBoundsY = line.getLineBoundsY();
+
                 for (const auto& run : line.runs)
                 {
                     for (const auto& glyph : run->glyphs)
