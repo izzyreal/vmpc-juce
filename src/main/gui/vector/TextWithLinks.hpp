@@ -10,6 +10,7 @@ class TextWithLinks : public juce::Component
             setOpaque(true);
             parse();
             setInterceptsMouseClicks(false, false);
+            setWantsKeyboardFocus(true);
         }
 
         void updateFont()
@@ -113,6 +114,20 @@ class TextWithLinks : public juce::Component
 
         void mouseUp(const juce::MouseEvent& e) override { }
 
+        bool keyPressed(const juce::KeyPress& key) override
+        {
+            if (selectionEnd - selectionStart > 0 && key == juce::KeyPress('c', juce::ModifierKeys::ctrlModifier, 0) ||
+                    key == juce::KeyPress('c', juce::ModifierKeys::commandModifier, 0))
+            {
+                const auto start = selectionStart > selectionEnd ? selectionEnd : selectionStart;
+                const auto end = selectionEnd > selectionStart ? selectionEnd : selectionStart;
+
+                juce::SystemClipboard::copyTextToClipboard(parsedText.getText().substring(start, end + 1).trimEnd());
+                return true;
+            }
+            return juce::Component::keyPressed(key);
+        }
+
     private:
         struct Link
         {
@@ -188,7 +203,7 @@ class TextWithLinks : public juce::Component
             const auto thisLineBounds = lineBounds[lineIndex];
 
             const auto newLineIndex = p.getX() < thisLineBounds.getX() ? lineIndex - 1 : lineIndex + 1;
-            
+
             if (newLineIndex < 0)
             {
                 return 0;
