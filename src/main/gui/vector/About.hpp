@@ -202,6 +202,7 @@ namespace vmpc_juce::gui::vector {
                 }
 
                 setScrollOffset(scrollOffset + scrollAmountForTimer);
+                textWithLinks->updateSelectionEnd(textWithLinks->getMouseXYRelative());
             }
 
             juce::Rectangle<float> getVisualTextBounds()

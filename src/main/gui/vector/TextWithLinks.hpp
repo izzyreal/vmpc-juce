@@ -58,13 +58,25 @@ class TextWithLinks : public juce::Component
         void mouseMove(const juce::MouseEvent& e) override
         {
             const auto linkIndex = getLinkIndexAtPosition(e.getPosition());
-            if (linkIndex == currentlyHoveringLinkIndex) return;
+
+            if (linkIndex == currentlyHoveringLinkIndex)
+            {
+                return;
+            }
+            
             if (linkIndex >= 0 && currentlyHoveringLinkIndex == -1)
+            {
                 updateLinkColor(linkIndex, juce::Colours::lightblue);
+            }
             else if (linkIndex == -1 && currentlyHoveringLinkIndex >= 0)
+            {
                 updateLinkColor(currentlyHoveringLinkIndex, juce::Colours::blue);
+            }
             else
+            {
                 updateLinkColor(currentlyHoveringLinkIndex, juce::Colours::blue), updateLinkColor(linkIndex, juce::Colours::lightblue);
+            }
+
             currentlyHoveringLinkIndex = linkIndex;
             repaint();
         }
@@ -72,19 +84,31 @@ class TextWithLinks : public juce::Component
         void mouseDown(const juce::MouseEvent& e) override
         {
             const auto linkIndex = getLinkIndexAtPosition(e.getPosition());
-            if (linkIndex != -1) updateLinkColor(linkIndex, juce::Colours::blue), juce::URL(links[linkIndex].url).launchInDefaultBrowser();
+
+            if (linkIndex != -1)
+            {
+                updateLinkColor(linkIndex, juce::Colours::blue), juce::URL(links[linkIndex].url).launchInDefaultBrowser();
+            }
+            
             selectionStart = getCharacterIndexAtPosition(e.getPosition());
             selectionEnd = -1;
+            repaint();
+        }
+
+        void updateSelectionEnd(const juce::Point<int> &p)
+        {
+            selectionEnd = getCharacterIndexAtPosition(p);
             repaint();
         }
 
         void mouseDrag(const juce::MouseEvent& e) override
         {
             if (e.getPosition().getY() < 0 || selectionStart == -1)
+            {
                 return;
-
-            selectionEnd = getCharacterIndexAtPosition(e.getPosition());
-            repaint();
+            }
+            
+            updateSelectionEnd(e.getPosition());
         }
 
         void mouseUp(const juce::MouseEvent& e) override { }
@@ -142,6 +166,8 @@ class TextWithLinks : public juce::Component
                     }
                 }
             }
+
+            printf("Oh no! No character index associated with newline index %i!", n);
 
             return -1;
         }
