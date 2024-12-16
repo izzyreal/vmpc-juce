@@ -169,7 +169,7 @@ namespace vmpc_juce::gui::vector {
             const std::function<float()> &getScale;
     };
 
-    class About : public juce::Component {
+    class About : public juce::Component, juce::Timer {
         public:
             About(const std::function<float()> &getScaleToUse, const std::function<juce::Font&()> &getNimbusSansScaledToUse, const std::function<void()> &closeAboutToUse)
                 : getScale(getScaleToUse), getNimbusSansScaled(getNimbusSansScaledToUse)
@@ -193,6 +193,17 @@ namespace vmpc_juce::gui::vector {
                 setInterceptsMouseClicks(true, false);
             }
 
+            void timerCallback() override
+            {
+                if (scrollAmountForTimer == 0)
+                {
+                    stopTimer();
+                    return;
+                }
+
+                setScrollOffset(scrollOffset + scrollAmountForTimer);
+            }
+
             juce::Rectangle<float> getVisualTextBounds()
             {
                 const auto scale = getScale();
@@ -208,18 +219,36 @@ namespace vmpc_juce::gui::vector {
             void mouseDrag(const juce::MouseEvent &e) override
             {
                 const auto textBounds = getVisualTextBounds();
-                const auto lastDyToUse = lastDy;
-                lastDy = e.getDistanceFromDragStartY();
-                const auto distanceToProcess = e.getDistanceFromDragStartY() - lastDyToUse;
-                const bool increaseScrollOffset = e.getPosition().getY() > (textBounds.getY() + textBounds.getHeight());
-                const bool decreaseScrollOffset = e.getPosition().getY() < textBounds.getY();
 
-                if ((increaseScrollOffset && distanceToProcess > 0) || (decreaseScrollOffset && distanceToProcess < 0))
+                const bool increaseScrollOffset = e.getPosition().getY() > textBounds.getBottom();
+                const bool decreaseScrollOffset = e.getPosition().getY() < textBounds.getY();
+                const int lengthOfAreaThatAffectsScrollSpeed = 100;
+
+                if (increaseScrollOffset)
                 {
-                    setScrollOffset(scrollOffset + (distanceToProcess));
+                    const int distanceBetweenMouseAndTextBoundsBottom = std::min<int>(e.getPosition().getY() - textBounds.getBottom(), lengthOfAreaThatAffectsScrollSpeed);
+                    const int interval = static_cast<int>((lengthOfAreaThatAffectsScrollSpeed - (distanceBetweenMouseAndTextBoundsBottom + 75)) * 6.f);
+
+                    scrollAmountForTimer = 1;
+
+                    if (isTimerRunning() && getTimerInterval() != interval)
+                    {
+                        stopTimer();
+                        startTimer(interval);
+                    }
+                    else if (!isTimerRunning())
+                    {
+                        startTimer(interval);
+                    }
+
                     return;
                 }
 
+                if (isTimerRunning())
+                {
+                    stopTimer();
+                }
+                
                 textWithLinks->mouseDrag(e.getEventRelativeTo(textWithLinks));
             }
 
@@ -230,7 +259,7 @@ namespace vmpc_juce::gui::vector {
 
             void mouseUp(const juce::MouseEvent &e) override
             {
-                lastDy = 0;
+                if (isTimerRunning()) stopTimer();
                 textWithLinks->mouseUp(e.getEventRelativeTo(textWithLinks));
             }
 
@@ -330,6 +359,6 @@ namespace vmpc_juce::gui::vector {
             juce::Component *aboutBorder = nullptr;
             juce::Component *closeAbout = nullptr;
             juce::Component *aboutScrollBar = nullptr;
-            int lastDy = 0;
+            int scrollAmountForTimer = 0;
     };
 } // namespace vmpc_juce::gui::vector
