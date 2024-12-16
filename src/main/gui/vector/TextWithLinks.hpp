@@ -9,6 +9,7 @@ class TextWithLinks : public juce::Component
         {
             setOpaque(true);
             parse();
+            setInterceptsMouseClicks(false, false);
         }
 
         void updateFont()
@@ -165,7 +166,7 @@ class TextWithLinks : public juce::Component
 
         void mouseDrag(const juce::MouseEvent& e) override
         {
-            if (selectionStart == -1)
+            if (e.getPosition().getY() < 0 || selectionStart == -1)
             {
                 return;
             }
