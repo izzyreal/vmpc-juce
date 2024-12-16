@@ -278,6 +278,11 @@ namespace vmpc_juce::gui::vector {
                 textWithLinks->mouseDown(e.getEventRelativeTo(textWithLinks));
             }
 
+            void mouseDoubleClick(const juce::MouseEvent &e) override
+            {
+                textWithLinks->mouseDoubleClick(e.getEventRelativeTo(textWithLinks));
+            }
+
             void mouseUp(const juce::MouseEvent &e) override
             {
                 if (isTimerRunning()) stopTimer();
