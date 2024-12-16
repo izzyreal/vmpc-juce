@@ -157,23 +157,24 @@ class TextWithLinks : public juce::Component
                 {
                     if (parsedText.getText()[j] == '\n')
                     {
-                        newlineCount++;
-
                         if (newlineCount == n)
                         {
                             return j;
                         }
+
+                        newlineCount++;
                     }
                 }
             }
 
-            printf("Oh no! No character index associated with newline index %i!", n);
-
-            return -1;
+            return parsedText.getText().length() - 1;
         }
 
         int getCharacterIndexAtPosition(juce::Point<int> p)
         {
+            if (p.getY() < 0) return 0;
+            else if (p.getY() > getHeight()) return parsedText.getText().length() - 1;
+
             for (int i = 0; i < characterBounds.size(); ++i)
             {
                 if (characterBounds[i].contains(p.toFloat()))
@@ -187,7 +188,7 @@ class TextWithLinks : public juce::Component
             const auto thisLineBounds = lineBounds[lineIndex];
 
             const auto newLineIndex = p.getX() < thisLineBounds.getX() ? lineIndex - 1 : lineIndex + 1;
-
+            
             if (newLineIndex < 0)
             {
                 return 0;

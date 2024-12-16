@@ -201,7 +201,7 @@ namespace vmpc_juce::gui::vector {
                     return;
                 }
 
-                setScrollOffset(scrollOffset + scrollAmountForTimer);
+                setScrollOffset(scrollOffset + scrollAmountForTimer * 3);
                 textWithLinks->updateSelectionEnd(textWithLinks->getMouseXYRelative());
             }
 
@@ -231,6 +231,26 @@ namespace vmpc_juce::gui::vector {
                     const int interval = static_cast<int>((lengthOfAreaThatAffectsScrollSpeed - (distanceBetweenMouseAndTextBoundsBottom + 75)) * 6.f);
 
                     scrollAmountForTimer = 1;
+
+                    if (isTimerRunning() && getTimerInterval() != interval)
+                    {
+                        stopTimer();
+                        startTimer(interval);
+                    }
+                    else if (!isTimerRunning())
+                    {
+                        startTimer(interval);
+                    }
+
+                    return;
+                }
+
+                if (decreaseScrollOffset)
+                {
+                    const int distanceBetweenMouseAndTextBoundsTop = std::min<int>(textBounds.getY() - e.getPosition().getY(), lengthOfAreaThatAffectsScrollSpeed);
+                    const int interval = static_cast<int>((lengthOfAreaThatAffectsScrollSpeed - (distanceBetweenMouseAndTextBoundsTop + 75)) * 6.f);
+
+                    scrollAmountForTimer = -1;
 
                     if (isTimerRunning() && getTimerInterval() != interval)
                     {
