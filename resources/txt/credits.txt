@@ -1,20 +1,30 @@
 VMPC2000XL, an Akai MPC2000XL emulator by Izmar.
+Project website: <link>https://www.izmar.nl</link>
+Source code: <link>https://github.com/izzyreal/vmpc-juce</link>
 Version: <version>
 Build: <build>
-<link>https://www.izmar.nl</link>
+License: GPL3, <link>https://github.com/izzyreal/vmpc-juce#GPL-3.0-1-ov-file</link>
+In short, this means you are free to use and distribute VMPC2000XL for
+any purpose, commercial or non-commercial, without any restrictions.
+You are also free to modify the program as you wish, but with the only
+restriction that if you distribute the modified version, you must provide
+access to the source code of the distributed version.
 
-MPC® and Akai Professional® are registered trademarks of
-inMusic Brands. Inc. This emulator is not affiliated with
-inMusic and use of the MPC® and Akai Professional® names has
-not been authorized, sponsored or otherwise approved by inMusic.
+DISCLAIMER
 
-Credits and thanks
+MPC® and Akai Professional® are registered trademarks of inMusic
+Brands. Inc. This emulator is not affiliated with inMusic and use of the
+MPC® and Akai Professional® names has not been authorized,
+sponsored or otherwise approved by inMusic.
+
+CREDITS AND THANKS
 
 The vector art is made by <link>https://www.instagram.com/azalvector</link>
 @azalvector, thanks for your amazing contribution. It made the new
 VMPC2000XL vector UI idea finally come true after many years.
 
-The font is <link>https://fontesk.com/neutral-sans-font</link>.
+The font is <link>https://fontesk.com/neutral-sans-font</link> by Barry Shawn.
+License: OFL, <link>https://openfontlicense.org</link>
 
 Much respect and many thanks to the creators, maintainers, and
 contributors of the following open source tools:
@@ -24,71 +34,102 @@ JUCE
 C++ cross-platform graphics, keyboard and mouse input, and audio for
 Linux, Windows, macOS, iOS, LV2, VST3, AUv2, AUv3, and standalone
 desktop targets.
+License: AGPLv3,
+<link>https://github.com/juce-framework/JUCE/blob/master/LICENSE.md</link>
 
 melatonin_blur
 <link>https://github.com/sudara/melatonin_blur</link>
 Shadows and glows for JUCE.
+License: MIT,
+<link>https://github.com/sudara/melatonin_blur?tab=MIT-1-ov-file#readme</link>
 
 rapidjson
 <link>https://github.com/Tencent/rapidjson</link>
 JSON parsing, used for reading LCD screen layout definitions.
+License: MIT,
+<link>https://github.com/Tencent/rapidjson?tab=License-1-ov-file#readme</link>
 
 nlohmann/json
 <link>https://github.com/nlohmann/json</link>
 JSON parsing, used for reading vector UI layout definitions.
+License: MIT,
+<link>https://github.com/nlohmann/json?tab=MIT-1-ov-file#readme</link>
 
 tl-expected
 <link>https://github.com/TartanLlama/expected</link>
 Single header implementation of std::expected with functional-style
 extensions.
+License: CC0 1.0,
+<link>https://github.com/TartanLlama/expected/blob/master/COPYING</link>
 
 Catch2
 <link>https://github.com/catchorg/Catch2</link>
 C++ unit tests.
+License: BSL-1.0,
+<link>https://github.com/catchorg/Catch2?tab=BSL-1.0-1-ov-file#readme</link>
 
 gh-filesystem
 <link>https://github.com/gulrak/filesystem</link>
 A std::filesystem implementation that runs on older ABIs.
+License: MIT,
+<link>https://github.com/gulrak/filesystem?tab=MIT-1-ov-file#readme</link>
 
 CMake
 <link>https://cmake.org</link>
 C/C++ build system.
+License: BSD 3,
+<link>https://github.com/Kitware/CMake?tab=readme-ov-file#license</link>
 
 Inkscape
 <link>https://inkscape.org</link>
 Used for processing the vector art.
+License: GPL2 or later,
+<link>https://inkscape.org/learn/faq/#what-license-inkscape-released-under</link>
 
 Heroicons
 <link>https://heroicons.com</link>
 Provides all menu icons, except for the keyboard one.
+License: MIT,
+<link>https://github.com/tailwindlabs/heroicons/blob/master/LICENSE</link>
 
 VIM
 <link>https://github.com/vim/vim</link>
 Awesome code editor.
+License: Vim,
+<link>https://github.com/vim/vim/blob/master/LICENSE</link>
 
 Special thanks to JetBrains for providing a free license. I have relied on
 CLion for several years, and I still use TeamCity on-premise to automate
 builds and code signing for binaries, installers, GitHub release
 publishing, and VMPC2000XL HTML and PDF documentation.
 <link>https://www.jetbrains.com</link>
+License: <link>https://www.jetbrains.com/community/opensource</link>
 
 <link>https://www.sphinx-doc.org</link> for the tech behind the documentation at
 <link>https://vmpcdocs.izmar.nl</link>.
+License: BSD,
+<link>https://github.com/sphinx-doc/sphinx/blob/master/LICENSE.rst</link>
 
 VMPC2000XL also uses some libraries made by Izmar:
 
 mpc
 <link>https://github.com/izzyreal/mpc</link>
 Platform-independent C++ abstraction of the Akai MPC2000XL.
+License: GPL3,
+<link>https://github.com/izzyreal/mpc/blob/master/LICENSE.txt</link>
 
 juce-raw-keyboard-input-module
 <link>https://github.com/izzyreal/juce-raw-keyboard-input-module</link>
 Linux, Windows and macOS raw (game-engine style) keyboard input.
+License: GPL3,
+<link>https://github.com/izzyreal/juce-raw-keyboard-input-module/blob/main/LICENSE.txt</link>
 
 akai-fat
 <link>https://github.com/izzyreal/akaifat</link>
 Based on <link>https://github.com/waldheinz/fat32-lib</link>.
 Provides access to Akai FAT16 volumes with 16.3 filenames.
+License: GPL3,
+<link>https://github.com/izzyreal/akaifat/blob/main/LICENSE</link>
 
 Many thanks to Ali Ahmet of <link>https://thebeatcommunity.com</link>,
 <link>https://x.com/ninobeatz</link>, and everyone who has emailed me for support,
