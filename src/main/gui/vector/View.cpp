@@ -167,6 +167,7 @@ View::~View()
     delete menu;
     delete disclaimer;
     delete about;
+    delete keyboard;
 }
 
 void View::deleteDisclaimer()
