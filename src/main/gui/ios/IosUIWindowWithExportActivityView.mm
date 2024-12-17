@@ -1,3 +1,22 @@
+/*
+    This file is part of vmpc-juce, a JUCE implementation of VMPC2000XL.
+
+    vmpc-juce is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License (GPL) as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    vmpc-juce is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with vmpc-juce. If not, see <https://www.gnu.org/licenses/>.
+
+    This project uses JUCE, which is licensed under the GNU Affero General Public License (AGPL).
+    See <https://juce.com> for details.
+*/
 #ifdef __APPLE__
 #include <TargetConditionals.h>
 #if TARGET_OS_IPHONE
@@ -138,7 +157,6 @@
 -(UIAlertAction *)createShareApsSndsAllAction:
     (mpc::Mpc*)mpc filePathsArray:(NSMutableArray<NSString *> *)filePathsArray {
     return [UIAlertAction actionWithTitle:@"Share APS, SNDs and ALL of current project" style:UIAlertActionStyleDefault
-                                  handler:^(UIAlertAction * _Nonnull /* action */) {
         NSMutableArray<NSString *> *generatedFilePaths = [self writeApsAllAndSnd:mpc];
         [filePathsArray addObjectsFromArray:generatedFilePaths];
 
@@ -157,7 +175,6 @@
                                   : [NSString stringWithFormat:@"Share selected file (%@)", nameNSString];
 
     return [UIAlertAction actionWithTitle:title style:UIAlertActionStyleDefault
-                                  handler:^(UIAlertAction * _Nonnull /* action */) {
         NSMutableArray<NSString *> *generatedFilePaths = [self getSelectedFileOrDirectory:mpc];
         [filePathsArray addObjectsFromArray:generatedFilePaths];
         
@@ -170,7 +187,6 @@
 
     const fs::path directToDiskRecordingsDirectory = mpc->paths->recordingsPath();
 
-    UIAlertAction *action = [UIAlertAction actionWithTitle:@"Share Direct to Disk Recordings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull /* action */) {
         
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Recordings" message:@"Select a directory" preferredStyle:UIAlertControllerStyleAlert];
 
@@ -178,7 +194,6 @@
             if (entry.is_directory()) {
                 const auto entryPath = entry.path();
                 NSString *dirName = [NSString stringWithUTF8String:entryPath.filename().string().c_str()];
-                [alertController addAction:[UIAlertAction actionWithTitle:dirName style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull /* action */) {
                     [self createRecordingZip:entryPath filePathsArray:filePathsArray];
                     const bool shouldCleanUpAfter = true;
                     [self openActivityView:filePathsArray shouldCleanUpAfter:shouldCleanUpAfter];
@@ -196,13 +211,11 @@
 
 
 -(UIAlertAction *)createCancelAction {
-    return [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction * /* action */){}];
 }
 
 -(UIAlertAction *)createNoFileSelectedAction {
     return [UIAlertAction actionWithTitle:@"Share selected file or directory"
                                     style:UIAlertActionStyleDefault
-                                  handler:^(UIAlertAction * _Nonnull /* action */) {
         UIAlertController *noFileAlertController =
         [UIAlertController alertControllerWithTitle:@"No selected file or directory available"
                                             message:@"Select a file or directory in the LOAD screen to use this option."
@@ -246,7 +259,6 @@
 
 - (UIActivityViewControllerCompletionWithItemsHandler)createActivityViewCompletionHandler:(NSArray<NSString *> *)filePathsArray shouldCleanUpAfter:(BOOL)shouldCleanUpAfter {
     
-    UIActivityViewControllerCompletionWithItemsHandler handler = ^(UIActivityType _Nullable /* activityType */, BOOL completed, NSArray * _Nullable /* returnedItems */, NSError * _Nullable /* activityError */) {
         
         NSFileManager *fileManager = [NSFileManager defaultManager];
         
