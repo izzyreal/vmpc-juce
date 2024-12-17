@@ -28,8 +28,8 @@ private:
     vmpc_juce::gui::vector::View* view = nullptr;
     const float initial_scale = 1.31f;
 
-    juce::Font nimbusSans;
-    juce::Font mpc2000xlFaceplateGlyphs;
+    juce::Font *nimbusSans = nullptr;
+    juce::Font *mpc2000xlFaceplateGlyphs = nullptr;
     VmpcNoCornerResizerLookAndFeel lookAndFeel;
 };
 }
