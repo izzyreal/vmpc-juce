@@ -81,5 +81,13 @@ make vmpc2000xl_All -j 4
 ```
 In this example the Makefile generator is used, but here too you can use any generator you like.
 
+## License
+This project is licensed under the GNU General Public License (GPL) version 3 or later.  
+It uses the JUCE framework, which is licensed under the GNU Affero General Public License (AGPL).  
+See the [LICENSE.txt](LICENSE.txt) file for details.
+
+## Using This Software
+If you use or distribute this software, you must comply with the GPL and AGPL terms.
+
 --------------------
 MPC® and Akai Professional® are a registered trademarks of inMusic Brands. Inc. This emulator is not affiliated with inMusic and use of the MPC® and Akai Professional® names has not been authorized, sponsored or otherwise approved by inMusic.
