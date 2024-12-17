@@ -32,7 +32,9 @@ class TextWithLinks : public juce::Component
                 for (int i = start; i <= end; ++i)
                 {
                     if (i < characterBounds.size())
+                    {
                         g.setColour(juce::Colours::lightblue.withAlpha(0.5f)), g.fillRect(characterBounds[i]);
+                    }
                 }
             }
 
@@ -179,7 +181,7 @@ class TextWithLinks : public juce::Component
     private:
         struct Link
         {
-            juce::Rectangle<float> bounds;
+            std::vector<juce::Rectangle<float>> bounds;
             juce::String url;
         };
 
@@ -188,7 +190,9 @@ class TextWithLinks : public juce::Component
         std::vector<Link> links;
         std::vector<juce::Rectangle<float>> characterBounds;
         std::vector<juce::Rectangle<float>> lineBounds;
+
         const std::function<juce::Font&()> &getNimbusSansScaled;
+        
         int currentlyHoveringLinkIndex = -1;
         int selectionStart = -1;
         int selectionEnd = -1;
@@ -197,9 +201,12 @@ class TextWithLinks : public juce::Component
         {
             for (int i = 0; i < links.size(); ++i)
             {
-                if (links[i].bounds.toNearestIntEdges().contains(p))
+                for (auto &b : links[i].bounds)
                 {
-                    return i;
+                    if (b.toNearestIntEdges().contains(p))
+                    {
+                        return i;
+                    }
                 }
             }
 
@@ -264,9 +271,12 @@ class TextWithLinks : public juce::Component
         {
             links.clear();
             parsedText.clear();
+
             juce::String remainingText = rawText;
+
             remainingText = remainingText.replace("<version>", version::get());
             remainingText = remainingText.replace("<build>", version::getTimeStamp());
+
             while (!remainingText.isEmpty())
             {
                 int start = remainingText.indexOf("<link>");
@@ -294,19 +304,39 @@ class TextWithLinks : public juce::Component
         {
             int linkIndex = 0;
             juce::String currentLinkText;
+
+            for (auto &l : links)
+            {
+                l.bounds.clear();
+            }
+
             for (const auto& line : layout)
+            {
                 for (const auto& run : line.runs)
-                    if (run->colour == juce::Colours::blue)
+                {
+                    if (run->colour != juce::Colours::blue)
                     {
-                        const auto xRange = run->getRunBoundsX();
-                        const auto y = line.getLineBounds().getY();
-                        const auto height = line.getLineBounds().getHeight();
-                        const auto linkRect = juce::Rectangle<float>(xRange.getStart(), y, xRange.getLength(), height);
-                        links[linkIndex].bounds = linkRect;
-                        const auto partialLinkText = parsedText.getText().substring(run->stringRange.getStart(), run->stringRange.getEnd() + 1);
-                        currentLinkText.append(partialLinkText, partialLinkText.length());
-                        if (currentLinkText == links[linkIndex].url) ++linkIndex, currentLinkText.clear();
+                        continue;
                     }
+
+                    const auto xRange = run->getRunBoundsX();
+                    const auto y = line.getLineBounds().getY();
+                    const auto height = line.getLineBounds().getHeight();
+                    const auto linkRect = juce::Rectangle<float>(xRange.getStart(), y, xRange.getLength(), height);
+
+                    links[linkIndex].bounds.push_back(linkRect);
+                    
+                    const auto partialLinkText = parsedText.getText().substring(run->stringRange.getStart(), run->stringRange.getEnd() + 1);
+
+                    currentLinkText.append(partialLinkText, partialLinkText.length());
+
+                    if (currentLinkText == links[linkIndex].url)
+                    {
+                        ++linkIndex;
+                        currentLinkText.clear();
+                    }
+                }
+            }
         }
 
         void updateCharacterBounds(const juce::TextLayout &layout)
