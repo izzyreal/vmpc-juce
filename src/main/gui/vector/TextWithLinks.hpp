@@ -16,7 +16,7 @@ class TextWithLinks : public juce::Component
         void updateFont()
         {
             auto font = getNimbusSansScaled();
-            font.setHeight(font.getHeight() * 1.4f);
+            font.setHeight(font.getHeight() * 1.35f);
             parsedText.setFont(font);
         }
 
@@ -166,7 +166,7 @@ class TextWithLinks : public juce::Component
 
         bool keyPressed(const juce::KeyPress& key) override
         {
-            if (selectionEnd - selectionStart > 0 && key == juce::KeyPress('c', juce::ModifierKeys::ctrlModifier, 0) ||
+            if ((selectionEnd - selectionStart > 0 && key == juce::KeyPress('c', juce::ModifierKeys::ctrlModifier, 0)) ||
                     key == juce::KeyPress('c', juce::ModifierKeys::commandModifier, 0))
             {
                 const auto start = selectionStart > selectionEnd ? selectionEnd : selectionStart;
@@ -324,9 +324,10 @@ class TextWithLinks : public juce::Component
                     const auto height = line.getLineBounds().getHeight();
                     const auto linkRect = juce::Rectangle<float>(xRange.getStart(), y, xRange.getLength(), height);
 
+
                     links[linkIndex].bounds.push_back(linkRect);
                     
-                    const auto partialLinkText = parsedText.getText().substring(run->stringRange.getStart(), run->stringRange.getEnd() + 1);
+                    const auto partialLinkText = parsedText.getText().substring(run->stringRange.getStart(), run->stringRange.getEnd());
 
                     currentLinkText.append(partialLinkText, partialLinkText.length());
 
