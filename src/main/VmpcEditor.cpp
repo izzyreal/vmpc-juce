@@ -20,11 +20,11 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
 {
     auto fontData = VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
     auto typeface = juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size());
-    nimbusSans = new juce::Font(juce::FontOptions().withTypeface(typeface));
+    nimbusSans = new juce::Font(juce::FontOptions(typeface));
 
     fontData = VmpcJuceResourceUtil::getResourceData("fonts/mpc2000xl-faceplate-glyphs.ttf");
     typeface = juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size());
-    mpc2000xlFaceplateGlyphs = new juce::Font(juce::FontOptions().withTypeface(typeface));
+    mpc2000xlFaceplateGlyphs = new juce::Font(juce::FontOptions(typeface));
 
     const auto getScale = [&] { return (float) getHeight() / (float) initial_height; };
 
