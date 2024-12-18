@@ -1,15 +1,15 @@
 #include "VmpcAuxLcdLookAndFeel.hpp"
 
-#include "gui/bitmap/Constants.hpp"
+#include "gui/vector/Constants.hpp"
 
 using namespace vmpc_juce::gui;
-using namespace vmpc_juce::gui::bitmap;
+using namespace vmpc_juce::gui::vector;
 
 void VmpcAuxLcdLookAndFeel::drawLcdPixel(juce::Graphics& g, int x, int y)
 {
-    g.setColour(Constants::LCD_HALF_ON);
+    g.setColour(Constants::lcdOnLight);
     g.fillRect(juce::Rectangle<int>(x * LCD_PIXEL_SIZE, y * LCD_PIXEL_SIZE, LCD_PIXEL_SIZE, LCD_PIXEL_SIZE));
-    g.setColour(Constants::LCD_ON);
+    g.setColour(Constants::lcdOn);
     g.fillRect(juce::Rectangle<int>(x * LCD_PIXEL_SIZE, y * LCD_PIXEL_SIZE, LCD_PIXEL_SIZE - 1, LCD_PIXEL_SIZE - 1));
 }
 

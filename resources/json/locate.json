@@ -133,21 +133,21 @@
         {
           "name" : "previous_event_label",
           "font" : "faceplate-glyphs",
-          "font_scale" : 0.7,
+          "font_scale" : 0.6,
           "hardware_label" : "prev-step-event",
           "label" : "a",
           "label_style" : "rounded",
-          "label_text_to_calculate_width" : "START",
+          "label_text_to_calculate_width" : "STARTST",
           "area" : [ 4, 1, 4, 1 ]
         },
         {
           "name" : "next_event_label",
           "font" : "faceplate-glyphs",
-          "font_scale" : 0.7,
+          "font_scale" : 0.6,
           "hardware_label" : "next-step-event",
           "label" : "b",
           "label_style" : "rounded",
-          "label_text_to_calculate_width" : "START",
+          "label_text_to_calculate_width" : "STARTST",
           "area" : [ 4, 2, 4, 2 ]
         }
       ]

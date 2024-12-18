@@ -146,7 +146,7 @@ View::View(
 
     const std::function<void()> deleteDisclaimerF = [this] { deleteDisclaimer(); };
     disclaimer = new Disclaimer(getNimbusSansScaled, deleteDisclaimerF);
-    addAndMakeVisible(disclaimer);
+    //addAndMakeVisible(disclaimer);
 }
 
 View::~View()

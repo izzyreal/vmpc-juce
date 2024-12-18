@@ -1,5 +1,10 @@
 #include <juce_gui_basics/juce_gui_basics.h>
+
+#include "VmpcTextLayout.hpp"
+
 #include "version.h"
+
+namespace vmpc_juce::gui::vector {
 
 class TextWithLinks : public juce::Component
 {
@@ -38,21 +43,21 @@ class TextWithLinks : public juce::Component
                 }
             }
 
-            juce::TextLayout layout;
+            VmpcTextLayout layout;
             layout.createLayout(parsedText, getWidth());
             layout.draw(g, getLocalBounds().toFloat());
         }
 
         int getTextLayoutHeight()
         {
-            juce::TextLayout layout;
+            VmpcTextLayout layout;
             layout.createLayout(parsedText, getWidth());
             return (int)std::ceil(layout.getHeight());
         }
 
         void resized() override
         {
-            juce::TextLayout layout;
+            VmpcTextLayout layout;
             layout.createLayout(parsedText, getWidth());
             updateLinkBounds(layout);
             updateCharacterBounds(layout);
@@ -300,7 +305,7 @@ class TextWithLinks : public juce::Component
             }
         }
 
-        void updateLinkBounds(const juce::TextLayout &layout)
+        void updateLinkBounds(const VmpcTextLayout &layout)
         {
             int linkIndex = 0;
             juce::String currentLinkText;
@@ -340,7 +345,7 @@ class TextWithLinks : public juce::Component
             }
         }
 
-        void updateCharacterBounds(const juce::TextLayout &layout)
+        void updateCharacterBounds(const VmpcTextLayout &layout)
         {
             characterBounds.clear();
             lineBounds.clear();
@@ -419,3 +424,5 @@ class TextWithLinks : public juce::Component
             return { start, end };
         }
 };
+
+} // namespace vmpc_juce::gui::vector
