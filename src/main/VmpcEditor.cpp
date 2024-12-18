@@ -38,29 +38,27 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
         : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
 {
     auto fontData = VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
-    auto typeface = juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size());
-    nimbusSans = new juce::Font(juce::FontOptions(typeface));
+    nimbusSans = juce::Font(juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size()));
 
     fontData = VmpcJuceResourceUtil::getResourceData("fonts/mpc2000xl-faceplate-glyphs.ttf");
-    typeface = juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size());
-    mpc2000xlFaceplateGlyphs = new juce::Font(juce::FontOptions(typeface));
+    mpc2000xlFaceplateGlyphs = juce::Font(juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size()));
 
     const auto getScale = [&] { return (float) getHeight() / (float) initial_height; };
 
     const auto getNimbusSansScaled = [&, getScale]() -> juce::Font& {
-        nimbusSans->setHeight(Constants::BASE_FONT_SIZE * getScale());
+        nimbusSans.setHeight(Constants::BASE_FONT_SIZE * getScale());
 #ifdef _WIN32
-        nimbusSans->setBold(true);
+        nimbusSans.setBold(true);
 #endif
-        return *nimbusSans;
+        return nimbusSans;
     };
 
     const auto getMpc2000xlFaceplateGlyphsScaled = [&, getScale]() -> juce::Font& {
-        mpc2000xlFaceplateGlyphs->setHeight(Constants::BASE_FONT_SIZE * getScale());
+        mpc2000xlFaceplateGlyphs.setHeight(Constants::BASE_FONT_SIZE * getScale());
 #ifdef _WIN32
-        mpc2000xlFaceplateGlyphs->setBold(true);
+        mpc2000xlFaceplateGlyphs.setBold(true);
 #endif
-        return *mpc2000xlFaceplateGlyphs;
+        return mpc2000xlFaceplateGlyphs;
     };
 
     const std::function<void()> resetWindowSize = [&] {
@@ -107,11 +105,7 @@ VmpcEditor::~VmpcEditor()
 {
     setLookAndFeel(nullptr);
     delete view;
-    delete nimbusSans;
-    delete mpc2000xlFaceplateGlyphs;
-#if ENABLE_GUI_INSPECTOR == 1
     delete inspector;
-#endif
 }
 
 void VmpcEditor::resized()
