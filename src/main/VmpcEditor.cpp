@@ -21,14 +21,10 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
         : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
 {
     auto fontData = VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
-    for (auto &n : juce::Font::findAllTypefaceNames())
-        printf("========== before %s\n", n.toRawUTF8());
     FreeTypeFaces::addFaceFromMemory(1.f, 32.f, true, fontData.data(), fontData.size());
-    for (auto &n : juce::Font::findAllTypefaceNames())
-        printf("========== after %s\n", n.toRawUTF8());
-    const juce::String typefaceName = "Neutral Sans";
-    const juce::String typefaceStyle = "Bold";
-    nimbusSans = juce::Font("Neutral Sans", "Bold", 12.f);
+    nimbusSans.setTypefaceName("Neutral Sans");
+    nimbusSansTypeface = FreeTypeFaces::createTypefaceForFont(nimbusSans);
+    nimbusSans2 = juce::Font(nimbusSansTypeface);
     //nimbusSans = juce::Font("", "", 12.f);
 
     fontData = VmpcJuceResourceUtil::getResourceData("fonts/mpc2000xl-faceplate-glyphs.ttf");
@@ -37,12 +33,14 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     const auto getScale = [&] { return (float) getHeight() / (float) initial_height; };
 
     const auto getNimbusSansScaled = [&, getScale]() -> juce::Font& {
-        nimbusSans.setBold(true);
-        nimbusSans.setHeight(Constants::BASE_FONT_SIZE * getScale());
+        nimbusSans2.setHeight(Constants::BASE_FONT_SIZE * getScale());
+        //nimbusSans = juce::Font("Sage Falcone", "", Constants::BASE_FONT_SIZE * getScale());
+        //nimbusSansTypeface = FreeTypeFaces::createTypefaceForFont(nimbusSans);
+        //nimbusSans = juce::Font(nimbusSansTypeface);
 #ifdef _WIN32
         nimbusSans.setBold(true);
 #endif
-        return nimbusSans;
+        return nimbusSans2;
     };
 
     const auto getMpc2000xlFaceplateGlyphsScaled = [&, getScale]() -> juce::Font& {
