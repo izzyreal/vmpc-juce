@@ -37,7 +37,7 @@ namespace vmpc_juce::gui::vector {
                 bool should_draw = false;
 
                 g.setColour(colour);
-                const auto yOffset = (getHeight() - getRequiredHeight()) / 2;
+                const auto yOffset = std::round((getHeight() - getRequiredHeight()) / 2.f);
 
                 for (auto c : text) 
                 {
