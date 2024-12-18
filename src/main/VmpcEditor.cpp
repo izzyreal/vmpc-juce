@@ -8,6 +8,8 @@
 
 #include "VmpcJuceResourceUtil.hpp"
 
+#include "vf_freetype/vf_FreeTypeFaces.h"
+
 #if ENABLE_GUI_INSPECTOR == 1
 #include <melatonin_inspector/melatonin_inspector.h>
 #endif
@@ -19,7 +21,15 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
         : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
 {
     auto fontData = VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
-    nimbusSans = juce::Font(juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size()));
+    for (auto &n : juce::Font::findAllTypefaceNames())
+        printf("========== before %s\n", n.toRawUTF8());
+    FreeTypeFaces::addFaceFromMemory(1.f, 32.f, true, fontData.data(), fontData.size());
+    for (auto &n : juce::Font::findAllTypefaceNames())
+        printf("========== after %s\n", n.toRawUTF8());
+    const juce::String typefaceName = "Neutral Sans";
+    const juce::String typefaceStyle = "Bold";
+    nimbusSans = juce::Font("Neutral Sans", "Bold", 12.f);
+    //nimbusSans = juce::Font("", "", 12.f);
 
     fontData = VmpcJuceResourceUtil::getResourceData("fonts/mpc2000xl-faceplate-glyphs.ttf");
     mpc2000xlFaceplateGlyphs = juce::Font(juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size()));
@@ -27,6 +37,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     const auto getScale = [&] { return (float) getHeight() / (float) initial_height; };
 
     const auto getNimbusSansScaled = [&, getScale]() -> juce::Font& {
+        nimbusSans.setBold(true);
         nimbusSans.setHeight(Constants::BASE_FONT_SIZE * getScale());
 #ifdef _WIN32
         nimbusSans.setBold(true);
