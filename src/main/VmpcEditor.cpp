@@ -8,6 +8,8 @@
 
 #include "VmpcJuceResourceUtil.hpp"
 
+#include "vf_freetype/vf_FreeTypeFaces.h"
+
 #if ENABLE_GUI_INSPECTOR == 1
 #include <melatonin_inspector/melatonin_inspector.h>
 #endif
@@ -16,37 +18,36 @@ using namespace vmpc_juce;
 using namespace vmpc_juce::gui::vector;
 
 VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
-        : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
+    : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
 {
-    auto fontData = VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
-    nimbusSans = juce::Font(juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size()));
-
-    fontData = VmpcJuceResourceUtil::getResourceData("fonts/mpc2000xl-faceplate-glyphs.ttf");
-    mpc2000xlFaceplateGlyphs = juce::Font(juce::Typeface::createSystemTypefaceFor(fontData.data(), fontData.size()));
+    mainFontData = VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
+    FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true, mainFontData.data(), mainFontData.size());
+    mainFont.setTypefaceName("Neutral Sans");
+    mainFont = juce::Font(FreeTypeFaces::createTypefaceForFont(mainFont));
 
     const auto getScale = [&] { return (float) getHeight() / (float) initial_height; };
 
-    const auto getNimbusSansScaled = [&, getScale]() -> juce::Font& {
-        nimbusSans.setHeight(Constants::BASE_FONT_SIZE * getScale());
-#ifdef _WIN32
-        nimbusSans.setBold(true);
-#endif
-        return nimbusSans;
+    const auto getMainFontScaled = [&, getScale]() -> juce::Font& {
+        mainFont.setHeight(Constants::BASE_FONT_SIZE * getScale());
+        return mainFont;
     };
 
+    mpc2000xlFaceplateGlyphsFontData = VmpcJuceResourceUtil::getResourceData("fonts/mpc2000xl-faceplate-glyphs.ttf");
+    FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true,
+            mpc2000xlFaceplateGlyphsFontData.data(), mpc2000xlFaceplateGlyphsFontData.size(), true);
+    mpc2000xlFaceplateGlyphsFont.setTypefaceName("MPC2000XL Faceplate-Glyphs");
+    mpc2000xlFaceplateGlyphsFont = juce::Font(FreeTypeFaces::createTypefaceForFont(mpc2000xlFaceplateGlyphsFont));
+
     const auto getMpc2000xlFaceplateGlyphsScaled = [&, getScale]() -> juce::Font& {
-        mpc2000xlFaceplateGlyphs.setHeight(Constants::BASE_FONT_SIZE * getScale());
-#ifdef _WIN32
-        mpc2000xlFaceplateGlyphs.setBold(true);
-#endif
-        return mpc2000xlFaceplateGlyphs;
+        mpc2000xlFaceplateGlyphsFont.setHeight(Constants::BASE_FONT_SIZE * getScale());
+        return mpc2000xlFaceplateGlyphsFont;
     };
 
     const std::function<void()> resetWindowSize = [&] {
         setSize((int) (initial_width * initial_scale), (int) (initial_height * initial_scale));
     };
 
-    view = new View(vmpcProcessor.mpc, getScale, getNimbusSansScaled, getMpc2000xlFaceplateGlyphsScaled, vmpcProcessor.showAudioSettingsDialog, resetWindowSize);
+    view = new View(vmpcProcessor.mpc, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, vmpcProcessor.showAudioSettingsDialog, resetWindowSize);
 
     setWantsKeyboardFocus(true);
 #if JUCE_IOS

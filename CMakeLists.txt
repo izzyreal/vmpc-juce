@@ -176,6 +176,7 @@ if (APPLE)
     GLOB_RECURSE _source_list
     LIST_DIRECTORIES false
     RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${_src_root_path}/*.c"
     "${_src_root_path}/*.c*"
     "${_src_root_path}/*.h*"
     "${_src_root_path}/*.m*"
