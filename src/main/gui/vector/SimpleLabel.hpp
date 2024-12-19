@@ -18,13 +18,13 @@ namespace vmpc_juce::gui::vector {
                     const juce::Colour colourToUse,
                     const std::function<juce::Font&()>& getScaledFont)
                 : text(textToUse), getScale(getScaleToUse), colour(colourToUse)
-        {
-            getFont = [getScaledFont, this]() -> juce::Font {
-                auto font = getScaledFont();
-                font.setHeight(font.getHeight() * fontScale);
-                return font;
-            };
-        }
+            {
+                getFont = [getScaledFont, this]() -> juce::Font {
+                    auto font = getScaledFont();
+                    font.setHeight(font.getHeight() * fontScale);
+                    return font;
+                };
+            }
 
             void paint(juce::Graphics& g) override
             {

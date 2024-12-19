@@ -36,5 +36,6 @@ private:
     juce::Font nimbusSans2;
     juce::Font mpc2000xlFaceplateGlyphs;
     VmpcNoCornerResizerLookAndFeel lookAndFeel;
+    juce::LookAndFeel *globalFontLaf = nullptr;
 };
 }
