@@ -25,7 +25,7 @@ class MyLaf : public juce::LookAndFeel_V2 {
         {
             fontData = VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
             FreeTypeFaces::addFaceFromMemory(
-                    1.f, 32.f,
+                    1.f, 1.f,
                     true,
                     reinterpret_cast<unsigned char*>(fontData.data()),
                     fontData.size());
