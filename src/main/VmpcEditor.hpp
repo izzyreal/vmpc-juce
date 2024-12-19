@@ -34,6 +34,6 @@ private:
     juce::Font mainFont;
 
     std::vector<char> mpc2000xlFaceplateGlyphsFontData;
-    juce::Font mpc2000xlFaceplateGlyphs;
+    juce::Font mpc2000xlFaceplateGlyphsFont;
 };
 }

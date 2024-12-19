@@ -36,16 +36,17 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     };
 
     mpc2000xlFaceplateGlyphsFontData = VmpcJuceResourceUtil::getResourceData("fonts/mpc2000xl-faceplate-glyphs.ttf");
-    mpc2000xlFaceplateGlyphs = juce::Font(juce::Typeface::createSystemTypefaceFor(
-                mpc2000xlFaceplateGlyphsFontData.data(),
-                mpc2000xlFaceplateGlyphsFontData.size()));
+    FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true,
+            mpc2000xlFaceplateGlyphsFontData.data(), mpc2000xlFaceplateGlyphsFontData.size(), true);
+    mpc2000xlFaceplateGlyphsFont.setTypefaceName("MPC2000XL Faceplate-Glyphs");
+    mpc2000xlFaceplateGlyphsFont = juce::Font(FreeTypeFaces::createTypefaceForFont(mpc2000xlFaceplateGlyphsFont));
 
     const auto getMpc2000xlFaceplateGlyphsScaled = [&, getScale]() -> juce::Font& {
-        mpc2000xlFaceplateGlyphs.setHeight(Constants::BASE_FONT_SIZE * getScale());
+        mpc2000xlFaceplateGlyphsFont.setHeight(Constants::BASE_FONT_SIZE * getScale());
 #ifdef _WIN32
         mpc2000xlFaceplateGlyphs.setBold(true);
 #endif
-        return mpc2000xlFaceplateGlyphs;
+        return mpc2000xlFaceplateGlyphsFont;
     };
 
     const std::function<void()> resetWindowSize = [&] {

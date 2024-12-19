@@ -220,7 +220,6 @@ protected:
                                 &m_face);
     if (!error)
     {
-      printf("No error opening memory face\n");
       error = FT_Select_Charmap (m_face, FT_ENCODING_UNICODE);
       if (error)
         error = FT_Set_Charmap (m_face, m_face->charmaps[0]);
@@ -233,13 +232,6 @@ protected:
 
         wasOpened = true;
       }
-    }
-    else
-    {
-        printf("Error opening memory face: %i, fileBytes: %i\n", error, fileBytes);
-        printf("First few bytes: ");
-        for (int i = 0; i < 20; i++) printf("%c ", ((unsigned char*)(fileData))[i]);
-        printf("\n");
     }
 
     return wasOpened;
@@ -540,10 +532,6 @@ private:
 
   bool loadGlyphIfPossible (juce_wchar characterNeeded)
   {
-      //juce::String str;
-      //str += characterNeeded;
-      //std::string faceName = m_face->family_name;
-      //printf("Loading glyph for face '%s' for character '%s'\n", faceName.c_str(), str.toRawUTF8());
     bool wasLoaded = false;
     
     FT_Error error = 0;
@@ -573,7 +561,6 @@ private:
         addKerningPairsForGlyph (glyph_index, characterNeeded);
 #endif
 
-        printf("Glyph was loaded\n");
         float advance = float(m_face->glyph->metrics.horiAdvance);
         // convert to juce normalized units
         path.applyTransform (AffineTransform::scale(m_scale, -m_scale));
@@ -648,7 +635,6 @@ private:
                   juce_wchar character,
                   int glyph)
   {
-    printf("Drawing glyph for font '%s' for character '%s'\n", font.getTypefaceName().toRawUTF8(), juce::String(character).toRawUTF8());
     bool couldDraw = false;
     LowLevelGraphicsContext& lg = g.getInternalContext();
 
@@ -893,8 +879,6 @@ public:
       {
         bool useHinting = (font.getHeight() >= mf.minHintedHeight) &&
                           (font.getHeight() <= mf.maxHintedHeight);
-
-        //if (useHinting) printf("createTypefaceForFont useHinting for %s\n", font.getTypefaceName().toRawUTF8());
 
         if (useHinting)
           typeFace = new FreeTypeHintedFace(
