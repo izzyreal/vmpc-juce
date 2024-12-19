@@ -20,15 +20,21 @@ using namespace vmpc_juce::gui::vector;
 VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
 {
-    mainFontData = VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
+    mainFontData = VmpcJuceResourceUtil::getResourceData("fonts/LiberationSans-Bold.ttf");
     FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true, mainFontData.data(), mainFontData.size());
-    mainFont.setTypefaceName("Neutral Sans");
-    mainFont = juce::Font(FreeTypeFaces::createTypefaceForFont(mainFont));
+    //mainFont.setTypefaceName("Neutral Sans");
+    //mainFont = juce::Font(FreeTypeFaces::createTypefaceForFont(mainFont));
 
     const auto getScale = [&] { return (float) getHeight() / (float) initial_height; };
 
     const auto getMainFontScaled = [&, getScale]() -> juce::Font& {
+        mainFont = juce::Font();
+        mainFont.setTypefaceName("Liberation Sans");
+        mainFont.setTypefaceStyle("bold");
         mainFont.setHeight(Constants::BASE_FONT_SIZE * getScale());
+        mainFont = juce::Font(FreeTypeFaces::createTypefaceForFont(mainFont));
+        mainFont.setHeight(Constants::BASE_FONT_SIZE * getScale());
+        printf("Final font height: %f\n", mainFont.getHeight());
 #ifdef _WIN32
         mainFont.setBold(true);
 #endif
