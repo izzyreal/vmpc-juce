@@ -44,7 +44,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     const auto getMpc2000xlFaceplateGlyphsScaled = [&, getScale]() -> juce::Font& {
         mpc2000xlFaceplateGlyphsFont.setHeight(Constants::BASE_FONT_SIZE * getScale());
 #ifdef _WIN32
-        mpc2000xlFaceplateGlyphs.setBold(true);
+        //mpc2000xlFaceplateGlyphsFont.setBold(true);
 #endif
         return mpc2000xlFaceplateGlyphsFont;
     };
