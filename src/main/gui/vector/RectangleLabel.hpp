@@ -48,7 +48,7 @@ namespace vmpc_juce::gui::vector {
 
             void resized() override
             {
-                simpleLabel->setBounds(getLocalBounds());
+                simpleLabel->setBounds(getLocalBounds().withY(-0.85f * getScale()));
             }
 
             void paint(juce::Graphics &g) override
@@ -57,8 +57,8 @@ namespace vmpc_juce::gui::vector {
                 g.setColour(bgColour);
                 const auto scale = getScale();
                 const auto radiusWithScale = radius * scale;
-                const auto backgroundVerticalMargin = 0.01f;
-                const auto requiredHeight = simpleLabel->getRequiredHeight() + backgroundVerticalMargin;
+                const auto backgroundVerticalMargin = -1.5f * scale;
+                const auto requiredHeight = scale * 5.f;
                 auto backgroundRect = getLocalBounds();
 
                 const auto requiredWidth = getFont().getStringWidth(textToCalculateWidth);

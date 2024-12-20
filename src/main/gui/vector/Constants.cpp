@@ -4,10 +4,10 @@
 
 using namespace vmpc_juce::gui::vector;
 
-juce::Colour Constants::chassisColour = juce::Colour::fromRGB(230, 238, 233);
-juce::Colour Constants::labelColour = juce::Colour::fromRGB(90, 90, 90);
+juce::Colour Constants::chassisColour = juce::Colour::fromRGB(230, 238, 233).brighter();
+juce::Colour Constants::labelColour = juce::Colour::fromRGB(90, 90, 90).darker();
 juce::Colour Constants::darkLabelColour = labelColour.darker();
-juce::Colour Constants::greyFacePaintColour = juce::Colour::fromRGB(139, 151, 163);
+juce::Colour Constants::greyFacePaintColour = juce::Colour::fromRGB(139, 151, 163).brighter(0.1f);
 juce::Colour Constants::betweenChassisAndLabelColour = chassisColour.darker(0.2f);
 
 juce::Colour Constants::lcdOn = juce::Colour::fromRGB(86, 61, 135).darker().darker();
