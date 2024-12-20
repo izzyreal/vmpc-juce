@@ -5,15 +5,15 @@
   "column_fractions" : [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ],
   "children" : [
     { "name" : "grey_background", "type" : "face_paint_grey_rectangle", "area" : [ 1, 1, 18, 34 ] },
-    { "name" : "full_level_and_16_levels_chassis_background", "type" : "chassis_rectangle", "area" : [ 4, 3, 8, 12 ] },
-    { "name" : "next_seq_and_track_mute_chassis_background", "type" : "chassis_rectangle", "area" : [ 12, 3, 16, 12 ] },
+    { "name" : "full_level_and_16_levels_chassis_background", "type" : "chassis_rectangle", "area" : [ 4, 2, 8, 12 ] },
+    { "name" : "next_seq_and_track_mute_chassis_background", "type" : "chassis_rectangle", "area" : [ 12, 2, 16, 12 ] },
     { "name" : "pad_bank_label", "type" : "line_flanked_label", "label" : "PAD BANK", "area" : [ 12, 14, 13, 31 ] },
     {
       "name" : "keys_container",
       "type" : "grid",
-      "area" : [ 5, 3, 17, 32 ],
+      "area" : [ 5, 2, 17, 32 ],
       "row_fractions" : [ 5, 3, 5 ],
-      "column_fractions" : [ 1, 1, 1, 1, 1, 1 ],
+      "column_fractions" : [ 11, 10, 10, 10, 10, 10 ],
       "children" : [
         { "name" : "full_level", "hardware_label" : "full-level", "shadow_size" : 1, "svg" : "medium_key.svg", "margin" : [ 10, 0, 0, 0 ], "area" : [ 1, 1, 1, 1 ] },
         { "name" : "full_level_label", "hardware_label" : "full-level", "label" : "FULL LEVEL", "margin" : [ 0, 0, 15, 0 ], "area" : [ 1, 1, 1, 1 ] },
