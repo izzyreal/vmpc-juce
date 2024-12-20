@@ -14,7 +14,7 @@ namespace vmpc_juce::gui::vector {
             NumKey(const std::function<float()> &getScaleToUse, const std::string topLabelToUse, const std::string bottomLabelToUse, std::string svgPath, juce::Component *commonParentWithShadow, const float shadowSize, const std::function<juce::Font&()> &getNimbusSansScaled)
             {
                 topLabel = new SimpleLabel(getScaleToUse, topLabelToUse, Constants::darkLabelColour, getNimbusSansScaled);
-                bottomLabel = new RectangleLabel(getScaleToUse, bottomLabelToUse, bottomLabelToUse, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 2.f, getNimbusSansScaled);
+                bottomLabel = new RectangleLabel(getScaleToUse, bottomLabelToUse, bottomLabelToUse, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 5.f, getNimbusSansScaled);
                 svgComponent = new SvgComponent({svgPath}, commonParentWithShadow, shadowSize, getScaleToUse);
 
                 addAndMakeVisible(topLabel);
@@ -32,7 +32,7 @@ namespace vmpc_juce::gui::vector {
             void resized() override
             {
                 juce::Grid grid;
-                grid.templateRows = { juce::Grid::Fr(1), juce::Grid::Fr(1), juce::Grid::Fr(1) };
+                grid.templateRows = { juce::Grid::Fr(10), juce::Grid::Fr(10), juce::Grid::Fr(12) };
                 grid.templateColumns = { juce::Grid::Fr(1) };
 
                 grid.items.add(juce::GridItem(topLabel).withArea(1, 1, 1, 1));
