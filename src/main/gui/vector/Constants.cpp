@@ -17,7 +17,7 @@ juce::Colour Constants::lcdOffBacklit = juce::Colours::yellowgreen.brighter();
 juce::Colour Constants::lcdOff = lcdOffBacklit/*.darker(0.4f)*/;
 
 float Constants::BASE_FONT_SIZE = 6.2f;
-float Constants::LINE_SIZE = BASE_FONT_SIZE * 0.1f;
+float Constants::LINE_SIZE = BASE_FONT_SIZE * -0.09f;
 
 float Constants::lineThickness1 = 0.5f;
 float Constants::lineThickness2 = 3.f;
