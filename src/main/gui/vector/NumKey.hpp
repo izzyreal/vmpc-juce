@@ -14,7 +14,7 @@ namespace vmpc_juce::gui::vector {
             NumKey(const std::function<float()> &getScaleToUse, const std::string topLabelToUse, const std::string bottomLabelToUse, std::string svgPath, juce::Component *commonParentWithShadow, const float shadowSize, const std::function<juce::Font&()> &getNimbusSansScaled)
             {
                 topLabel = new SimpleLabel(getScaleToUse, topLabelToUse, Constants::darkLabelColour, getNimbusSansScaled);
-                bottomLabel = new RectangleLabel(getScaleToUse, bottomLabelToUse, bottomLabelToUse, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 5.f, getNimbusSansScaled);
+                bottomLabel = new RectangleLabel(getScaleToUse, bottomLabelToUse, bottomLabelToUse, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 5.f, getNimbusSansScaled, 1.f);
                 svgComponent = new SvgComponent({svgPath}, commonParentWithShadow, shadowSize, getScaleToUse);
 
                 addAndMakeVisible(topLabel);
