@@ -16,8 +16,9 @@ namespace vmpc_juce::gui::vector {
                     const std::function<float()>& getScaleToUse,
                     const std::string textToUse,
                     const juce::Colour colourToUse,
-                    const std::function<juce::Font&()>& getScaledFont)
-                : text(textToUse), getScale(getScaleToUse), colour(colourToUse)
+                    const std::function<juce::Font&()>& getScaledFont,
+                    const float topMarginToUse = -1.f)
+                : text(textToUse), getScale(getScaleToUse), colour(colourToUse), topMargin(topMarginToUse)
             {
                 getFont = [getScaledFont, this]() -> juce::Font {
                     auto font = getScaledFont();
@@ -37,7 +38,7 @@ namespace vmpc_juce::gui::vector {
                 bool should_draw = false;
 
                 g.setColour(colour);
-                const auto yOffset = std::floor((getHeight() - getRequiredHeight()) / 2.f);
+                const auto yOffset = topMargin != -1.f ? topMargin : std::floor((getHeight() - getRequiredHeight()) / 2.f);
 
                 for (auto c : text) 
                 {
@@ -102,5 +103,6 @@ namespace vmpc_juce::gui::vector {
             const std::function<float()> &getScale;
             juce::Colour colour;
             std::function<juce::Font()> getFont;
+            const float topMargin;
     };
 } // namespace vmpc_juce::gui::vector

@@ -15,12 +15,14 @@ namespace vmpc_juce::gui::vector {
                     juce::Colour fgColourToUse,
                     const float radiusToUse,
                     const float backgroundHorizontalMarginToUse,
-                    const std::function<juce::Font&()>& getScaledFont)
+                    const std::function<juce::Font&()>& getScaledFont,
+                    const float topMarginToUse = -1)
                 : getScale(getScaleToUse),
                 bgColour(bgColourToUse),
                 textToCalculateWidth(textToCalculateWidthToUse),
                 radius(radiusToUse),
-                backgroundHorizontalMargin(backgroundHorizontalMarginToUse)
+                backgroundHorizontalMargin(backgroundHorizontalMarginToUse),
+                topMargin(topMarginToUse)
         {
             getFont = [getScaledFont, this]() -> juce::Font {
                 auto font = getScaledFont();
@@ -28,7 +30,7 @@ namespace vmpc_juce::gui::vector {
                 return font;
             };
 
-            simpleLabel = new SimpleLabel(getScaleToUse, textToUse, fgColourToUse, getScaledFont);
+            simpleLabel = new SimpleLabel(getScaleToUse, textToUse, fgColourToUse, getScaledFont, topMargin);
             addAndMakeVisible(simpleLabel);
         }
 
@@ -53,7 +55,8 @@ namespace vmpc_juce::gui::vector {
             {
                 //g.fillAll(juce::Colours::yellow);
                 g.setColour(bgColour);
-                const auto radiusWithScale = radius * getScale();
+                const auto scale = getScale();
+                const auto radiusWithScale = radius * scale;
                 const auto backgroundVerticalMargin = 0.01f;
                 const auto requiredHeight = simpleLabel->getRequiredHeight() + backgroundVerticalMargin;
                 auto backgroundRect = getLocalBounds();
@@ -62,7 +65,14 @@ namespace vmpc_juce::gui::vector {
 
                 const auto amountToDeductFromWidth = ((float) (getWidth()) - (requiredWidth + backgroundHorizontalMargin)) / 2.f;
                 const auto amountToDeductFromHeight = ((float) (getHeight()) - requiredHeight) / 2.f;
+
                 backgroundRect.reduce(amountToDeductFromWidth, amountToDeductFromHeight);
+
+                if (topMargin != -1)
+                {
+                    backgroundRect.translate(0, (backgroundRect.getHeight() - getLocalBounds().getHeight()) / 2.f);
+                    backgroundRect.translate(0, topMargin * scale * 0.7f); 
+                }
 
                 g.drawRoundedRectangle(backgroundRect.toFloat(), radiusWithScale, 1.f);
                 g.fillRoundedRectangle(backgroundRect.toFloat(), radiusWithScale);
@@ -86,6 +96,7 @@ namespace vmpc_juce::gui::vector {
             std::string textToCalculateWidth;
             const float radius;
             const float backgroundHorizontalMargin;
+            const float topMargin;
             std::function<juce::Font()> getFont;
     };
 } // namespace vmpc_juce::gui::vector
