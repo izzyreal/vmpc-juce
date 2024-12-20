@@ -262,14 +262,14 @@ class TextWithLinks : public juce::Component
 
             const auto thisLineBounds = lineBounds[lineIndex];
 
-            const auto newLineIndex = p.getX() < thisLineBounds.getX() ? lineIndex - 1 : lineIndex + 1;
-
-            if (newLineIndex < 0)
+            const auto lineIndexToUse = p.getX() < thisLineBounds.getX() ? lineIndex - 1 : lineIndex;
+            
+            if (lineIndexToUse < 0)
             {
                 return 0;
             }
 
-            return getNthNewlineCharacterIndex(newLineIndex);
+            return getNthNewlineCharacterIndex(lineIndexToUse);
         }
 
         void parse()
@@ -395,33 +395,12 @@ class TextWithLinks : public juce::Component
         {
             for (int i = 0; i < lineBounds.size(); i++)
             {
-                if (lineBounds[i].expanded(1).toNearestInt().contains(p))
+                if (lineBounds[i].expanded(5000, 1).toNearestInt().contains(p))
                 {
                     return i;
                 }
             }
             return -1;
-        }
-
-        std::pair<int, int> getCharacterRangeOfLineIndex(const int lineIndex)
-        {
-            if (lineIndex < 0 || lineIndex >= lineBounds.size())
-                return { -1, -1 };
-
-            int start = -1;
-            int end = -1;
-
-            for (int i = 0; i < characterBounds.size(); ++i)
-            {
-                if (characterBounds[i].getY() == lineBounds[lineIndex].getY())
-                {
-                    if (start == -1)
-                        start = i;
-                    end = i;
-                }
-            }
-
-            return { start, end };
         }
 };
 

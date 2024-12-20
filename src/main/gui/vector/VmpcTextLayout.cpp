@@ -329,8 +329,7 @@ namespace VmpcTextLayoutHelpers
                 const auto numGlyphs = newGlyphs.size();
                 charPosition += numGlyphs;
 
-                if (numGlyphs > 0
-                    && (! (/*t.isWhitespace || */t.isNewLine) || needToSetLineOrigin))
+                if (numGlyphs > 0)
                 {
                     currentRun->glyphs.ensureStorageAllocated (currentRun->glyphs.size() + newGlyphs.size());
                     auto tokenOrigin = t.area.getPosition().translated (0, t.font.getAscent());
