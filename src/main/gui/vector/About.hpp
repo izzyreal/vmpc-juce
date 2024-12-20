@@ -201,7 +201,7 @@ namespace vmpc_juce::gui::vector {
                     return;
                 }
 
-                setScrollOffset(scrollOffset + scrollAmountForTimer * 3);
+                setScrollOffset(scrollOffset + scrollAmountForTimer * 7);
                 textWithLinks->updateSelectionEnd(textWithLinks->getMouseXYRelative());
             }
 
