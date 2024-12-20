@@ -101,7 +101,7 @@
         {
           "name" : "previous_step_label",
           "font" : "faceplate-glyphs",
-          "font_scale" : 0.6,
+          "font_scale" : 0.45,
           "hardware_label" : "prev-step-event",
           "label" : "c",
           "area" : [ 1, 1, 1, 1 ]
@@ -109,7 +109,7 @@
         {
           "name" : "next__step_label",
           "font" : "faceplate-glyphs",
-          "font_scale" : 0.6,
+          "font_scale" : 0.45,
           "hardware_label" : "next-step-event",
           "label" : "d",
           "area" : [ 1, 2, 1, 2 ]
@@ -117,7 +117,7 @@
         {
           "name" : "previous_bar_label",
           "font" : "faceplate-glyphs",
-          "font_scale" : 0.6,
+          "font_scale" : 0.45,
           "hardware_label" : "prev-bar-start",
           "label" : "e",
           "area" : [ 1, 4, 1, 4 ]
@@ -125,7 +125,7 @@
         {
           "name" : "next_bar_label",
           "font" : "faceplate-glyphs",
-          "font_scale" : 0.6,
+          "font_scale" : 0.45,
           "hardware_label" : "next-bar-end",
           "label" : "f",
           "area" : [ 1, 5, 1, 5 ]
