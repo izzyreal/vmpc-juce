@@ -32,7 +32,7 @@ namespace vmpc_juce::gui::vector {
             void resized() override
             {
                 juce::Grid grid;
-                grid.templateRows = { juce::Grid::Fr(10), juce::Grid::Fr(10), juce::Grid::Fr(12) };
+                grid.templateRows = { juce::Grid::Fr(10), juce::Grid::Fr(10), juce::Grid::Fr(13) };
                 grid.templateColumns = { juce::Grid::Fr(1) };
 
                 grid.items.add(juce::GridItem(topLabel).withArea(1, 1, 1, 1));
