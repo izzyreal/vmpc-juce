@@ -9,7 +9,8 @@ namespace vmpc_juce::gui::vector {
 
             void paint(juce::Graphics &g) override
             {
-                g.fillAll(colour);
+                g.setColour(colour);
+                g.fillRoundedRectangle(getLocalBounds().toFloat(), 1.f);
             }
 
         private:
