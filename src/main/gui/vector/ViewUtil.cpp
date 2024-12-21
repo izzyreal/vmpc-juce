@@ -295,7 +295,7 @@ void ViewUtil::createComponent(
         }
         else if (n.label_style == "cursor_digit")
         {
-            labelComponent = new RectangleLabel(getScale, n.label, n.label, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 10.f, fontGetter);
+            labelComponent = new RectangleLabel(getScale, n.label, n.label, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 5.f, fontGetter);
         }
         else if (n.label_style == "dark")
         {
