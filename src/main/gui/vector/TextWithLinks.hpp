@@ -21,7 +21,7 @@ class TextWithLinks : public juce::Component
         void updateFont()
         {
             auto font = getNimbusSansScaled();
-            font.setHeight(font.getHeight() * 1.35f);
+            font.setHeight(font.getHeight() * 1.25f);
             parsedText.setFont(font);
         }
 
