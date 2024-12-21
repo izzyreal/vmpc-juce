@@ -7,7 +7,7 @@
     { "name" : "grey_background", "type" : "face_paint_grey_rectangle", "area" : [ 1, 1, 18, 34 ] },
     { "name" : "full_level_and_16_levels_chassis_background", "type" : "chassis_rectangle", "area" : [ 4, 2, 8, 12 ] },
     { "name" : "next_seq_and_track_mute_chassis_background", "type" : "chassis_rectangle", "area" : [ 12, 2, 16, 12 ] },
-    { "name" : "pad_bank_label", "type" : "line_flanked_label", "label" : "PAD BANK", "area" : [ 12, 14, 13, 31 ] },
+    { "name" : "pad_bank_label", "type" : "line_flanked_label", "margin" : [ 0, 0, 2, 0 ], "label" : "PAD BANK", "area" : [ 12, 14, 13, 31 ] },
     {
       "name" : "keys_container",
       "type" : "grid",
