@@ -18,7 +18,7 @@
     {
       "name" : "event_label_container",
       "type" : "grid",
-      "row_fractions" : [ 1, 10 ],
+      "row_fractions" : [ 3, 10 ],
       "column_fractions" : [ 1, 2, 7 ],
       "area" : [ 3, 1, 3, 1 ],
       "children" : [
@@ -40,7 +40,7 @@
       "name" : "key_container",
       "type" : "grid",
       "area" : [ 1, 1, 3, 1 ],
-      "row_fractions" : [ 10, 11, 2, 6, 2 ],
+      "row_fractions" : [ 10, 11, 2, 6, 1 ],
       "column_fractions" : [ 1, 1, 1, 1, 1 ],
       "shadow_size" : 1,
       "children" : [
