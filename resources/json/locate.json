@@ -22,7 +22,7 @@
       "column_fractions" : [ 1, 2, 7 ],
       "area" : [ 3, 1, 3, 1 ],
       "children" : [
-        { "name" : "event_label", "font_scale" : 0.8, "label" : "EVENT", "label_style" : "chassis_background", "area" : [ 2, 2, 2, 2 ] }
+        { "name" : "event_label", "font_scale" : 0.85, "label" : "EVENT", "margin" : [ 0, 0.1, 0, 0 ], "label_style" : "chassis_background", "area" : [ 2, 2, 2, 2 ] }
       ]
     },
     {
