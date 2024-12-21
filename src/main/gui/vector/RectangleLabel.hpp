@@ -74,7 +74,6 @@ namespace vmpc_juce::gui::vector {
                     backgroundRect.translate(0, topMargin * scale * 0.7f); 
                 }
 
-                g.drawRoundedRectangle(backgroundRect.toFloat(), radiusWithScale, 1.f);
                 g.fillRoundedRectangle(backgroundRect.toFloat(), radiusWithScale);
             }
 
