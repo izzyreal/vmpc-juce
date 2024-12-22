@@ -3,8 +3,11 @@ Project website: <link>https://www.izmar.nl</link>
 Source code: <link>https://github.com/izzyreal/vmpc-juce</link>
 Version: <version>
 Build: <build>
-License: GPL3, <link>https://github.com/izzyreal/vmpc-juce#GPL-3.0-1-ov-file</link>
-In short, this means you are free to use and distribute VMPC2000XL for
+
+License: GPL3,
+<link>https://github.com/izzyreal/vmpc-juce/blob/master/LICENSE.txt</link>
+
+In short, GPL3 means you are free to use and distribute VMPC2000XL for
 any purpose, commercial or non-commercial, without any restrictions.
 You are also free to modify the program as you wish, but with the only
 restriction that if you distribute the modified version, you must provide
@@ -18,6 +21,11 @@ MPC® and Akai Professional® names has not been authorized,
 sponsored or otherwise approved by inMusic.
 
 CREDITS AND THANKS
+
+I'm immensely grateful for Steve Taylor's involvement in my first years of object-oriented programming. It's fair to say I would not be where I am today, if it were not for his dedication to communicate his knowledge and ideas to me.
+
+Steve Taylor is also the author of toot2, a Java framework for audio, music and DSP. When VMPC2000XL was still a Java project, it depended heavily on toot2. Later I ported much of it to C++. In its current incarnation,
+VMPC2000XL still relies on a severely stripped version of my C++ port of toot2.
 
 The vector art is made by <link>https://www.instagram.com/azalvector</link>
 @azalvector, thanks for your amazing contribution. It made the new
@@ -41,19 +49,67 @@ melatonin_blur
 <link>https://github.com/sudara/melatonin_blur</link>
 Shadows and glows for JUCE.
 License: MIT,
-<link>https://github.com/sudara/melatonin_blur?tab=MIT-1-ov-file#readme</link>
+<link>https://github.com/sudara/melatonin_blur/blob/main/LICENSE</link>
+
+libsamplerate
+<link>https://github.com/libsndfile/libsamplerate</link>
+Realtime and offline sample rate conversion.
+License: BSD,
+<link>https://github.com/libsndfile/libsamplerate/blob/master/COPYING</link>
+
+RtMidi
+<link>https://github.com/thestk/rtmidi</link>
+Can be used for many things, but VMPC2000XL uses it just to identify connected MIDI devices.
+License: Similar to MIT,
+<link>https://github.com/thestk/rtmidi/blob/master/LICENSE</link>
+
+android-midi-lib
+<link>https://github.com/LeffelMania/android-midi-lib</link>
+I ported it to C++ and tailored it for reading/writing MPC2000XL MIDI files.
+License: MIT,
+<link>https://github.com/LeffelMania/android-midi-lib/blob/master/LICENSE</link>
+
+LodePNG
+<link>https://github.com/lvandeve/lodepng</link>
+Used for loading backgrounds for the various LCD screen arrangements.
+License: zlib,
+<link>https://github.com/lvandeve/lodepng/blob/master/LICENSE</link>
+
+moodycamel::ConcurrentQueue
+<link>https://github.com/cameron314/concurrentqueue</link>
+Provides thread-safety when recording notes via keyboard or mouse input.
+License: Simplified BSD,
+<link>https://github.com/cameron314/concurrentqueue/blob/master/LICENSE.md</link>
+
+moodycamel::ReaderWriterQueue
+<link>https://github.com/cameron314/readerwriterqueue</link>
+Provides thread-safety when bouncing audio to disk, as well as when doing streaming playback of SND/WAV files from disk (i.e. the VMPC2000XL-specific PLAY feature in the LOAD and Directory screens, which allows you to preview sounds).
+License: Simplified BSD,
+<link displayText="https://github.com/cameron314/rea...riterqueue/blob/master/LICENSE.md">https://github.com/cameron314/readerwriterqueue/blob/master/LICENSE.md</link>
+
+PlatformFolders
+<link>https://github.com/sago007/PlatformFolders</link>
+Provides a single, platform-agnostic facade to look for special folders, like "My Documents".
+License: MIT,
+<link>https://github.com/sago007/PlatformFolders/blob/master/LICENSE</link>
+
+Bitmap
+<link>https://github.com/kbuffardi/Bitmap</link>
+Used to load the LCD bitmap font's glyphs.
+License: MIT,
+<link>https://github.com/kbuffardi/Bitmap/blob/master/LICENSE</link>
 
 rapidjson
 <link>https://github.com/Tencent/rapidjson</link>
 JSON parsing, used for reading LCD screen layout definitions.
 License: MIT,
-<link>https://github.com/Tencent/rapidjson?tab=License-1-ov-file#readme</link>
+<link>https://github.com/Tencent/rapidjson/blob/master/license.txt</link>
 
 nlohmann/json
 <link>https://github.com/nlohmann/json</link>
 JSON parsing, used for reading vector UI layout definitions.
 License: MIT,
-<link>https://github.com/nlohmann/json?tab=MIT-1-ov-file#readme</link>
+<link>https://github.com/nlohmann/json/blob/develop/LICENSE.MIT</link>
 
 tl-expected
 <link>https://github.com/TartanLlama/expected</link>
@@ -66,19 +122,19 @@ Catch2
 <link>https://github.com/catchorg/Catch2</link>
 C++ unit tests.
 License: BSL-1.0,
-<link>https://github.com/catchorg/Catch2?tab=BSL-1.0-1-ov-file#readme</link>
+<link>https://github.com/catchorg/Catch2/blob/devel/LICENSE.txt</link>
 
 gh-filesystem
 <link>https://github.com/gulrak/filesystem</link>
 A std::filesystem implementation that runs on older ABIs.
 License: MIT,
-<link>https://github.com/gulrak/filesystem?tab=MIT-1-ov-file#readme</link>
+<link>https://github.com/gulrak/filesystem/blob/master/LICENSE</link>
 
 CMake
 <link>https://cmake.org</link>
 C/C++ build system.
 License: BSD 3,
-<link>https://github.com/Kitware/CMake?tab=readme-ov-file#license</link>
+<link>https://github.com/Kitware/CMake/blob/master/Copyright.txt</link>
 
 Inkscape
 <link>https://inkscape.org</link>
