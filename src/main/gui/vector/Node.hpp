@@ -35,6 +35,18 @@ namespace vmpc_juce::gui::vector {
         float font_scale;
         std::string font;
 
+        // Should only be specified for the root node.
+        // Throughout the UI, a getScale() is available. This function
+        // returns the current root window height divided by the
+        // base height specified below. Many aspects of the UI respond
+        // to scale, such as line thickness and font size. So when you
+        // define the root node for a new layout, play with values
+        // between 300 to 1000 to affect such global aesthetics.
+        // 
+        // The root window's aspect ratio is base_width / base_height.
+        int base_width;
+        int base_height;
+
         // grid
         std::vector<uint16_t> row_fractions;
         std::vector<uint16_t> column_fractions;
@@ -125,6 +137,8 @@ namespace vmpc_juce::gui::vector {
             if (j.contains("svg_placement"))    j.at("svg_placement").get_to(n.svg_placement);
             if (j.contains("font_scale"))       j.at("font_scale").get_to(n.font_scale); else n.font_scale = 0.f;
             if (j.contains("font"))             j.at("font").get_to(n.font);
+            if (j.contains("base_width"))       j.at("base_width").get_to(n.base_width); else n.base_width = 0.f;
+            if (j.contains("base_height"))      j.at("base_height").get_to(n.base_height); else n.base_height = 0.f;
 
             if (j.contains("shadow_size"))
             {

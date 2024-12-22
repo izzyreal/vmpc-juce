@@ -1,6 +1,8 @@
 {
   "name" : "root_container",
   "type" : "grid",
+  "base_width" : 445,
+  "base_height" : 342,
   "row_fractions" : [ 3, 294, 6 ],
   "column_fractions" : [ 3, 215, 2 ],
   "children" : [

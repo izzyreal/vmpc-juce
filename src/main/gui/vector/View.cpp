@@ -14,6 +14,8 @@
 #include "About.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
+#include "InitialWindowDimensions.hpp"
+
 #include "Mpc.hpp"
 #include "controls/Controls.hpp"
 #include "controls/KeyEvent.hpp"
@@ -22,6 +24,9 @@
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
 #include <nlohmann/json.hpp>
+#include "gui/vector/Constants.hpp"
+
+#include "vf_freetype/vf_FreeTypeFaces.h"
 
 using namespace vmpc_juce::gui::vector;
 
@@ -44,15 +49,29 @@ static std::vector<ComponentClass*> getChildComponentsOfClass(juce::Component *p
     return matches;
 }
 
-View::View(
-        mpc::Mpc &mpcToUse,
-        const std::function<float()> &getScaleToUse,
-        const std::function<juce::Font&()> &getNimbusSansScaledToUse,
-        const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaledToUse,
-        const std::function<void()> &showAudioSettingsDialog,
-        const std::function<void()> &resetWindowSize)
-    : getScale(getScaleToUse), getNimbusSansScaled(getNimbusSansScaledToUse), getMpc2000xlFaceplateGlyphsScaled(getMpc2000xlFaceplateGlyphsScaledToUse), mpc(mpcToUse)
+View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDialog)
+    : mpc(mpcToUse),
+    getScale([this] { return (float) getHeight() / (float) base_height; }),
+    getMainFontScaled([&]() -> juce::Font& {
+        mainFont.setHeight(Constants::BASE_FONT_SIZE * getScale());
+        return mainFont;
+    }),
+    getMpc2000xlFaceplateGlyphsScaled([&]() -> juce::Font& {
+        mpc2000xlFaceplateGlyphsFont.setHeight(Constants::BASE_FONT_SIZE * getScale());
+        return mpc2000xlFaceplateGlyphsFont;
+    })
 {
+    mainFontData = VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
+    FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true, mainFontData.data(), mainFontData.size());
+    mainFont.setTypefaceName("Neutral Sans");
+    mainFont = juce::Font(FreeTypeFaces::createTypefaceForFont(mainFont));
+
+    mpc2000xlFaceplateGlyphsFontData = VmpcJuceResourceUtil::getResourceData("fonts/mpc2000xl-faceplate-glyphs.ttf");
+    FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true,
+            mpc2000xlFaceplateGlyphsFontData.data(), mpc2000xlFaceplateGlyphsFontData.size(), true);
+    mpc2000xlFaceplateGlyphsFont.setTypefaceName("MPC2000XL Faceplate-Glyphs");
+    mpc2000xlFaceplateGlyphsFont = juce::Font(FreeTypeFaces::createTypefaceForFont(mpc2000xlFaceplateGlyphsFont));
+
     keyboard = KeyboardFactory::instance(this);
 
     keyboard->onKeyDownFn = [&](int i) { onKeyDown(i); };
@@ -65,9 +84,14 @@ View::View(
 
     view_root = data.template get<node>();
 
+    base_width = view_root.base_width;
+    base_height = view_root.base_height;
+
+    getScale = [this] { return (float) getHeight() / (float) base_height; };
+
     tooltipOverlay = new TooltipOverlay();
 
-    ViewUtil::createComponent(mpc, view_root, components, this, getScale, getNimbusSansScaled, getMpc2000xlFaceplateGlyphsScaled, mouseListeners, tooltipOverlay);
+    ViewUtil::createComponent(mpc, view_root, components, this, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, mouseListeners, tooltipOverlay);
 
     Led *fullLevelLed = nullptr;
     Led *sixteenLevelsLed = nullptr;
@@ -132,21 +156,36 @@ View::View(
             about = nullptr;
         }
 
-        about = new About(getScale, getNimbusSansScaled, closeAbout);
+        about = new About(getScale, getMainFontScaled, closeAbout);
         keyboard->onKeyUpFn = {};
         keyboard->onKeyDownFn = {};
         addAndMakeVisible(about);
         resized();
     };
 
-    menu = new Menu(getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getNimbusSansScaled, mpc, openAbout);
+    initialRootWindowDimensions = InitialWindowDimensions::get(base_width, base_height);
+    const auto resetWindowSize = [this]{
+        setSize(initialRootWindowDimensions.first, initialRootWindowDimensions.second);
+    };
+
+    menu = new Menu(getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getMainFontScaled, mpc, openAbout);
 
     addAndMakeVisible(menu);
     addAndMakeVisible(tooltipOverlay);
 
     const std::function<void()> deleteDisclaimerF = [this] { deleteDisclaimer(); };
-    disclaimer = new Disclaimer(getNimbusSansScaled, deleteDisclaimerF);
+    disclaimer = new Disclaimer(getMainFontScaled, deleteDisclaimerF);
     //addAndMakeVisible(disclaimer);
+}
+
+const float View::getAspectRatio()
+{
+    return (float) base_width / base_height;
+}
+
+const std::pair<int, int> View::getInitialRootWindowDimensions()
+{
+    return initialRootWindowDimensions;
 }
 
 View::~View()

@@ -28,7 +28,6 @@
 #include <engine/midi/ShortMessage.hpp>
 
 #include "VmpcEditor.hpp"
-#include "InitialWindowDimensions.hpp"
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
@@ -58,9 +57,6 @@ VmpcProcessor::VmpcProcessor()
                   .withOutput("MIX OUT 7/8", juce::AudioChannelSet::stereo(), false)
                   )
 {
-    const auto dimensions = InitialWindowDimensions::get();
-    lastUIWidth = dimensions.first;
-    lastUIHeight = dimensions.second;
     time_t currentTime = time(nullptr);
   struct tm* currentLocalTime = localtime(&currentTime);
   auto timeString = std::string(asctime(currentLocalTime));
