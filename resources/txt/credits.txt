@@ -122,7 +122,7 @@ juce-raw-keyboard-input-module
 <link>https://github.com/izzyreal/juce-raw-keyboard-input-module</link>
 Linux, Windows and macOS raw (game-engine style) keyboard input.
 License: GPL3,
-<link>https://github.com/izzyreal/juce-raw-keyboard-input-module/blob/main/LICENSE.txt</link>
+<link displayText="https://github.com/izzyreal/juce-raw-...-input-module/blob/main/LICENSE.txt">https://github.com/izzyreal/juce-raw-keyboard-input-module/blob/main/LICENSE.txt</link>
 
 akai-fat
 <link>https://github.com/izzyreal/akaifat</link>
