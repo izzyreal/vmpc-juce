@@ -188,6 +188,7 @@ namespace vmpc_juce::gui::vector {
             {
                 std::vector<juce::Rectangle<float>> bounds;
                 juce::String url;
+                juce::String displayText;
             };
 
             juce::String rawText;
@@ -317,7 +318,7 @@ namespace vmpc_juce::gui::vector {
                     const auto urlText = remainingText.substring(urlStart, urlEnd);
 
                     parsedText.append(displayText, juce::Colours::blue);
-                    links.push_back({ {}, urlText.trim() });
+                    links.push_back({ .bounds = {}, .url = urlText.trim(), .displayText = displayText.trim() });
 
                     remainingText = remainingText.substring(end + 7);
                 }
@@ -345,16 +346,14 @@ namespace vmpc_juce::gui::vector {
                         const auto xRange = run->getRunBoundsX();
                         const auto y = line.getLineBounds().getY();
                         const auto height = line.getLineBounds().getHeight();
-                        const auto linkRect = juce::Rectangle<float>(xRange.getStart(), y, xRange.getLength(), height);
 
-
-                        links[linkIndex].bounds.push_back(linkRect);
+                        links[linkIndex].bounds.emplace_back(juce::Rectangle<float>(xRange.getStart(), y, xRange.getLength(), height));
 
                         const auto partialLinkText = parsedText.getText().substring(run->stringRange.getStart(), run->stringRange.getEnd());
 
                         currentLinkText.append(partialLinkText, partialLinkText.length());
 
-                        if (currentLinkText == links[linkIndex].url)
+                        if (currentLinkText == links[linkIndex].displayText)
                         {
                             ++linkIndex;
                             currentLinkText.clear();
