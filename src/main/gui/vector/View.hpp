@@ -20,15 +20,15 @@ namespace vmpc_juce::gui::vector {
     class View : public juce::Component {
 
         public:
-            View(mpc::Mpc &mpc,
-                    const std::function<float()>& getScale,
-                    const std::function<juce::Font&()> &getNimbusSansScaled,
-                    const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaled,
-                    const std::function<void()> &showAudioSettingsDialog,
-                    const std::function<void()> &resetWindowSize);
+            View(mpc::Mpc &mpc, const std::function<void()> &showAudioSettingsDialog);
+                    
             ~View() override;
 
             void resized() override;
+
+            const std::pair<int, int> getInitialRootWindowDimensions();
+
+            const float getAspectRatio();
 
         private:
             void onKeyUp(int);
@@ -39,8 +39,8 @@ namespace vmpc_juce::gui::vector {
             std::vector<juce::Component*> components;
             std::vector<juce::MouseListener*> mouseListeners;
             node view_root;
-            const std::function<float()> getScale;
-            const std::function<juce::Font&()> getNimbusSansScaled;
+            std::function<float()> getScale;
+            const std::function<juce::Font&()> getMainFontScaled;
             const std::function<juce::Font&()> getMpc2000xlFaceplateGlyphsScaled;
             Keyboard *keyboard = nullptr;
             LedController *ledController = nullptr;
@@ -48,6 +48,16 @@ namespace vmpc_juce::gui::vector {
             Menu *menu = nullptr;
             Disclaimer *disclaimer = nullptr;
             About *about = nullptr;
+
+            int base_width;
+            int base_height;
+            std::pair<int, int> initialRootWindowDimensions;
+
+            std::vector<char> mainFontData;
+            juce::Font mainFont;
+
+            std::vector<char> mpc2000xlFaceplateGlyphsFontData;
+            juce::Font mpc2000xlFaceplateGlyphsFont;
 
             friend class Lcd;
     };

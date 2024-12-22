@@ -47,7 +47,7 @@ public:
   void getStateInformation (juce::MemoryBlock& destData) override;
   void setStateInformation (const void* data, int sizeInBytes) override;
   
-  int lastUIWidth = 1298/2, lastUIHeight = 994/2;
+  int lastUIWidth = 0, lastUIHeight = 0;
   
 private:
   void processMidiIn(juce::MidiBuffer& midiMessages);

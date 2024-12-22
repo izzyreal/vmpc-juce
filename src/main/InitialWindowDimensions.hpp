@@ -20,10 +20,8 @@ namespace vmpc_juce {
 
     class InitialWindowDimensions {
         public:
-            static std::pair<int, int> get()
+            static std::pair<int, int> get(const int baseLayoutWidth, const int baseLayoutHeight)
             {
-                const int safeW = 445, safeH = 342;
-
                 int w, h;
 
                 if (juce::JUCEApplication::isStandaloneApp())
@@ -32,16 +30,16 @@ namespace vmpc_juce {
 
                     if (h == 0)
                     {
-                        w = safeW; h = safeH;
+                        w = baseLayoutWidth; h = baseLayoutHeight;
                     }
                     else
                     {
-                        w = h * (safeW / (float) safeH);
+                        w = h * (baseLayoutWidth / (float) baseLayoutHeight);
                     }
                 }
                 else
                 {
-                    w = safeW; h = safeH;
+                    w = baseLayoutWidth; h = baseLayoutHeight;
                 }
 
                 return { w, h };

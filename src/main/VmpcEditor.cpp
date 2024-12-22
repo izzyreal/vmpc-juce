@@ -3,12 +3,7 @@
 #include "VmpcEditor.hpp"
 #include "VmpcProcessor.hpp"
 
-#include "gui/vector/Constants.hpp"
 #include "gui/vector/View.hpp"
-
-#include "VmpcJuceResourceUtil.hpp"
-
-#include "vf_freetype/vf_FreeTypeFaces.h"
 
 #if ENABLE_GUI_INSPECTOR == 1
 #include <melatonin_inspector/melatonin_inspector.h>
@@ -20,36 +15,23 @@ using namespace vmpc_juce::gui::vector;
 VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
 {
-    mainFontData = VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
-    FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true, mainFontData.data(), mainFontData.size());
-    mainFont.setTypefaceName("Neutral Sans");
-    mainFont = juce::Font(FreeTypeFaces::createTypefaceForFont(mainFont));
-
-    const auto getScale = [&] { return (float) getHeight() / (float) initial_height; };
-
-    const auto getMainFontScaled = [&, getScale]() -> juce::Font& {
-        mainFont.setHeight(Constants::BASE_FONT_SIZE * getScale());
-        return mainFont;
-    };
-
-    mpc2000xlFaceplateGlyphsFontData = VmpcJuceResourceUtil::getResourceData("fonts/mpc2000xl-faceplate-glyphs.ttf");
-    FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true,
-            mpc2000xlFaceplateGlyphsFontData.data(), mpc2000xlFaceplateGlyphsFontData.size(), true);
-    mpc2000xlFaceplateGlyphsFont.setTypefaceName("MPC2000XL Faceplate-Glyphs");
-    mpc2000xlFaceplateGlyphsFont = juce::Font(FreeTypeFaces::createTypefaceForFont(mpc2000xlFaceplateGlyphsFont));
-
-    const auto getMpc2000xlFaceplateGlyphsScaled = [&, getScale]() -> juce::Font& {
-        mpc2000xlFaceplateGlyphsFont.setHeight(Constants::BASE_FONT_SIZE * getScale());
-        return mpc2000xlFaceplateGlyphsFont;
-    };
-
-    const std::function<void()> resetWindowSize = [&] {
-        setSize((int) (initial_width * initial_scale), (int) (initial_height * initial_scale));
-    };
-
-    view = new View(vmpcProcessor.mpc, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, vmpcProcessor.showAudioSettingsDialog, resetWindowSize);
 
     setWantsKeyboardFocus(true);
+
+    view = new View(vmpcProcessor.mpc, vmpcProcessor.showAudioSettingsDialog);
+
+    const auto viewAspectRatio = view->getAspectRatio();
+
+    auto initialWindowWidth = vmpcProcessor.lastUIWidth;
+    auto initialWindowHeight = vmpcProcessor.lastUIHeight;
+
+    if (initialWindowWidth == 0 || initialWindowHeight == 0 /* || check if aspect ratio is different */) 
+    {
+        const auto initialDimensions = view->getInitialRootWindowDimensions();
+        initialWindowWidth = initialDimensions.first;
+        initialWindowHeight = initialDimensions.second;
+    }
+
 #if JUCE_IOS
     if (juce::JUCEApplication::isStandaloneApp())
     {
@@ -62,20 +44,24 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
         }
         else
         {
-            setSize(vmpcProcessor.lastUIWidth, vmpcProcessor.lastUIHeight);
+            setSize(initialWindowWidth, initialWindowHeight);
         }
     }
     else
     {
-        setSize(vmpcProcessor.lastUIWidth, vmpcProcessor.lastUIHeight);
+        setSize(initialWindowWidth, initialWindowHeight);
     }
 #else
-    setSize(vmpcProcessor.lastUIWidth, vmpcProcessor.lastUIHeight);
+
+    setSize(initialWindowWidth, initialWindowHeight);
     setResizable(true, true);
-    getConstrainer()->setFixedAspectRatio(initial_width / (float)initial_height);
+    getConstrainer()->setFixedAspectRatio(viewAspectRatio);
     setLookAndFeel(&lookAndFeel);
+
 #endif
+
     addAndMakeVisible(view);
+
 #if ENABLE_GUI_INSPECTOR == 1
     inspector = new melatonin::Inspector(*this);
     inspector->setVisible(true);
