@@ -10,10 +10,10 @@ namespace vmpc_juce::gui::vector {
 
 class Slider : public juce::Component {
     public:
-        Slider(juce::Component *commonParentWithShadowToUse, const std::function<float()> &getScaleToUse, const float shadowSize, const std::function<juce::Font&()> &getNimbusSansScaled)
+        Slider(juce::Component *commonParentWithShadowToUse, const std::function<float()> &getScaleToUse, const float shadowSize, const std::function<juce::Font&()> &getMainFontScaled)
             : getScale(getScaleToUse)
         {
-            rectangleLabel = new RectangleLabel(getScaleToUse, "NOTE\nVARIATION", "VARIATION", Constants::chassisColour, Constants::labelColour, 0.f, 7.f, getNimbusSansScaled);
+            rectangleLabel = new RectangleLabel(getScaleToUse, "NOTE\nVARIATION", "VARIATION", Constants::chassisColour, Constants::labelColour, 0.f, 7.f, getMainFontScaled);
             addAndMakeVisible(rectangleLabel);
 
             sliderCapSvg = new SliderCap(commonParentWithShadowToUse, shadowSize, getScale);

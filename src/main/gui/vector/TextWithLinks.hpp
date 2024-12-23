@@ -9,8 +9,8 @@ namespace vmpc_juce::gui::vector {
     class TextWithLinks : public juce::Component
     {
         public:
-            TextWithLinks(const juce::String& rawTextToUse, const std::function<juce::Font&()> &getNimbusSansScaledToUse)
-                : rawText(rawTextToUse), getNimbusSansScaled(getNimbusSansScaledToUse)
+            TextWithLinks(const juce::String& rawTextToUse, const std::function<juce::Font&()> &getMainFontScaledToUse)
+                : rawText(rawTextToUse), getMainFontScaled(getMainFontScaledToUse)
             {
                 setOpaque(true);
                 parse();
@@ -20,7 +20,7 @@ namespace vmpc_juce::gui::vector {
 
             void updateFont()
             {
-                auto font = getNimbusSansScaled();
+                auto font = getMainFontScaled();
                 font.setHeight(font.getHeight() * 1.25f);
                 parsedText.setFont(font);
             }
@@ -197,7 +197,7 @@ namespace vmpc_juce::gui::vector {
             std::vector<juce::Rectangle<float>> characterBounds;
             std::vector<juce::Rectangle<float>> lineBounds;
 
-            const std::function<juce::Font&()> &getNimbusSansScaled;
+            const std::function<juce::Font&()> &getMainFontScaled;
 
             int currentlyHoveringLinkIndex = -1;
             int selectionStart = -1;

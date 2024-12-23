@@ -9,10 +9,10 @@ namespace vmpc_juce::gui::vector {
     class LineFlankedLabel : public juce::Component {
         public:
             LineFlankedLabel(const std::string &textToUse, const std::function<float()> &getScaleToUse,
-                    const std::function<juce::Font&()> &getNimbusSansScaled)
+                    const std::function<juce::Font&()> &getMainFontScaled)
                 : text(textToUse), getScale(getScaleToUse)
             {
-                simpleLabel = new SimpleLabel(getScaleToUse, textToUse, Constants::labelColour, getNimbusSansScaled);
+                simpleLabel = new SimpleLabel(getScaleToUse, textToUse, Constants::labelColour, getMainFontScaled);
                 addAndMakeVisible(simpleLabel);
             }
 

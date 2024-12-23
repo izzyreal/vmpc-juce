@@ -9,8 +9,8 @@ namespace vmpc_juce::gui::vector {
 
     class Disclaimer : public juce::Component, juce::Timer {
         public:
-            Disclaimer(const std::function<juce::Font&()> &getNimbusSansScaledToUse, const std::function<void()> &deleteMeToUse)
-                : getNimbusSansScaled(getNimbusSansScaledToUse), deleteMe(deleteMeToUse)
+            Disclaimer(const std::function<juce::Font&()> &getMainFontScaledToUse, const std::function<void()> &deleteMeToUse)
+                : getMainFontScaled(getMainFontScaledToUse), deleteMe(deleteMeToUse)
             {
                 startTimer(10000);
             }
@@ -32,7 +32,7 @@ namespace vmpc_juce::gui::vector {
                                          "inMusic and use of the MPC® and Akai Professional® names has\n"
                                          "not been authorized, sponsored or otherwise approved by inMusic.";
 
-                auto font = getNimbusSansScaled();
+                auto font = getMainFontScaled();
                 font.setHeight(font.getHeight() * 1.5);
                 g.setFont(font);
 
@@ -60,7 +60,7 @@ namespace vmpc_juce::gui::vector {
             }
 
         private:
-            const std::function<juce::Font&()> &getNimbusSansScaled;
+            const std::function<juce::Font&()> &getMainFontScaled;
             const std::function<void()> deleteMe;
     };
 } // namespace vmpc_juce::gui::vector

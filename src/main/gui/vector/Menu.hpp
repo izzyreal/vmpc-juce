@@ -32,7 +32,7 @@ namespace vmpc_juce::gui::vector {
                     const std::function<void()> &openKeyboardScreenToUse,
                     const std::function<void(const bool)> &setKeyboardShortcutTooltipsVisibilityToUse,
                     TooltipOverlay *tooltipOverlayToUse,
-                    const std::function<juce::Font&()> &getNimbusSansScaledToUse,
+                    const std::function<juce::Font&()> &getMainFontScaledToUse,
                     mpc::Mpc &mpcToUse,
                     const std::function<void()> &openAboutToUse)
                 : getScale(getScaleToUse),
@@ -41,7 +41,7 @@ namespace vmpc_juce::gui::vector {
                 setKeyboardShortcutTooltipsVisibility(setKeyboardShortcutTooltipsVisibilityToUse),
                 resetWindowSize(resetWindowSizeToUse),
                 tooltipOverlay(tooltipOverlayToUse),
-                getNimbusSansScaled(getNimbusSansScaledToUse),
+                getMainFontScaled(getMainFontScaledToUse),
                 mpc(mpcToUse),
                 openAbout(openAboutToUse)
         {
@@ -99,7 +99,7 @@ namespace vmpc_juce::gui::vector {
 
             setWantsKeyboardFocus(false);
 
-            infoTooltip = new InfoTooltip(getScale, getNimbusSansScaled, tooltipOverlay);
+            infoTooltip = new InfoTooltip(getScale, getMainFontScaled, tooltipOverlay);
             tooltipOverlay->addChildComponent(infoTooltip);
         }
 
@@ -528,7 +528,7 @@ namespace vmpc_juce::gui::vector {
             const std::function<void()> resetWindowSize;
             const std::function<void()> openKeyboardScreen;
             const std::function<void(const bool)> setKeyboardShortcutTooltipsVisibility;
-            const std::function<juce::Font&()> &getNimbusSansScaled;
+            const std::function<juce::Font&()> &getMainFontScaled;
             const std::function<void()> openAbout;
 
             TooltipOverlay *tooltipOverlay;

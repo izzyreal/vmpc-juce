@@ -10,10 +10,10 @@ namespace vmpc_juce::gui::vector {
         public:
             InfoTooltip(
                     const std::function<float()> &getScaleToUse,
-                    const std::function<juce::Font&()> &getNimbusSansScaledToUse,
+                    const std::function<juce::Font&()> &getMainFontScaledToUse,
                     juce::Component *tooltipOverlayToUse)
                 : getScale(getScaleToUse),
-                getNimbusSansScaled(getNimbusSansScaledToUse),
+                getMainFontScaled(getMainFontScaledToUse),
                 tooltipOverlay(tooltipOverlayToUse)
         {
             shadow.setColor(juce::Colours::black.withAlpha(0.6f));
@@ -199,7 +199,7 @@ namespace vmpc_juce::gui::vector {
 
             juce::Font getFont()
             {
-                auto result = getNimbusSansScaled();
+                auto result = getMainFontScaled();
                 return result.withHeight(result.getHeight() * 1.5f);
             }
 
@@ -209,7 +209,7 @@ namespace vmpc_juce::gui::vector {
             }
 
             const std::function<float()> &getScale;
-            const std::function<juce::Font&()> &getNimbusSansScaled;
+            const std::function<juce::Font&()> &getMainFontScaled;
             std::string tooltipText;
             const juce::Component *anchor = nullptr;
             const juce::Component *tooltipOverlay;

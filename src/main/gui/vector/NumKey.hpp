@@ -11,10 +11,10 @@ namespace vmpc_juce::gui::vector {
 
     class NumKey : public juce::Component {
         public:
-            NumKey(const std::function<float()> &getScaleToUse, const std::string topLabelToUse, const std::string bottomLabelToUse, std::string svgPath, juce::Component *commonParentWithShadow, const float shadowSize, const std::function<juce::Font&()> &getNimbusSansScaled)
+            NumKey(const std::function<float()> &getScaleToUse, const std::string topLabelToUse, const std::string bottomLabelToUse, std::string svgPath, juce::Component *commonParentWithShadow, const float shadowSize, const std::function<juce::Font&()> &getMainFontScaled)
             {
-                topLabel = new SimpleLabel(getScaleToUse, topLabelToUse, Constants::darkLabelColour, getNimbusSansScaled);
-                bottomLabel = new RectangleLabel(getScaleToUse, bottomLabelToUse, bottomLabelToUse, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 5.f, getNimbusSansScaled, 1.f);
+                topLabel = new SimpleLabel(getScaleToUse, topLabelToUse, Constants::darkLabelColour, getMainFontScaled);
+                bottomLabel = new RectangleLabel(getScaleToUse, bottomLabelToUse, bottomLabelToUse, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 5.f, getMainFontScaled, 1.f);
                 svgComponent = new SvgComponent({svgPath}, commonParentWithShadow, shadowSize, getScaleToUse);
 
                 addAndMakeVisible(topLabel);

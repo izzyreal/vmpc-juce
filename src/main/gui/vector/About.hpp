@@ -171,13 +171,13 @@ namespace vmpc_juce::gui::vector {
 
     class About : public juce::Component, juce::Timer {
         public:
-            About(const std::function<float()> &getScaleToUse, const std::function<juce::Font&()> &getNimbusSansScaledToUse, const std::function<void()> &closeAboutToUse)
-                : getScale(getScaleToUse), getNimbusSansScaled(getNimbusSansScaledToUse)
+            About(const std::function<float()> &getScaleToUse, const std::function<juce::Font&()> &getMainFontScaledToUse, const std::function<void()> &closeAboutToUse)
+                : getScale(getScaleToUse), getMainFontScaled(getMainFontScaledToUse)
             {
                 aboutBorder = new AboutBorder(getScale);
                 const auto creditsTextData = vmpc_juce::VmpcJuceResourceUtil::getResourceData("txt/credits.txt");
                 creditsText = std::string(creditsTextData.begin(), creditsTextData.end());
-                textWithLinks = new TextWithLinks(creditsText, getNimbusSansScaled);
+                textWithLinks = new TextWithLinks(creditsText, getMainFontScaled);
                 addAndMakeVisible(textWithLinks);
                 addAndMakeVisible(aboutBorder);
 
@@ -376,7 +376,7 @@ namespace vmpc_juce::gui::vector {
             }
 
             const std::function<float()> &getScale;
-            const std::function<juce::Font&()> &getNimbusSansScaled;
+            const std::function<juce::Font&()> &getMainFontScaled;
             TextWithLinks *textWithLinks = nullptr;
             std::string creditsText;
             float scrollOffset = 0.f;
