@@ -9,8 +9,8 @@
 
 using namespace vmpc_juce::gui::vector;
 
-GridWrapper::GridWrapper(struct node &nodeToUse, const std::function<float()> &getScaleToUse)
-    : node(nodeToUse), getScale(getScaleToUse)
+GridWrapper::GridWrapper(struct node &myNodeToUse, const std::function<float()> &getScaleToUse)
+    : myNode(myNodeToUse), getScale(getScaleToUse)
 {
     setInterceptsMouseClicks(false, true);
 }
@@ -72,7 +72,7 @@ static void processChildren(
         else if (c.svg_component != nullptr)
         {
            // The case where there's both an SVG, as well as a label, should be handled by svg_with_label_grid_component.
-           // Hence we make sure there's no label Component associated with this node.
+           // Hence we make sure there's no label Component associated with this myNode.
             assert(c.label_component == nullptr);
             component = c.svg_component;
 
@@ -130,11 +130,11 @@ void GridWrapper::resized()
     juce::Grid grid;
     grid.justifyItems = juce::Grid::JustifyItems::center;
 
-    if (node.justify_items == "start")
+    if (myNode.justify_items == "start")
     {
         grid.justifyItems = juce::Grid::JustifyItems::start;
     }
-    else if (node.justify_items == "end")
+    else if (myNode.justify_items == "end")
     {
         grid.justifyItems = juce::Grid::JustifyItems::end;
     }
@@ -142,16 +142,16 @@ void GridWrapper::resized()
     juce::Array<juce::Grid::TrackInfo> rowTrackInfos;
     juce::Array<juce::Grid::TrackInfo> columnTrackInfos;
 
-    for (auto& f : node.row_fractions)
+    for (auto& f : myNode.row_fractions)
         rowTrackInfos.add(juce::Grid::TrackInfo(juce::Grid::Fr(f)));
 
-    for (auto& f : node.column_fractions)
+    for (auto& f : myNode.column_fractions)
         columnTrackInfos.add(juce::Grid::TrackInfo(juce::Grid::Fr(f)));
 
     grid.templateRows = rowTrackInfos;
     grid.templateColumns = columnTrackInfos;
 
-    processChildren(grid, node.children, getScale());
+    processChildren(grid, myNode.children, getScale());
 
     grid.performLayout(getLocalBounds());
 }

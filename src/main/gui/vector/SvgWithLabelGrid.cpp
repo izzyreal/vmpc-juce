@@ -5,11 +5,11 @@
 
 using namespace vmpc_juce::gui::vector;
 
-SvgWithLabelGrid::SvgWithLabelGrid(const struct node &nodeToUse, const std::function<float()>& getScaleToUse)
-    : node(nodeToUse), getScale(getScaleToUse)
+SvgWithLabelGrid::SvgWithLabelGrid(const struct node &myNodeToUse, const std::function<float()>& getScaleToUse)
+    : myNode(myNodeToUse), getScale(getScaleToUse)
 {
-    addAndMakeVisible(node.label_component);
-    addAndMakeVisible(node.svg_component);
+    addAndMakeVisible(myNode.label_component);
+    addAndMakeVisible(myNode.svg_component);
 }
 
 SvgWithLabelGrid::~SvgWithLabelGrid()
@@ -20,8 +20,8 @@ SvgWithLabelGrid::~SvgWithLabelGrid()
 
 void SvgWithLabelGrid::resized()
 {
-    const auto labelHeight = ViewUtil::getLabelHeight(node.label, getScale);
-    const auto drawableBounds = dynamic_cast<SvgComponent*>(node.svg_component)->getDrawableBounds();
+    const auto labelHeight = ViewUtil::getLabelHeight(myNode.label, getScale);
+    const auto drawableBounds = dynamic_cast<SvgComponent*>(myNode.svg_component)->getDrawableBounds();
     const auto scale = getScale();
     const auto svgWidth = drawableBounds.getWidth() * scale;
 
@@ -31,8 +31,8 @@ void SvgWithLabelGrid::resized()
     grid.templateRows = { juce::Grid::Px(labelHeight), juce::Grid::Px(ViewUtil::getLabelHeight("", getScale) * 0.2f), juce::Grid::Fr(1) };
     grid.templateColumns = { juce::Grid::Fr(1) };
 
-    grid.items.add(juce::GridItem(node.label_component).withArea(1, 1, 1, 1));
-    grid.items.add(juce::GridItem(node.svg_component).withArea(3, 1, 3, 1).withWidth(node.width == "auto" ? juce::GridItem::notAssigned : svgWidth));
+    grid.items.add(juce::GridItem(myNode.label_component).withArea(1, 1, 1, 1));
+    grid.items.add(juce::GridItem(myNode.svg_component).withArea(3, 1, 3, 1).withWidth(myNode.width == "auto" ? juce::GridItem::notAssigned : svgWidth));
 
     grid.performLayout(getLocalBounds());
 }

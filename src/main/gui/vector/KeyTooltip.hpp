@@ -112,7 +112,7 @@ namespace vmpc_juce::gui::vector {
                 }
             }
 
-            const std::string const getHardwareLabel()
+            const std::string getHardwareLabel()
             {
                 return hardwareLabel;
             }

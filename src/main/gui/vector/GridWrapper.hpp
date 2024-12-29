@@ -14,7 +14,7 @@ namespace vmpc_juce::gui::vector {
             std::vector<juce::Component*> components;
 
         private:
-            node& node;
+            node& myNode;
             const std::function<float()> &getScale;
     };
 

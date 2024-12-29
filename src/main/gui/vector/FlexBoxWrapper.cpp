@@ -10,10 +10,10 @@
 
 using namespace vmpc_juce::gui::vector;
 
-FlexBoxWrapper::FlexBoxWrapper(struct node &nodeToUse, const std::function<float()>& getScaleToUse)
-    : node(nodeToUse), getScale(getScaleToUse)
+FlexBoxWrapper::FlexBoxWrapper(struct node &myNodeToUse, const std::function<float()>& getScaleToUse)
+    : myNode(myNodeToUse), getScale(getScaleToUse)
 {
-    printf("FlexBoxWrapper for %s\n", node.name.c_str());
+    printf("FlexBoxWrapper for %s\n", myNode.name.c_str());
 }
 
 FlexBoxWrapper::~FlexBoxWrapper()
@@ -124,32 +124,32 @@ static void processChildren(
 
 void FlexBoxWrapper::resized()
 {
-    printf("FlexBoxWrapper for %s resized to %i, %i\n", node.name.c_str(), getWidth(), getHeight());
+    printf("FlexBoxWrapper for %s resized to %i, %i\n", myNode.name.c_str(), getWidth(), getHeight());
 
     std::vector<std::unique_ptr<juce::FlexBox>> flexBoxes;
 
     juce::FlexBox flexBox;
     flexBox.justifyContent = juce::FlexBox::JustifyContent::center;
 
-    if (node.align_items == "flex_end")
+    if (myNode.align_items == "flex_end")
     {
         flexBox.alignItems = juce::FlexBox::AlignItems::flexEnd;
     }
-    else if (node.align_items == "flex_start")
+    else if (myNode.align_items == "flex_start")
     {
         flexBox.alignItems = juce::FlexBox::AlignItems::flexStart;
     }
 
-    if (node.direction == "column")
+    if (myNode.direction == "column")
     {
         flexBox.flexDirection = juce::FlexBox::Direction::column;
     }
-    else if (node.direction == "row")
+    else if (myNode.direction == "row")
     {
         flexBox.flexDirection = juce::FlexBox::Direction::row;
     }
 
-    processChildren(flexBox, node.children, getScale, flexBoxes);
+    processChildren(flexBox, myNode.children, getScale, flexBoxes);
 
     flexBox.performLayout(getLocalBounds());
 }
