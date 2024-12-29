@@ -318,7 +318,7 @@ namespace vmpc_juce::gui::vector {
                     const auto urlText = remainingText.substring(urlStart, urlEnd);
 
                     parsedText.append(displayText, juce::Colours::blue);
-                    links.push_back({ .bounds = {}, .url = urlText.trim(), .displayText = displayText.trim() });
+                    links.push_back({ /* .bounds = */ {}, /* .url = */ urlText.trim(), /* .displayText = */ displayText.trim()});
 
                     remainingText = remainingText.substring(end + 7);
                 }
