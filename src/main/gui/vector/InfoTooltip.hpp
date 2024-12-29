@@ -29,7 +29,7 @@ namespace vmpc_juce::gui::vector {
                 repaint();
             }
 
-            const juce::Component const* getAnchor()
+            const juce::Component* getAnchor()
             {
                 return anchor;
             }

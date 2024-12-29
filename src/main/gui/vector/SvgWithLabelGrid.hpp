@@ -16,7 +16,7 @@ class SvgWithLabelGrid : public juce::Component {
         std::vector<juce::Component*> components;
 
     private:
-        const node &node;
+        const node &myNode;
         const std::function<float()>& getScale;
 };
 
