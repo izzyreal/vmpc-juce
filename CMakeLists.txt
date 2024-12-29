@@ -227,6 +227,7 @@ target_link_libraries(vmpc2000xl
     melatonin_inspector
     raw_keyboard_input
     mpc
+    "-framework Carbon"
   PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
