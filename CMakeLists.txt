@@ -227,7 +227,6 @@ target_link_libraries(vmpc2000xl
     melatonin_inspector
     raw_keyboard_input
     mpc
-    "-framework Carbon"
   PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
@@ -244,6 +243,10 @@ if (APPLE)
   message("\nSetting macOS and iOS development team to organisational unit: ${DEVELOPMENT_TEAM}\n"
     "This is derived from the first valid Apple Development certificate in your local keychain.\n"
     "You can tweak it in the Build Settings tab of your root project.\n")
+
+if (NOT IOS)
+    target_link_libraries(vmpc2000xl PRIVATE "-framework Carbon")
+endif()
 endif()
 
 if(MSVC)
