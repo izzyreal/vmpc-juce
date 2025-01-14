@@ -29,6 +29,7 @@
 #include "hardware/Pot.hpp"
 #include "hardware/HwSlider.hpp"
 #include "controls/KbMapping.hpp"
+#include "controls/KeyCodeHelper.hpp"
 
 using namespace vmpc_juce::gui::vector;
 
@@ -340,20 +341,20 @@ void ViewUtil::createComponent(
                 const auto kbMapping = mpc.getControls()->getKbMapping().lock();
                 if (n.node_type == "data_wheel")
                 {
-                    const auto decrement = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel("datawheel-down"), true);
-                    const auto increment = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel("datawheel-up"), true);
-                    return decrement + " / " + increment;
+                    const auto decreaseString = mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(kbMapping->getKeyCodeFromLabel("datawheel-down"));
+                    const auto increaseString = mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(kbMapping->getKeyCodeFromLabel("datawheel-up"));
+                    return decreaseString + " / " + increaseString;
                 }
                 else if (n.hardware_label == "cursor")
                 {
-                    const auto left = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel("left"), true);
-                    const auto right = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel("right"), true);
-                    const auto up = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel("up"), true);
-                    const auto down = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel("down"), true);
+                    const auto left = mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(kbMapping->getKeyCodeFromLabel("left"));
+                    const auto right = mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(kbMapping->getKeyCodeFromLabel("right"));
+                    const auto up = mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(kbMapping->getKeyCodeFromLabel("up"));
+                    const auto down = mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(kbMapping->getKeyCodeFromLabel("down"));
                     return left + " / " + right + " / " + up + " / " + down;
                 }
 
-                const auto keyboardMappingText = kbMapping->getKeyCodeString(kbMapping->getKeyCodeFromLabel(n.hardware_label), true);
+                const auto keyboardMappingText = mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(kbMapping->getKeyCodeFromLabel(n.hardware_label));
                 return keyboardMappingText;
             };
 
