@@ -197,6 +197,7 @@ namespace vmpc_juce::gui::vector {
                 helpIcon->setAlpha(1.f);
                 keyboardIcon->setAlpha(1.f);
 #if TARGET_OS_IPHONE
+                setKeyboardShortcutTooltipsVisibility(false);
                 infoTooltip->setVisible(false);
                 handleClick(e);
 #endif
@@ -215,6 +216,11 @@ namespace vmpc_juce::gui::vector {
                 if (icon != menuIcon)
                 {
                     icon->setAlpha(0.5f);
+                }
+
+                if (icon == keyboardIcon)
+                {
+                    setKeyboardShortcutTooltipsVisibility(true);
                 }
                 
                 addTooltip(icon);
