@@ -54,8 +54,7 @@ namespace vmpc_juce::gui::vector {
                 const auto fontHeight = (getHeight() - ((bidirectionalMarginBetweenTextAndBorder + lineThickness) * 2)) - (shadowSize * 2);
 
                 g.setFont(getFont().withHeight(fontHeight));
-                std::string tooltipText = getTooltipText();
-                for (auto &c : tooltipText) c = toupper(c);
+                const std::string tooltipText = getTooltipText();
                 auto textWidth = g.getCurrentFont().getStringWidthFloat(tooltipText);
 
                 const float radius = 3.f;
