@@ -16,9 +16,7 @@ namespace vmpc_juce::gui::vector {
                 shadow.setColor(juce::Colours::black.withAlpha(0.5f));
                 positionAnchorParent = positionAnchor->getParentComponent();
                 positionAnchorParent->addComponentListener(this);
-                const auto newWidth = 100.f * (getScale()*0.5);
-                const auto newHeight = 18 * getScale();
-                setSize(newWidth, newHeight);
+                setSize(1, 1);
             }
 
             ~KeyTooltip() override
@@ -26,19 +24,26 @@ namespace vmpc_juce::gui::vector {
                 positionAnchorParent->removeComponentListener(this);
             }
 
-            void componentMovedOrResized(juce::Component &, bool wasMoved, bool wasResized) override
+            void componentMovedOrResized(juce::Component &, bool /* wasMoved */, bool /* wasResized */) override
             {
                 auto targetBounds = positionAnchor->getLocalBounds();
                 auto targetCenter = positionAnchor->localPointToGlobal(targetBounds.getCentre());
 
                 auto tooltipParent = getParentComponent();
+
                 if (tooltipParent != nullptr)
+                {
                     targetCenter = tooltipParent->getLocalPoint(nullptr, targetCenter);
+                }
+
                 const float scaleFactor = std::log(getScale() + 2.0f) / std::log(2.0f);
-                const auto newWidth = 100.f * scaleFactor;
-                const auto newHeight = 21 * scaleFactor;
-                int newX = targetCenter.x - (newWidth / 2);
-                int newY = targetCenter.y - (newHeight / 2);
+
+                const auto tooltipTypeScaleFactor = shouldMimicPhysicalKeyRepresentation() ? 1.2f : 1.f;
+
+                const auto newWidth = 100.f * scaleFactor * tooltipTypeScaleFactor;
+                const auto newHeight = 21 * scaleFactor * tooltipTypeScaleFactor;
+                const int newX = targetCenter.x - int(newWidth / 2);
+                const int newY = targetCenter.y - int(newHeight / 2);
 
                 setBounds(newX, newY, newWidth, newHeight);
             }
@@ -51,26 +56,43 @@ namespace vmpc_juce::gui::vector {
                 const auto horizontalMarginBetweenTextAndBorder = 5.f * scale;
                 const auto bidirectionalMarginBetweenTextAndBorder = 2.f * scale;
                 const auto shadowSize = 4.2f * scale;
-                const auto fontHeight = (getHeight() - ((bidirectionalMarginBetweenTextAndBorder + lineThickness) * 2)) - (shadowSize * 2);
+                const bool mimicPhysicalKeyRepresentationEnabled = shouldMimicPhysicalKeyRepresentation();
+                
+                auto fontHeight = (float(getHeight()) - ((bidirectionalMarginBetweenTextAndBorder + lineThickness) * 2)) - (shadowSize * 2);
+
+                if (mimicPhysicalKeyRepresentationEnabled)
+                {
+                    fontHeight *= 0.6f;
+                }
 
                 g.setFont(getFont().withHeight(fontHeight));
+                
                 const std::string tooltipText = getTooltipText();
-                auto textWidth = g.getCurrentFont().getStringWidthFloat(tooltipText);
+
+                const std::string string1 = mimicPhysicalKeyRepresentationEnabled ? tooltipText.substr(0, 1) : tooltipText;
+                const std::string string2 = mimicPhysicalKeyRepresentationEnabled ? tooltipText.substr(1, 1) : "";
+
+                auto textWidth = g.getCurrentFont().getStringWidthFloat(string1);
 
                 const float radius = 3.f;
                 const auto totalWidthWithoutText = ((lineThickness + horizontalMarginBetweenTextAndBorder + bidirectionalMarginBetweenTextAndBorder) * 2.f) - (shadowSize * 2);
-                const auto totalHeight = g.getCurrentFont().getHeight() + (lineThickness + bidirectionalMarginBetweenTextAndBorder) * 2;
 
+                const auto totalHeight = (g.getCurrentFont().getHeight() * (mimicPhysicalKeyRepresentationEnabled ? 1.6f : 1.f)) +
+                    (lineThickness + bidirectionalMarginBetweenTextAndBorder) * 2;
+                
                 if (totalWidthWithoutText + textWidth + (shadowSize * 2) > getWidth())
                 {
                     textWidth = (getWidth() - totalWidthWithoutText) - (shadowSize * 2);
                     textWidth -= 5.f;
                 }
 
+                const auto totalWidth = mimicPhysicalKeyRepresentationEnabled ? totalHeight : textWidth + totalWidthWithoutText;
+
                 auto outer_rect = juce::Rectangle<float>((getWidth() - (textWidth + totalWidthWithoutText)) / 2, 
                         (getHeight() - totalHeight) / 2, 
-                        textWidth + totalWidthWithoutText, 
+                        totalWidth,
                         totalHeight);
+
                 auto inner_rect = outer_rect.reduced(lineThickness * 0.5f);
 
                 const auto most_inner_rect = inner_rect.reduced(scale * 0.9f);
@@ -99,7 +121,16 @@ namespace vmpc_juce::gui::vector {
                     g.setColour(juce::Colours::white);
                     g.fillRoundedRectangle(most_inner_rect, radius);
                     g.setColour(juce::Colours::black);
-                    g.drawText(tooltipText, outer_rect.translated(0.f, -(scale * 1.3f)), juce::Justification::centred);
+
+                    if (mimicPhysicalKeyRepresentationEnabled)
+                    {
+                        g.drawText(string1, outer_rect.translated(0.f, scale * 1.1f), juce::Justification::centred);
+                        g.drawText(string2, outer_rect.translated(0.f, -(scale * 4.6f)), juce::Justification::centred);
+                    }
+                    else
+                    {
+                        g.drawText(string1, outer_rect.translated(0.f, -(scale * 1.3f)), juce::Justification::centred);
+                    }
                 }
                 else
                 {
@@ -107,7 +138,7 @@ namespace vmpc_juce::gui::vector {
                     g.fillRoundedRectangle(inner_rect, radius);
                     g.setColour(juce::Colours::black);
                     g.drawRoundedRectangle(inner_rect, radius, lineThickness);
-                    g.drawText(tooltipText, outer_rect, juce::Justification::centred);
+                    g.drawText(string1, outer_rect, juce::Justification::centred);
                 }
             }
 
@@ -124,6 +155,12 @@ namespace vmpc_juce::gui::vector {
             const std::function<juce::Font&()> &getFont;
             const std::function<float()> &getScale;
             const std::string hardwareLabel;
+
+            const bool shouldMimicPhysicalKeyRepresentation()
+            {
+                const auto tooltipText = getTooltipText();
+                return tooltipText.length() == 2 && tooltipText.front() != 'F';
+            }
     };
 
 } // namespace vmpc_juce::gui::vector
