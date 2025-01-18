@@ -40,7 +40,7 @@ namespace vmpc_juce::gui::vector {
                 const float scaleFactor = std::log(getScale() + 2.0f) / std::log(2.0f);
 
                 const auto translateX = (unscaledOffsetFromAnchor.first - 2.5f) * scaleFactor;
-                const auto translateY = (unscaledOffsetFromAnchor.second - 1.5f) * scaleFactor;
+                const auto translateY = (unscaledOffsetFromAnchor.second + 1.5f) * scaleFactor;
 
                 auto targetBounds = positionAnchor->getLocalBounds()
                     .translated(translateX, translateY);
@@ -56,7 +56,7 @@ namespace vmpc_juce::gui::vector {
 
                 const auto tooltipTypeScaleFactor = shouldMimicPhysicalKeyRepresentation() ? 1.1f : 1.f;
 
-                const auto newWidth = 100.f * scaleFactor * tooltipTypeScaleFactor;
+                const auto newWidth = 50.f * scaleFactor * tooltipTypeScaleFactor;
                 const auto newHeight = 21 * scaleFactor * tooltipTypeScaleFactor;
                 const int newX = targetCenter.x - int(newWidth / 2);
                 const int newY = targetCenter.y - int(newHeight / 2);
@@ -112,6 +112,8 @@ namespace vmpc_juce::gui::vector {
                         (getHeight() - totalHeight) / 2, 
                         totalWidth,
                         totalHeight);
+
+                outer_rect = outer_rect.translated(0.f, -(scale * 1.9f));
 
                 auto inner_rect = outer_rect.reduced(lineThickness * 0.5f);
 
