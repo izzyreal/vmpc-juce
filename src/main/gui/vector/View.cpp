@@ -52,13 +52,19 @@ static std::vector<ComponentClass*> getChildComponentsOfClass(juce::Component *p
 View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDialog)
     : mpc(mpcToUse),
     getScale([this] { return (float) getHeight() / (float) base_height; }),
+
     getMainFontScaled([&]() -> juce::Font& {
         mainFont.setHeight(Constants::BASE_FONT_SIZE * getScale());
         return mainFont;
     }),
+    
     getMpc2000xlFaceplateGlyphsScaled([&]() -> juce::Font& {
         mpc2000xlFaceplateGlyphsFont.setHeight(Constants::BASE_FONT_SIZE * getScale());
         return mpc2000xlFaceplateGlyphsFont;
+    }),
+
+    getKeyTooltipFontScaled([&]() -> juce::Font& {
+        return keyTooltipFont;
     })
 {
     mainFontData = VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
@@ -71,6 +77,12 @@ View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDia
             mpc2000xlFaceplateGlyphsFontData.data(), mpc2000xlFaceplateGlyphsFontData.size(), true);
     mpc2000xlFaceplateGlyphsFont.setTypefaceName("MPC2000XL Faceplate-Glyphs");
     mpc2000xlFaceplateGlyphsFont = juce::Font(FreeTypeFaces::createTypefaceForFont(mpc2000xlFaceplateGlyphsFont));
+
+    keyTooltipFontData = VmpcJuceResourceUtil::getResourceData("fonts/FiraCode-SemiBold.ttf");
+    FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true, keyTooltipFontData.data(), keyTooltipFontData.size());
+    keyTooltipFont.setTypefaceName("Fira Code");
+    keyTooltipFont.setTypefaceStyle("SemiBold");
+    keyTooltipFont = juce::Font(FreeTypeFaces::createTypefaceForFont(keyTooltipFont));
 
     keyboard = KeyboardFactory::instance(this);
 
@@ -91,7 +103,7 @@ View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDia
 
     tooltipOverlay = new TooltipOverlay();
 
-    ViewUtil::createComponent(mpc, view_root, components, this, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, mouseListeners, tooltipOverlay);
+    ViewUtil::createComponent(mpc, view_root, components, this, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, getKeyTooltipFontScaled, mouseListeners, tooltipOverlay);
 
     Led *fullLevelLed = nullptr;
     Led *sixteenLevelsLed = nullptr;
@@ -176,6 +188,8 @@ View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDia
     const std::function<void()> deleteDisclaimerF = [this] { deleteDisclaimer(); };
     disclaimer = new Disclaimer(getMainFontScaled, deleteDisclaimerF);
     //addAndMakeVisible(disclaimer);
+
+    setKeyboardShortcutTooltipsVisibility(true);
 }
 
 const float View::getAspectRatio()
