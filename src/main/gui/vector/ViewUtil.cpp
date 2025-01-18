@@ -67,6 +67,7 @@ void ViewUtil::createComponent(
         const std::function<float()> &getScale,
         const std::function<juce::Font&()> &getMainFontScaled,
         const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaled,
+        const std::function<juce::Font&()> &getKeyTooltipFontScaled,
         std::vector<juce::MouseListener*> &mouseListeners,
         juce::Component *tooltipOverlay)
 {
@@ -88,7 +89,7 @@ void ViewUtil::createComponent(
     if (n.node_type == "grid")
     {
         auto gridWrapper = new GridWrapper(n, getScale);
-        createComponents(mpc, n, gridWrapper->components, gridWrapper, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, mouseListeners, tooltipOverlay);
+        createComponents(mpc, n, gridWrapper->components, gridWrapper, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, getKeyTooltipFontScaled, mouseListeners, tooltipOverlay);
         components.push_back(gridWrapper);
         parent->addAndMakeVisible(gridWrapper);
         n.grid_wrapper_component = gridWrapper;
@@ -96,7 +97,7 @@ void ViewUtil::createComponent(
     else if (n.node_type == "flex_box")
     {
         auto flexBoxWrapper = new FlexBoxWrapper(n, getScale);
-        createComponents(mpc, n, flexBoxWrapper->components, flexBoxWrapper, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, mouseListeners, tooltipOverlay);
+        createComponents(mpc, n, flexBoxWrapper->components, flexBoxWrapper, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, getKeyTooltipFontScaled, mouseListeners, tooltipOverlay);
         components.push_back(flexBoxWrapper);
         parent->addAndMakeVisible(flexBoxWrapper);
         n.flex_box_wrapper_component = flexBoxWrapper;
@@ -358,7 +359,7 @@ void ViewUtil::createComponent(
                 return keyboardMappingText;
             };
 
-            const auto tooltip = new KeyTooltip(getTooltipText, tooltipAnchor, getMainFontScaled, getScale, n.hardware_label);
+            const auto tooltip = new KeyTooltip(getTooltipText, tooltipAnchor, getKeyTooltipFontScaled, getScale, n.hardware_label);
             components.push_back(tooltip);
             tooltipOverlay->addChildComponent(tooltip);
         }
@@ -378,12 +379,13 @@ void ViewUtil::createComponents(
         const std::function<float()> &getScale,
         const std::function<juce::Font&()> &getMainFontScaled,
         const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaled,
+        const std::function<juce::Font&()> &getKeyTooltipFontScaled,
         std::vector<juce::MouseListener*> &mouseListeners,
         juce::Component *tooltipOverlay)
 {
     for (auto& c : n.children)
     {
-        createComponent(mpc, c, components, parent, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, mouseListeners, tooltipOverlay);
+        createComponent(mpc, c, components, parent, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, getKeyTooltipFontScaled, mouseListeners, tooltipOverlay);
     }
 }
 

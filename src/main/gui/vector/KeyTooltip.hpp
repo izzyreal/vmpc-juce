@@ -38,7 +38,7 @@ namespace vmpc_juce::gui::vector {
 
                 const float scaleFactor = std::log(getScale() + 2.0f) / std::log(2.0f);
 
-                const auto tooltipTypeScaleFactor = shouldMimicPhysicalKeyRepresentation() ? 1.2f : 1.f;
+                const auto tooltipTypeScaleFactor = shouldMimicPhysicalKeyRepresentation() ? 1.1f : 1.f;
 
                 const auto newWidth = 100.f * scaleFactor * tooltipTypeScaleFactor;
                 const auto newHeight = 21 * scaleFactor * tooltipTypeScaleFactor;
@@ -58,7 +58,7 @@ namespace vmpc_juce::gui::vector {
                 const auto shadowSize = 4.2f * scale;
                 const bool mimicPhysicalKeyRepresentationEnabled = shouldMimicPhysicalKeyRepresentation();
                 
-                auto fontHeight = (float(getHeight()) - ((bidirectionalMarginBetweenTextAndBorder + lineThickness) * 2)) - (shadowSize * 2);
+                auto fontHeight = (getHeight() * 1.2f - ((bidirectionalMarginBetweenTextAndBorder + lineThickness) * 2)) - (shadowSize * 2);
 
                 if (mimicPhysicalKeyRepresentationEnabled)
                 {
@@ -86,7 +86,12 @@ namespace vmpc_juce::gui::vector {
                     textWidth -= 5.f;
                 }
 
-                const auto totalWidth = mimicPhysicalKeyRepresentationEnabled ? totalHeight : textWidth + totalWidthWithoutText;
+                auto totalWidth = mimicPhysicalKeyRepresentationEnabled ? totalHeight : textWidth + totalWidthWithoutText;
+
+                if (!mimicPhysicalKeyRepresentationEnabled && totalWidth < totalHeight)
+                {
+                    totalWidth = totalHeight;
+                }
 
                 auto outer_rect = juce::Rectangle<float>((getWidth() - (textWidth + totalWidthWithoutText)) / 2, 
                         (getHeight() - totalHeight) / 2, 

@@ -42,6 +42,7 @@ namespace vmpc_juce::gui::vector {
             std::function<float()> getScale;
             const std::function<juce::Font&()> getMainFontScaled;
             const std::function<juce::Font&()> getMpc2000xlFaceplateGlyphsScaled;
+            const std::function<juce::Font&()> getKeyTooltipFontScaled;
             Keyboard *keyboard = nullptr;
             LedController *ledController = nullptr;
             TooltipOverlay *tooltipOverlay = nullptr;
@@ -58,6 +59,9 @@ namespace vmpc_juce::gui::vector {
 
             std::vector<char> mpc2000xlFaceplateGlyphsFontData;
             juce::Font mpc2000xlFaceplateGlyphsFont;
+
+            std::vector<char> keyTooltipFontData;
+            juce::Font keyTooltipFont;
 
             friend class Lcd;
     };

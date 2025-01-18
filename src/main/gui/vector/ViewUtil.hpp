@@ -24,6 +24,7 @@ class ViewUtil
                 const std::function<float()> &getScale,
                 const std::function<juce::Font&()> &getMainFontScaled,
                 const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaled,
+                const std::function<juce::Font&()> &getKeyTooltipFontScaled,
                 std::vector<juce::MouseListener*> &mouseListeners,
                 juce::Component *tooltipOverlay);
 
@@ -35,6 +36,7 @@ class ViewUtil
                 const std::function<float()> &getScale,
                 const std::function<juce::Font&()> &getMainFontScaled,
                 const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaled,
+                const std::function<juce::Font&()> &getKeyTooltipFontScaled,
                 std::vector<juce::MouseListener*> &mouseListeners,
                 juce::Component *tooltipOverlay);
 

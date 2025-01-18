@@ -16,6 +16,7 @@ namespace vmpc_juce::gui::vector {
 
             void setAllKeyTooltipsVisibility(const bool visibleEnabled)
             {
+                if (!visibleEnabled) return;
                 for (auto &c : getChildren())
                 {
                     if (dynamic_cast<KeyTooltip*>(c) == nullptr)
