@@ -333,35 +333,46 @@ void ViewUtil::createComponent(
                 auto pot = n.name == "rec_gain" ? mpc.getHardware()->getRecPot() : mpc.getHardware()->getVolPot();
                 knob->setAngleFactor(pot->getValue() * 0.01);
             }
+
             break;
         }
 
         if (tooltipAnchor != nullptr)
         {
-            const auto getTooltipText = [&mpc, &n]{
-                const auto kbMapping = mpc.getControls()->getKbMapping().lock();
-                if (n.node_type == "data_wheel")
-                {
-                    const auto decreaseString = mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(kbMapping->getKeyCodeFromLabel("datawheel-down"));
-                    const auto increaseString = mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(kbMapping->getKeyCodeFromLabel("datawheel-up"));
-                    return decreaseString + " / " + increaseString;
-                }
-                else if (n.hardware_label == "cursor")
-                {
-                    const auto left = mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(kbMapping->getKeyCodeFromLabel("left"));
-                    const auto right = mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(kbMapping->getKeyCodeFromLabel("right"));
-                    const auto up = mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(kbMapping->getKeyCodeFromLabel("up"));
-                    const auto down = mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(kbMapping->getKeyCodeFromLabel("down"));
-                    return left + " / " + right + " / " + up + " / " + down;
-                }
+            std::vector<std::string> hardwareLabels;
+            std::vector<std::pair<float, float>> unscaledOffsetsFromAnchor;
 
-                const auto keyboardMappingText = mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(kbMapping->getKeyCodeFromLabel(n.hardware_label));
-                return keyboardMappingText;
-            };
+            if (n.node_type == "data_wheel")
+            {
+                hardwareLabels = { "datawheel-down", "datawheel-up" };
+                unscaledOffsetsFromAnchor = { { -10.f, 0.f }, { 10.f, 0.f } };
+            }
+            else if (n.hardware_label == "cursor")
+            {
+                hardwareLabels = { "left", "right", "up", "down" };
+                unscaledOffsetsFromAnchor = { { -15.f, 0.f }, { 15.f, 0.f }, { 0.f, -9.f }, { 0.f, 9.f } };
+            }
+            else
+            {
+                hardwareLabels = { n.hardware_label };
+                unscaledOffsetsFromAnchor = { { 0.f, 0.f } };
+            }
 
-            const auto tooltip = new KeyTooltip(getTooltipText, tooltipAnchor, getKeyTooltipFontScaled, getScale, n.hardware_label);
-            components.push_back(tooltip);
-            tooltipOverlay->addChildComponent(tooltip);
+            for (size_t i = 0; i < hardwareLabels.size(); i++)
+            {
+                const auto label = hardwareLabels[i];
+                const auto offset = unscaledOffsetsFromAnchor[i];
+
+                const auto getTooltipText = [&mpc, label]{
+                    const auto kbMapping = mpc.getControls()->getKbMapping().lock();
+                    const auto vmpcKeyCode = kbMapping->getKeyCodeFromLabel(label);
+                    return mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(vmpcKeyCode);
+                };
+
+                const auto tooltip = new KeyTooltip(getTooltipText, tooltipAnchor, offset, getKeyTooltipFontScaled, getScale, n.hardware_label);
+                components.push_back(tooltip);
+                tooltipOverlay->addChildComponent(tooltip);
+            }
         }
     }
 

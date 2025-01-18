@@ -10,8 +10,19 @@ namespace vmpc_juce::gui::vector {
 
     class KeyTooltip : public juce::Component, juce::ComponentListener {
         public:
-            KeyTooltip(const std::function<std::string()> &getTooltipTextToUse, juce::Component *const positionAnchorToUse, const std::function<juce::Font&()> &getFontToUse, const std::function<float()> &getScaleToUse, const std::string hardwareLabelToUse)
-                : getTooltipText(getTooltipTextToUse), positionAnchor(positionAnchorToUse), getFont(getFontToUse), getScale(getScaleToUse), hardwareLabel(hardwareLabelToUse)
+            KeyTooltip(
+                    const std::function<std::string()> &getTooltipTextToUse,
+                    juce::Component *const positionAnchorToUse,
+                    const std::pair<float, float> unscaledOffsetFromAnchorToUse,
+                    const std::function<juce::Font&()> &getFontToUse,
+                    const std::function<float()> &getScaleToUse,
+                    const std::string hardwareLabelToUse)
+                : getTooltipText(getTooltipTextToUse),
+                positionAnchor(positionAnchorToUse),
+                getFont(getFontToUse),
+                getScale(getScaleToUse),
+                hardwareLabel(hardwareLabelToUse),
+                unscaledOffsetFromAnchor(unscaledOffsetFromAnchorToUse)
             {
                 shadow.setColor(juce::Colours::black.withAlpha(0.5f));
                 positionAnchorParent = positionAnchor->getParentComponent();
@@ -26,7 +37,13 @@ namespace vmpc_juce::gui::vector {
 
             void componentMovedOrResized(juce::Component &, bool /* wasMoved */, bool /* wasResized */) override
             {
-                auto targetBounds = positionAnchor->getLocalBounds();
+                const float scaleFactor = std::log(getScale() + 2.0f) / std::log(2.0f);
+
+                const auto translateX = (unscaledOffsetFromAnchor.first - 2.5f) * scaleFactor;
+                const auto translateY = (unscaledOffsetFromAnchor.second - 1.5f) * scaleFactor;
+
+                auto targetBounds = positionAnchor->getLocalBounds()
+                    .translated(translateX, translateY);
                 auto targetCenter = positionAnchor->localPointToGlobal(targetBounds.getCentre());
 
                 auto tooltipParent = getParentComponent();
@@ -36,7 +53,6 @@ namespace vmpc_juce::gui::vector {
                     targetCenter = tooltipParent->getLocalPoint(nullptr, targetCenter);
                 }
 
-                const float scaleFactor = std::log(getScale() + 2.0f) / std::log(2.0f);
 
                 const auto tooltipTypeScaleFactor = shouldMimicPhysicalKeyRepresentation() ? 1.1f : 1.f;
 
@@ -145,6 +161,7 @@ namespace vmpc_juce::gui::vector {
             const std::function<juce::Font&()> &getFont;
             const std::function<float()> &getScale;
             const std::string hardwareLabel;
+            const std::pair<float, float> unscaledOffsetFromAnchor;
 
             const bool shouldMimicPhysicalKeyRepresentation()
             {
