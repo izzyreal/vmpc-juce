@@ -180,7 +180,7 @@ View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDia
         setSize(initialRootWindowDimensions.first, initialRootWindowDimensions.second);
     };
 
-    menu = new Menu(getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getMainFontScaled, openAbout);
+    menu = new Menu(mpc, getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getMainFontScaled, openAbout);
 
     addAndMakeVisible(menu);
     addAndMakeVisible(tooltipOverlay);
