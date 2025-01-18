@@ -25,7 +25,8 @@ namespace vmpc_juce::gui::vector {
     class Menu : public juce::Component, juce::ComponentListener, juce::FocusChangeListener {
 
         public:
-            Menu(const std::function<float()> &getScaleToUse,
+            Menu(mpc::Mpc &mpcToUse,
+                    const std::function<float()> &getScaleToUse,
                     const std::function<void()> &showAudioSettingsDialogToUse,
                     const std::function<void()> &resetWindowSizeToUse,
                     const std::function<void()> &openKeyboardScreenToUse,
@@ -33,7 +34,8 @@ namespace vmpc_juce::gui::vector {
                     TooltipOverlay *tooltipOverlayToUse,
                     const std::function<juce::Font&()> &getMainFontScaledToUse,
                     const std::function<void()> &openAboutToUse)
-                : getScale(getScaleToUse),
+                : mpc(mpcToUse),
+                getScale(getScaleToUse),
                 showAudioSettingsDialog(showAudioSettingsDialogToUse),
                 resetWindowSize(resetWindowSizeToUse),
                 openKeyboardScreen(openKeyboardScreenToUse),
@@ -522,6 +524,7 @@ namespace vmpc_juce::gui::vector {
                 return iconBounds;
             }
 
+            mpc::Mpc &mpc;
             const std::function<float()> &getScale;
             bool expanded = true;
             bool mouseOverExpansion = false;
