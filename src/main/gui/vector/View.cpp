@@ -111,20 +111,20 @@ View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDia
 
     for (auto &l : leds)
     {
-        const auto name = l->getLedName();
-        if (name == "full_level_led") fullLevelLed = l;
-        else if (name == "16_levels_led") sixteenLevelsLed = l;
-        else if (name == "next_seq_led") nextSeqLed = l;
-        else if (name == "track_mute_led") trackMuteLed = l;
-        else if (name == "bank_a_led") padBankALed = l;
-        else if (name == "bank_b_led") padBankBLed = l;
-        else if (name == "bank_c_led") padBankCLed = l;
-        else if (name == "bank_d_led") padBankDLed = l;
-        else if (name == "after_led") afterLed = l;
-        else if (name == "undo_seq_led") undoSeqLed = l;
-        else if (name == "rec_led") recLed = l;
-        else if (name == "over_dub_led") overDubLed = l;
-        else if (name == "play_led") playLed = l;
+        const auto ledName = l->getLedName();
+        if (ledName == "full_level_led") fullLevelLed = l;
+        else if (ledName == "16_levels_led") sixteenLevelsLed = l;
+        else if (ledName == "next_seq_led") nextSeqLed = l;
+        else if (ledName == "track_mute_led") trackMuteLed = l;
+        else if (ledName == "bank_a_led") padBankALed = l;
+        else if (ledName == "bank_b_led") padBankBLed = l;
+        else if (ledName == "bank_c_led") padBankCLed = l;
+        else if (ledName == "bank_d_led") padBankDLed = l;
+        else if (ledName == "after_led") afterLed = l;
+        else if (ledName == "undo_seq_led") undoSeqLed = l;
+        else if (ledName == "rec_led") recLed = l;
+        else if (ledName == "over_dub_led") overDubLed = l;
+        else if (ledName == "play_led") playLed = l;
     }
 
     if (leds.size() == 13)
@@ -168,7 +168,7 @@ View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDia
         setSize(initialRootWindowDimensions.first, initialRootWindowDimensions.second);
     };
 
-    menu = new Menu(getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getMainFontScaled, mpc, openAbout);
+    menu = new Menu(getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getMainFontScaled, openAbout);
 
     addAndMakeVisible(menu);
     addAndMakeVisible(tooltipOverlay);

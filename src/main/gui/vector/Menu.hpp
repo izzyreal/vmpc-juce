@@ -5,7 +5,6 @@
 #include "SvgComponent.hpp"
 #include "TooltipOverlay.hpp"
 #include "InfoTooltip.hpp"
-#include "Mpc.hpp"
 
 #ifdef __APPLE__
 #include <TargetConditionals.h>
@@ -33,17 +32,15 @@ namespace vmpc_juce::gui::vector {
                     const std::function<void(const bool)> &setKeyboardShortcutTooltipsVisibilityToUse,
                     TooltipOverlay *tooltipOverlayToUse,
                     const std::function<juce::Font&()> &getMainFontScaledToUse,
-                    mpc::Mpc &mpcToUse,
                     const std::function<void()> &openAboutToUse)
                 : getScale(getScaleToUse),
                 showAudioSettingsDialog(showAudioSettingsDialogToUse),
+                resetWindowSize(resetWindowSizeToUse),
                 openKeyboardScreen(openKeyboardScreenToUse),
                 setKeyboardShortcutTooltipsVisibility(setKeyboardShortcutTooltipsVisibilityToUse),
-                resetWindowSize(resetWindowSizeToUse),
-                tooltipOverlay(tooltipOverlayToUse),
                 getMainFontScaled(getMainFontScaledToUse),
-                mpc(mpcToUse),
-                openAbout(openAboutToUse)
+                openAbout(openAboutToUse),
+                tooltipOverlay(tooltipOverlayToUse)
         {
             juce::Desktop::getInstance().addFocusChangeListener(this);
 
@@ -525,7 +522,6 @@ namespace vmpc_juce::gui::vector {
                 return iconBounds;
             }
 
-            mpc::Mpc &mpc;
             const std::function<float()> &getScale;
             bool expanded = true;
             bool mouseOverExpansion = false;
