@@ -51,8 +51,7 @@ namespace vmpc_juce::gui::vector {
             void paint(juce::Graphics &g) override
             {
                 const float scale = std::log(getScale() + 2.0f) / std::log(2.0f);
-                const bool keyboardStyle = getScale() > 1.4f;
-                const float lineThickness = keyboardStyle ? 1.5f * scale : 0.7f * scale;
+                const float lineThickness = 1.5f * scale;
                 const auto horizontalMarginBetweenTextAndBorder = 5.f * scale;
                 const auto bidirectionalMarginBetweenTextAndBorder = 2.f * scale;
                 const auto shadowSize = 4.2f * scale;
@@ -62,7 +61,7 @@ namespace vmpc_juce::gui::vector {
 
                 if (mimicPhysicalKeyRepresentationEnabled)
                 {
-                    fontHeight *= 0.6f;
+                    fontHeight *= 0.8f;
                 }
 
                 g.setFont(getFont().withHeight(fontHeight));
@@ -77,7 +76,7 @@ namespace vmpc_juce::gui::vector {
                 const float radius = 3.f;
                 const auto totalWidthWithoutText = ((lineThickness + horizontalMarginBetweenTextAndBorder + bidirectionalMarginBetweenTextAndBorder) * 2.f) - (shadowSize * 2);
 
-                const auto totalHeight = (g.getCurrentFont().getHeight() * (mimicPhysicalKeyRepresentationEnabled ? 1.6f : 1.f)) +
+                const auto totalHeight = (g.getCurrentFont().getHeight() * (mimicPhysicalKeyRepresentationEnabled ? 1.3f : 1.f)) +
                     (lineThickness + bidirectionalMarginBetweenTextAndBorder) * 2;
                 
                 if (totalWidthWithoutText + textWidth + (shadowSize * 2) > getWidth())
@@ -102,11 +101,8 @@ namespace vmpc_juce::gui::vector {
 
                 const auto most_inner_rect = inner_rect.reduced(scale * 0.9f);
 
-                if (keyboardStyle)
-                {
-                    outer_rect = outer_rect.translated(0.f, scale * 1.3f);
-                    inner_rect = inner_rect.translated(0.f, scale * 1.3f);
-                }
+                outer_rect = outer_rect.translated(0.f, scale * 1.3f);
+                inner_rect = inner_rect.translated(0.f, scale * 1.3f);
 
                 juce::Path shadowPath;
                 shadowPath.addRoundedRectangle(inner_rect, radius);
@@ -116,34 +112,23 @@ namespace vmpc_juce::gui::vector {
                 shadow.setSpread(scale * 0.5);
                 shadow.render(g, shadowPath);
 
-                if (keyboardStyle)
-                {
-                    g.setColour(juce::Colours::black);
-                    g.drawRoundedRectangle(most_inner_rect, radius, lineThickness);
-                    g.drawRoundedRectangle(inner_rect, radius, lineThickness);
-                    g.setColour(juce::Colours::lightgrey.darker(0.2f));
-                    g.fillRoundedRectangle(inner_rect, radius);
-                    g.setColour(juce::Colours::white);
-                    g.fillRoundedRectangle(most_inner_rect, radius);
-                    g.setColour(juce::Colours::black);
+                g.setColour(juce::Colours::black);
+                g.drawRoundedRectangle(most_inner_rect, radius, lineThickness);
+                g.drawRoundedRectangle(inner_rect, radius, lineThickness);
+                g.setColour(juce::Colours::lightgrey.darker(0.2f));
+                g.fillRoundedRectangle(inner_rect, radius);
+                g.setColour(juce::Colours::white);
+                g.fillRoundedRectangle(most_inner_rect, radius);
+                g.setColour(juce::Colours::black);
 
-                    if (mimicPhysicalKeyRepresentationEnabled)
-                    {
-                        g.drawText(string1, outer_rect.translated(0.f, scale * 1.1f), juce::Justification::centred);
-                        g.drawText(string2, outer_rect.translated(0.f, -(scale * 4.6f)), juce::Justification::centred);
-                    }
-                    else
-                    {
-                        g.drawText(string1, outer_rect.translated(0.f, -(scale * 1.3f)), juce::Justification::centred);
-                    }
+                if (mimicPhysicalKeyRepresentationEnabled)
+                {
+                    g.drawText(string1, outer_rect.translated(0.f, scale * 2.1f), juce::Justification::centred);
+                    g.drawText(string2, outer_rect.translated(0.f, -(scale * 4.6f)), juce::Justification::centred);
                 }
                 else
                 {
-                    g.setColour(juce::Colours::white);
-                    g.fillRoundedRectangle(inner_rect, radius);
-                    g.setColour(juce::Colours::black);
-                    g.drawRoundedRectangle(inner_rect, radius, lineThickness);
-                    g.drawText(string1, outer_rect, juce::Justification::centred);
+                    g.drawText(string1, outer_rect.translated(0.f, -(scale * 1.3f)), juce::Justification::centred);
                 }
             }
 
