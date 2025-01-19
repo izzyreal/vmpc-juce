@@ -51,6 +51,12 @@ Shadows and glows for JUCE.
 License: MIT,
 <link>https://github.com/sudara/melatonin_blur/blob/main/LICENSE</link>
 
+Vinnie Falco's FreeType rendering integration for JUCE
+See
+<link>https://forum.juce.com/t/freetypefaces-text-drawing-with-hinting/6125</link>
+and
+<link>https://github.com/vinniefalco/FreeTypeAmalgam</link>
+
 libsamplerate
 <link>https://github.com/libsndfile/libsamplerate</link>
 Realtime and offline sample rate conversion.
