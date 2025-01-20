@@ -16,6 +16,10 @@
 #include "hardware/HwSlider.hpp"
 #include "controls/KbMapping.hpp"
 
+#if __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 namespace vmpc_juce::gui::vector {
 
     template<class ComponentClass>
@@ -35,9 +39,23 @@ namespace vmpc_juce::gui::vector {
             return nullptr;
         }
 
-    class MpcHardwareMouseListener : public juce::MouseListener {
+    class MpcHardwareMouseListener : public juce::MouseListener
+#if TARGET_OS_IOS == 1
+                                     , juce::Timer
+#endif
+    {
         public:
-            MpcHardwareMouseListener(mpc::Mpc &mpcToUse, const std::string labelToUse) : label(labelToUse), mpc(mpcToUse) {}
+            MpcHardwareMouseListener(mpc::Mpc &mpcToUse, const std::string labelToUse) : mpc(mpcToUse), label(labelToUse) {}
+
+#if TARGET_OS_IOS == 1
+            void timerCallback() override
+            {
+                if (lastEventComponent != nullptr)
+                {
+                    setKeyTooltipVisibility(lastEventComponent, true);
+                }
+            }
+#endif
 
             void mouseMove(const juce::MouseEvent &e) override
             {
@@ -71,12 +89,22 @@ namespace vmpc_juce::gui::vector {
                     syncMpcSliderModelWithUi(event.eventComponent);
                 }
             }
-
+        
             void mouseDown(const juce::MouseEvent &e) override
             {
+#if TARGET_OS_IOS == 1
+                if (mouseDownSourceIndices.insert(e.source.getIndex()).second)
+                {
+                    if (!isPad() || mouseDownSourceIndices.size() == 2)
+                    {
+                        lastEventComponent = e.eventComponent;
+                        startTimer(1000);
+                    }
+                }
+#else
                 setKeyTooltipVisibility(e.eventComponent, false);
-
-                if (label.length() >= 4 && label.substr(0, 4) == "pad-")
+#endif
+                if (isPad())
                 {
                     const auto digitsString = label.substr(4);
                     const auto padNumber = std::stoi(digitsString);
@@ -147,6 +175,18 @@ namespace vmpc_juce::gui::vector {
 
             void mouseUp(const juce::MouseEvent &e) override
             {
+#if TARGET_OS_IOS == 1
+                mouseDownSourceIndices.erase(e.source.getIndex());
+                
+                stopTimer();
+                
+                if (lastEventComponent != nullptr)
+                {
+                    setKeyTooltipVisibility(lastEventComponent, false);
+                }
+
+                lastEventComponent = nullptr;
+#endif
                 if (label.length() >= 4 && label.substr(0, 4) == "pad-")
                 {
                     const auto digitsString = label.substr(4);
@@ -186,7 +226,10 @@ namespace vmpc_juce::gui::vector {
         private:
             mpc::Mpc &mpc;
             const std::string label;
-
+#if TARGET_OS_IOS == 1
+            std::set<int> mouseDownSourceIndices;
+            juce::Component *lastEventComponent = nullptr;
+#endif
             void setKeyTooltipVisibility(juce::Component *c, const bool visibleEnabled)
             {
                 const auto editor = c->findParentComponentOfClass<juce::AudioProcessorEditor>();
@@ -212,6 +255,11 @@ namespace vmpc_juce::gui::vector {
                 auto hwSlider = mpc.getHardware()->getSlider();
                 const auto yPosFraction = sliderComponent->getSliderYPosFraction();
                 hwSlider->setValue(yPosFraction * 127.f);
+            }
+        
+            bool isPad()
+            {
+                return label.length() >= 4 && label.substr(0, 4) == "pad-";
             }
     };
 
