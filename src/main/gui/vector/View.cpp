@@ -177,7 +177,7 @@ View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDia
 
     initialRootWindowDimensions = InitialWindowDimensions::get(base_width, base_height);
     const auto resetWindowSize = [this]{
-        setSize(initialRootWindowDimensions.first, initialRootWindowDimensions.second);
+        getParentComponent()->setSize(initialRootWindowDimensions.first, initialRootWindowDimensions.second);
     };
 
     menu = new Menu(mpc, getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getMainFontScaled, openAbout);
