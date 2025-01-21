@@ -488,7 +488,11 @@ public:
                             bool autoOpenMidiDevices = false
                            #endif
                             )
+#ifdef _WIN32
+        : DocumentWindow (title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::closeButton | DocumentWindow::maximiseButton) {
+#else
         : DocumentWindow (title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::closeButton) {
+#endif
 #ifndef __linux__
         setUsingNativeTitleBar(true);
 #endif
@@ -496,6 +500,8 @@ public:
 
 #if JUCE_IOS || JUCE_ANDROID
         setTitleBarHeight (0);
+#elif defined (_WIN32)
+        setTitleBarButtonsRequired (DocumentWindow::minimiseButton | DocumentWindow::closeButton | DocumentWindow::maximiseButton, false);
 #else
         setTitleBarButtonsRequired (DocumentWindow::minimiseButton | DocumentWindow::closeButton, false);
 #endif
