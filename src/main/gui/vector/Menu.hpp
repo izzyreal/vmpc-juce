@@ -195,6 +195,7 @@ namespace vmpc_juce::gui::vector {
                 if (folderIcon != nullptr) folderIcon->setAlpha(1.f);
                 helpIcon->setAlpha(1.f);
                 keyboardIcon->setAlpha(1.f);
+                infoIcon->setAlpha(1.f);
 #if TARGET_OS_IPHONE
                 setKeyboardShortcutTooltipsVisibility(false);
                 infoTooltip->setVisible(false);
