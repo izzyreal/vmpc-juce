@@ -34,6 +34,8 @@ VMPC2000XL vector UI idea finally come true after many years.
 The font is <link>https://fontesk.com/neutral-sans-font</link> by Barry Shawn.
 License: OFL, <link>https://openfontlicense.org</link>
 
+The iOS/macOS application bundle icons are designed by <link>https://www.bettertimes.de</link>
+
 Much respect and many thanks to the creators, maintainers, and
 contributors of the following open source tools:
 
