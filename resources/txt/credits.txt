@@ -25,16 +25,20 @@ CREDITS AND THANKS
 I'm immensely grateful for Steve Taylor's involvement in my first years of object-oriented programming. It's fair to say I would not be where I am today, if it were not for his dedication to communicate his knowledge and ideas to me.
 
 Steve Taylor is also the author of toot2, a Java framework for audio, music and DSP. When VMPC2000XL was still a Java project, it depended heavily on toot2. Later I ported much of it to C++. In its current incarnation,
-VMPC2000XL still relies on a severely stripped version of my C++ port of toot2.
+VMPC2000XL still relies on a trimmed-down version of the toot2 C++ port.
 
 The vector art is made by <link>https://www.instagram.com/azalvector</link>
 @azalvector, thanks for your amazing contribution. It made the new
 VMPC2000XL vector UI idea finally come true after many years.
 
-The font is <link>https://fontesk.com/neutral-sans-font</link> by Barry Shawn.
+The faceplate font is <link>https://fontesk.com/neutral-sans-font</link> by Barry Shawn.
 License: OFL, <link>https://openfontlicense.org</link>
 
-The iOS/macOS application bundle icons are designed by <link>https://www.bettertimes.de</link>
+The font that is used to dislay key bindings is <link>https://github.com/tonsky/FiraCode</link> by Nikita Prokopov.
+License: OFL, <link>https://openfontlicense.org</link>
+
+The iOS/macOS application icons are designed by <link>https://www.bettertimes.de</link>
+License: OFL, <link>https://openfontlicense.org</link>
 
 Much respect and many thanks to the creators, maintainers, and
 contributors of the following open source tools:
