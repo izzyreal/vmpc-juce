@@ -31,14 +31,13 @@ The vector art is made by <link>https://www.instagram.com/azalvector</link>
 @azalvector, thanks for your amazing contribution. It made the new
 VMPC2000XL vector UI idea finally come true after many years.
 
-The faceplate font is <link>https://fontesk.com/neutral-sans-font</link> by Barry Shawn.
-License: OFL, <link>https://openfontlicense.org</link>
+The faceplate font is <link>https://github.com/BesignLab/Neutral-Sans</link> by Barry Shawn.
+License: OFL 1.1, <link>https://github.com/BesignLab/Neutral-Sans/blob/main/LICENSE</link>
 
 The font that is used to dislay key bindings is <link>https://github.com/tonsky/FiraCode</link> by Nikita Prokopov.
-License: OFL, <link>https://openfontlicense.org</link>
+License: OFL 1.1, <link>https://github.com/tonsky/FiraCode/blob/master/LICENSE</link>
 
-The iOS/macOS application icons are designed by <link>https://www.bettertimes.de</link>
-License: OFL, <link>https://openfontlicense.org</link>
+The iOS/macOS application icons are designed by <link>https://www.bettertimes.de</link>.
 
 Much respect and many thanks to the creators, maintainers, and
 contributors of the following open source tools:
