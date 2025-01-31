@@ -73,7 +73,9 @@ VmpcEditor::~VmpcEditor()
 {
     setLookAndFeel(nullptr);
     delete view;
+#if ENABLE_GUI_INSPECTOR == 1
     delete inspector;
+#endif
 }
 
 void VmpcEditor::resized()
