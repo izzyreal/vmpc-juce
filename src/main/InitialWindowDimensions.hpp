@@ -24,22 +24,21 @@ namespace vmpc_juce {
             {
                 int w, h;
 
-                if (juce::JUCEApplication::isStandaloneApp())
-                {
-                    h = getInitialWindowHeight();
+                h = getInitialWindowHeight();
 
-                    if (h == 0)
-                    {
-                        w = baseLayoutWidth; h = baseLayoutHeight;
-                    }
-                    else
-                    {
-                        w = h * (baseLayoutWidth / (float) baseLayoutHeight);
-                    }
+                if (h == 0)
+                {
+                    w = baseLayoutWidth; h = baseLayoutHeight;
                 }
                 else
                 {
-                    w = baseLayoutWidth; h = baseLayoutHeight;
+                    w = h * (baseLayoutWidth / (float) baseLayoutHeight);
+                }
+
+                if (!juce::JUCEApplication::isStandaloneApp())
+                {
+                    w = static_cast<int>(0.8f * w);
+                    h = static_cast<int>(0.8f * h);
                 }
 
                 return { w, h };
