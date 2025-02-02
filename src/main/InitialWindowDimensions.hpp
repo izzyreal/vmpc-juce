@@ -37,8 +37,8 @@ namespace vmpc_juce {
 
                 if (!juce::JUCEApplication::isStandaloneApp())
                 {
-                    w = static_cast<int>(0.8f * w);
-                    h = static_cast<int>(0.8f * h);
+                    w = static_cast<int>(0.9f * w);
+                    h = static_cast<int>(0.9f * h);
                 }
 
                 return { w, h };
