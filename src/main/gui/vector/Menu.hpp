@@ -5,6 +5,7 @@
 #include "SvgComponent.hpp"
 #include "TooltipOverlay.hpp"
 #include "InfoTooltip.hpp"
+#include "juce_audio_processors/juce_audio_processors.h"
 
 #ifdef __APPLE__
 #include <TargetConditionals.h>
@@ -33,7 +34,8 @@ namespace vmpc_juce::gui::vector {
                     const std::function<void(const bool)> &setKeyboardShortcutTooltipsVisibilityToUse,
                     TooltipOverlay *tooltipOverlayToUse,
                     const std::function<juce::Font&()> &getMainFontScaledToUse,
-                    const std::function<void()> &openAboutToUse)
+                    const std::function<void()> &openAboutToUse,
+                    juce::AudioProcessor::WrapperType wrapperTypeToUse)
                 : mpc(mpcToUse),
                 getScale(getScaleToUse),
                 showAudioSettingsDialog(showAudioSettingsDialogToUse),
@@ -42,7 +44,8 @@ namespace vmpc_juce::gui::vector {
                 setKeyboardShortcutTooltipsVisibility(setKeyboardShortcutTooltipsVisibilityToUse),
                 getMainFontScaled(getMainFontScaledToUse),
                 openAbout(openAboutToUse),
-                tooltipOverlay(tooltipOverlayToUse)
+                tooltipOverlay(tooltipOverlayToUse),
+                wrapperType(wrapperTypeToUse)
         {
             juce::Desktop::getInstance().addFocusChangeListener(this);
 
@@ -62,7 +65,7 @@ namespace vmpc_juce::gui::vector {
                 addAndMakeVisible(resetZoomIcon);
 #endif
             }
-            else
+            else if (wrapperType != juce::AudioProcessor::wrapperType_AudioUnitv3)
             {
                 resetZoomIcon = new SvgComponent({"arrows_pointing_in.svg"}, this, 0.f, getScale);
                 resetZoomIcon->setInterceptsMouseClicks(false, false);
@@ -316,7 +319,7 @@ namespace vmpc_juce::gui::vector {
                 g.drawRoundedRectangle(rect, radius, lineThickness);
             }
 
-            ~Menu()
+            ~Menu() override
             {
                 juce::Desktop::getInstance().removeFocusChangeListener(this);
 
@@ -485,7 +488,7 @@ namespace vmpc_juce::gui::vector {
                     result.push_back(resetZoomIcon);
 #endif
                 }
-                else
+                else if (wrapperType != juce::AudioProcessor::wrapperType_AudioUnitv3)
                 {
                     result.push_back(resetZoomIcon);
                 }
@@ -526,6 +529,7 @@ namespace vmpc_juce::gui::vector {
             }
 
             mpc::Mpc &mpc;
+            juce::AudioProcessor::WrapperType wrapperType;
             const std::function<float()> &getScale;
             bool expanded = true;
             bool mouseOverExpansion = false;

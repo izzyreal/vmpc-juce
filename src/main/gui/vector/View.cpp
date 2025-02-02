@@ -49,7 +49,7 @@ static std::vector<ComponentClass*> getChildComponentsOfClass(juce::Component *p
     return matches;
 }
 
-View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDialog)
+View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDialog, juce::AudioProcessor::WrapperType wrapperType)
     : mpc(mpcToUse),
     getScale([this] { return (float) getHeight() / (float) base_height; }),
 
@@ -180,7 +180,7 @@ View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDia
         getParentComponent()->setSize(initialRootWindowDimensions.first, initialRootWindowDimensions.second);
     };
 
-    menu = new Menu(mpc, getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getMainFontScaled, openAbout);
+    menu = new Menu(mpc, getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getMainFontScaled, openAbout, wrapperType);
 
     addAndMakeVisible(menu);
     addAndMakeVisible(tooltipOverlay);

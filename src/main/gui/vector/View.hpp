@@ -1,4 +1,5 @@
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_utils/juce_audio_utils.h>
 
 #include "Node.hpp"
 
@@ -20,7 +21,7 @@ namespace vmpc_juce::gui::vector {
     class View : public juce::Component {
 
         public:
-            View(mpc::Mpc &mpc, const std::function<void()> &showAudioSettingsDialog);
+            View(mpc::Mpc &mpc, const std::function<void()> &showAudioSettingsDialog, juce::AudioProcessor::WrapperType wrapperType);
                     
             ~View() override;
 

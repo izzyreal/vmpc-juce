@@ -18,7 +18,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
 
     setWantsKeyboardFocus(true);
 
-    view = new View(vmpcProcessor.mpc, vmpcProcessor.showAudioSettingsDialog);
+    view = new View(vmpcProcessor.mpc, vmpcProcessor.showAudioSettingsDialog, vmpcProcessor.wrapperType);
 
     const auto viewAspectRatio = view->getAspectRatio();
 
