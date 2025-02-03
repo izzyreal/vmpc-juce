@@ -72,6 +72,8 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
 
 VmpcEditor::~VmpcEditor()
 {
+    vmpcProcessor.lastUIWidth = getWidth();
+    vmpcProcessor.lastUIHeight = getHeight();
     setLookAndFeel(nullptr);
     delete view;
 #if ENABLE_GUI_INSPECTOR == 1
