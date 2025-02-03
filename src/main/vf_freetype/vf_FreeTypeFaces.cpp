@@ -948,3 +948,8 @@ Typeface::Ptr FreeTypeFaces::createTypefaceForFont (const Font& font)
 {
   return FreeTypeFacesImplementation::getInstance()->createTypefaceForFont (font);
 }
+
+void FreeTypeFaces::clearEverything()
+{
+    FreeTypeFacesImplementation::getInstance()->clearSingletonInstance();
+}

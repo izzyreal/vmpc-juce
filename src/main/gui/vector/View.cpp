@@ -218,6 +218,7 @@ View::~View()
     delete disclaimer;
     delete about;
     delete keyboard;
+    FreeTypeFaces::clearEverything();
 }
 
 void View::deleteDisclaimer()

@@ -203,6 +203,8 @@ public:
       @return The Typeface, or nullptr if there was no match.
   */
   static juce::Typeface::Ptr createTypefaceForFont (const juce::Font& font);
+
+  static void clearEverything();
 };
 
 #endif
