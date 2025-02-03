@@ -1,4 +1,5 @@
 #include "VmpcProcessor.hpp"
+#include "juce_core/system/juce_PlatformDefs.h"
 #include "version.h"
 
 #include "lcdgui/screens/VmpcSettingsScreen.hpp"
@@ -434,26 +435,65 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
 
   auto chDataIn = buffer.getArrayOfReadPointers();
   auto chDataOut = buffer.getArrayOfWritePointers();
-  int totalNumInputChannelsFinal = totalNumInputChannels;
-  int totalNumOutputChannelsFinal = totalNumOutputChannels;
 
-  if (totalNumInputChannels == 1)
+  std::vector<uint8_t> inputChannelIndices;
+  std::vector<uint8_t> outputChannelIndices;
+
+  for (int i = 0; i < getBusCount(true); i++)
   {
-    monoToStereoBufferIn.clear();
-    monoToStereoBufferIn.copyFrom(0, 0, buffer.getReadPointer(0), buffer.getNumSamples());
-    monoToStereoBufferIn.copyFrom(1, 0, buffer.getReadPointer(0), buffer.getNumSamples());
-    chDataIn = monoToStereoBufferIn.getArrayOfReadPointers();
-    totalNumInputChannelsFinal = 2;
+      const auto bus = getBus(true, i);
+
+      if (!bus->isEnabled())
+      {
+          continue;
+      }
+
+      if (bus->getBusIndex() < 1)
+      {
+          jassert(bus->getNumberOfChannels() == 2);
+          inputChannelIndices.push_back(bus->getBusIndex() * 2);
+          inputChannelIndices.push_back((bus->getBusIndex() * 2) + 1);
+      }
+      else
+      {
+          jassert(bus->getNumberOfChannels() == 1);
+          inputChannelIndices.push_back(bus->getBusIndex());
+      }
   }
 
-  if (totalNumOutputChannels == 1)
+  if (inputChannelIndices.size() == 1)
   {
-    monoToStereoBufferOut.clear();
-    chDataOut = monoToStereoBufferOut.getArrayOfWritePointers();
-    totalNumOutputChannelsFinal = 2;
+      inputChannelIndices.push_back(inputChannelIndices.front());
   }
 
-  server->work(chDataIn, chDataOut, buffer.getNumSamples(), totalNumInputChannelsFinal, totalNumOutputChannelsFinal);
+  for (int i = 0; i < getBusCount(false); i++)
+  {
+      const auto bus = getBus(false, i);
+
+      if (!bus->isEnabled())
+      {
+          continue;
+      }
+
+      if (bus->getBusIndex() < 5)
+      {
+          jassert(bus->getNumberOfChannels() == 2);
+          outputChannelIndices.push_back(bus->getBusIndex() * 2);
+          outputChannelIndices.push_back((bus->getBusIndex() * 2) + 1);
+      }
+      else
+      {
+          jassert(bus->getNumberOfChannels() == 1);
+          outputChannelIndices.push_back(bus->getBusIndex());
+      }
+  }
+
+  if (outputChannelIndices.size() == 1)
+  {
+      outputChannelIndices.push_back(outputChannelIndices.front());
+  }
+
+  server->work(chDataIn, chDataOut, buffer.getNumSamples(), inputChannelIndices, outputChannelIndices);
 
   // I've observed a crash in Ableton Live VST3 indicating what could be allocating MIDI events too soon.
   // So we give it a little bit of leeway of 10000 frames.
