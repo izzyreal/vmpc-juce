@@ -56,7 +56,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     setSize(initialWindowWidth, initialWindowHeight);
     setResizable(true, vmpcProcessor.wrapperType != juce::AudioProcessor::wrapperType_AudioUnitv3);
     getConstrainer()->setFixedAspectRatio(viewAspectRatio);
-    getConstrainer()->setSizeLimits(initialWindowWidth / 2, initialWindowHeight / 2, initialWindowWidth * 2, initialWindowHeight * 2);
+    getConstrainer()->setSizeLimits(initialWindowWidth / 2, initialWindowHeight / 2, initialWindowWidth * 1.1f, initialWindowHeight * 1.1f);
     setLookAndFeel(&lookAndFeel);
 
 #endif
