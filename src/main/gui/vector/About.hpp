@@ -84,7 +84,6 @@ namespace vmpc_juce::gui::vector {
                 const auto scale = getScale();
                 const auto rectHeight = scale * 15.f;
                 const auto scrollOffset = getScrollOffsetFraction() * (getHeight() - rectHeight);
-                const auto radius = scale * 2.f;
                 return juce::Rectangle<float>(0, scrollOffset, getWidth(), rectHeight);
             }
 
