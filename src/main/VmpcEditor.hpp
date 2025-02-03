@@ -2,7 +2,7 @@
 
 #include "juce_audio_processors/juce_audio_processors.h"
 
-#include "gui/VmpcNoCornerResizerLookAndFeel.hpp"
+#include "gui/VmpcCornerResizerLookAndFeel.hpp"
 
 namespace vmpc_juce::gui::vector { class View; }
 namespace melatonin { class Inspector; }
@@ -24,6 +24,6 @@ private:
     VmpcProcessor &vmpcProcessor;
     vmpc_juce::gui::vector::View* view = nullptr;
 
-    VmpcNoCornerResizerLookAndFeel lookAndFeel;
+    VmpcCornerResizerLookAndFeel lookAndFeel;
 };
 }
