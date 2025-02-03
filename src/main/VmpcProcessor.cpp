@@ -1,5 +1,7 @@
 #include "VmpcProcessor.hpp"
+#include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_core/system/juce_PlatformDefs.h"
+#include "juce_gui_basics/juce_gui_basics.h"
 #include "version.h"
 
 #include "lcdgui/screens/VmpcSettingsScreen.hpp"
@@ -27,8 +29,11 @@
 
 #include <engine/audio/server/NonRealTimeAudioServer.hpp>
 #include <engine/midi/ShortMessage.hpp>
+#include <string>
 
 #include "VmpcEditor.hpp"
+
+#include "Logger.hpp"
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
@@ -43,20 +48,9 @@ using namespace mpc::engine::midi;
 
 using namespace vmpc_juce;
 
+
 VmpcProcessor::VmpcProcessor()
-: AudioProcessor (juce::PluginHostType::jucePlugInClientCurrentWrapperType == juce::AudioProcessor::wrapperType_AudioUnitv3 ?
-                  BusesProperties()
-                  .withInput("RECORD IN",  juce::AudioChannelSet::stereo(), true)
-                  .withOutput("STEREO OUT", juce::AudioChannelSet::stereo(), true)
-                  :
-                  BusesProperties()
-                  .withInput("RECORD IN",  juce::AudioChannelSet::stereo(), true)
-                  .withOutput("STEREO OUT", juce::AudioChannelSet::stereo(), true)
-                  .withOutput("MIX OUT 1/2", juce::AudioChannelSet::stereo(), false)
-                  .withOutput("MIX OUT 3/4", juce::AudioChannelSet::stereo(), false)
-                  .withOutput("MIX OUT 5/6", juce::AudioChannelSet::stereo(), false)
-                  .withOutput("MIX OUT 7/8", juce::AudioChannelSet::stereo(), false)
-                  )
+: AudioProcessor (getBusesProperties())
 {
     time_t currentTime = time(nullptr);
   struct tm* currentLocalTime = localtime(&currentTime);
@@ -158,6 +152,7 @@ void VmpcProcessor::changeProgramName (int /* index */, const juce::String& /* n
 
 void VmpcProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+    layoutChanged = true;
   mpc.panic();
   auto seq = mpc.getSequencer();
   bool seqWasPlaying = seq->isPlaying();
@@ -195,16 +190,51 @@ void VmpcProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
   {
       seq->setCountEnabled(true);
   }
-
-  monoToStereoBufferIn.clear();
-  monoToStereoBufferIn.setSize(2, samplesPerBlock);
-  monoToStereoBufferOut.clear();
-  monoToStereoBufferOut.setSize(2, samplesPerBlock);
 }
 
-bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout&) const
+bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layout) const
 {
-  return true;
+    MLOG("======= isBusesLayoutSupported scrutinizes the following layout:");
+
+    for (auto &b : layout.inputBuses)
+    {
+        MLOG("Input bus: " + b.getDescription().toStdString());
+    }
+    for (auto &b : layout.outputBuses)
+    {
+        MLOG("Output bus: " + b.getDescription().toStdString());
+        
+        if (b.getDescription().contains("Discrete"))
+        {
+            printf("");
+        }
+    }
+
+    int monoInputCount = 0, monoOutputCount = 0;
+
+    for (int i = 0; i < layout.getBuses(true).size(); i++)
+    {
+        if (layout.getNumChannels(true, i) > 2)
+        {
+            return false;
+        }
+
+        monoInputCount += layout.getNumChannels(true, i);
+    }
+
+    for (int i = 0; i < layout.getBuses(false).size(); i++)
+    {
+        if (layout.getNumChannels(false, i) > 2)
+        {
+            return false;
+        }
+
+        monoOutputCount += layout.getNumChannels(false, i);
+    }
+    
+    MLOG("VMPC2000XL counted this number of i/o: " + std::to_string(monoInputCount) + "/" + std::to_string(monoOutputCount));
+
+    return monoOutputCount >= 2 && monoInputCount <= 4 && monoOutputCount <= 10;
 }
 
 void VmpcProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
@@ -383,6 +413,7 @@ void VmpcProcessor::processTransport()
 
 void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuffer& midiMessages)
 {
+    layoutChanged = true;
   juce::ScopedNoDenormals noDenormals;
 
   const int totalNumInputChannels = getTotalNumInputChannels();
@@ -436,12 +467,17 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
   auto chDataIn = buffer.getArrayOfReadPointers();
   auto chDataOut = buffer.getArrayOfWritePointers();
 
-  std::vector<uint8_t> inputChannelIndices;
-  std::vector<uint8_t> outputChannelIndices;
+  std::vector<uint8_t> mpcMonoInputChannelIndices, mpcMonoOutputChannelIndices, hostInputChannelIndices, hostOutputChannelIndices;
+
+  int hostIndex = 0;
+
+  if (layoutChanged) MLOG("==== processBlock buses ============");
 
   for (int i = 0; i < getBusCount(true); i++)
   {
       const auto bus = getBus(true, i);
+      
+      if (layoutChanged) MLOG("Input bus index " + std::to_string(bus->getBusIndex()) + ", name " + bus->getName().toRawUTF8() + ", num channels " + std::to_string(bus->getNumberOfChannels()) + ", enabled " + std::to_string(bus->isEnabled()) + ", enabledByDefault " + std::to_string(bus->isEnabledByDefault()));
 
       if (!bus->isEnabled())
       {
@@ -450,50 +486,85 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
 
       if (bus->getBusIndex() < 1)
       {
-          jassert(bus->getNumberOfChannels() == 2);
-          inputChannelIndices.push_back(bus->getBusIndex() * 2);
-          inputChannelIndices.push_back((bus->getBusIndex() * 2) + 1);
+          const bool busWasRequestedToBeStereoButIsMono = bus->getNumberOfChannels() == 1;
+          
+          hostInputChannelIndices.push_back(hostIndex++);
+          mpcMonoInputChannelIndices.push_back(static_cast<uint8_t>(std::floor(bus->getBusIndex() / 2.f)));
+
+          if (!busWasRequestedToBeStereoButIsMono)
+          {
+              hostInputChannelIndices.push_back(hostIndex++);
+              mpcMonoInputChannelIndices.push_back(mpcMonoInputChannelIndices.back());
+          }
       }
       else
       {
           jassert(bus->getNumberOfChannels() == 1);
-          inputChannelIndices.push_back(bus->getBusIndex());
+          hostInputChannelIndices.push_back(hostIndex++);
+          mpcMonoInputChannelIndices.push_back(static_cast<uint8_t>(std::floor((bus->getBusIndex() - 1) / 2.f)));
       }
   }
 
-  if (inputChannelIndices.size() == 1)
+  if (hostInputChannelIndices.size() == 1)
   {
-      inputChannelIndices.push_back(inputChannelIndices.front());
+      hostInputChannelIndices.push_back(hostInputChannelIndices.front());
+      mpcMonoInputChannelIndices.push_back(mpcMonoInputChannelIndices.front());
   }
+
+  hostIndex = 0;
+
+  int mpcMonoOutputCounter = 0;
+
+  std::vector<int> channelIndicesThatWereWritten;
 
   for (int i = 0; i < getBusCount(false); i++)
   {
+      if (mpcMonoOutputCounter >= 10)
+      {
+          mpcMonoOutputCounter -= 10;
+      }
+
       const auto bus = getBus(false, i);
+
+
+      if (layoutChanged) MLOG("Output bus index " + std::to_string(bus->getBusIndex()) + ", name " + bus->getName().toRawUTF8() + ", num channels " + std::to_string(bus->getNumberOfChannels()) + ", enabled " + std::to_string(bus->isEnabled()) + ", enabledByDefault " + std::to_string(bus->isEnabledByDefault()));
+
 
       if (!bus->isEnabled())
       {
+          mpcMonoOutputCounter += bus->getLastEnabledLayout().size();
+          MLOG("Bus not enabled, adding num channels " + std::to_string(bus->getLastEnabledLayout().size()));
           continue;
       }
 
       if (bus->getBusIndex() < 5)
       {
           jassert(bus->getNumberOfChannels() == 2);
-          outputChannelIndices.push_back(bus->getBusIndex() * 2);
-          outputChannelIndices.push_back((bus->getBusIndex() * 2) + 1);
+          channelIndicesThatWereWritten.push_back(bus->getChannelIndexInProcessBlockBuffer(0));
+          hostOutputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(0));
+          channelIndicesThatWereWritten.push_back(bus->getChannelIndexInProcessBlockBuffer(1));
+          hostOutputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(1));
+          mpcMonoOutputChannelIndices.push_back(static_cast<int>(std::floor(mpcMonoOutputCounter / 2.f)));
+          mpcMonoOutputChannelIndices.push_back(mpcMonoOutputChannelIndices.back());
       }
       else
       {
           jassert(bus->getNumberOfChannels() == 1);
-          outputChannelIndices.push_back(bus->getBusIndex());
+          channelIndicesThatWereWritten.push_back(bus->getChannelIndexInProcessBlockBuffer(0));
+          hostOutputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(0));
+          mpcMonoOutputChannelIndices.push_back(static_cast<uint8_t>(std::floor(mpcMonoOutputCounter / 2.f)));
+          MLOG("==== Mapping host mono channel index " + std::to_string(hostOutputChannelIndices.back()) + " of bus " + bus->getName().toStdString() + " to mpc stereo output pair index " + std::to_string(mpcMonoOutputChannelIndices.back()));
       }
+
+          MLOG("Bus enabled, adding num channels " + std::to_string(bus->getCurrentLayout().size()));
+      mpcMonoOutputCounter += bus->getNumberOfChannels();
   }
 
-  if (outputChannelIndices.size() == 1)
-  {
-      outputChannelIndices.push_back(outputChannelIndices.front());
-  }
+  if (layoutChanged) MLOG("Buffer numChannels " + std::to_string(buffer.getNumChannels()));
 
-  server->work(chDataIn, chDataOut, buffer.getNumSamples(), inputChannelIndices, outputChannelIndices);
+  if (layoutChanged) MLOG("Number of output channels: " + std::to_string(this->getTotalNumOutputChannels()));
+
+  server->work(chDataIn, chDataOut, buffer.getNumSamples(), mpcMonoInputChannelIndices, mpcMonoOutputChannelIndices, hostInputChannelIndices, hostOutputChannelIndices);
 
   // I've observed a crash in Ableton Live VST3 indicating what could be allocating MIDI events too soon.
   // So we give it a little bit of leeway of 10000 frames.
@@ -511,10 +582,20 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
   {
     buffer.clear();
   }
-  else if (totalNumOutputChannels == 1)
+  else
   {
-    buffer.copyFrom(0, 0, monoToStereoBufferOut.getReadPointer(0), buffer.getNumSamples());
+      for (int i = 0; i < buffer.getNumChannels(); i++)
+      {
+          if (std::find(channelIndicesThatWereWritten.begin(), channelIndicesThatWereWritten.end(), i) != channelIndicesThatWereWritten.end())
+          {
+              continue;
+          }
+
+          buffer.clear(i, 0, buffer.getNumSamples());
+      }
   }
+
+  layoutChanged = false;
 }
 
 bool VmpcProcessor::hasEditor() const
@@ -758,6 +839,48 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
 
         layeredScreen->setDirty();
     }
+}
+
+juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
+{
+
+    auto result = juce::AudioProcessor::BusesProperties()
+        .withInput("RECORD IN L/R",  juce::AudioChannelSet::stereo(), true)
+        .withOutput("STEREO OUT L/R", juce::AudioChannelSet::stereo(), true);
+    
+    if (juce::PluginHostType::jucePlugInClientCurrentWrapperType == juce::AudioProcessor::WrapperType::wrapperType_AudioUnitv3)
+    {
+        return result;
+    }
+
+    const bool isStandalone = juce::JUCEApplication::isStandaloneApp();
+    
+    result = result
+        .withOutput("MIX OUT 1/2", juce::AudioChannelSet::stereo(), isStandalone)
+        .withOutput("MIX OUT 3/4", juce::AudioChannelSet::stereo(), isStandalone)
+        .withOutput("MIX OUT 5/6", juce::AudioChannelSet::stereo(), isStandalone)
+        .withOutput("MIX OUT 7/8", juce::AudioChannelSet::stereo(), isStandalone);
+
+    if (isStandalone || juce::PluginHostType().isAbletonLive())
+    {
+        return result;
+    }
+
+    result = result
+        .withInput("RECORD IN L",  juce::AudioChannelSet::mono(), false)
+        .withInput("RECORD IN R",  juce::AudioChannelSet::mono(), false)
+        .withOutput("STEREO OUT L", juce::AudioChannelSet::mono(), false)
+        .withOutput("STEREO OUT R", juce::AudioChannelSet::mono(), false)
+        .withOutput("MIX OUT 1", juce::AudioChannelSet::mono(), false)
+        .withOutput("MIX OUT 2", juce::AudioChannelSet::mono(), false)
+        .withOutput("MIX OUT 3", juce::AudioChannelSet::mono(), false)
+        .withOutput("MIX OUT 4", juce::AudioChannelSet::mono(), false)
+        .withOutput("MIX OUT 5", juce::AudioChannelSet::mono(), false)
+        .withOutput("MIX OUT 6", juce::AudioChannelSet::mono(), false)
+        .withOutput("MIX OUT 7", juce::AudioChannelSet::mono(), false)
+        .withOutput("MIX OUT 8", juce::AudioChannelSet::mono(), false);
+    
+    return result;
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

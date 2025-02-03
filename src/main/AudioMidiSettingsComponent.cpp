@@ -10,7 +10,8 @@ AudioMidiSettingsComponent::AudioMidiSettingsComponent(juce::AudioDeviceManager&
                          0, maxAudioOutputChannels,
                          true,
                          true,
-                         true, false)
+                         true,
+                         false)
 {
     setOpaque(true);
     addAndMakeVisible(deviceSelector);
