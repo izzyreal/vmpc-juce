@@ -17,6 +17,8 @@ public:
     explicit VmpcEditor(VmpcProcessor&);
     ~VmpcEditor() override;
 
+    bool keyPressed(const juce::KeyPress &) override { return true; }
+
     void resized() override;
 
 private:
