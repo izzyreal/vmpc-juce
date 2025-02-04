@@ -53,7 +53,10 @@ private:
   void processMidiIn(juce::MidiBuffer& midiMessages);
   void processMidiOut(juce::MidiBuffer& midiMessages, bool discard);
   void processTransport();
+  void computeHostToMpcChannelMappings();
 
+  std::vector<uint8_t> mpcMonoInputChannelIndices, mpcMonoOutputChannelIndices, hostInputChannelIndices, hostOutputChannelIndices;
+  uint8_t lastHostChannelIndexThatWillBeWritten = 0;
   double m_Tempo = 0;
   bool wasPlaying = false;
   int framesProcessed = 0;
