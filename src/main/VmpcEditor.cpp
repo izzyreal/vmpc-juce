@@ -25,9 +25,10 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     auto initialWindowWidth = vmpcProcessor.lastUIWidth;
     auto initialWindowHeight = vmpcProcessor.lastUIHeight;
 
+    const auto initialDimensions = view->getInitialRootWindowDimensions();
+
     if (initialWindowWidth == 0 || initialWindowHeight == 0 /* || check if aspect ratio is different */) 
     {
-        const auto initialDimensions = view->getInitialRootWindowDimensions();
         initialWindowWidth = initialDimensions.first;
         initialWindowHeight = initialDimensions.second;
     }
@@ -57,7 +58,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     const bool useCornerResizer = vmpcProcessor.wrapperType != juce::AudioProcessor::wrapperType_AudioUnitv3;
     setResizable(true, useCornerResizer);
     getConstrainer()->setFixedAspectRatio(viewAspectRatio);
-    getConstrainer()->setSizeLimits(initialWindowWidth / 2, initialWindowHeight / 2, initialWindowWidth * 1.1f, initialWindowHeight * 1.1f);
+    getConstrainer()->setSizeLimits(initialDimensions.first / 2, initialDimensions.second / 2, initialDimensions.first * 1.1f, initialDimensions.second * 1.1f);
     setLookAndFeel(&lookAndFeel);
 
 #endif
