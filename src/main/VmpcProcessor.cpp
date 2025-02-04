@@ -33,8 +33,6 @@
 
 #include "VmpcEditor.hpp"
 
-#include "Logger.hpp"
-
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 using namespace mpc::lcdgui::screens::window;
@@ -152,7 +150,6 @@ void VmpcProcessor::changeProgramName (int /* index */, const juce::String& /* n
 
 void VmpcProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    layoutChanged = true;
   mpc.panic();
   auto seq = mpc.getSequencer();
   bool seqWasPlaying = seq->isPlaying();
@@ -194,22 +191,6 @@ void VmpcProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 
 bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layout) const
 {
-    MLOG("======= isBusesLayoutSupported scrutinizes the following layout:");
-
-    for (auto &b : layout.inputBuses)
-    {
-        MLOG("Input bus: " + b.getDescription().toStdString());
-    }
-    for (auto &b : layout.outputBuses)
-    {
-        MLOG("Output bus: " + b.getDescription().toStdString());
-        
-        if (b.getDescription().contains("Discrete"))
-        {
-            printf("");
-        }
-    }
-
     int monoInputCount = 0, monoOutputCount = 0;
 
     for (int i = 0; i < layout.getBuses(true).size(); i++)
@@ -232,8 +213,6 @@ bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layout) const
         monoOutputCount += layout.getNumChannels(false, i);
     }
     
-    MLOG("VMPC2000XL counted this number of i/o: " + std::to_string(monoInputCount) + "/" + std::to_string(monoOutputCount));
-
     return monoOutputCount >= 2 && monoInputCount <= 4 && monoOutputCount <= 10;
 }
 
@@ -413,7 +392,6 @@ void VmpcProcessor::processTransport()
 
 void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuffer& midiMessages)
 {
-    layoutChanged = true;
   juce::ScopedNoDenormals noDenormals;
 
   const int totalNumInputChannels = getTotalNumInputChannels();
@@ -471,14 +449,10 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
 
   int hostIndex = 0;
 
-  if (layoutChanged) MLOG("==== processBlock buses ============");
-
   for (int i = 0; i < getBusCount(true); i++)
   {
       const auto bus = getBus(true, i);
       
-      if (layoutChanged) MLOG("Input bus index " + std::to_string(bus->getBusIndex()) + ", name " + bus->getName().toRawUTF8() + ", num channels " + std::to_string(bus->getNumberOfChannels()) + ", enabled " + std::to_string(bus->isEnabled()) + ", enabledByDefault " + std::to_string(bus->isEnabledByDefault()));
-
       if (!bus->isEnabled())
       {
           continue;
@@ -526,14 +500,9 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
 
       const auto bus = getBus(false, i);
 
-
-      if (layoutChanged) MLOG("Output bus index " + std::to_string(bus->getBusIndex()) + ", name " + bus->getName().toRawUTF8() + ", num channels " + std::to_string(bus->getNumberOfChannels()) + ", enabled " + std::to_string(bus->isEnabled()) + ", enabledByDefault " + std::to_string(bus->isEnabledByDefault()));
-
-
       if (!bus->isEnabled())
       {
           mpcMonoOutputCounter += bus->getLastEnabledLayout().size();
-          MLOG("Bus not enabled, adding num channels " + std::to_string(bus->getLastEnabledLayout().size()));
           continue;
       }
 
@@ -544,25 +513,19 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
           hostOutputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(0));
           channelIndicesThatWereWritten.push_back(bus->getChannelIndexInProcessBlockBuffer(1));
           hostOutputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(1));
-          mpcMonoOutputChannelIndices.push_back(static_cast<int>(std::floor(mpcMonoOutputCounter / 2.f)));
-          mpcMonoOutputChannelIndices.push_back(mpcMonoOutputChannelIndices.back());
+          mpcMonoOutputChannelIndices.push_back(mpcMonoOutputCounter);
+          mpcMonoOutputChannelIndices.push_back(mpcMonoOutputCounter + 1);
       }
       else
       {
           jassert(bus->getNumberOfChannels() == 1);
           channelIndicesThatWereWritten.push_back(bus->getChannelIndexInProcessBlockBuffer(0));
           hostOutputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(0));
-          mpcMonoOutputChannelIndices.push_back(static_cast<uint8_t>(std::floor(mpcMonoOutputCounter / 2.f)));
-          MLOG("==== Mapping host mono channel index " + std::to_string(hostOutputChannelIndices.back()) + " of bus " + bus->getName().toStdString() + " to mpc stereo output pair index " + std::to_string(mpcMonoOutputChannelIndices.back()));
+          mpcMonoOutputChannelIndices.push_back(mpcMonoOutputCounter);
       }
 
-          MLOG("Bus enabled, adding num channels " + std::to_string(bus->getCurrentLayout().size()));
       mpcMonoOutputCounter += bus->getNumberOfChannels();
   }
-
-  if (layoutChanged) MLOG("Buffer numChannels " + std::to_string(buffer.getNumChannels()));
-
-  if (layoutChanged) MLOG("Number of output channels: " + std::to_string(this->getTotalNumOutputChannels()));
 
   server->work(chDataIn, chDataOut, buffer.getNumSamples(), mpcMonoInputChannelIndices, mpcMonoOutputChannelIndices, hostInputChannelIndices, hostOutputChannelIndices);
 
@@ -594,8 +557,6 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
           buffer.clear(i, 0, buffer.getNumSamples());
       }
   }
-
-  layoutChanged = false;
 }
 
 bool VmpcProcessor::hasEditor() const
