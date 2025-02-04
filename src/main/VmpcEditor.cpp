@@ -65,6 +65,8 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
 
     addAndMakeVisible(view);
 
+    startTimer(100);
+
 #if ENABLE_GUI_INSPECTOR == 1
     inspector = new melatonin::Inspector(*this);
     inspector->setVisible(true);
@@ -81,6 +83,12 @@ VmpcEditor::~VmpcEditor()
 #if ENABLE_GUI_INSPECTOR == 1
     delete inspector;
 #endif
+}
+
+void VmpcEditor::timerCallback()
+{
+    this->grabKeyboardFocus();
+    stopTimer();
 }
 
 void VmpcEditor::resized()
