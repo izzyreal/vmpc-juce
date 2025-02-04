@@ -215,7 +215,7 @@ bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layout) const
         monoOutputCount += layout.getNumChannels(false, i);
     }
     
-    return monoOutputCount >= 2 && monoInputCount <= 4 && monoOutputCount <= 10;
+    return monoOutputCount <= 10 && monoInputCount <= 4;
 }
 
 void VmpcProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
