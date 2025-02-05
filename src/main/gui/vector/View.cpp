@@ -282,11 +282,13 @@ void View::resized()
     }
 }
 
-void View::onKeyDown(int keyCode) {
+void View::onKeyDown(int keyCode)
+{
     mpc.getControls()->getKeyEventHandler().lock()->handle(mpc::controls::KeyEvent(keyCode, true));
 }
 
-void View::onKeyUp(int keyCode) {
+void View::onKeyUp(int keyCode)
+{
     mpc.getControls()->getKeyEventHandler().lock()->handle(mpc::controls::KeyEvent(keyCode, false));
 }
 

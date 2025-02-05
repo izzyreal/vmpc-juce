@@ -174,7 +174,7 @@ namespace vmpc_juce::gui::vector {
                   const std::function<juce::Font&()> &getMainFontScaledToUse,
                   const std::function<void()> &closeAboutToUse,
                   const std::string wrapperTypeString)
-                : getScale(getScaleToUse), getMainFontScaled(getMainFontScaledToUse)
+                : getScale(getScaleToUse), getMainFontScaled(getMainFontScaledToUse), closeAboutFn(closeAboutToUse)
             {
                 aboutBorder = new AboutBorder(getScale);
                 const auto creditsTextData = vmpc_juce::VmpcJuceResourceUtil::getResourceData("txt/credits.txt");
@@ -196,10 +196,19 @@ namespace vmpc_juce::gui::vector {
                 aboutScrollBar = new AboutScrollBar(getScale, [this]{ return scrollOffset / maxScrollOffset; }, setScrollOffsetFraction);
                 addAndMakeVisible(aboutScrollBar);
                 setInterceptsMouseClicks(true, false);
+                startTimer(100);
             }
 
             void timerCallback() override
             {
+                if (!globalMouseListenerConfigured)
+                {
+                    juce::Desktop::getInstance().addGlobalMouseListener(this);
+                    globalMouseListenerConfigured = true;
+                    stopTimer();
+                    return;
+                }
+
                 if (scrollAmountForTimer == 0)
                 {
                     stopTimer();
@@ -280,6 +289,12 @@ namespace vmpc_juce::gui::vector {
 
             void mouseDown(const juce::MouseEvent &e) override
             {
+                if (!aboutBorder->getLocalBounds().contains(e.getEventRelativeTo(this).getPosition()))
+                {
+                    closeAboutFn();
+                    return;
+                }
+
                 textWithLinks->mouseDown(e.getEventRelativeTo(textWithLinks));
             }
 
@@ -355,6 +370,7 @@ namespace vmpc_juce::gui::vector {
 
             ~About() override
             {
+                juce::Desktop::getInstance().removeGlobalMouseListener(this);
                 delete aboutBorder;
                 delete closeAbout;
                 delete textWithLinks;
@@ -393,6 +409,7 @@ namespace vmpc_juce::gui::vector {
 
             const std::function<float()> &getScale;
             const std::function<juce::Font&()> &getMainFontScaled;
+            const std::function<void()> closeAboutFn;
             TextWithLinks *textWithLinks = nullptr;
             std::string creditsText;
             float scrollOffset = 0.f;
@@ -401,5 +418,6 @@ namespace vmpc_juce::gui::vector {
             juce::Component *closeAbout = nullptr;
             juce::Component *aboutScrollBar = nullptr;
             int scrollAmountForTimer = 0;
+            bool globalMouseListenerConfigured = false;
     };
 } // namespace vmpc_juce::gui::vector
