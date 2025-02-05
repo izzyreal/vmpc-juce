@@ -546,7 +546,7 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
   }
   else
   {
-      for (int i = lastHostChannelIndexThatWillBeWritten; i < buffer.getNumChannels(); i++)
+      for (int i = lastHostChannelIndexThatWillBeWritten + 1; i < buffer.getNumChannels(); i++)
       {
           buffer.clear(i, 0, buffer.getNumSamples());
       }
