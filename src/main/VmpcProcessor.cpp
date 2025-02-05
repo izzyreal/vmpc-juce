@@ -1,4 +1,5 @@
 #include "VmpcProcessor.hpp"
+#include "juce_audio_basics/juce_audio_basics.h"
 #include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_core/system/juce_PlatformDefs.h"
 #include "juce_gui_basics/juce_gui_basics.h"
@@ -48,7 +49,7 @@ using namespace vmpc_juce;
 
 
 VmpcProcessor::VmpcProcessor()
-: AudioProcessor (getBusesProperties())
+: AudioProcessor(getBusesProperties())
 {
     time_t currentTime = time(nullptr);
   struct tm* currentLocalTime = localtime(&currentTime);
@@ -193,9 +194,58 @@ void VmpcProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 
 bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layout) const
 {
-    int monoInputCount = 0, monoOutputCount = 0;
+    const std::function<int(const bool isInput)> getTotalChannelCountForBus = [&] (const bool isInput) {
+        
+        int result = 0;
+        
+        for (int i = 0; i < layout.getBuses(isInput).size(); i++)
+        {
+            result += layout.getNumChannels(isInput, i);
+        }
+        
+        return result;
+    };
 
-    int stereoOutputCount = 0;
+    const std::function<std::vector<int>(const bool isInput)> getChannelCounts = [&] (const bool isInput) {
+        std::vector<int> result;
+
+        for (int i = 0; i < layout.getBuses(isInput).size(); i++)
+        {
+            result.push_back(layout.getNumChannels(isInput, i));
+        }
+
+        return result;
+    };
+
+    const std::function<int(const bool isInput, const int numChannels)> getBusCountForNumChannels = [&] (const bool isInput, const int numChannels) {
+        int result = 0;
+        
+        for (int i = 0; i < layout.getBuses(isInput).size(); i++)
+        {
+            if (layout.getNumChannels(isInput, i) == numChannels)
+            {
+                result++;
+            }
+        }
+        
+        return result;
+    };
+
+    const auto inBusCount = layout.getBuses(true).size();
+    const auto outBusCount = layout.getBuses(false).size();
+    
+    printf("============= Input bus count %i, output bus count %i\n", inBusCount, outBusCount);
+
+    printf("========== Input bus channel counts\n");
+
+    for (auto &c : getChannelCounts(true))
+        printf("%i, ", c);
+    printf("\n");
+    printf("========== Output bus channel counts\n");
+
+    for (auto &c : getChannelCounts(false))
+        printf("%i, ", c);
+    printf("\n");
 
     for (int i = 0; i < layout.getBuses(true).size(); i++)
     {
@@ -203,8 +253,6 @@ bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layout) const
         {
             return false;
         }
-
-        monoInputCount += layout.getNumChannels(true, i);
     }
 
     for (int i = 0; i < layout.getBuses(false).size(); i++)
@@ -213,19 +261,40 @@ bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layout) const
         {
             return false;
         }
-       
-        if (layout.getNumChannels(false, i) == 1)
-        {
-            monoOutputCount += 1;
-        }
-        else
-        {
-            monoOutputCount += 2;
-        }
     }
-    
-    return monoOutputCount + (stereoOutputCount * 2) <= 20 && monoInputCount <= 4 &&
-        (monoOutputCount == (stereoOutputCount * 2) || monoOutputCount == 0);
+
+    const int monoInputCount = getBusCountForNumChannels(true, 1);
+    const int monoOutputCount = getBusCountForNumChannels(false, 1);
+    const int stereoInputCount = getBusCountForNumChannels(true, 2);
+    const int stereoOutputCount = getBusCountForNumChannels(false, 2);
+    const int totalNumInputChannels = getTotalChannelCountForBus(true);
+    const int totalNumOutputChannels = getTotalChannelCountForBus(false);
+    const bool everythingIsStereo = monoInputCount == 0 && monoOutputCount == 0 && (stereoInputCount > 0 || stereoOutputCount > 0);
+    const bool everythingIsMono = stereoInputCount == 0 && stereoOutputCount == 0 && (monoInputCount > 0 || monoOutputCount > 0);
+
+    auto result = stereoOutputCount == 1 && monoOutputCount == 0 && totalNumInputChannels == 0;
+    result = result || (stereoOutputCount == 5 && monoOutputCount == 0 && totalNumInputChannels == 0);
+
+    const auto isLogic = juce::PluginHostType().isLogic();
+
+    if (isLogic)
+    {
+        return result;
+    }
+
+    if (result) printf("We support this\n"); else printf("We don't support this\n");
+
+    return result;
+
+    if (totalNumInputChannels == 0 && totalNumOutputChannels == 1) return true;
+    if (totalNumInputChannels == 1 && totalNumOutputChannels == 1) return true;
+    if (totalNumInputChannels == 1 && totalNumOutputChannels == 2) return true;
+    if (totalNumInputChannels == 0 && totalNumOutputChannels == 2) return true;
+    if (totalNumInputChannels == 2 && totalNumOutputChannels == 2) return true;
+    if (totalNumInputChannels == 2 && totalNumOutputChannels == 10 && everythingIsStereo) return true;
+    if (totalNumInputChannels == 2 && totalNumOutputChannels == 10 && everythingIsMono) return true;
+    if (totalNumInputChannels == 4 && totalNumOutputChannels == 20) return true;
+    return false;
 }
 
 void VmpcProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
@@ -732,11 +801,17 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
     typedef juce::AudioProcessor::WrapperType W;
 
     auto result = juce::AudioProcessor::BusesProperties()
-        .withInput("RECORD IN L/R", juce::AudioChannelSet::stereo(), true)
+        //.withInput("RECORD IN L/R", juce::AudioChannelSet::stereo(), true)
         .withOutput("STEREO OUT L/R", juce::AudioChannelSet::stereo(), true);
 
     const auto wrapper = juce::PluginHostType::jucePlugInClientCurrentWrapperType;
+    //Hosttypes don't seem to work at this point
+    //const bool isAbletonLive = juce::PluginHostType().isAbletonLive();
+    //const bool isLogic = juce::PluginHostType().isLogic();
+    //const bool isAuval = juce::PluginHostType().isAUVal();
     const bool isStandalone = juce::JUCEApplication::isStandaloneApp();
+    const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
+    const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
 
     result = result
         .withOutput("MIX OUT 1/2", juce::AudioChannelSet::stereo(), isStandalone)
@@ -744,23 +819,26 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
         .withOutput("MIX OUT 5/6", juce::AudioChannelSet::stereo(), isStandalone)
         .withOutput("MIX OUT 7/8", juce::AudioChannelSet::stereo(), isStandalone);
 
-    const bool isAbletonLive = juce::PluginHostType().isAbletonLive();
-    const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
-    const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
+    printf("Will now check...\n");
 
-    if (isStandalone ||       // The standalone has no benefit from additional mono buses
-            isAbletonLive ||  // AbletonLive only supports stereo buses
-            isAUv2 ||         // AudioUnits don't support enough buses
-            isAUv3)
+    // What I would like to do is
+    // if (isAuval || isLogic || isAbletonLive)
+    if (isAUv2 || isAUv3)
     {
+        printf("is AUv2 or AUv3\n");
+        // I didn't manage to make the plugin expose multiple sane layouts that include
+        // mono buses in Logic, and Ableton Live does not support mono buses.
+        // Moreover, we'll treat auval and Logic as one and the same. And we need to
+        // generalize further, to finally decide any AU in any host does not support
+        // any mono buses.
         return result;
     }
 
     result = result
-        .withInput("RECORD IN L",  juce::AudioChannelSet::mono(), false)
-        .withInput("RECORD IN R",  juce::AudioChannelSet::mono(), false)
-        .withOutput("STEREO OUT L", juce::AudioChannelSet::mono(), false)
-        .withOutput("STEREO OUT R", juce::AudioChannelSet::mono(), false)
+        //.withInput("RECORD IN L",  juce::AudioChannelSet::mono(), false)
+        //.withInput("RECORD IN R",  juce::AudioChannelSet::mono(), false)
+        //.withOutput("STEREO OUT L", juce::AudioChannelSet::mono(), false)
+        //.withOutput("STEREO OUT R", juce::AudioChannelSet::mono(), false)
         .withOutput("MIX OUT 1", juce::AudioChannelSet::mono(), false)
         .withOutput("MIX OUT 2", juce::AudioChannelSet::mono(), false)
         .withOutput("MIX OUT 3", juce::AudioChannelSet::mono(), false)
