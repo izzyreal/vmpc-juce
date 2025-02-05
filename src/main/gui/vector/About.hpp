@@ -170,12 +170,18 @@ namespace vmpc_juce::gui::vector {
 
     class About : public juce::Component, juce::Timer {
         public:
-            About(const std::function<float()> &getScaleToUse, const std::function<juce::Font&()> &getMainFontScaledToUse, const std::function<void()> &closeAboutToUse)
+            About(const std::function<float()> &getScaleToUse,
+                  const std::function<juce::Font&()> &getMainFontScaledToUse,
+                  const std::function<void()> &closeAboutToUse,
+                  const std::string wrapperTypeString)
                 : getScale(getScaleToUse), getMainFontScaled(getMainFontScaledToUse)
             {
                 aboutBorder = new AboutBorder(getScale);
                 const auto creditsTextData = vmpc_juce::VmpcJuceResourceUtil::getResourceData("txt/credits.txt");
                 creditsText = std::string(creditsTextData.begin(), creditsTextData.end());
+
+                replaceFormatPlaceHolder(creditsText, wrapperTypeString);
+
                 textWithLinks = new TextWithLinks(creditsText, getMainFontScaled);
                 addAndMakeVisible(textWithLinks);
                 addAndMakeVisible(aboutBorder);
@@ -374,13 +380,23 @@ namespace vmpc_juce::gui::vector {
                 repaint();
             }
 
+            void replaceFormatPlaceHolder(std::string &rawText, const std::string format)
+            {
+                static const std::string formatPlaceHolder = "<format>";
+                const size_t pos = rawText.find(formatPlaceHolder);
+                
+                if (pos != std::string::npos)
+                {
+                    rawText.replace(pos, formatPlaceHolder.length(), format);
+                }
+            }
+
             const std::function<float()> &getScale;
             const std::function<juce::Font&()> &getMainFontScaled;
             TextWithLinks *textWithLinks = nullptr;
             std::string creditsText;
             float scrollOffset = 0.f;
             float maxScrollOffset = 0.f;
-            int previousHeight = 0.f;
             juce::Component *aboutBorder = nullptr;
             juce::Component *closeAbout = nullptr;
             juce::Component *aboutScrollBar = nullptr;

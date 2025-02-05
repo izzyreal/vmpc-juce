@@ -160,7 +160,22 @@ View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDia
         keyboard->onKeyUpFn = [&](int i) { onKeyUp(i); };
     };
 
-    const auto openAbout = [this, closeAbout] {
+    std::string wrapperTypeString;
+
+    switch (wrapperType)
+    {
+        case juce::AudioProcessor::WrapperType::wrapperType_VST: wrapperTypeString = "VST2"; break;
+        case juce::AudioProcessor::WrapperType::wrapperType_VST3: wrapperTypeString = "VST3"; break;
+        case juce::AudioProcessor::WrapperType::wrapperType_AudioUnit: wrapperTypeString = "AUv2"; break;
+        case juce::AudioProcessor::WrapperType::wrapperType_AudioUnitv3: wrapperTypeString = "AUv3"; break;
+        case juce::AudioProcessor::WrapperType::wrapperType_Standalone: wrapperTypeString = "Standalone"; break;
+        case juce::AudioProcessor::WrapperType::wrapperType_LV2: wrapperTypeString = "LV2"; break;
+        case juce::AudioProcessor::WrapperType::wrapperType_AAX: wrapperTypeString = "AAX"; break;
+        case juce::AudioProcessor::WrapperType::wrapperType_Unity: wrapperTypeString = "Unity"; break;
+        case juce::AudioProcessor::WrapperType::wrapperType_Undefined: wrapperTypeString = "Unknown";
+    }
+
+    const auto openAbout = [this, closeAbout, wrapperTypeString] {
         if (about != nullptr)
         {
             removeChildComponent(about);
@@ -168,7 +183,7 @@ View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDia
             about = nullptr;
         }
 
-        about = new About(getScale, getMainFontScaled, closeAbout);
+        about = new About(getScale, getMainFontScaled, closeAbout, wrapperTypeString);
         keyboard->onKeyUpFn = {};
         keyboard->onKeyDownFn = {};
         addAndMakeVisible(about);
