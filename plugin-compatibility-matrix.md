@@ -24,13 +24,13 @@ Long story short, using VMPC2000XL as a sampler, recording new sounds with it, d
 
 
 
-|      macOS      |                              AU                              |                        AUv3                        | VST3 |
-| :-------------: | :----------------------------------------------------------: | :------------------------------------------------: | ---- |
-|  Logic Pro (X)  | 1 stereo in (Side Chain in top right of plugin)<br />5 stereo out | 0 stereo in<br />1 stereo out<br />only MIDI input |      |
-| Ableton Live 10 |                1 stereo in<br />5 stereo out                 |                unsupported by Live                 |      |
-|   GarageBand    |                                                              | 0 stereo in<br />1 stereo out<br />only MIDI input |      |
-|    Cubase 10    |                                                              |                                                    |      |
-|    Reaper 6     |                                                              |                                                    |      |
+|      macOS      |                              AU                              |                        AUv3                        | VST3                                                   |
+| :-------------: | :----------------------------------------------------------: | :------------------------------------------------: | ------------------------------------------------------ |
+|  Logic Pro (X)  | 1 stereo in (Side Chain in top right of plugin)<br />5 stereo out | 0 stereo in<br />1 stereo out<br />only MIDI input |                                                        |
+| Ableton Live 10 |                1 stereo in<br />5 stereo out                 |                unsupported by Live                 |                                                        |
+|   GarageBand    |                                                              | 0 stereo in<br />1 stereo out<br />only MIDI input |                                                        |
+|    Cubase 14    |                         Unsupported                          |                    Unsupported                     | 5 stereo out, 10 mono out<br />1 stereo in,  2 mono in |
+|    Reaper 6     |                                                              |                                                    |                                                        |
 
 **Supported features**
 

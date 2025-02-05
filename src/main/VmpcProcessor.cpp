@@ -195,6 +195,8 @@ bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layout) const
 {
     int monoInputCount = 0, monoOutputCount = 0;
 
+    int stereoOutputCount = 0;
+
     for (int i = 0; i < layout.getBuses(true).size(); i++)
     {
         if (layout.getNumChannels(true, i) > 2)
@@ -211,11 +213,19 @@ bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layout) const
         {
             return false;
         }
-
-        monoOutputCount += layout.getNumChannels(false, i);
+       
+        if (layout.getNumChannels(false, i) == 1)
+        {
+            monoOutputCount += 1;
+        }
+        else
+        {
+            monoOutputCount += 2;
+        }
     }
     
-    return monoOutputCount <= 10 && monoInputCount <= 4;
+    return monoOutputCount + (stereoOutputCount * 2) <= 20 && monoInputCount <= 4 &&
+        (monoOutputCount == (stereoOutputCount * 2) || monoOutputCount == 0);
 }
 
 void VmpcProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
@@ -280,7 +290,7 @@ void VmpcProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
   }
 }
 
-void processMidiOutMsg(juce::MidiBuffer& midiMessages, std::shared_ptr<ShortMessage>& msg)
+static void processMidiOutMsg(juce::MidiBuffer& midiMessages, std::shared_ptr<ShortMessage>& msg)
 {
     juce::MidiMessage juceMsg;
     bool compatibleMsg = false;
@@ -719,25 +729,29 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
 
 juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
 {
+    typedef juce::AudioProcessor::WrapperType W;
 
     auto result = juce::AudioProcessor::BusesProperties()
-        .withInput("RECORD IN L/R",  juce::AudioChannelSet::stereo(), true)
+        .withInput("RECORD IN L/R", juce::AudioChannelSet::stereo(), true)
         .withOutput("STEREO OUT L/R", juce::AudioChannelSet::stereo(), true);
-    
-    if (juce::PluginHostType::jucePlugInClientCurrentWrapperType == juce::AudioProcessor::WrapperType::wrapperType_AudioUnitv3)
-    {
-        return result;
-    }
 
+    const auto wrapper = juce::PluginHostType::jucePlugInClientCurrentWrapperType;
     const bool isStandalone = juce::JUCEApplication::isStandaloneApp();
-    
+
     result = result
         .withOutput("MIX OUT 1/2", juce::AudioChannelSet::stereo(), isStandalone)
         .withOutput("MIX OUT 3/4", juce::AudioChannelSet::stereo(), isStandalone)
         .withOutput("MIX OUT 5/6", juce::AudioChannelSet::stereo(), isStandalone)
         .withOutput("MIX OUT 7/8", juce::AudioChannelSet::stereo(), isStandalone);
 
-    if (isStandalone || juce::PluginHostType().isAbletonLive())
+    const bool isAbletonLive = juce::PluginHostType().isAbletonLive();
+    const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
+    const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
+
+    if (isStandalone ||       // The standalone has no benefit from additional mono buses
+            isAbletonLive ||  // AbletonLive only supports stereo buses
+            isAUv2 ||         // AudioUnits don't support enough buses
+            isAUv3)
     {
         return result;
     }
