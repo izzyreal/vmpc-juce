@@ -203,18 +203,30 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
     const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
     const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
 
-    int monoInCount = 0;
-    int stereoInCount = 0;
-    int monoOutCount = 0;
-    int stereoOutCount = 0;
+    int monoInCount;
+    int stereoInCount;
+    int monoOutCount;
+    int stereoOutCount;
 
     if (isAUv2 || isAUv3)
     {
+        monoInCount = 0;
+        stereoInCount = 1;
+        monoOutCount = 0;
         stereoOutCount = 5;
     }
     else if (isStandalone)
     {
+        monoInCount = 0;
         stereoInCount = 1;
+        monoOutCount = 0;
+        stereoOutCount = 5;
+    }
+    else /* if LV2 or VST3 */
+    {
+        monoInCount = 2;
+        stereoInCount = 1;
+        monoOutCount = 8;
         stereoOutCount = 5;
     }
 
@@ -226,7 +238,8 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
     for (int i = 0; i < stereoOutCount; i++)
     {
         const auto name = i == 0 ? "STEREO OUT L/R" : ("MIX OUT " + std::to_string((i * 2) - 1) + "/" + std::to_string(i*2));
-        result = result.withOutput(name, C::stereo(), true);
+        const bool enabledByDefault = i == 0 || isStandalone || isAUv2 || isAUv3;
+        result = result.withOutput(name, C::stereo(), enabledByDefault);
     }
 
     for (int i = 0; i < monoInCount; i++)
@@ -235,29 +248,30 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
     for (int i = 0; i < monoOutCount; i++)
     {
         const auto name = "MIX OUT " + std::to_string(i + 1);
-        result = result.withOutput(name, C::mono(), false);
+        const bool enabledByDefault = isStandalone || isAUv2 || isAUv3;
+        result = result.withOutput(name, C::mono(), enabledByDefault);
     }
 
     return result;
 }
 
-bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layout) const
+bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
     const std::function<int(const bool isInput)> getTotalChannelCountForBus = [&] (const bool isInput) {
         int result = 0;
-        for (int i = 0; i < layout.getBuses(isInput).size(); i++) result += layout.getNumChannels(isInput, i);
+        for (int i = 0; i < layouts.getBuses(isInput).size(); i++) result += layouts.getNumChannels(isInput, i);
         return result;
     };
 
     const std::function<std::vector<int>(const bool isInput)> getChannelCounts = [&] (const bool isInput) {
         std::vector<int> result;
-        for (int i = 0; i < layout.getBuses(isInput).size(); i++) result.push_back(layout.getNumChannels(isInput, i));
+        for (int i = 0; i < layouts.getBuses(isInput).size(); i++) result.push_back(layouts.getNumChannels(isInput, i));
         return result;
     };
 
     const std::function<int(const bool isInput, const int numChannels)> getBusCountForNumChannels = [&] (const bool isInput, const int numChannels) {
         int result = 0;
-        for (int i = 0; i < layout.getBuses(isInput).size(); i++) if (layout.getNumChannels(isInput, i) == numChannels) result++;
+        for (int i = 0; i < layouts.getBuses(isInput).size(); i++) if (layouts.getNumChannels(isInput, i) == numChannels) result++;
         return result;
     };
 
@@ -268,9 +282,9 @@ bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layout) const
     const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
     const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
 
-    //const int monoInputCount = getBusCountForNumChannels(true, 1);
+    const int monoInputCount = getBusCountForNumChannels(true, 1);
     const int monoOutputCount = getBusCountForNumChannels(false, 1);
-    //const int stereoInputCount = getBusCountForNumChannels(true, 2);
+    const int stereoInputCount = getBusCountForNumChannels(true, 2);
     const int stereoOutputCount = getBusCountForNumChannels(false, 2);
     const int totalNumInputChannels = getTotalChannelCountForBus(true);
     const int totalNumOutputChannels = getTotalChannelCountForBus(false);
@@ -279,8 +293,8 @@ bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layout) const
 
     if (isAUv2 || isAUv3)
     {
-        result = result || (stereoOutputCount == 1 && monoOutputCount == 0 && totalNumInputChannels == 0);
-        result = result || (stereoOutputCount == 5 && monoOutputCount == 0 && totalNumInputChannels == 0);
+        result = result || (stereoOutputCount == 1 && monoOutputCount == 0 && stereoInputCount == 1 && monoInputCount == 0);
+        result = result || (stereoOutputCount == 5 && monoOutputCount == 0 && stereoInputCount == 1 && monoInputCount == 0);
     }
     else if (isStandalone)
     {
