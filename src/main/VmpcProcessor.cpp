@@ -281,6 +281,8 @@ bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
     const bool isStandalone = juce::JUCEApplication::isStandaloneApp();
     const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
     const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
+    const bool isVST3 = wrapper == W::wrapperType_VST3;
+    const bool isLV2  = wrapper == W::wrapperType_LV2;
 
     const int monoInputCount = getBusCountForNumChannels(true, 1);
     const int monoOutputCount = getBusCountForNumChannels(false, 1);
@@ -299,6 +301,10 @@ bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
     else if (isStandalone)
     {
         result = result || (totalNumInputChannels <= 2 && totalNumOutputChannels <= 10);
+    }
+    else if (isVST3 || isLV2)
+    {
+        result = result || (totalNumInputChannels <= 4 && totalNumOutputChannels <= 18);
     }
 
     return result;
