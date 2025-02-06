@@ -273,7 +273,7 @@ bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layout) const
     const bool everythingIsMono = stereoInputCount == 0 && stereoOutputCount == 0 && (monoInputCount > 0 || monoOutputCount > 0);
 
     auto result = stereoOutputCount == 1 && monoOutputCount == 0 && totalNumInputChannels == 0;
-    result = result || (stereoOutputCount == 5 && monoOutputCount == 0 && totalNumInputChannels == 0);
+    result = result || (stereoOutputCount == 1 && monoOutputCount == 8 && totalNumInputChannels == 0);
 
     const auto isLogic = juce::PluginHostType().isLogic();
 
@@ -798,56 +798,42 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
 
 juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
 {
+    // Hosttypes don't seem to work at this point, but we may need to verify that.
+    // First, let's make all decisions based on wrapper type, and then we can
+    // further refine if necessary.
     typedef juce::AudioProcessor::WrapperType W;
-
-    auto result = juce::AudioProcessor::BusesProperties()
-        //.withInput("RECORD IN L/R", juce::AudioChannelSet::stereo(), true)
-        .withOutput("STEREO OUT L/R", juce::AudioChannelSet::stereo(), true);
+    typedef juce::AudioChannelSet C;
 
     const auto wrapper = juce::PluginHostType::jucePlugInClientCurrentWrapperType;
-    //Hosttypes don't seem to work at this point
-    //const bool isAbletonLive = juce::PluginHostType().isAbletonLive();
-    //const bool isLogic = juce::PluginHostType().isLogic();
-    //const bool isAuval = juce::PluginHostType().isAUVal();
     const bool isStandalone = juce::JUCEApplication::isStandaloneApp();
     const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
     const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
 
-    result = result
-        .withOutput("MIX OUT 1/2", juce::AudioChannelSet::stereo(), isStandalone)
-        .withOutput("MIX OUT 3/4", juce::AudioChannelSet::stereo(), isStandalone)
-        .withOutput("MIX OUT 5/6", juce::AudioChannelSet::stereo(), isStandalone)
-        .withOutput("MIX OUT 7/8", juce::AudioChannelSet::stereo(), isStandalone);
+    const int monoInCount = 0;
+    const int stereoInCount = 0;
+    const int monoOutCount = 0;
+    const int stereoOutCount = 0;
 
-    printf("Will now check...\n");
+    juce::AudioProcessor::BusesProperties result;
 
-    // What I would like to do is
-    // if (isAuval || isLogic || isAbletonLive)
-    if (isAUv2 || isAUv3)
+    for (int i = 0; i < monoInCount; i++)
+        result = result.withInput("RECORD IN " + std::string((i%2 == 0) ? "L" : "R"), C::mono(), true);
+
+    for (int i = 0; i < stereoInCount; i++)
+        result = result.withInput("RECORD IN L/R", C::stereo(), true);
+
+    for (int i = 0; i < monoOutCount; i++)
     {
-        printf("is AUv2 or AUv3\n");
-        // I didn't manage to make the plugin expose multiple sane layouts that include
-        // mono buses in Logic, and Ableton Live does not support mono buses.
-        // Moreover, we'll treat auval and Logic as one and the same. And we need to
-        // generalize further, to finally decide any AU in any host does not support
-        // any mono buses.
-        return result;
+        const auto name = i <= 2 ? ("STEREO OUT " + std::string((i%2 == 0) ? "L" : "R")) : "MIX OUT " + std::to_string(i - 1);
+        result = result.withOutput(name, C::mono(), i <= 2);
     }
 
-    result = result
-        //.withInput("RECORD IN L",  juce::AudioChannelSet::mono(), false)
-        //.withInput("RECORD IN R",  juce::AudioChannelSet::mono(), false)
-        //.withOutput("STEREO OUT L", juce::AudioChannelSet::mono(), false)
-        //.withOutput("STEREO OUT R", juce::AudioChannelSet::mono(), false)
-        .withOutput("MIX OUT 1", juce::AudioChannelSet::mono(), false)
-        .withOutput("MIX OUT 2", juce::AudioChannelSet::mono(), false)
-        .withOutput("MIX OUT 3", juce::AudioChannelSet::mono(), false)
-        .withOutput("MIX OUT 4", juce::AudioChannelSet::mono(), false)
-        .withOutput("MIX OUT 5", juce::AudioChannelSet::mono(), false)
-        .withOutput("MIX OUT 6", juce::AudioChannelSet::mono(), false)
-        .withOutput("MIX OUT 7", juce::AudioChannelSet::mono(), false)
-        .withOutput("MIX OUT 8", juce::AudioChannelSet::mono(), false);
-    
+    for (int i = 0; i < stereoOutCount; i++)
+    {
+        const auto name = i == 0 ? "STEREO OUT L/R" : ("MIX OUT " + std::to_string((i * 2) - 1) + "/" + std::to_string(i*2));
+        result = result.withOutput(name, C::stereo(), i == 0);
+    }
+
     return result;
 }
 
