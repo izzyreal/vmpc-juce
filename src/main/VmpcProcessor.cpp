@@ -30,7 +30,6 @@
 
 #include <engine/audio/server/NonRealTimeAudioServer.hpp>
 #include <engine/midi/ShortMessage.hpp>
-#include <string>
 
 #include "VmpcEditor.hpp"
 
@@ -46,7 +45,6 @@ using namespace mpc::disk;
 using namespace mpc::engine::midi;
 
 using namespace vmpc_juce;
-
 
 VmpcProcessor::VmpcProcessor()
 : AudioProcessor(getBusesProperties())
@@ -192,109 +190,104 @@ void VmpcProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
   computeHostToMpcChannelMappings();
 }
 
+juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
+{
+    // Hosttypes don't seem to work at this point, but we may need to verify that.
+    // First, let's make all decisions based on wrapper type, and then we can
+    // further refine if necessary.
+    typedef juce::AudioProcessor::WrapperType W;
+    typedef juce::AudioChannelSet C;
+
+    const auto wrapper = juce::PluginHostType::jucePlugInClientCurrentWrapperType;
+    const bool isStandalone = juce::JUCEApplication::isStandaloneApp();
+    const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
+    const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
+
+    int monoInCount = 0;
+    int stereoInCount = 0;
+    int monoOutCount = 0;
+    int stereoOutCount = 0;
+
+    if (isAUv2 || isAUv3)
+    {
+        stereoOutCount = 5;
+    }
+    else if (isStandalone)
+    {
+        stereoInCount = 1;
+        stereoOutCount = 5;
+    }
+
+    juce::AudioProcessor::BusesProperties result;
+
+    for (int i = 0; i < stereoInCount; i++)
+        result = result.withInput("RECORD IN L/R", C::stereo(), true);
+
+    for (int i = 0; i < stereoOutCount; i++)
+    {
+        const auto name = i == 0 ? "STEREO OUT L/R" : ("MIX OUT " + std::to_string((i * 2) - 1) + "/" + std::to_string(i*2));
+        result = result.withOutput(name, C::stereo(), true);
+    }
+
+    for (int i = 0; i < monoInCount; i++)
+        result = result.withInput("RECORD IN " + std::string((i%2 == 0) ? "L" : "R"), C::mono(), true);
+
+    for (int i = 0; i < monoOutCount; i++)
+    {
+        const auto name = "MIX OUT " + std::to_string(i + 1);
+        result = result.withOutput(name, C::mono(), false);
+    }
+
+    return result;
+}
+
 bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layout) const
 {
     const std::function<int(const bool isInput)> getTotalChannelCountForBus = [&] (const bool isInput) {
-        
         int result = 0;
-        
-        for (int i = 0; i < layout.getBuses(isInput).size(); i++)
-        {
-            result += layout.getNumChannels(isInput, i);
-        }
-        
+        for (int i = 0; i < layout.getBuses(isInput).size(); i++) result += layout.getNumChannels(isInput, i);
         return result;
     };
 
     const std::function<std::vector<int>(const bool isInput)> getChannelCounts = [&] (const bool isInput) {
         std::vector<int> result;
-
-        for (int i = 0; i < layout.getBuses(isInput).size(); i++)
-        {
-            result.push_back(layout.getNumChannels(isInput, i));
-        }
-
+        for (int i = 0; i < layout.getBuses(isInput).size(); i++) result.push_back(layout.getNumChannels(isInput, i));
         return result;
     };
 
     const std::function<int(const bool isInput, const int numChannels)> getBusCountForNumChannels = [&] (const bool isInput, const int numChannels) {
         int result = 0;
-        
-        for (int i = 0; i < layout.getBuses(isInput).size(); i++)
-        {
-            if (layout.getNumChannels(isInput, i) == numChannels)
-            {
-                result++;
-            }
-        }
-        
+        for (int i = 0; i < layout.getBuses(isInput).size(); i++) if (layout.getNumChannels(isInput, i) == numChannels) result++;
         return result;
     };
 
-    const auto inBusCount = layout.getBuses(true).size();
-    const auto outBusCount = layout.getBuses(false).size();
-    
-    printf("============= Input bus count %i, output bus count %i\n", inBusCount, outBusCount);
+    typedef juce::AudioProcessor::WrapperType W;
 
-    printf("========== Input bus channel counts\n");
+    const auto wrapper = juce::PluginHostType::jucePlugInClientCurrentWrapperType;
+    const bool isStandalone = juce::JUCEApplication::isStandaloneApp();
+    const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
+    const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
 
-    for (auto &c : getChannelCounts(true))
-        printf("%i, ", c);
-    printf("\n");
-    printf("========== Output bus channel counts\n");
-
-    for (auto &c : getChannelCounts(false))
-        printf("%i, ", c);
-    printf("\n");
-
-    for (int i = 0; i < layout.getBuses(true).size(); i++)
-    {
-        if (layout.getNumChannels(true, i) > 2)
-        {
-            return false;
-        }
-    }
-
-    for (int i = 0; i < layout.getBuses(false).size(); i++)
-    {
-        if (layout.getNumChannels(false, i) > 2)
-        {
-            return false;
-        }
-    }
-
-    const int monoInputCount = getBusCountForNumChannels(true, 1);
+    //const int monoInputCount = getBusCountForNumChannels(true, 1);
     const int monoOutputCount = getBusCountForNumChannels(false, 1);
-    const int stereoInputCount = getBusCountForNumChannels(true, 2);
+    //const int stereoInputCount = getBusCountForNumChannels(true, 2);
     const int stereoOutputCount = getBusCountForNumChannels(false, 2);
     const int totalNumInputChannels = getTotalChannelCountForBus(true);
     const int totalNumOutputChannels = getTotalChannelCountForBus(false);
-    const bool everythingIsStereo = monoInputCount == 0 && monoOutputCount == 0 && (stereoInputCount > 0 || stereoOutputCount > 0);
-    const bool everythingIsMono = stereoInputCount == 0 && stereoOutputCount == 0 && (monoInputCount > 0 || monoOutputCount > 0);
 
-    auto result = stereoOutputCount == 1 && monoOutputCount == 0 && totalNumInputChannels == 0;
-    result = result || (stereoOutputCount == 1 && monoOutputCount == 8 && totalNumInputChannels == 0);
+    bool result = false;
 
-    const auto isLogic = juce::PluginHostType().isLogic();
-
-    if (isLogic)
+    if (isAUv2 || isAUv3)
     {
-        return result;
+        result = result || (stereoOutputCount == 1 && monoOutputCount == 0 && totalNumInputChannels == 0);
+        result = result || (stereoOutputCount == 5 && monoOutputCount == 0 && totalNumInputChannels == 0);
+    }
+    else if (isStandalone)
+    {
+        result = result || (totalNumInputChannels <= 2 && totalNumOutputChannels <= 10);
     }
 
-    if (result) printf("We support this\n"); else printf("We don't support this\n");
-
     return result;
-
-    if (totalNumInputChannels == 0 && totalNumOutputChannels == 1) return true;
-    if (totalNumInputChannels == 1 && totalNumOutputChannels == 1) return true;
-    if (totalNumInputChannels == 1 && totalNumOutputChannels == 2) return true;
-    if (totalNumInputChannels == 0 && totalNumOutputChannels == 2) return true;
-    if (totalNumInputChannels == 2 && totalNumOutputChannels == 2) return true;
-    if (totalNumInputChannels == 2 && totalNumOutputChannels == 10 && everythingIsStereo) return true;
-    if (totalNumInputChannels == 2 && totalNumOutputChannels == 10 && everythingIsMono) return true;
-    if (totalNumInputChannels == 4 && totalNumOutputChannels == 20) return true;
-    return false;
 }
 
 void VmpcProcessor::processMidiIn(juce::MidiBuffer& midiMessages) {
@@ -473,7 +466,12 @@ void VmpcProcessor::processTransport()
 
 void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuffer& midiMessages)
 {
-  juce::ScopedNoDenormals noDenormals;
+    // ===================== REMOVE THIS =======================
+    buffer.clear();
+    return;
+    // =============== END OF THING TO REMOVE ==================
+  
+    juce::ScopedNoDenormals noDenormals;
 
   const int totalNumInputChannels = getTotalNumInputChannels();
   const int totalNumOutputChannels = getTotalNumOutputChannels();
@@ -794,47 +792,6 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
 
         layeredScreen->setDirty();
     }
-}
-
-juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
-{
-    // Hosttypes don't seem to work at this point, but we may need to verify that.
-    // First, let's make all decisions based on wrapper type, and then we can
-    // further refine if necessary.
-    typedef juce::AudioProcessor::WrapperType W;
-    typedef juce::AudioChannelSet C;
-
-    const auto wrapper = juce::PluginHostType::jucePlugInClientCurrentWrapperType;
-    const bool isStandalone = juce::JUCEApplication::isStandaloneApp();
-    const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
-    const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
-
-    const int monoInCount = 0;
-    const int stereoInCount = 0;
-    const int monoOutCount = 0;
-    const int stereoOutCount = 0;
-
-    juce::AudioProcessor::BusesProperties result;
-
-    for (int i = 0; i < monoInCount; i++)
-        result = result.withInput("RECORD IN " + std::string((i%2 == 0) ? "L" : "R"), C::mono(), true);
-
-    for (int i = 0; i < stereoInCount; i++)
-        result = result.withInput("RECORD IN L/R", C::stereo(), true);
-
-    for (int i = 0; i < monoOutCount; i++)
-    {
-        const auto name = i <= 2 ? ("STEREO OUT " + std::string((i%2 == 0) ? "L" : "R")) : "MIX OUT " + std::to_string(i - 1);
-        result = result.withOutput(name, C::mono(), i <= 2);
-    }
-
-    for (int i = 0; i < stereoOutCount; i++)
-    {
-        const auto name = i == 0 ? "STEREO OUT L/R" : ("MIX OUT " + std::to_string((i * 2) - 1) + "/" + std::to_string(i*2));
-        result = result.withOutput(name, C::stereo(), i == 0);
-    }
-
-    return result;
 }
 
 void VmpcProcessor::computeHostToMpcChannelMappings()
