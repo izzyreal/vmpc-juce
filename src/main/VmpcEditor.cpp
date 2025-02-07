@@ -1,13 +1,7 @@
-#define ENABLE_GUI_INSPECTOR 0
-
 #include "VmpcEditor.hpp"
 #include "VmpcProcessor.hpp"
 
 #include "gui/vector/View.hpp"
-
-#if ENABLE_GUI_INSPECTOR == 1
-#include <melatonin_inspector/melatonin_inspector.h>
-#endif
 
 using namespace vmpc_juce;
 using namespace vmpc_juce::gui::vector;
@@ -66,12 +60,6 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     addAndMakeVisible(view);
 
     startTimer(100);
-
-#if ENABLE_GUI_INSPECTOR == 1
-    inspector = new melatonin::Inspector(*this);
-    inspector->setVisible(true);
-    inspector->toggle(true);
-#endif
 }
 
 VmpcEditor::~VmpcEditor()
@@ -80,9 +68,6 @@ VmpcEditor::~VmpcEditor()
     vmpcProcessor.lastUIHeight = getHeight();
     setLookAndFeel(nullptr);
     delete view;
-#if ENABLE_GUI_INSPECTOR == 1
-    delete inspector;
-#endif
 }
 
 void VmpcEditor::timerCallback()

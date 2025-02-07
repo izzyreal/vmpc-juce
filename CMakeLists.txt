@@ -55,11 +55,6 @@ FetchContent_Declare(melatonin_blur
     GIT_TAG origin/main
     SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/melatonin_blur)
 
-FetchContent_Declare (melatonin_inspector
-        GIT_REPOSITORY https://github.com/sudara/melatonin_inspector.git
-        GIT_TAG main
-        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/melatonin_inspector)
-
 FetchContent_Declare(juce-raw-keyboard-input-module
   GIT_REPOSITORY https://github.com/izzyreal/juce-raw-keyboard-input-module.git
   GIT_TAG        main
@@ -103,7 +98,7 @@ FetchContent_MakeAvailable(miniz)
 endif()
 endif()
 
-FetchContent_MakeAvailable(mpc JUCE juce-raw-keyboard-input-module melatonin_inspector melatonin_blur json)
+FetchContent_MakeAvailable(mpc JUCE juce-raw-keyboard-input-module melatonin_blur json)
 
 FetchContent_GetProperties(tl-expected)
 
@@ -225,7 +220,6 @@ target_link_libraries(vmpc2000xl
     juce::juce_audio_utils
     nlohmann_json::nlohmann_json
     melatonin_blur
-    melatonin_inspector
     raw_keyboard_input
     mpc
   PUBLIC

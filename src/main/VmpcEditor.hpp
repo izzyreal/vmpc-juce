@@ -8,7 +8,6 @@
 #include "Logger.hpp"
 
 namespace vmpc_juce::gui::vector { class View; }
-namespace melatonin { class Inspector; }
 
 namespace vmpc_juce {
 
@@ -47,7 +46,6 @@ public:
     void resized() override;
 
 private:
-    melatonin::Inspector* inspector = nullptr;
     VmpcProcessor &vmpcProcessor;
     vmpc_juce::gui::vector::View* view = nullptr;
 
