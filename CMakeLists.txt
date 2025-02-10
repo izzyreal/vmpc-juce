@@ -45,7 +45,6 @@ set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
 FetchContent_Declare(JUCE
   GIT_REPOSITORY https://github.com/izzyreal/JUCE.git
-  GIT_SHALLOW    ON
   GIT_TAG        patched-for-ios-7.0.9
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/JUCE
 )
