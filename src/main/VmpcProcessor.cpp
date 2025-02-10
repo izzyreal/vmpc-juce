@@ -212,7 +212,7 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
     {
         monoInCount = 0;
         stereoInCount = 1;
-        monoOutCount = 0;
+        monoOutCount = 8;
         stereoOutCount = 5;
     }
     else if (isStandalone)
@@ -233,7 +233,9 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
     juce::AudioProcessor::BusesProperties result;
 
     for (int i = 0; i < stereoInCount; i++)
+    {
         result = result.withInput("RECORD IN L/R", C::stereo(), true);
+    }
 
     for (int i = 0; i < stereoOutCount; i++)
     {
@@ -243,7 +245,9 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
     }
 
     for (int i = 0; i < monoInCount; i++)
+    {
         result = result.withInput("RECORD IN " + std::string((i%2 == 0) ? "L" : "R"), C::mono(), true);
+    }
 
     for (int i = 0; i < monoOutCount; i++)
     {
@@ -295,8 +299,8 @@ bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 
     if (isAUv2 || isAUv3)
     {
-        result = result || (stereoOutputCount == 1 && monoOutputCount == 0 && stereoInputCount == 1 && monoInputCount == 0);
-        result = result || (stereoOutputCount == 5 && monoOutputCount == 0 && stereoInputCount == 1 && monoInputCount == 0);
+        result = result || (stereoInputCount == 1 && monoInputCount == 0 && stereoOutputCount == 1 && monoOutputCount == 0);
+        result = result || (stereoOutputCount == 5 && monoOutputCount == 8 && stereoInputCount == 1 && monoInputCount == 0);
     }
     else if (isStandalone)
     {
