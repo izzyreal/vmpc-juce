@@ -317,26 +317,28 @@ void ViewUtil::createComponent(
     {
         auto mouseListener = new MpcHardwareMouseListener(mpc, n.hardware_label);
         mouseListeners.push_back(mouseListener);
-
-        for (auto it = components.rbegin(); it != components.rend(); ++it)
+        
+        if (n.name == "rec_gain" || n.name == "main_volume")
         {
-            if (dynamic_cast<Shadow*>(*it) != nullptr)
-            {
-                continue;
-            }
-
-            (*it)->addMouseListener(mouseListener, true);
-
-            if (n.name == "rec_gain" || n.name == "main_volume")
-            {
-                auto knob = dynamic_cast<Knob*>(n.svg_component);
-                auto pot = n.name == "rec_gain" ? mpc.getHardware()->getRecPot() : mpc.getHardware()->getVolPot();
-                knob->setAngleFactor(pot->getValue() * 0.01);
-            }
-
-            break;
+            auto knob = dynamic_cast<Knob*>(n.svg_component);
+            auto pot = n.name == "rec_gain" ? mpc.getHardware()->getRecPot() : mpc.getHardware()->getVolPot();
+            knob->setAngleFactor(pot->getValue() * 0.01);
+            knob->addMouseListener(mouseListener, false);
         }
-
+        else
+        {
+            for (auto it = components.rbegin(); it != components.rend(); ++it)
+            {
+                if (dynamic_cast<Shadow*>(*it) != nullptr)
+                {
+                    continue;
+                }
+                
+                (*it)->addMouseListener(mouseListener, true);
+                break;
+            }
+        }
+        
         if (tooltipAnchor != nullptr)
         {
             std::vector<std::string> hardwareLabels;

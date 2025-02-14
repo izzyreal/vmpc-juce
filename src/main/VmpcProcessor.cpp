@@ -490,11 +490,6 @@ void VmpcProcessor::processTransport()
 
 void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuffer& midiMessages)
 {
-    // ===================== REMOVE THIS =======================
-    buffer.clear();
-    return;
-    // =============== END OF THING TO REMOVE ==================
-  
     juce::ScopedNoDenormals noDenormals;
 
   const int totalNumInputChannels = getTotalNumInputChannels();
