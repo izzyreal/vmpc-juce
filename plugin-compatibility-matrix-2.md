@@ -7,6 +7,7 @@
 | [Ableton Live](https://www.ableton.com/) VST3                | :heavy_check_mark:     | :heavy_check_mark:       | :heavy_check_mark:       | :heavy_check_mark:       | :heavy_check_mark:       | :heavy_check_mark:`aaa`  |
 | [Ardour](https://ardour.org/) LV2                            |                        |                          |                          |                          |                          |                          |
 | [AUM](https://kymatica.com/apps/aum) AUv3 instrument         |                        |                          |                          |                          |                          |                          |
+| [AUM](https://kymatica.com/apps/aum) AUv3 fx | | | | | | |
 | [Bitwig](https://www.bitwig.com/) VST3                       | :heavy_check_mark:     | :heavy_check_mark:       | :heavy_check_mark:       | :heavy_check_mark:       | :heavy_check_mark:       | :heavy_check_mark:       |
 | [Carla](https://kx.studio/Applications:Carla) LV2            |                        |                          |                          |                          |                          |                          |
 | [Carla](https://kx.studio/Applications:Carla) VST3           |                        |                          |                          |                          |                          |                          |
