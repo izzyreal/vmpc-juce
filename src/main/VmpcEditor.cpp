@@ -78,6 +78,20 @@ void VmpcEditor::timerCallback()
 
 void VmpcEditor::resized()
 {
-    view->setBounds(0, 0, getWidth(), getHeight());
+    const float viewAspectRatio = view->getAspectRatio();
+    const int parentWidth = getWidth();
+    const int parentHeight = getHeight();
+    
+    float targetWidth = parentWidth;
+    float targetHeight = targetWidth / viewAspectRatio;
+    
+    if (targetHeight > parentHeight) {
+        targetHeight = parentHeight;
+        targetWidth = targetHeight * viewAspectRatio;
+    }
+    
+    const int viewOffsetX = (parentWidth - targetWidth) / 2;
+    const int viewOffsetY = (parentHeight - targetHeight) / 2;
+    
+    view->setBounds(viewOffsetX, viewOffsetY, targetWidth, targetHeight);
 }
-
