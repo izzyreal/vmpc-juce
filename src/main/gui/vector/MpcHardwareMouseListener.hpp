@@ -50,7 +50,7 @@ namespace vmpc_juce::gui::vector {
 #if TARGET_OS_IOS == 1
             void timerCallback() override
             {
-                if (lastEventComponent != nullptr)
+                if (!hideKeyTooltipUntilNextMouseDown && lastEventComponent != nullptr)
                 {
                     setKeyTooltipVisibility(lastEventComponent, true);
                 }
@@ -186,6 +186,11 @@ namespace vmpc_juce::gui::vector {
                 }
 
                 lastEventComponent = nullptr;
+                
+                if (mouseDownSourceIndices.empty())
+                {
+                    hideKeyTooltipUntilNextMouseDown = false;
+                }
 #endif
                 if (label.length() >= 4 && label.substr(0, 4) == "pad-")
                 {
@@ -211,6 +216,14 @@ namespace vmpc_juce::gui::vector {
 
             void mouseDrag(const juce::MouseEvent &e) override
             {
+#if TARGET_OS_IOS == 1
+                hideKeyTooltipUntilNextMouseDown = true;
+#endif
+                if (lastEventComponent != nullptr)
+                {
+                    setKeyTooltipVisibility(lastEventComponent, false);
+                }
+
                 if (label == "rec_gain" || label == "main_volume")
                 {
                     auto pot = label == "rec_gain" ? mpc.getHardware()->getRecPot() : mpc.getHardware()->getVolPot();
@@ -227,6 +240,7 @@ namespace vmpc_juce::gui::vector {
             mpc::Mpc &mpc;
             const std::string label;
 #if TARGET_OS_IOS == 1
+            bool hideKeyTooltipUntilNextMouseDown = false;
             std::set<int> mouseDownSourceIndices;
             juce::Component *lastEventComponent = nullptr;
 #endif
