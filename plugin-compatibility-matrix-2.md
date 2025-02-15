@@ -75,20 +75,22 @@
 
 `aaa` The same applies as for `aa`, with the addition that Ableton Live does support true mono buses. The resulting list of outputs is as follows:
 
-| VMPC2000XL bus name | Ableton Live bus name                                        |
-| ------------------- | ------------------------------------------------------------ |
-| RECORD IN L/R       | 1/2-VMPC2000XL                                               |
-| STEREO OUT L/R      | Pre FX/Post FX/Post Mixer                                    |
-| MIX 1/2             | 3/4-VMPC2000XL                                               |
-| MIX 3/4             | 5/6-VMPC2000XL                                               |
-| MIX 5/6             | 7/8-VMPC2000XL                                               |
-| MIX 7/8             | 9/10-VMPC2000XL                                              |
-| MIX 1               | 11/12-VMPC2000XL !!!!!!!!!!!!! STILL NEEDS TO BE FIXED, currently this is STEREO L |
-| MIX 2               | 13/14-VMPC2000XL  !!!!!!!!!!!!! STILL NEEDS TO BE FIXED, currently this is STEREO R |
-| MIX 3               | 15/16-VMPC2000XL  !!!!!!!!!!!!! STILL NEEDS TO BE FIXED, currently this is MIX 1 |
-| MIX 4               | 17/18-VMPC2000XL  !!!!!!!!!!!!! STILL NEEDS TO BE FIXED, currently this is MIX 2 |
-| MIX 5               | 19/20-VMPC2000XL  !!!!!!!!!!!!! STILL NEEDS TO BE FIXED, currently this is MIX 3 |
-| MIX 6               | 21/22-VMPC2000XL  !!!!!!!!!!!!! STILL NEEDS TO BE FIXED, currently this is MIX 4 |
-| MIX 7               | 23/24-VMPC2000XL  !!!!!!!!!!!!! STILL NEEDS TO BE FIXED, currently this is MIX 5 |
-| MIX 8               | 25/26-VMPC2000XL  !!!!!!!!!!!!! STILL NEEDS TO BE FIXED, currently this is MIX 6 |
+| VMPC2000XL stereo bus name | Ableton Live stereo bus name |
+| -------------------------- | ---------------------------- |
+| RECORD IN L/R              | 1/2-VMPC2000XL               |
+| STEREO OUT L/R             | Pre FX/Post FX/Post Mixer    |
+| MIX 1/2                    | 3/4-VMPC2000XL               |
+| MIX 3/4                    | 5/6-VMPC2000XL               |
+| MIX 5/6                    | 7/8-VMPC2000XL               |
+| MIX 7/8                    | 9/10-VMPC2000XL              |
 
+| VMPC2000XL mono bus name | Ableton Live stereo bus name |
+| ------------------------ | ---------------------------- |
+| MIX 1                    | 11/12-VMPC2000XL             |
+| MIX 2                    | 13/14-VMPC2000XL             |
+| MIX 3                    | 15/16-VMPC2000XL             |
+| MIX 4                    | 17/18-VMPC2000XL             |
+| MIX 5                    | 19/20-VMPC2000XL             |
+| MIX 6                    | 21/22-VMPC2000XL             |
+| MIX 7                    | 23/24-VMPC2000XL             |
+| MIX 8                    | 25/26-VMPC2000XL             |
