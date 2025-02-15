@@ -5,7 +5,7 @@
 #include "gui/VmpcCornerResizerLookAndFeel.hpp"
 #include "juce_gui_basics/juce_gui_basics.h"
 
-#include "Logger.hpp"
+//#include "Logger.hpp"
 
 namespace vmpc_juce::gui::vector { class View; }
 
@@ -23,10 +23,10 @@ public:
 
     bool keyPressed(const juce::KeyPress &k) override
     {
-        juce::String ch;
-        ch += k.getTextCharacter();
-        MLOG("Pressed key text description: " + k.getTextDescription().toStdString());
-        MLOG("Pressed key text character  : " + ch.toStdString());
+//        juce::String ch;
+//        ch += k.getTextCharacter();
+//        MLOG("Pressed key text description: " + k.getTextDescription().toStdString());
+//        MLOG("Pressed key text character  : " + ch.toStdString());
 
 #if __APPLE__
         if (k.getTextDescription().equalsIgnoreCase("command + `") || k.getTextDescription().equalsIgnoreCase("command + Q"))
