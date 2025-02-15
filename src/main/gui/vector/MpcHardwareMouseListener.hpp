@@ -218,11 +218,12 @@ namespace vmpc_juce::gui::vector {
             {
 #if TARGET_OS_IOS == 1
                 hideKeyTooltipUntilNextMouseDown = true;
-#endif
+
                 if (lastEventComponent != nullptr)
                 {
                     setKeyTooltipVisibility(lastEventComponent, false);
                 }
+#endif
 
                 if (label == "rec_gain" || label == "main_volume")
                 {
