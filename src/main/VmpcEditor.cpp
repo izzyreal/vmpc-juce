@@ -72,7 +72,7 @@ VmpcEditor::~VmpcEditor()
 
 void VmpcEditor::timerCallback()
 {
-    this->grabKeyboardFocus();
+    grabKeyboardFocus();
     stopTimer();
 }
 
