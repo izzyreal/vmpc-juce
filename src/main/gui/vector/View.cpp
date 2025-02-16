@@ -84,7 +84,8 @@ View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDia
     keyTooltipFont.setTypefaceStyle("SemiBold");
     keyTooltipFont = juce::Font(FreeTypeFaces::createTypefaceForFont(keyTooltipFont));
 
-    keyboard = KeyboardFactory::instance(this);
+    const bool shouldSynthesizeKeyRepeatsForSomeKeys = wrapperType == juce::AudioProcessor::WrapperType::wrapperType_AudioUnitv3;
+    keyboard = KeyboardFactory::instance(this, shouldSynthesizeKeyRepeatsForSomeKeys);
 
     keyboard->onKeyDownFn = [&](int i) { onKeyDown(i); };
     keyboard->onKeyUpFn = [&](int i) { onKeyUp(i); };
