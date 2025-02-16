@@ -66,6 +66,8 @@ private:
   static BusesProperties getBusesProperties();
 
   bool layoutChanged = false;
+    
+    const std::set<uint8_t> getPossiblyActiveMpcMonoOutChannels();
 
 public:
   bool shouldShowDisclaimer = true;

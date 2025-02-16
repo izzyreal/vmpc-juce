@@ -543,7 +543,21 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
   auto chDataIn = buffer.getArrayOfReadPointers();
   auto chDataOut = buffer.getArrayOfWritePointers();
 
-  server->work(chDataIn, chDataOut, buffer.getNumSamples(), mpcMonoInputChannelIndices, mpcMonoOutputChannelIndices, hostInputChannelIndices, hostOutputChannelIndices);
+    std::vector<uint8_t> mpcMonoOutputChannelIndicesToRender;
+    std::vector<uint8_t> hostOutputChannelIndicesToRender;
+    
+    const auto possiblyActiveMpcChannels = getPossiblyActiveMpcMonoOutChannels();
+    
+    for (int i = 0; i < mpcMonoOutputChannelIndices.size(); i++)
+    {
+        if (possiblyActiveMpcChannels.count(mpcMonoOutputChannelIndices[i]) > 0)
+        {
+            mpcMonoOutputChannelIndicesToRender.push_back(mpcMonoOutputChannelIndices[i]);
+            hostOutputChannelIndicesToRender.push_back(hostOutputChannelIndices[i]);
+        }
+    }
+    
+  server->work(chDataIn, chDataOut, buffer.getNumSamples(), mpcMonoInputChannelIndices, mpcMonoOutputChannelIndicesToRender, hostInputChannelIndices, hostOutputChannelIndicesToRender);
 
   // I've observed a crash in Ableton Live VST3 indicating what could be allocating MIDI events too soon.
   // So we give it a little bit of leeway of 10000 frames.
@@ -563,10 +577,10 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
   }
   else
   {
-//      for (int i = lastHostChannelIndexThatWillBeWritten + 1; i < buffer.getNumChannels(); i++)
-//      {
-//          buffer.clear(i, 0, buffer.getNumSamples());
-//      }
+      for (int i = lastHostChannelIndexThatWillBeWritten + 1; i < buffer.getNumChannels(); i++)
+      {
+          buffer.clear(i, 0, buffer.getNumSamples());
+      }
   }
 }
 
@@ -945,6 +959,61 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
 //        MLOG("mpc channel " + std::to_string(mpcMonoOutputChannelIndices[i]) + " will be put in host channel " + std::to_string(hostOutputChannelIndices[i]));
 //    }
 //    MLOG("==============================================");
+}
+
+const std::set<uint8_t> VmpcProcessor::getPossiblyActiveMpcMonoOutChannels()
+{
+    // We always render STEREO L/R
+    std::set<uint8_t> result{0,1};
+    
+    for (auto &p : mpc.getSampler()->getPrograms())
+    {
+        if (!p.lock()) continue;
+        for (auto &n : p.lock()->getNotesParameters())
+        {
+            const auto output = n->getIndivFxMixerChannel()->getOutput();
+            if (output == 0) continue;
+            // output is 1 for MIX 1 bus, 2 for MIX 2 bus, etc. So we subtract 1 to get 0-based
+            // index, and then we add 2 to get the bus index in the plugin, because the first
+            // stereo bus (for STEREO L/R, the main output) comes before the MIX busses.
+            result.emplace(output + 1);
+        }
+    }
+    
+    for (int i = 0; i < 4; i++)
+    {
+        for (auto &m : mpc.getDrum(i).getIndivFxMixerChannels())
+        {
+            if (m->getOutput() == 0) continue;
+            result.emplace(m->getOutput() + 1);
+        }
+    }
+    
+    std::set<uint8_t> modifiedResult = result;
+
+    for (uint8_t val : result)
+    {
+        if (val % 2 != 0)
+        {
+            // It's not trivial to figure out if an MPC mixer strip is mono or stereo, because it
+            // it depends on whether the strip is associated with a mono or stereo sound. The main
+            // idea behind `getPossiblyActiveMpcMonoOutChannels` is to avoid unnecessary rendering
+            // of MIX busses in AUv2 and AUv3. The problem here is that, so far, I'm not aware of
+            // a way to make an AUv2/3 expose 2 fixed bus layouts to Logic, of which one has
+            // mixed mono and stereo channels:
+            // 1. 1x stereo in, 1x stereo out
+            // 2. 1x stereo in, 5x stereo out and 8x mono out
+            // This has led to the decision to rely on "implicit" or "default" layouts. See
+            // https://github.com/juce-framework/JUCE/issues/1508
+            // This in turn poses the problem that in Logic, all 13 busses are always reported to
+            // be active, even if the user loads the 1x stereo in, 1x stereo out plugin flavor.
+            // So it's fine if we assume all busses are stereo, as this will still prevent
+            // rendering MIX1...8, as long as the user has not configured to use individual outputs.
+            modifiedResult.emplace(val + 1);
+        }
+    }
+    
+    return result;
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
