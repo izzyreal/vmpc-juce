@@ -993,7 +993,7 @@ const std::set<uint8_t> VmpcProcessor::getPossiblyActiveMpcMonoOutChannels()
 
     for (uint8_t val : result)
     {
-        if (val % 2 != 0)
+        if (val % 2 == 0)
         {
             // It's not trivial to figure out if an MPC mixer strip is mono or stereo, because it
             // it depends on whether the strip is associated with a mono or stereo sound. The main
@@ -1011,9 +1011,13 @@ const std::set<uint8_t> VmpcProcessor::getPossiblyActiveMpcMonoOutChannels()
             // rendering MIX1...8, as long as the user has not configured to use individual outputs.
             modifiedResult.emplace(val + 1);
         }
+        else
+        {
+            modifiedResult.emplace(val - 1);
+        }
     }
     
-    return result;
+    return modifiedResult;
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
