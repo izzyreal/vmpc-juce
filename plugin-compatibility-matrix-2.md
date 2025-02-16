@@ -36,28 +36,6 @@
 | [Reaper](https://www.reaper.fm/) VST3                        | :heavy_check_mark:     | :heavy_check_mark:       | :heavy_check_mark:       | :heavy_check_mark:       | :heavy_check_mark:       | :heavy_check_mark:       |
 |                                                              |                        |                          |                          |                          |                          |                          |
 |                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
-|                                                              |                        |                          |                          |                          |                          |                          |
 
 \* Via "Side Chain:" in the top-right of Logic's plugin window.
 
@@ -94,3 +72,14 @@
 | MIX 6                    | 21/22-VMPC2000XL             |
 | MIX 7                    | 23/24-VMPC2000XL             |
 | MIX 8                    | 25/26-VMPC2000XL             |
+
+
+
+## AUv3
+
+* Does not support plugin-initiated resizing. Use the host's facilities to resize VMPC2000XL, for example the `View:` dropdown in Logic, and Logic's own plugin window border can be used to change the size.
+* Ableton Live currently does not allow resizing of an AUv3 in any way that I'm aware of. So, I hope the initial size works for you, else you're probably out of luck. I recommend using the AUv2 or VST3 instead.
+
+## Miscellaneous hosts
+
+In some hosts, you first need to start the host's sequencer before any processing occurs. If VMPC2000XL is not making any sound, and its sequencer won't start, first try to hit the play button in your DAW. Logic and GarageBand are known to sometimes require this, and other hosts may have a similar requirement.
