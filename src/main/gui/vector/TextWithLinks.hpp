@@ -148,7 +148,7 @@ namespace vmpc_juce::gui::vector {
                     return true;
                 };
 
-                int startIndex, endIndex = charIndex;
+                int startIndex = charIndex, endIndex = charIndex;
 
                 for (int i = charIndex; i >= 0; i--)
                 {
@@ -167,7 +167,7 @@ namespace vmpc_juce::gui::vector {
                 repaint();
             }
 
-            void mouseUp(const juce::MouseEvent& e) override { }
+            void mouseUp(const juce::MouseEvent&) override { }
 
             bool keyPressed(const juce::KeyPress& key) override
             {
