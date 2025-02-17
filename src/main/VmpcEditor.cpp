@@ -9,10 +9,14 @@ using namespace vmpc_juce::gui::vector;
 VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
 {
-
     setWantsKeyboardFocus(true);
 
-    view = new View(vmpcProcessor.mpc, vmpcProcessor.showAudioSettingsDialog, vmpcProcessor.wrapperType);
+    const bool isInstrument = vmpcProcessor.auComponentType == "aumu";
+    
+    view = new View(vmpcProcessor.mpc,
+                    vmpcProcessor.showAudioSettingsDialog,
+                    vmpcProcessor.wrapperType,
+                    isInstrument);
 
     const auto viewAspectRatio = view->getAspectRatio();
 

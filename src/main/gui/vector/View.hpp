@@ -21,7 +21,10 @@ namespace vmpc_juce::gui::vector {
     class View : public juce::Component {
 
         public:
-            View(mpc::Mpc &mpc, const std::function<void()> &showAudioSettingsDialog, juce::AudioProcessor::WrapperType wrapperType);
+            View(mpc::Mpc &mpc,
+                 const std::function<void()> &showAudioSettingsDialog,
+                 const juce::AudioProcessor::WrapperType wrapperType,
+                 const bool isInstrument);
                     
             ~View() override;
 

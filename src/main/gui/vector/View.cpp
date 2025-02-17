@@ -49,7 +49,10 @@ static std::vector<ComponentClass*> getChildComponentsOfClass(juce::Component *p
     return matches;
 }
 
-View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDialog, juce::AudioProcessor::WrapperType wrapperType)
+View::View(mpc::Mpc &mpcToUse,
+           const std::function<void()> &showAudioSettingsDialog,
+           const juce::AudioProcessor::WrapperType wrapperType,
+           const bool isInstrument)
     : mpc(mpcToUse),
     getScale([this] { return (float) getHeight() / (float) base_height; }),
 
@@ -161,22 +164,25 @@ View::View(mpc::Mpc &mpcToUse, const std::function<void()> &showAudioSettingsDia
         keyboard->onKeyUpFn = [&](int i) { onKeyUp(i); };
     };
 
-    std::string wrapperTypeString;
+    const auto openAbout = [this, closeAbout, wrapperType, isInstrument] {
+        
+        using W = juce::AudioProcessor::WrapperType;
+        std::string wrapperTypeString;
+        const std::string instOrFxString = isInstrument ? " inst" : " fx";
 
-    switch (wrapperType)
-    {
-        case juce::AudioProcessor::WrapperType::wrapperType_VST: wrapperTypeString = "VST2"; break;
-        case juce::AudioProcessor::WrapperType::wrapperType_VST3: wrapperTypeString = "VST3"; break;
-        case juce::AudioProcessor::WrapperType::wrapperType_AudioUnit: wrapperTypeString = "AUv2"; break;
-        case juce::AudioProcessor::WrapperType::wrapperType_AudioUnitv3: wrapperTypeString = "AUv3"; break;
-        case juce::AudioProcessor::WrapperType::wrapperType_Standalone: wrapperTypeString = "Standalone"; break;
-        case juce::AudioProcessor::WrapperType::wrapperType_LV2: wrapperTypeString = "LV2"; break;
-        case juce::AudioProcessor::WrapperType::wrapperType_AAX: wrapperTypeString = "AAX"; break;
-        case juce::AudioProcessor::WrapperType::wrapperType_Unity: wrapperTypeString = "Unity"; break;
-        case juce::AudioProcessor::WrapperType::wrapperType_Undefined: wrapperTypeString = "Unknown";
-    }
+        switch (wrapperType)
+        {
+            case W::wrapperType_VST: wrapperTypeString = "VST2" + instOrFxString; break;
+            case W::wrapperType_VST3: wrapperTypeString = "VST3" + instOrFxString; break;
+            case W::wrapperType_AudioUnit: wrapperTypeString = "AUv2" + instOrFxString; break;
+            case W::wrapperType_AudioUnitv3: wrapperTypeString = "AUv3" + instOrFxString; break;
+            case W::wrapperType_Standalone: wrapperTypeString = "Standalone"; break;
+            case W::wrapperType_LV2: wrapperTypeString = "LV2" + instOrFxString; break;
+            case W::wrapperType_AAX: wrapperTypeString = "AAX" + instOrFxString; break;
+            case W::wrapperType_Unity: wrapperTypeString = "Unity"; break;
+            case W::wrapperType_Undefined: wrapperTypeString = "Unknown";
+        }
 
-    const auto openAbout = [this, closeAbout, wrapperTypeString] {
         if (about != nullptr)
         {
             removeChildComponent(about);

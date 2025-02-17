@@ -11,8 +11,12 @@ namespace vmpc_juce::gui::vector {
 
     class AboutScrollBar : public juce::Component {
         public:
-            AboutScrollBar(const std::function<float()> &getScaleToUse, const std::function<float()> getScrollOffsetFractionToUse, const std::function<void(float)> setScrollOffsetFractionToUse) :
-                getScale(getScaleToUse), getScrollOffsetFraction(getScrollOffsetFractionToUse), setScrollOffsetFraction(setScrollOffsetFractionToUse)
+            AboutScrollBar(const std::function<float()> &getScaleToUse,
+                           const std::function<float()> getScrollOffsetFractionToUse,
+                           const std::function<void(float)> setScrollOffsetFractionToUse)
+                : getScale(getScaleToUse),
+                  getScrollOffsetFraction(getScrollOffsetFractionToUse),
+                  setScrollOffsetFraction(setScrollOffsetFractionToUse)
         {
         }
 
@@ -128,7 +132,7 @@ namespace vmpc_juce::gui::vector {
                 repaint();
             }
 
-            void mouseDown(const juce::MouseEvent &e) override
+            void mouseDown(const juce::MouseEvent &) override
             {
                 closeAbout();
             }
@@ -323,7 +327,7 @@ namespace vmpc_juce::gui::vector {
                 g.fillRoundedRectangle(rect, scale);
             }
 
-            void mouseWheelMove(const juce::MouseEvent &e, const juce::MouseWheelDetails &w) override
+            void mouseWheelMove(const juce::MouseEvent &, const juce::MouseWheelDetails &w) override
             {
                 setScrollOffset(scrollOffset - (150 * w.deltaY));
             }
