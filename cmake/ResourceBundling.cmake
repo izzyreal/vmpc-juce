@@ -9,6 +9,7 @@ function(_bundle_vmpc_juce_resources _target_name)
   list(FILTER VMPC_JUCE_RESOURCES EXCLUDE REGEX "\\.DS_Store$")
 
   if (APPLE)
+
     foreach(resource ${VMPC_JUCE_RESOURCES})
       get_filename_component(parent_dir ${resource} DIRECTORY)
       get_filename_component(final_segment ${parent_dir} NAME)
@@ -25,10 +26,21 @@ function(_bundle_vmpc_juce_resources _target_name)
     else()
       target_sources(vmpc2000xl_Standalone PRIVATE ${VMPC_JUCE_RESOURCES})
     endif()
+
+    foreach(resource ${VMPC_JUCE_RESOURCES})
+      file(RELATIVE_PATH rel_path "${_vmpc_juce_resources_root}" "${resource}")
+      get_filename_component(rel_dir "${rel_path}" DIRECTORY)
+
+      add_custom_command(TARGET vmpc2000xl_LV2 PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vmpc2000xl_LV2>/resources/${rel_dir}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${resource}" "$<TARGET_FILE_DIR:vmpc2000xl_LV2>/resources/${rel_path}"
+      )
+    endforeach()
     
     if (NOT IOS)
       target_sources(vmpc2000xl_AU PRIVATE ${VMPC_JUCE_RESOURCES})
       target_sources(vmpc2000xl_VST3 PRIVATE ${VMPC_JUCE_RESOURCES})
+      target_sources(vmpc2000xl_LV2 PRIVATE ${VMPC_JUCE_RESOURCES})
     endif()
 
     file(GLOB_RECURSE MPC_RESOURCES "${_mpc_resources_root}/*")
@@ -38,6 +50,16 @@ function(_bundle_vmpc_juce_resources _target_name)
         get_filename_component(SOURCE_DIR "${RESOURCE}" DIRECTORY)
         string(REPLACE "${_mpc_resources_root}" "" RELATIVE_DIR "${SOURCE_DIR}")
         set_source_files_properties(${RESOURCE} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources${RELATIVE_DIR}")
+    endforeach()
+
+    foreach(resource ${MPC_RESOURCES})
+      file(RELATIVE_PATH rel_path "${_mpc_resources_root}" "${resource}")
+      get_filename_component(rel_dir "${rel_path}" DIRECTORY)
+
+      add_custom_command(TARGET vmpc2000xl_LV2 PRE_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vmpc2000xl_LV2>/resources/${rel_dir}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${resource}" "$<TARGET_FILE_DIR:vmpc2000xl_LV2>/resources/${rel_path}"
+      )
     endforeach()
 
     # We check if the AUv3 target exists, because it's only generated if the Xcode
@@ -53,6 +75,7 @@ function(_bundle_vmpc_juce_resources _target_name)
     if (NOT IOS)
       target_sources(vmpc2000xl_AU PRIVATE ${MPC_RESOURCES})
       target_sources(vmpc2000xl_VST3 PRIVATE ${MPC_RESOURCES})
+      target_sources(vmpc2000xl_LV2 PRIVATE ${MPC_RESOURCES})
     endif()
     
   else()
