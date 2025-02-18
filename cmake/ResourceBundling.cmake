@@ -17,7 +17,9 @@ function(_bundle_vmpc_juce_resources _target_name)
     endforeach()
 
     # We check if the AUv3 target exists, because it's only generated if the Xcode
-    # generator is used.
+    # generator is used. If it does exist, the Standalone will make use of the AUv3's
+    # resources, leveraging the fact that the AUv3 is an extension that is embedded in
+    # the .app bundle.
     if (TARGET vmpc2000xl_AUv3)
       target_sources(vmpc2000xl_AUv3 PRIVATE ${VMPC_JUCE_RESOURCES})
     else()
@@ -39,7 +41,9 @@ function(_bundle_vmpc_juce_resources _target_name)
     endforeach()
 
     # We check if the AUv3 target exists, because it's only generated if the Xcode
-    # generator is used.
+    # generator is used. If it does exist, the Standalone will make use of the AUv3's
+    # resources, leveraging the fact that the AUv3 is an extension that is embedded in
+    # the .app bundle.
     if (TARGET vmpc2000xl_AUv3)
       target_sources(vmpc2000xl_AUv3 PRIVATE ${MPC_RESOURCES})
     else()
