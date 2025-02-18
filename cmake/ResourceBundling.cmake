@@ -16,6 +16,8 @@ function(_bundle_vmpc_juce_resources _target_name)
       set_source_files_properties(${resource} PROPERTIES MACOSX_PACKAGE_LOCATION ${resource_path})
     endforeach()
 
+    # We check if the AUv3 target exists, because it's only generated if the Xcode
+    # generator is used.
     if (TARGET vmpc2000xl_AUv3)
       target_sources(vmpc2000xl_AUv3 PRIVATE ${VMPC_JUCE_RESOURCES})
     else()
@@ -36,6 +38,8 @@ function(_bundle_vmpc_juce_resources _target_name)
         set_source_files_properties(${RESOURCE} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources${RELATIVE_DIR}")
     endforeach()
 
+    # We check if the AUv3 target exists, because it's only generated if the Xcode
+    # generator is used.
     if (TARGET vmpc2000xl_AUv3)
       target_sources(vmpc2000xl_AUv3 PRIVATE ${MPC_RESOURCES})
     else()
