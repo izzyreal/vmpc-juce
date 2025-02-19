@@ -23,22 +23,30 @@ sponsored or otherwise approved by inMusic.
 
 CREDITS AND THANKS
 
-I'm immensely grateful for Steve Taylor's involvement in my first years of object-oriented programming. It's fair to say I would not be where I am today, if it were not for his dedication to communicate his knowledge and ideas to me.
+I'm immensely grateful for Steve Taylor's involvement in my first years of
+object-oriented programming. It's fair to say I would not be where I am
+today, if it were not for his dedication to communicate his knowledge and
+ideas to me.
 
-Steve Taylor is also the author of toot2, a Java framework for audio, music and DSP. When VMPC2000XL was still a Java project, it depended heavily on toot2. Later I ported much of it to C++. In its current incarnation,
+Steve Taylor is also the author of toot2, a Java framework for audio, music
+and DSP. When VMPC2000XL was still a Java project, it depended heavily on
+toot2. Later I ported much of it to C++. In its current incarnation,
 VMPC2000XL still relies on a trimmed-down version of the toot2 C++ port.
 
 The vector art is made by <link>https://www.instagram.com/azalvector</link>
 @azalvector, thanks for your amazing contribution. It made the new
 VMPC2000XL vector UI idea finally come true after many years.
 
-The faceplate font is <link>https://github.com/BesignLab/Neutral-Sans</link> by Barry Shawn.
-License: OFL 1.1, <link>https://github.com/BesignLab/Neutral-Sans/blob/main/LICENSE</link>
+The faceplate font is <link>https://github.com/BesignLab/Neutral-Sans</link> by Barry
+Shawn.
+License: OFL 1.1,
+<link>https://github.com/BesignLab/Neutral-Sans/blob/main/LICENSE</link>
 
-The font that is used to dislay key bindings is <link>https://github.com/tonsky/FiraCode</link> by Nikita Prokopov.
+The font that is used to dislay key bindings is <link displayText="Fira Code">https://github.com/tonsky/FiraCode</link> by Nikita Prokopov.
 License: OFL 1.1, <link>https://github.com/tonsky/FiraCode/blob/master/LICENSE</link>
 
-The iOS/macOS application icons are designed by <link>https://www.bettertimes.de</link>.
+The iOS/macOS application icons are designed by Better Times.
+<link>https://www.bettertimes.de</link>
 
 Much respect and many thanks to the creators, maintainers, and
 contributors of the following open source tools:
@@ -95,13 +103,16 @@ License: Simplified BSD,
 
 moodycamel::ReaderWriterQueue
 <link>https://github.com/cameron314/readerwriterqueue</link>
-Provides thread-safety when bouncing audio to disk, as well as when doing streaming playback of SND/WAV files from disk (i.e. the VMPC2000XL-specific PLAY feature in the LOAD and Directory screens, which allows you to preview sounds).
+Provides thread-safety when bouncing audio to disk, as well as when doing
+streaming playback of SND/WAV files from disk (i.e. the VMPC2000XL-specific PLAY
+feature in the LOAD and Directory screens, which allows you to preview sounds).
 License: Simplified BSD,
 <link displayText="https://github.com/cameron314/rea...riterqueue/blob/master/LICENSE.md">https://github.com/cameron314/readerwriterqueue/blob/master/LICENSE.md</link>
 
 PlatformFolders
 <link>https://github.com/sago007/PlatformFolders</link>
-Provides a single, platform-agnostic facade to look for special folders, like "My Documents".
+Provides a single, platform-agnostic facade to look for special folders,
+like "My Documents".
 License: MIT,
 <link>https://github.com/sago007/PlatformFolders/blob/master/LICENSE</link>
 
