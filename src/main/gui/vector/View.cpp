@@ -210,7 +210,6 @@ View::View(mpc::Mpc &mpcToUse,
     const std::function<void()> deleteDisclaimerF = [this] { deleteDisclaimer(); };
     disclaimer = new Disclaimer(getMainFontScaled, deleteDisclaimerF);
     //addAndMakeVisible(disclaimer);
-    openAbout();
 }
 
 const float View::getAspectRatio()
