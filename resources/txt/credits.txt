@@ -79,7 +79,8 @@ License: BSD,
 
 RtMidi
 <link>https://github.com/thestk/rtmidi</link>
-Can be used for many things, but VMPC2000XL uses it just to identify connected MIDI devices.
+Can be used for many things, but VMPC2000XL uses it just to identify
+connected MIDI devices.
 License: Similar to MIT,
 <link>https://github.com/thestk/rtmidi/blob/master/LICENSE</link>
 
