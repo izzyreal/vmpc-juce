@@ -1,28 +1,47 @@
 {
   "configurations": {
-    "lldb": {
-      "adapter": {
-        "name": "lldb",
-        "command": ["/opt/homebrew/opt/llvm/bin/lldb-dap"],
-        "env": {"LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "NO"}
-      },
-      "breakpoints": {
-        "exception": {
-          "cpp_throw": "Y",
-          "cpp_catch": "Y",
-          "objc_throw": "Y",
-          "objc_catch": "Y"
-        }
-      },
+    "Launch LLDB": {
+      "adapter": "vscode-cpptools",
+      "filetypes": ["cpp", "c", "objc", "rust"],
       "configuration": {
-        "externalConsole": false,
-        "name": "Launch",
-        "type": "lldb",
         "request": "launch",
-        "program": "${workspaceRoot}/build/vmpc2000xl_artefacts/Debug/Standalone/VMPC2000XL.app/Contents/MacOS/VMPC2000XL",
+        "program": "${workspaceRoot}/build/vmpc2000xl_artefacts/Debug/Standalone/VMPC2000XL",
         "args": [],
         "cwd": "${workspaceRoot}",
-        "stopOnEntry": false
+        "environment": [],
+        "externalConsole": true,
+        "MIMode": "lldb"
+      }
+    },
+    "Launch GDB": {
+      "adapter": "vscode-cpptools",
+      "filetypes": ["cpp", "c", "objc", "rust"],
+      "configuration": {
+        "request": "launch",
+        "program": "${workspaceRoot}/build/vmpc2000xl_artefacts/Debug/Standalone/VMPC2000XL",
+        "args": [],
+        "cwd": "${workspaceRoot}",
+        "environment": [],
+        "externalConsole": true,
+        "MIMode": "gdb"
+      }
+    },
+    "Attach LLDB": {
+      "adapter": "vscode-cpptools",
+      "filetypes": ["cpp", "c", "objc", "rust"],
+      "configuration": {
+        "request": "attach",
+        "program": "${workspaceRoot}/build/vmpc2000xl_artefacts/Debug/Standalone/VMPC2000XL",
+        "MIMode": "lldb"
+      }
+    },
+    "Attach GDB": {
+      "adapter": "vscode-cpptools",
+      "filetypes": ["cpp", "c", "objc", "rust"],
+      "configuration": {
+        "request": "attach",
+        "program": "${workspaceRoot}/build/vmpc2000xl_artefacts/Debug/Standalone/VMPC2000XL",
+        "MIMode": "gdb"
       }
     }
   }
