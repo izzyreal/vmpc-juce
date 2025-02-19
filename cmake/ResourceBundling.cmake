@@ -27,17 +27,17 @@ function(_bundle_vmpc_juce_resources _target_name)
       target_sources(vmpc2000xl_Standalone PRIVATE ${VMPC_JUCE_RESOURCES})
     endif()
 
-    foreach(resource ${VMPC_JUCE_RESOURCES})
-      file(RELATIVE_PATH rel_path "${_vmpc_juce_resources_root}" "${resource}")
-      get_filename_component(rel_dir "${rel_path}" DIRECTORY)
-
-      add_custom_command(TARGET vmpc2000xl_LV2 PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vmpc2000xl_LV2>/resources/${rel_dir}"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${resource}" "$<TARGET_FILE_DIR:vmpc2000xl_LV2>/resources/${rel_path}"
-      )
-    endforeach()
-    
     if (NOT IOS)
+      foreach(resource ${VMPC_JUCE_RESOURCES})
+        file(RELATIVE_PATH rel_path "${_vmpc_juce_resources_root}" "${resource}")
+        get_filename_component(rel_dir "${rel_path}" DIRECTORY)
+
+        add_custom_command(TARGET vmpc2000xl_LV2 PRE_BUILD
+          COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vmpc2000xl_LV2>/resources/${rel_dir}"
+          COMMAND ${CMAKE_COMMAND} -E copy_if_different "${resource}" "$<TARGET_FILE_DIR:vmpc2000xl_LV2>/resources/${rel_path}"
+        )
+      endforeach()
+
       target_sources(vmpc2000xl_AU PRIVATE ${VMPC_JUCE_RESOURCES})
       target_sources(vmpc2000xl_VST3 PRIVATE ${VMPC_JUCE_RESOURCES})
       target_sources(vmpc2000xl_LV2 PRIVATE ${VMPC_JUCE_RESOURCES})
@@ -52,15 +52,17 @@ function(_bundle_vmpc_juce_resources _target_name)
         set_source_files_properties(${RESOURCE} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources${RELATIVE_DIR}")
     endforeach()
 
-    foreach(resource ${MPC_RESOURCES})
-      file(RELATIVE_PATH rel_path "${_mpc_resources_root}" "${resource}")
-      get_filename_component(rel_dir "${rel_path}" DIRECTORY)
+    if (NOT IOS)
+      foreach(resource ${MPC_RESOURCES})
+        file(RELATIVE_PATH rel_path "${_mpc_resources_root}" "${resource}")
+        get_filename_component(rel_dir "${rel_path}" DIRECTORY)
 
-      add_custom_command(TARGET vmpc2000xl_LV2 PRE_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vmpc2000xl_LV2>/resources/${rel_dir}"
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${resource}" "$<TARGET_FILE_DIR:vmpc2000xl_LV2>/resources/${rel_path}"
-      )
-    endforeach()
+        add_custom_command(TARGET vmpc2000xl_LV2 PRE_BUILD
+          COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vmpc2000xl_LV2>/resources/${rel_dir}"
+          COMMAND ${CMAKE_COMMAND} -E copy_if_different "${resource}" "$<TARGET_FILE_DIR:vmpc2000xl_LV2>/resources/${rel_path}"
+        )
+      endforeach()
+    endif()
 
     # We check if the AUv3 target exists, because it's only generated if the Xcode
     # generator is used. If it does exist, the Standalone will make use of the AUv3's
