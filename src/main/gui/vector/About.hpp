@@ -82,6 +82,8 @@ namespace vmpc_juce::gui::vector {
                 lastDy = e.getDistanceFromDragStartY();
             }
 
+            const bool isCurrentlyDragging() { return isDragging; }
+
         private:
             juce::Rectangle<float> getScrollBarRect()
             {
@@ -237,6 +239,11 @@ namespace vmpc_juce::gui::vector {
 
             void mouseDrag(const juce::MouseEvent &e) override
             {
+                if (aboutScrollBar->isCurrentlyDragging())
+                {
+                    return;
+                }
+
                 const auto textBounds = getVisualTextBounds();
 
                 const bool increaseScrollOffset = e.getPosition().getY() > textBounds.getBottom();
@@ -420,7 +427,7 @@ namespace vmpc_juce::gui::vector {
             float maxScrollOffset = 0.f;
             juce::Component *aboutBorder = nullptr;
             juce::Component *closeAbout = nullptr;
-            juce::Component *aboutScrollBar = nullptr;
+            AboutScrollBar *aboutScrollBar = nullptr;
             int scrollAmountForTimer = 0;
             bool globalMouseListenerConfigured = false;
     };
