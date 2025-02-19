@@ -80,6 +80,14 @@
 * Does not support plugin-initiated resizing. Use the host's facilities to resize VMPC2000XL, for example the `View:` dropdown in Logic, and Logic's own plugin window border can be used to change the size.
 * Ableton Live currently does not allow resizing of an AUv3 in any way that I'm aware of. So, I hope the initial size works for you, else you're probably out of luck. I recommend using the AUv2 or VST3 instead.
 
+## Reaper LV2
+
+When using the LV2 in Reaper, and when pressing the "Escape" key in VMPC2000XL to go to the MAIN screen, the plugin window is closed. This has been observed on Windows and macOS. The VST3i does not have this problem on either platform. On macOS this can be resolved by enabled "Send all keyboard input to plug-in". This setting is in the "FX" menu in the top-left of the plugin. This menu is not always visible, because in Reaper a plugin window can be "floating", "docked" and perhaps more. Try double-clicking the title bar to make this menu appear if you don't see it.
+
+On Windows, the issue of the plugin window closing when you press the "Escape" key can be resolved by enabling "FX | Window float selected FX" or "FX | Dock FX window in Docker".
+
+Note: Carla on Windows and macOS don't have this "Escape" key probem with the LV2. "Send all keyboard input to plug-in" seems to have no effect.
+
 ## Miscellaneous hosts
 
 In some hosts, you first need to start the host's sequencer before any processing occurs. If VMPC2000XL is not making any sound, and its sequencer won't start, first try to hit the play button in your DAW. Logic and GarageBand are known to sometimes require this, and other hosts may have a similar requirement.
