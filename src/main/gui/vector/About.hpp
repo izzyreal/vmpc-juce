@@ -11,6 +11,15 @@
 
 namespace vmpc_juce::gui::vector {
 
+    class OutsideAboutMouseClickListener : public juce::MouseListener {
+        public:
+            std::function<void(const juce::MouseEvent&)> mouseDownFn;
+            void mouseDown(const juce::MouseEvent &e) override
+            {
+                mouseDownFn(e);
+            }
+    };
+
     class About : public juce::Component, juce::Timer {
         public:
             About(const std::function<float()> &getScaleToUse,
@@ -46,7 +55,17 @@ namespace vmpc_juce::gui::vector {
             {
                 if (!globalMouseListenerConfigured)
                 {
-                    juce::Desktop::getInstance().addGlobalMouseListener(this);
+                    
+                    const auto mouseDownFn = [&](const juce::MouseEvent &e){
+                        if (!aboutBorder->getLocalBounds().contains(e.getEventRelativeTo(this).getPosition()))
+                        {
+                            closeAboutFn();
+                        }
+                    };
+                    
+                    outsideAboutMouseClickListener = new OutsideAboutMouseClickListener();
+                    outsideAboutMouseClickListener->mouseDownFn = mouseDownFn;
+                    juce::Desktop::getInstance().addGlobalMouseListener(outsideAboutMouseClickListener);
                     globalMouseListenerConfigured = true;
                     stopTimer();
                     return;
@@ -137,12 +156,6 @@ namespace vmpc_juce::gui::vector {
 
             void mouseDown(const juce::MouseEvent &e) override
             {
-                if (!aboutBorder->getLocalBounds().contains(e.getEventRelativeTo(this).getPosition()))
-                {
-                    closeAboutFn();
-                    return;
-                }
-
                 textWithLinks->mouseDown(e.getEventRelativeTo(textWithLinks));
             }
 
@@ -218,7 +231,8 @@ namespace vmpc_juce::gui::vector {
 
             ~About() override
             {
-                juce::Desktop::getInstance().removeGlobalMouseListener(this);
+                juce::Desktop::getInstance().removeGlobalMouseListener(outsideAboutMouseClickListener);
+                delete outsideAboutMouseClickListener;
                 delete aboutBorder;
                 delete closeAbout;
                 delete textWithLinks;
@@ -267,6 +281,7 @@ namespace vmpc_juce::gui::vector {
             juce::Component *aboutBorder = nullptr;
             juce::Component *closeAbout = nullptr;
             AboutScrollBar *aboutScrollBar = nullptr;
+            OutsideAboutMouseClickListener *outsideAboutMouseClickListener = nullptr;
             int scrollAmountForTimer = 0;
             bool globalMouseListenerConfigured = false;
     };
