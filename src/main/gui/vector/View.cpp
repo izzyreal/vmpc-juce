@@ -1,6 +1,3 @@
-#include "juce_gui_basics/juce_gui_basics.h"
-#define DEBUG_NODES 0
-
 #include "View.hpp"
 
 #include "GridWrapper.hpp"
@@ -209,7 +206,7 @@ View::View(mpc::Mpc &mpcToUse,
 
     const std::function<void()> deleteDisclaimerF = [this] { deleteDisclaimer(); };
     disclaimer = new Disclaimer(getMainFontScaled, deleteDisclaimerF);
-    //addAndMakeVisible(disclaimer);
+    addAndMakeVisible(disclaimer);
 }
 
 const float View::getAspectRatio()

@@ -1,4 +1,8 @@
 #pragma once
+
+// To enable useful printf statements about the nodes
+#define DEBUG_NODES 0
+
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include <vector>
