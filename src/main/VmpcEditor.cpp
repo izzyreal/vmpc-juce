@@ -11,7 +11,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
 {
     setWantsKeyboardFocus(true);
 
-    const bool isInstrument = vmpcProcessor.auComponentType == "aumu";
+    const bool isInstrument = vmpcProcessor.auComponentType.empty() || vmpcProcessor.auComponentType == "aumu";
     
     view = new View(vmpcProcessor.mpc,
                     vmpcProcessor.showAudioSettingsDialog,
