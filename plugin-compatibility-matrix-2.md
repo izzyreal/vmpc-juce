@@ -75,7 +75,7 @@
 
 `C` In Carla, all LV2 and VST3 channels are exposed as mono channels, and you can use them any way you like. See the below table for mapping VMPC2000XL busses to Carla LV2/VST3 channels. The LV2 ports are named "Audio In" or "Audio Out" followed by a number.
 
-`CC` The VST3 ports are named "input\_" or "output\_" followed by a number.
+`CC` The same applies as for `C`, except that the VST3 ports are named "input\_" or "output\_" followed by a number.
 
 Note that VMPC2000XL tries to expose stereo and mono busses that duplicate each other. This is by design, to give the user more flexibility. For example, you can use MIX 1/2 with a stereo sound assigned to it on a stereo bus, and if MIX 1 has a mono sound assigned to it, and MIX 2 as well, then you can use these mono buses individually in the host (if the host supports it). Carla has taken a different approach than most other hosts, by saying "We expose every single channel of a plugin as a port, and the user can do whatever they like with it". This means that any stereo busses yield 2 ports, and any mono bus yields 1 port. In other words, in Carla there is no need to expose MIX1/2 as 2 mono busses. It would suffice to just expose 1 stereo bus, because it's very natural in Carla to use this bus in a split fashion.
 
