@@ -1,16 +1,37 @@
 {
   "configurations": {
     "Launch LLDB": {
-      "adapter": "vscode-cpptools",
-      "filetypes": ["cpp", "c", "objc", "rust"],
+      "adapter": {
+        "name": "lldb",
+        "command": ["/opt/homebrew/opt/llvm/bin/lldb-dap"],
+        "env": {"LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "NO"}
+      },
+      "breakpoints": {
+        "exception": {
+          "cpp_throw": "Y",
+          "cpp_catch": "Y",
+          "objc_throw": "Y",
+          "objc_catch": "Y"
+        }
+      },
       "configuration": {
         "request": "launch",
-        "program": "${workspaceRoot}/build/vmpc2000xl_artefacts/Debug/Standalone/VMPC2000XL",
+        "program": "${workspaceRoot}/build/vmpc2000xl_artefacts/Debug/Standalone/VMPC2000XL.app/Contents/MacOS/VMPC2000XL",
         "args": [],
         "cwd": "${workspaceRoot}",
-        "environment": [],
-        "externalConsole": true,
-        "MIMode": "lldb"
+        "stopOnEntry": false,
+        "externalConsole": false
+      }
+    },
+    "Attach LLDB": {
+      "adapter": {
+        "name": "lldb",
+        "command": ["/opt/homebrew/opt/llvm/bin/lldb-dap"],
+        "env": {"LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "NO"}
+      },
+      "configuration": {
+        "request": "attach",
+        "program": "${workspaceRoot}/build/vmpc2000xl_artefacts/Debug/Standalone/VMPC2000XL.app/Contents/MacOS/VMPC2000XL"
       }
     },
     "Launch GDB": {
@@ -24,15 +45,6 @@
         "environment": [],
         "externalConsole": true,
         "MIMode": "gdb"
-      }
-    },
-    "Attach LLDB": {
-      "adapter": "vscode-cpptools",
-      "filetypes": ["cpp", "c", "objc", "rust"],
-      "configuration": {
-        "request": "attach",
-        "program": "${workspaceRoot}/build/vmpc2000xl_artefacts/Debug/Standalone/VMPC2000XL",
-        "MIMode": "lldb"
       }
     },
     "Attach GDB": {
