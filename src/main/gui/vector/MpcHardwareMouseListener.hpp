@@ -46,17 +46,10 @@ namespace vmpc_juce::gui::vector {
 
             void timerCallback() override
             {
-#if TARGET_OS_IOS == 1
-                if (!hideKeyTooltipUntilNextMouseDown && lastEventComponent != nullptr)
-                {
-                    setKeyTooltipVisibility(lastEventComponent, true);
-                }
-#else
                 if (!hideKeyTooltipUntilAfterMouseExit && lastEventComponent != nullptr)
                 {
                     setKeyTooltipVisibility(lastEventComponent, true);
                 }
-#endif
             }
 
             void mouseMove(const juce::MouseEvent &e) override
@@ -69,15 +62,12 @@ namespace vmpc_juce::gui::vector {
                     return;
                 }
 
-#if !defined(TARGET_OS_IOS) || TARGET_OS_IOS != 1
                 lastEventComponent = e.eventComponent;
                 if (!isTimerRunning()) startTimer(1000);
-#endif
             }
 
-            void mouseExit(const juce::MouseEvent &e) override
+            void mouseExit(const juce::MouseEvent &) override
             {
-#if !defined(TARGET_OS_IOS) || TARGET_OS_IOS != 1
                 hideKeyTooltipUntilAfterMouseExit = false;
                 if (isTimerRunning()) stopTimer();
                 if (lastEventComponent != nullptr)
@@ -85,10 +75,9 @@ namespace vmpc_juce::gui::vector {
                     setKeyTooltipVisibility(lastEventComponent, false);
                 }
                 lastEventComponent = nullptr;
-#endif
             }
 
-            void mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) override
+            void mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &) override
             {
                 setKeyTooltipVisibility(event.eventComponent, false);
 
@@ -177,47 +166,28 @@ namespace vmpc_juce::gui::vector {
         
             void mouseDown(const juce::MouseEvent &e) override
             {
-#if TARGET_OS_IOS == 1
-                if (mouseDownSourceIndices.insert(e.source.getIndex()).second)
+                if (showKeyTooltipUponNextClick)
                 {
-                    if (!isPad() || mouseDownSourceIndices.size() == 2)
-                    {
-                        lastEventComponent = e.eventComponent;
-                        startTimer(1000);
-                    }
+                    setKeyTooltipVisibility(e.eventComponent, true);
+                    showKeyTooltipUponNextClick = false;
+                    return;
                 }
-#else
+
                 setKeyTooltipVisibility(e.eventComponent, false);
                 hideKeyTooltipUntilAfterMouseExit = true;
                 pushHardware(e);
-#endif
             }
 
-            void mouseUp(const juce::MouseEvent &e) override
+            void mouseDoubleClick(const juce::MouseEvent &) override
             {
-#if TARGET_OS_IOS == 1
-                mouseDownSourceIndices.erase(e.source.getIndex());
-                
-                stopTimer();
-                
-                if (lastEventComponent != nullptr)
+                if (label == "shift")
                 {
-                    setKeyTooltipVisibility(lastEventComponent, false);
+                    showKeyTooltipUponNextClick = true;
                 }
+            }
 
-                lastEventComponent = nullptr;
-                
-                if (mouseDownSourceIndices.empty())
-                {
-                    hideKeyTooltipUntilNextMouseDown = false;
-                }
-                
-                if (e.eventComponent->getLocalBounds().contains(e.getPosition()))
-                {
-                    pushHardware(e);
-                }
-#endif
-                
+            void mouseUp(const juce::MouseEvent &) override
+            {
                 if (label.length() >= 4 && label.substr(0, 4) == "pad-")
                 {
                     const auto digitsString = label.substr(4);
@@ -242,18 +212,6 @@ namespace vmpc_juce::gui::vector {
 
             void mouseDrag(const juce::MouseEvent &e) override
             {
-#if TARGET_OS_IOS == 1
-                if (label == "data-wheel")
-                {
-                    hideKeyTooltipUntilNextMouseDown = true;
-                }
-
-//                if (lastEventComponent != nullptr)
-//                {
-//                    setKeyTooltipVisibility(lastEventComponent, false);
-//                }
-#endif
-
                 if (label == "rec_gain" || label == "main_volume")
                 {
                     auto pot = label == "rec_gain" ? mpc.getHardware()->getRecPot() : mpc.getHardware()->getVolPot();
@@ -267,15 +225,11 @@ namespace vmpc_juce::gui::vector {
             }
 
         private:
+            static bool showKeyTooltipUponNextClick;
             mpc::Mpc &mpc;
             const std::string label;
             juce::Component *lastEventComponent = nullptr;
-#if TARGET_OS_IOS == 1
-            bool hideKeyTooltipUntilNextMouseDown = false;
-            std::set<int> mouseDownSourceIndices;
-#else
             bool hideKeyTooltipUntilAfterMouseExit = false;
-#endif
             void setKeyTooltipVisibility(juce::Component *c, const bool visibleEnabled)
             {
                 const auto editor = c->findParentComponentOfClass<juce::AudioProcessorEditor>();
