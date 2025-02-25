@@ -5,6 +5,10 @@
 #include "gui/VmpcCornerResizerLookAndFeel.hpp"
 #include "juce_gui_basics/juce_gui_basics.h"
 
+#if __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 //#include "Logger.hpp"
 
 namespace vmpc_juce::gui::vector { class View; }
@@ -29,6 +33,9 @@ public:
 //        MLOG("Pressed key text character  : " + ch.toStdString());
 
 #if __APPLE__
+#if TARGET_OS_IOS
+        return false;
+#endif
         if (k.getTextDescription().equalsIgnoreCase("command + `") || k.getTextDescription().equalsIgnoreCase("command + Q"))
         {
             return false;
