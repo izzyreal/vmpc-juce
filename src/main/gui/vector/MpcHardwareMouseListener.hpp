@@ -18,7 +18,21 @@
 namespace vmpc_juce::gui::vector {
 
     template<class ComponentClass>
-    static ComponentClass* getChildComponentOfClass(juce::Component *parent);
+    ComponentClass* getChildComponentOfClass(juce::Component *parent)
+    {
+        for (int i = 0; i < parent->getNumChildComponents(); ++i)
+        {
+            auto* childComp = parent->getChildComponent(i);
+
+            if (auto c = dynamic_cast<ComponentClass*> (childComp))
+                return c;
+
+            if (auto c = getChildComponentOfClass<ComponentClass> (childComp))
+                return c;
+        }
+
+        return nullptr;
+    }
 
     class MpcHardwareMouseListener : public juce::MouseListener, juce::Timer
     {
