@@ -17,6 +17,7 @@
 
 namespace vmpc_juce::gui::vector {
 
+    /*
     template<class ComponentClass>
     ComponentClass* getChildComponentOfClass(juce::Component *parent)
     {
@@ -33,6 +34,7 @@ namespace vmpc_juce::gui::vector {
 
         return nullptr;
     }
+    */
 
     class MpcHardwareMouseListener : public juce::MouseListener, juce::Timer
     {

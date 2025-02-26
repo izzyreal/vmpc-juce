@@ -1,24 +1,26 @@
 #include "MpcHardwareMouseListener.hpp"
 
 #include "Knob.hpp"
-
 #include "TooltipOverlay.hpp"
-#include "Slider.hpp"
-#include "juce_audio_processors/juce_audio_processors.h"
+//#include "Slider.hpp"
+//#include "juce_audio_processors/juce_audio_processors.h"
 
 using namespace vmpc_juce::gui::vector;
 
 bool MpcHardwareMouseListener::showKeyTooltipUponNextClick = false;
 
 MpcHardwareMouseListener::MpcHardwareMouseListener(mpc::Mpc &mpcToUse, const std::string labelToUse) 
-    : mpc(mpcToUse), label(labelToUse) {}
+    : mpc(mpcToUse), label(labelToUse)
+{}
 
 void MpcHardwareMouseListener::timerCallback()
 {
+    /*
     if (!hideKeyTooltipUntilAfterMouseExit && lastEventComponent != nullptr)
     {
         setKeyTooltipVisibility(lastEventComponent, true);
     }
+    */
 }
 
 void MpcHardwareMouseListener::mouseMove(const juce::MouseEvent &e)
@@ -48,6 +50,7 @@ void MpcHardwareMouseListener::mouseExit(const juce::MouseEvent &)
 
 void MpcHardwareMouseListener::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &)
 {
+    /*
     setKeyTooltipVisibility(event.eventComponent, false);
 
     if (label == "rec_gain" || label == "main_volume")
@@ -60,6 +63,7 @@ void MpcHardwareMouseListener::mouseWheelMove(const juce::MouseEvent &event, con
     {
         syncMpcSliderModelWithUi(event.eventComponent);
     }
+    */
 }
 
 void MpcHardwareMouseListener::pushHardware(const juce::MouseEvent &e)
@@ -172,6 +176,7 @@ void MpcHardwareMouseListener::mouseUp(const juce::MouseEvent &)
 
 void MpcHardwareMouseListener::mouseDrag(const juce::MouseEvent &e)
 {
+    /*
     if (label == "rec_gain" || label == "main_volume")
     {
         auto pot = label == "rec_gain" ? mpc.getHardware()->getRecPot() : mpc.getHardware()->getVolPot();
@@ -182,10 +187,12 @@ void MpcHardwareMouseListener::mouseDrag(const juce::MouseEvent &e)
     {
         syncMpcSliderModelWithUi(e.eventComponent);
     }
+    */
 }
 
 void MpcHardwareMouseListener::setKeyTooltipVisibility(juce::Component *c, const bool visibleEnabled)
 {
+    /*
     const auto editor = c->findParentComponentOfClass<juce::AudioProcessorEditor>();
     auto tooltipOverlay = getChildComponentOfClass<TooltipOverlay>(editor);
     
@@ -195,9 +202,11 @@ void MpcHardwareMouseListener::setKeyTooltipVisibility(juce::Component *c, const
     }
     
     tooltipOverlay->setKeyTooltipVisibility(label, visibleEnabled);
+    */
 }
 void MpcHardwareMouseListener::syncMpcSliderModelWithUi(juce::Component *eventComponent)
 {
+    /*
     const auto sliderComponent = dynamic_cast<Slider*>(eventComponent);
 
     if (sliderComponent == nullptr)
@@ -208,11 +217,11 @@ void MpcHardwareMouseListener::syncMpcSliderModelWithUi(juce::Component *eventCo
     auto hwSlider = mpc.getHardware()->getSlider();
     const auto yPosFraction = sliderComponent->getSliderYPosFraction();
     hwSlider->setValue(yPosFraction * 127.f);
+    */
 }
 
 bool MpcHardwareMouseListener::isPad()
 {
     return label.length() >= 4 && label.substr(0, 4) == "pad-";
 }
-
 
