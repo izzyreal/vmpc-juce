@@ -10,8 +10,11 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
 {
     setWantsKeyboardFocus(true);
-
-    const bool isInstrument = vmpcProcessor.auComponentType.empty() || vmpcProcessor.auComponentType == "aumu";
+    
+    std::function<bool()> isInstrument = [&] {
+        const std::string auComponentType = vmpcProcessor.auComponentType();
+        return auComponentType.empty() || auComponentType == "aumu";
+    };
     
     view = new View(vmpcProcessor.mpc,
                     vmpcProcessor.showAudioSettingsDialog,

@@ -49,7 +49,7 @@ static std::vector<ComponentClass*> getChildComponentsOfClass(juce::Component *p
 View::View(mpc::Mpc &mpcToUse,
            const std::function<void()> &showAudioSettingsDialog,
            const juce::AudioProcessor::WrapperType wrapperType,
-           const bool isInstrument)
+           const std::function<bool()> isInstrument)
     : mpc(mpcToUse),
     getScale([this] { return (float) getHeight() / (float) base_height; }),
 
@@ -165,7 +165,7 @@ View::View(mpc::Mpc &mpcToUse,
         
         using W = juce::AudioProcessor::WrapperType;
         std::string wrapperTypeString;
-        const std::string instOrFxString = isInstrument ? " inst" : " fx";
+        const std::string instOrFxString = isInstrument() ? " inst" : " fx";
 
         switch (wrapperType)
         {
