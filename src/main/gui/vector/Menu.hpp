@@ -18,6 +18,16 @@ void doOpenIosImportDocumentBrowser(vmpc_juce::gui::ios::ImportDocumentUrlProces
 
 void doPresentRecordingManager(void* nativeWindowHandle, mpc::Mpc*);
 
+#else
+
+#include "gui/macos/ImportDocumentUrlProcessor.hpp"
+
+void doPresentShareOptions(void* nativeWindowHandle, mpc::Mpc*);
+
+void doOpenMacImportDocumentPicker(vmpc_juce::gui::macos::ImportDocumentUrlProcessor*, void* nativeWindowHandle);
+
+void doPresentRecordingManager(void* nativeWindowHandle, mpc::Mpc*);
+
 #endif
 #endif
 
@@ -72,7 +82,7 @@ namespace vmpc_juce::gui::vector {
                 addAndMakeVisible(resetZoomIcon);
             }
 
-#if TARGET_OS_IPHONE
+#if __APPLE__
             importDocumentUrlProcessor.mpc = &mpc;
 
             importIcon = new SvgComponent({"arrow_down_on_square.svg"}, this, 0.f, getScale);
@@ -400,6 +410,22 @@ namespace vmpc_juce::gui::vector {
                     auto uiView = getPeer()->getNativeHandle();
                     doPresentRecordingManager(uiView, &mpc);
                 }
+#elif TARGET_OS_OSX
+                else if (clickedIcon == importIcon)
+                {
+                    auto uiView = getPeer()->getNativeHandle();
+                    doOpenMacImportDocumentPicker(&importDocumentUrlProcessor, uiView);
+                }
+                else if (clickedIcon == exportIcon)
+                {
+                    auto uiView = getPeer()->getNativeHandle();
+                    doPresentShareOptions(uiView, &mpc);
+                }
+                else if (clickedIcon == folderIcon)
+                {
+                    auto uiView = getPeer()->getNativeHandle();
+                    doPresentRecordingManager(uiView, &mpc);
+                }
 #endif
                 else if (clickedIcon == keyboardIcon)
                 {
@@ -492,7 +518,7 @@ namespace vmpc_juce::gui::vector {
                 {
                     result.push_back(resetZoomIcon);
                 }
-#if TARGET_OS_IPHONE
+#if __APPLE__
                 result.push_back(importIcon);
                 result.push_back(exportIcon);
                 result.push_back(folderIcon);
@@ -559,8 +585,10 @@ namespace vmpc_juce::gui::vector {
             // the last known mouse position.
             juce::Point<int> lastKnownMousePos {-1, -1};
 
-#if TARGET_OS_IPHONE 
+#if TARGET_OS_IPHONE
             vmpc_juce::gui::ios::ImportDocumentUrlProcessor importDocumentUrlProcessor;
+#elif TARGET_OS_OSX
+            vmpc_juce::gui::macos::ImportDocumentUrlProcessor importDocumentUrlProcessor;
 #endif
     };
 } // namespace vmpc_juce::gui::vector 
