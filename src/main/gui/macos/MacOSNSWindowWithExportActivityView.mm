@@ -16,7 +16,7 @@
 
 #include "miniz.h"
 
-@implementation NSWindow (WithExportActivityView)
+@implementation NSView (WithExportActivityView)
 
 - (NSMutableArray<NSString *> *)writeApsAllAndSnd:(mpc::Mpc *)mpc {
     
@@ -92,7 +92,7 @@
     }
 
     NSSharingServicePicker *picker = [[NSSharingServicePicker alloc] initWithItems:fileURLs];
-    [picker showRelativeToRect:NSMakeRect(0, 0, 200, 100) ofView:self.contentView preferredEdge:NSRectEdgeMinY];
+    [picker showRelativeToRect:NSMakeRect(0, 0, 200, 100) ofView:self preferredEdge:NSRectEdgeMinY];
 }
 
 - (void)presentShareOptions:(mpc::Mpc *)mpc {
@@ -119,8 +119,11 @@
 @end
 
 void doPresentShareOptions(void* nativeWindowHandle, mpc::Mpc* mpc) {
-    auto nswindow = (NSWindow*) nativeWindowHandle;
-    [nswindow presentShareOptions:mpc];
+
+    if (auto window = static_cast<NSView*>(nativeWindowHandle))
+    {
+        [window presentShareOptions:mpc];
+    }
 }
 
 #endif
