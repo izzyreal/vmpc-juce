@@ -138,7 +138,7 @@ juce_add_plugin(vmpc2000xl
     MICROPHONE_PERMISSION_ENABLED TRUE
     MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
     HARDENED_RUNTIME_ENABLED TRUE
-    HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input
+    HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.files.user-selected.read-only
     PRODUCT_NAME "VMPC2000XL"
     ${IOS_SPECIFIC_SETTINGS}
     ${NON_IOS_SPECIFIC_SETTINGS})
