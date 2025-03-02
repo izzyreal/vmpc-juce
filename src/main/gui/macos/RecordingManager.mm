@@ -2,6 +2,7 @@
 #include <TargetConditionals.h>
 #if TARGET_OS_OSX
 
+#include <Carbon/Carbon.h>
 #include <Foundation/Foundation.h>
 #include <AppKit/AppKit.h>
 #include <AVFoundation/AVFoundation.h>
@@ -13,6 +14,7 @@
 @property (nonatomic, strong) NSButton *currentlyPlayingButton;
 @property (nonatomic, strong) NSScrollView *scrollView;
 @property (nonatomic, strong) NSMutableArray<NSString *> *directoryPaths;
+@property (nonatomic, assign) NSWindow *modalWindow;
 @end
 
 @implementation RecordingsViewController {
@@ -24,7 +26,12 @@
     [super viewDidLoad];
     self.directoryPaths = [NSMutableArray new];
     fileManager = [NSFileManager defaultManager];
+}
+
+- (void)viewDidAppear {
+    [super viewDidAppear];
     [self layoutScrollViewAndContents];
+    [self.view.window makeFirstResponder:self];
 }
 
 - (void)viewWillDisappear {
@@ -32,40 +39,56 @@
     [self stopPlayback];
 }
 
+- (void)keyDown:(NSEvent *)event {
+    if (event.keyCode == kVK_Escape) {
+        [self closeSheet];
+    } else {
+        [super keyDown:event];
+    }
+}
+
 - (void)layoutScrollViewAndContents {
     NSView *contentView = self.view;
     [contentView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
 
-    NSTextField *titleLabel = [[NSTextField alloc] initWithFrame:NSMakeRect(0, contentView.frame.size.height - 40, contentView.frame.size.width, 30)];
-    [titleLabel setStringValue:@"Recording Manager"];
-    [titleLabel setBezeled:NO];
-    [titleLabel setDrawsBackground:NO];
-    [titleLabel setEditable:NO];
-    [titleLabel setSelectable:NO];
-    [titleLabel setAlignment:NSTextAlignmentCenter];
-    [contentView addSubview:titleLabel];
+    NSWindow *window = self.view.window;
+    if (!window) return;
 
-    CGFloat margin = 30;
-    NSRect scrollViewFrame = NSMakeRect(margin, 10, contentView.frame.size.width - 2 * margin, contentView.frame.size.height - 50);
+    NSRect contentRect = window.contentLayoutRect;
+    
+    NSRect scrollViewFrame = NSMakeRect(0, 40, contentRect.size.width, contentRect.size.height - 40);
     self.scrollView = [[NSScrollView alloc] initWithFrame:scrollViewFrame];
     self.scrollView.hasVerticalScroller = YES;
-
-    NSView *scrollContentView = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, scrollViewFrame.size.width, 0)];
+    
+    NSView *scrollContentView = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, contentRect.size.width, 0)];
     [self.scrollView setDocumentView:scrollContentView];
     [contentView addSubview:self.scrollView];
 
     [self.directoryPaths removeAllObjects];
 
-    CGFloat yPosition = 10;
+    CGFloat yPosition = 0;
     int tag = 0;
-    for (auto& p : fs::directory_iterator(self.mpc->paths->recordingsPath())) {
+
+    std::vector<fs::directory_entry> entries(fs::directory_iterator(self.mpc->paths->recordingsPath()), {});
+
+    std::sort(entries.begin(), entries.end(), [](const fs::directory_entry &a, const fs::directory_entry &b) {
+        std::string aLower = a.path().filename().string(), bLower = b.path().filename().string();
+        std::transform(aLower.begin(), aLower.end(), aLower.begin(), ::tolower);
+        std::transform(bLower.begin(), bLower.end(), bLower.begin(), ::tolower);
+        return aLower > bLower;
+    });
+
+    for (auto& p : entries) {
+        if (p.path().filename() == ".DS_Store") {
+            continue;
+        }
         NSString *directoryPath = [NSString stringWithUTF8String:p.path().c_str()];
         [self.directoryPaths addObject:directoryPath];
 
-        NSView *dirView = [[NSView alloc] initWithFrame:NSMakeRect(0, yPosition, scrollViewFrame.size.width, 40)];
+        NSView *dirView = [[NSView alloc] initWithFrame:NSMakeRect(0, yPosition, contentRect.size.width, 30)];
         [scrollContentView addSubview:dirView];
 
-        NSTextField *dirLabel = [[NSTextField alloc] initWithFrame:NSMakeRect(10, 10, scrollViewFrame.size.width - 140, 20)];
+        NSTextField *dirLabel = [[NSTextField alloc] initWithFrame:NSMakeRect(10, 5, contentRect.size.width - 140, 20)];
         [dirLabel setStringValue:[NSString stringWithUTF8String:p.path().filename().string().c_str()]];
         [dirLabel setBezeled:NO];
         [dirLabel setDrawsBackground:NO];
@@ -75,7 +98,7 @@
 
         unsigned long long dirSize = [self directorySizeAtPath:directoryPath];
         CGFloat dirSizeMB = (CGFloat)dirSize / (1024 * 1024);
-        NSTextField *sizeLabel = [[NSTextField alloc] initWithFrame:NSMakeRect(scrollViewFrame.size.width - 130, 10, 60, 20)];
+        NSTextField *sizeLabel = [[NSTextField alloc] initWithFrame:NSMakeRect(contentRect.size.width - 130, 5, 60, 20)];
         [sizeLabel setStringValue:[NSString stringWithFormat:@"%.2f MB", dirSizeMB]];
         [sizeLabel setBezeled:NO];
         [sizeLabel setDrawsBackground:NO];
@@ -83,26 +106,38 @@
         [sizeLabel setSelectable:NO];
         [dirView addSubview:sizeLabel];
 
-        NSButton *playButton = [[NSButton alloc] initWithFrame:NSMakeRect(scrollViewFrame.size.width - 70, 5, 30, 30)];
+        NSButton *playButton = [[NSButton alloc] initWithFrame:NSMakeRect(contentRect.size.width - 70, 0, 30, 30)];
         [playButton setTitle:@"▶️"];
         [playButton setTag:tag];
         [playButton setTarget:self];
         [playButton setAction:@selector(playRecording:)];
         [dirView addSubview:playButton];
 
-        NSButton *trashButton = [[NSButton alloc] initWithFrame:NSMakeRect(scrollViewFrame.size.width - 35, 5, 30, 30)];
+        NSButton *trashButton = [[NSButton alloc] initWithFrame:NSMakeRect(contentRect.size.width - 35, 0, 30, 30)];
         [trashButton setTitle:@"🗑"];
         [trashButton setTag:tag];
         [trashButton setTarget:self];
         [trashButton setAction:@selector(deleteRecording:)];
         [dirView addSubview:trashButton];
 
-        yPosition += 50;
+        yPosition += 30;
         tag++;
     }
 
-    [scrollContentView setFrameSize:NSMakeSize(scrollViewFrame.size.width, yPosition)];
+    // Ensure the scrollContentView has the right height
+    scrollContentView.frame = NSMakeRect(0, 0, contentRect.size.width, MAX(yPosition, scrollViewFrame.size.height));
+
+    // Add the Close button at the bottom
+    NSButton *closeButton = [[NSButton alloc] initWithFrame:NSMakeRect(10, 10, 80, 30)];
+    [closeButton setTitle:@"Close"];
+    [closeButton setTarget:self];
+    [closeButton setAction:@selector(closeSheet)];
+    [contentView addSubview:closeButton];
+    
+    [self.scrollView.contentView scrollToPoint:NSMakePoint(0, scrollContentView.frame.size.height - self.scrollView.contentView.bounds.size.height)];
+    [self.scrollView reflectScrolledClipView:self.scrollView.contentView];
 }
+
 
 - (unsigned long long)directorySizeAtPath:(NSString *)path {
     unsigned long long size = 0;
@@ -179,19 +214,32 @@
     return nil;
 }
 
+- (void)closeSheet {
+    [self.modalWindow.sheetParent endSheet:self.modalWindow];
+}
+
 @end
 
 @implementation NSWindow (WithRecordingManager)
 
 - (void)presentRecordingManager:(mpc::Mpc*)mpc {
-    NSViewController *vc = [[RecordingsViewController alloc] init];
-    [(RecordingsViewController *)vc setMpc:mpc];
+    RecordingsViewController *vc = [[RecordingsViewController alloc] init];
+    vc.mpc = mpc;
 
-    NSWindow *window = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 500, 400)
-                                                   styleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskResizable)
-                                                     backing:NSBackingStoreBuffered defer:NO];
-    [window setContentViewController:vc];
-    [window makeKeyAndOrderFront:nil];
+    NSWindow *modalWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 500, 400)
+                                                        styleMask:(NSWindowStyleMaskTitled | NSWindowStyleMaskClosable)
+                                                          backing:NSBackingStoreBuffered
+                                                            defer:NO];
+    modalWindow.contentViewController = vc;
+    modalWindow.title = @"Recording Manager";
+    [modalWindow center];
+
+    vc.modalWindow = modalWindow;
+
+    NSWindow *mainWindow = [NSApp mainWindow];
+    [mainWindow beginSheet:modalWindow completionHandler:^(NSModalResponse returnCode) {
+        [modalWindow close];
+    }];
 }
 
 @end
