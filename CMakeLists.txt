@@ -87,14 +87,12 @@ set(BUILD_TESTS OFF)
 set(INSTALL_PROJECT OFF)
 
 if(APPLE)
-if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
-FetchContent_Declare(miniz
-  GIT_REPOSITORY https://github.com/richgel999/miniz
-  GIT_TAG        master
-  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/deps/miniz
-)
-FetchContent_MakeAvailable(miniz)
-endif()
+    FetchContent_Declare(miniz
+      GIT_REPOSITORY https://github.com/richgel999/miniz
+      GIT_TAG        master
+      SOURCE_DIR     ${CMAKE_SOURCE_DIR}/deps/miniz
+    )
+    FetchContent_MakeAvailable(miniz)
 endif()
 
 FetchContent_MakeAvailable(mpc JUCE juce-raw-keyboard-input-module melatonin_blur json)
@@ -210,7 +208,7 @@ if (UNIX AND NOT APPLE)
     target_link_libraries(vmpc2000xl PRIVATE ${udisks2_LIBRARIES} X11)
 endif()
 
-if (IOS)
+if (APPLE)
   target_link_libraries(vmpc2000xl PRIVATE miniz)
 endif()
 
