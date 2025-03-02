@@ -204,7 +204,7 @@
 }
 
 - (NSString *)wavFilePathInDirectory:(NSString *)directoryPath {
-    NSArray *possibleFiles = @[@"L.wav", @"L-R.wav"];
+    NSArray *possibleFiles = @[@"L.wav", @"R.wav", @"L-R.wav", @"1.wav", @"2.wav", @"1-2.wav",@"3.wav", @"4.wav", @"3-4.wav",@"5.wav", @"6.wav", @"5-6.wav",@"7.wav", @"8.wav", @"7-8.wav"];
     for (NSString *fileName in possibleFiles) {
         NSString *filePath = [directoryPath stringByAppendingPathComponent:fileName];
         if ([fileManager fileExistsAtPath:filePath]) {
