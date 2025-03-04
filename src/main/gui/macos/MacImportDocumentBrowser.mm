@@ -13,6 +13,8 @@
 @property (assign) NSWindow* window;
 @property (assign) BOOL overwriteNone;
 @property (assign) BOOL overwriteAll;
+@property (assign) unsigned long totalBytes;
+@property (assign) unsigned long processedBytes;
 
 @end
 
@@ -33,16 +35,51 @@
   });
 }
 
-- (void)updateProgressIndicator:(float)progress {
+- (void)updateProgressIndicator {
   dispatch_async(dispatch_get_main_queue(), ^{
-    [_progressIndicator setDoubleValue:progress];
+    if (_totalBytes > 0) {
+      float progress = (float)_processedBytes / (float)_totalBytes;
+      [_progressIndicator setDoubleValue:progress];
+    }
   });
+}
+
+- (void)removeProgressIndicator {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [_progressIndicator removeFromSuperview];
+    _progressIndicator = nil;
+  });
+}
+
+- (void)calculateTotalBytes:(NSArray<NSURL*>*)urls {
+  _totalBytes = 0;
+  NSFileManager *fileManager = [NSFileManager defaultManager];
+
+  for (NSURL* url in urls) {
+    NSNumber *isDirectory;
+    BOOL success = [url getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:nil];
+
+    if (success && [isDirectory boolValue]) {
+      NSArray<NSURL*>* dirContents = [fileManager contentsOfDirectoryAtURL:url
+                                                includingPropertiesForKeys:@[NSURLIsDirectoryKey, NSURLFileSizeKey]
+                                                                   options:NSDirectoryEnumerationSkipsHiddenFiles
+                                                                     error:nil];
+      [self calculateTotalBytes:dirContents];
+    } else {
+      NSNumber *fileSize;
+      if ([url getResourceValue:&fileSize forKey:NSURLFileSizeKey error:nil]) {
+        _totalBytes += fileSize.unsignedLongValue;
+      }
+    }
+  }
 }
 
 - (void)handleDir:(NSURL*)url relativeDir:(NSString*)relativeDir {
   NSFileManager *fileManager = [NSFileManager defaultManager];
-  NSArray<NSURL*>* urls = [fileManager contentsOfDirectoryAtURL:url includingPropertiesForKeys:@[NSURLNameKey, NSURLIsDirectoryKey, NSURLContentModificationDateKey] options:NSDirectoryEnumerationSkipsHiddenFiles error:nil];
-  
+  NSArray<NSURL*>* urls = [fileManager contentsOfDirectoryAtURL:url
+                                    includingPropertiesForKeys:@[NSURLNameKey, NSURLIsDirectoryKey, NSURLContentModificationDateKey]
+                                                       options:NSDirectoryEnumerationSkipsHiddenFiles
+                                                         error:nil];
   if (urls) {
     [self handleURLs:urls relativeDir:relativeDir];
   }
@@ -59,17 +96,17 @@
   [alert addButtonWithTitle:@"None"];
   NSModalResponse response = [alert runModal];
 
-    if (response == NSAlertThirdButtonReturn) {
-        _overwriteAll = YES;
-        return YES;  // "All"
-    } else if (response == NSAlertSecondButtonReturn) {
-        _overwriteAll = NO;
-        return NO;   // "No"
-    } else if (response == NSAlertFirstButtonReturn) {
-        return YES;  // "Yes"
-    } else {
-        return NO;   // "None" (any other response)
-    }
+  if (response == NSAlertThirdButtonReturn) {
+    _overwriteAll = YES;
+    return YES;  
+  } else if (response == NSAlertSecondButtonReturn) {
+    _overwriteAll = NO;
+    return NO;   
+  } else if (response == NSAlertFirstButtonReturn) {
+    return YES;  
+  } else {
+    return NO;   
+  }
 }
 
 - (void)handleFile:(NSURL*)url relativeDir:(NSString*)relativeDir {
@@ -78,7 +115,7 @@
   if (![allowedExtensions containsObject:url.pathExtension.lowercaseString]) {
     return;
   }
-  
+
   NSString* filename = [url lastPathComponent];
 
   if (_urlProcessor->destinationExists(filename.UTF8String, relativeDir.UTF8String)) {
@@ -92,19 +129,20 @@
       return;
     }
   }
-  
+
   __block NSData *data = nil;
   NSFileCoordinator *coordinator = [[NSFileCoordinator alloc] initWithFilePresenter:nil];
   [coordinator coordinateReadingItemAtURL:url options:0 error:nil byAccessor:^(NSURL *newURL) {
     data = [NSData dataWithContentsOfURL:newURL];
   }];
   
+  if (!data) return;
+
   const long BUFFER_LEN = 1024;
-  
   uint8_t buffer[BUFFER_LEN];
-  
+
   [self showCopyProgressIndicator];
-  
+
   unsigned long bytesAvailable = static_cast<unsigned long>(data.length);
   unsigned long readPos = 0;
   auto oStream = _urlProcessor->openOutputStream(filename.UTF8String, relativeDir.UTF8String);
@@ -114,11 +152,10 @@
     
     [data getBytes:&buffer range:NSMakeRange(readPos, bytesToWrite)];
     oStream->write(reinterpret_cast<char*>(buffer), static_cast<std::streamsize>(bytesToWrite));
-    
-    float progress = readPos / (float) data.length;
-    
-    [self updateProgressIndicator:progress];
-    
+
+    _processedBytes += bytesToWrite;
+    [self updateProgressIndicator];
+
     bytesAvailable -= bytesToWrite;
     readPos += bytesToWrite;
   }
@@ -147,13 +184,17 @@
   [panel setCanChooseFiles:YES];
   [panel setCanChooseDirectories:YES];
   [panel setDelegate:self];
-  
+
   if ([panel runModal] == NSModalResponseOK) {
     NSArray<NSURL*>* urls = [panel URLs];
+    [self calculateTotalBytes:urls];
+    _processedBytes = 0;
+    
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
       [self handleURLs:urls relativeDir:@""];
       dispatch_async(dispatch_get_main_queue(), ^{
         _urlProcessor->initFiles();
+        [self removeProgressIndicator];
       });
     });
   }
