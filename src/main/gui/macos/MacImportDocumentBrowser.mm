@@ -86,27 +86,34 @@
 }
 
 - (BOOL)showOverwriteAlert:(NSString*)relativeFileName {
-  NSString* msg = [NSString stringWithFormat:@"File %@ exists. Overwrite?", relativeFileName];
-  NSAlert *alert = [[NSAlert alloc] init];
-  [alert setMessageText:@"File exists"];
-  [alert setInformativeText:msg];
-  [alert addButtonWithTitle:@"Yes"];
-  [alert addButtonWithTitle:@"No"];
-  [alert addButtonWithTitle:@"All"];
-  [alert addButtonWithTitle:@"None"];
-  NSModalResponse response = [alert runModal];
+    __block BOOL shouldOverwrite = NO;
 
-  if (response == NSAlertThirdButtonReturn) {
-    _overwriteAll = YES;
-    return YES;  
-  } else if (response == NSAlertSecondButtonReturn) {
-    _overwriteAll = NO;
-    return NO;   
-  } else if (response == NSAlertFirstButtonReturn) {
-    return YES;  
-  } else {
-    return NO;   
-  }
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        NSString* msg = [NSString stringWithFormat:@"File %@ exists. Overwrite?", relativeFileName];
+        NSAlert *alert = [[NSAlert alloc] init];
+        [alert setMessageText:@"File exists"];
+        [alert setInformativeText:msg];
+        [alert addButtonWithTitle:@"Yes"];
+        [alert addButtonWithTitle:@"No"];
+        [alert addButtonWithTitle:@"All"];
+        [alert addButtonWithTitle:@"None"];
+        NSModalResponse response = [alert runModal];
+
+        if (response == NSAlertThirdButtonReturn) {
+            _overwriteAll = YES;
+            shouldOverwrite = YES;  // "All"
+        } else if (response == NSAlertSecondButtonReturn) {
+            _overwriteAll = NO;
+            shouldOverwrite = NO;   // "No"
+        } else if (response == NSAlertFirstButtonReturn) {
+            shouldOverwrite = YES;  // "Yes"
+        } else {
+            _overwriteNone = YES;  // "None"
+            shouldOverwrite = NO;
+        }
+    });
+
+    return shouldOverwrite;
 }
 
 - (void)handleFile:(NSURL*)url relativeDir:(NSString*)relativeDir {
