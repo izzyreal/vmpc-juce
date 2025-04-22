@@ -5,13 +5,20 @@
 #include "Constants.hpp"
 #include "SvgComponent.hpp"
 #include "SliderCap.hpp"
+#include "hardware/HwSlider.hpp"
+
+#include "Observer.hpp"
 
 namespace vmpc_juce::gui::vector {
 
-class Slider : public juce::Component {
+class Slider : public juce::Component, public mpc::Observer {
     public:
-        Slider(juce::Component *commonParentWithShadowToUse, const std::function<float()> &getScaleToUse, const float shadowSize, const std::function<juce::Font&()> &getMainFontScaled)
-            : getScale(getScaleToUse)
+        Slider(juce::Component *commonParentWithShadowToUse,
+                const std::function<float()> &getScaleToUse,
+                const float shadowSize,
+                const std::function<juce::Font&()> &getMainFontScaled,
+                const std::shared_ptr<mpc::hardware::Slider> mpcSliderToUse)
+            : mpcSlider(mpcSliderToUse), getScale(getScaleToUse)
         {
             rectangleLabel = new RectangleLabel(getScaleToUse, "NOTE\nVARIATION", "VARIATION", Constants::chassisColour, Constants::labelColour, 0.f, 7.f, getMainFontScaled);
             addAndMakeVisible(rectangleLabel);
@@ -19,12 +26,33 @@ class Slider : public juce::Component {
             sliderCapSvg = new SliderCap(commonParentWithShadowToUse, shadowSize, getScale);
             addAndMakeVisible(sliderCapSvg);
             sliderCapSvg->setInterceptsMouseClicks(false, false);
+            mpcSlider->addObserver(this);
         }
         
         ~Slider() override
         {
+            mpcSlider->deleteObserver(this);
             delete rectangleLabel;
             delete sliderCapSvg;
+        }
+
+        void update(mpc::Observable *, mpc::Message message) override
+        {
+            const auto handleUpdate = [message, this] {
+
+                const int newSliderValue = 127 - std::get<int>(message);
+                const float newSliderFraction = float(newSliderValue) * (1.f / 127.f);
+                setSliderYPosFraction(newSliderFraction);
+            };
+
+            if (juce::MessageManager::getInstance()->isThisTheMessageThread())
+            {
+                handleUpdate();
+            }
+            else
+            {
+                juce::MessageManager::callAsync(handleUpdate);
+            }
         }
 
         void handleSliderYPosChanged()
@@ -149,6 +177,7 @@ class Slider : public juce::Component {
         SvgComponent *sliderCapSvg = nullptr;
 
     private:
+        const std::shared_ptr<mpc::hardware::Slider> mpcSlider;
         RectangleLabel *rectangleLabel = nullptr;
         const std::function<float()> &getScale;
         float sliderYPosFraction = 0.f;

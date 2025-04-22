@@ -154,7 +154,7 @@ void ViewUtil::createComponent(
     }
     else if (n.node_type == "slider")
     {
-        auto slider = new Slider(parent, getScale, n.shadow_size, getMainFontScaled);
+        auto slider = new Slider(parent, getScale, n.shadow_size, getMainFontScaled, mpc.getHardware()->getSlider());
         n.slider_component = slider;
         addShadow(n, getScale, slider->sliderCapSvg, parent, components);
         parent->addAndMakeVisible(n.slider_component);
@@ -162,7 +162,7 @@ void ViewUtil::createComponent(
 
         const auto sliderValue = mpc.getHardware()->getSlider()->getValue();
 
-        slider->setSliderYPosFraction(1.f - (sliderValue / 127.f));
+        slider->setSliderYPosFraction(1.f - (float(sliderValue) / 127.f));
     }
     else if (n.node_type == "data_wheel")
     {
