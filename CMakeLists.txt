@@ -238,13 +238,9 @@ if (APPLE)
     "This is derived from the first valid Apple Development certificate in your local keychain.\n"
     "You can tweak it in the Build Settings tab of your root project.\n")
 
-  if (IOS)
-    set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Manual")
-    set(CMAKE_XCODE_ATTRIBUTE_PROVISIONING_PROFILE_SPECIFIER "Wildcard")
-    set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "Apple Development")
-  else()
+if (NOT IOS)
     target_link_libraries(vmpc2000xl PRIVATE "-framework Carbon")
-  endif()
+endif()
 endif()
 
 if(MSVC)
