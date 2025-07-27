@@ -188,6 +188,8 @@ void VmpcProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     }
 
     computeHostToMpcChannelMappings();
+
+    logActualBusLayout();
 }
 
 juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
@@ -834,6 +836,45 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
 
         layeredScreen->setDirty();
     }
+}
+
+void VmpcProcessor::logActualBusLayout()
+{
+    MLOG("======= Actual input bus layout =======");
+    for (int i = 0; i < getBusCount(true); i++)
+    {
+        const auto bus = getBus(true, i);
+        MLOG("Bus " + std::to_string(i) + " (" + bus->getName().toStdString() + "):");
+        MLOG("==              Enabled: " + std::to_string(bus->isEnabled()));
+        if (bus->isMain() && i != 0) MLOG("== !!!!!        Is main: " + std::to_string(bus->isMain()));
+        if (bus->getBusIndex() != i) MLOG("== !!!!! Reported index: " + std::to_string(bus->getBusIndex()));
+        MLOG("==  Last enabled layout: " + std::to_string(bus->getLastEnabledLayout().size()));
+        MLOG("==       Current layout: " + std::to_string(bus->getCurrentLayout().size()));
+        //MLOG("==       Default layout: " + std::to_string(bus->getDefaultLayout().size()));
+        std::string channelIndices;
+        for (int c = 0; c < bus->getCurrentLayout().size(); c++) channelIndices.append(std::to_string(bus->getChannelIndexInProcessBlockBuffer(c)) + ", ");
+        if (channelIndices.size() >= 2) channelIndices = channelIndices.substr(0, channelIndices.size() - 2);
+        if (bus->getCurrentLayout().size() > 0) MLOG("== Host channel indices: " + channelIndices);
+    }
+    MLOG("======= End of actual input bus layout =======");
+    MLOG("======= Actual output bus layout =======");
+    for (int i = 0; i < getBusCount(false); i++)
+    {
+        const auto bus = getBus(false, i);
+        MLOG("Bus " + std::to_string(i) + " (" + bus->getName().toStdString() + "):");
+        MLOG("==              Enabled: " + std::to_string(bus->isEnabled()));
+        if (bus->isMain() && i != 0) MLOG("== !!!!!        Is main: " + std::to_string(bus->isMain()));
+        if (bus->getBusIndex() != i) MLOG("== !!!!! Reported index: " + std::to_string(bus->getBusIndex()));
+        MLOG("==       Reported index: " + std::to_string(bus->getBusIndex()));
+        MLOG("==  Last enabled layout: " + std::to_string(bus->getLastEnabledLayout().size()));
+        MLOG("==       Current layout: " + std::to_string(bus->getCurrentLayout().size()));
+        //MLOG("==       Default layout: " + std::to_string(bus->getDefaultLayout().size()));
+        std::string channelIndices;
+        for (int c = 0; c < bus->getCurrentLayout().size(); c++) channelIndices.append(std::to_string(bus->getChannelIndexInProcessBlockBuffer(c)) + ", ");
+        if (channelIndices.size() >= 2) channelIndices = channelIndices.substr(0, channelIndices.size() - 2);
+        MLOG("== Host channel indices: " + channelIndices);
+    }
+    MLOG("======= End of actual output bus layout =======");
 }
 
 void VmpcProcessor::computeHostToMpcChannelMappings()

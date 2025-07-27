@@ -64,6 +64,8 @@ class VmpcProcessor  : public juce::AudioProcessor {
 
         const std::set<uint8_t> getPossiblyActiveMpcMonoOutChannels();
 
+        void logActualBusLayout();
+
     public:
         bool shouldShowDisclaimer = true;
         std::function<void()> showAudioSettingsDialog = [](){};
