@@ -301,16 +301,16 @@ bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 
     if (isAUv2 || isAUv3)
     {
-        result = result || (stereoInputCount == 1 && monoInputCount == 0 && stereoOutputCount == 1 && monoOutputCount == 0);
+        result = stereoInputCount == 1 && monoInputCount == 0 && stereoOutputCount == 1 && monoOutputCount == 0;
         result = result || (stereoOutputCount == 5 && monoOutputCount == 8 && stereoInputCount == 1 && monoInputCount == 0);
     }
     else if (isStandalone)
     {
-        result = result || (totalNumInputChannels <= 2 && totalNumOutputChannels <= 10);
+        result = totalNumInputChannels <= 2 && totalNumOutputChannels <= 10;
     }
     else if (isVST3 || isLV2)
     {
-        result = result || (totalNumInputChannels <= 4 && totalNumOutputChannels <= 18);
+        result = totalNumInputChannels <= 4 && totalNumOutputChannels <= 18;
     }
 
     return result;
