@@ -263,6 +263,52 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
 
 bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
+    if (!juce::JUCEApplication::isStandaloneApp())
+    {
+        if (layouts.getMainInputChannelSet() != juce::AudioChannelSet::stereo() &&
+            layouts.getMainInputChannelSet() != juce::AudioChannelSet::disabled())
+        {
+            return false;
+        }
+
+        for (int i = 1; i < layouts.getBuses(true).size(); i++)
+        {
+            if (layouts.getChannelSet(true, i) != juce::AudioChannelSet::mono() &&
+                layouts.getChannelSet(true, i) != juce::AudioChannelSet::disabled())
+            {
+                return false;
+            }
+        }
+    }
+
+    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+    {
+        return false;
+    }
+
+    for (int i = 1; i < layouts.getBuses(false).size(); i++)
+    {
+        if (i >= 5)
+        {
+            break;
+        }
+
+        if (layouts.getChannelSet(false, i) != juce::AudioChannelSet::stereo() &&
+            layouts.getChannelSet(false, i) != juce::AudioChannelSet::disabled())
+        {
+            return false;
+        }
+    }
+
+    for (int i = 5; i < layouts.getBuses(false).size(); i++)
+    {
+        if (layouts.getChannelSet(false, i) != juce::AudioChannelSet::mono() &&
+            layouts.getChannelSet(false, i) != juce::AudioChannelSet::disabled())
+        {
+            return false;
+        }
+    }
+
     const std::function<int(const bool isInput)> getTotalChannelCountForBus = [&] (const bool isInput) {
         int result = 0;
         for (int i = 0; i < layouts.getBuses(isInput).size(); i++) result += layouts.getNumChannels(isInput, i);
@@ -552,7 +598,7 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
     std::vector<uint8_t> hostOutputChannelIndicesToRender;
     
     const auto possiblyActiveMpcChannels = getPossiblyActiveMpcMonoOutChannels();
-    
+
     for (int i = 0; i < mpcMonoOutputChannelIndices.size(); i++)
     {
         if (possiblyActiveMpcChannels.count(mpcMonoOutputChannelIndices[i]) > 0)
@@ -569,6 +615,20 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
                  mpcMonoOutputChannelIndicesToRender,
                  hostInputChannelIndices,
                  hostOutputChannelIndicesToRender);
+
+    const bool shouldClearSomeHostChannels = previousHostOutputChannelIndicesToRender != hostOutputChannelIndicesToRender;
+
+    if (shouldClearSomeHostChannels)
+    {
+        for (int i = 0; i < totalNumOutputChannels; i++)
+        {
+            if (std::find(hostOutputChannelIndicesToRender.begin(), hostOutputChannelIndicesToRender.end(), i) ==
+                hostOutputChannelIndicesToRender.end())
+            {
+                buffer.clear(i, 0, buffer.getNumSamples());
+            }
+        }
+    }
 
     // I've observed a crash in Ableton Live VST3 indicating what could be allocating MIDI events too soon.
     // So we give it a little bit of leeway of 10000 frames.
@@ -865,7 +925,6 @@ void VmpcProcessor::logActualBusLayout()
         MLOG("==              Enabled: " + std::to_string(bus->isEnabled()));
         if (bus->isMain() && i != 0) MLOG("== !!!!!        Is main: " + std::to_string(bus->isMain()));
         if (bus->getBusIndex() != i) MLOG("== !!!!! Reported index: " + std::to_string(bus->getBusIndex()));
-        MLOG("==       Reported index: " + std::to_string(bus->getBusIndex()));
         MLOG("==  Last enabled layout: " + std::to_string(bus->getLastEnabledLayout().size()));
         MLOG("==       Current layout: " + std::to_string(bus->getCurrentLayout().size()));
         //MLOG("==       Default layout: " + std::to_string(bus->getDefaultLayout().size()));
@@ -999,15 +1058,15 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
         mpcMonoChannelCounter += mpcMonoChannelsToAdd;
     }
 
-//    MLOG("==============================================");
-//    MLOG("    Number of hostOutputChanelIndices: " + std::to_string(hostOutputChannelIndices.size()));
-//    MLOG("Number of mpcMonoOutputChannelIndices: " + std::to_string(mpcMonoOutputChannelIndices.size()));
-//    
-//    for (int i = 0; i < hostOutputChannelIndices.size(); i++)
-//    {
-//        MLOG("mpc channel " + std::to_string(mpcMonoOutputChannelIndices[i]) + " will be put in host channel " + std::to_string(hostOutputChannelIndices[i]));
-//    }
-//    MLOG("==============================================");
+    MLOG("==============================================");
+    MLOG("    Number of hostOutputChanelIndices: " + std::to_string(hostOutputChannelIndices.size()));
+    MLOG("Number of mpcMonoOutputChannelIndices: " + std::to_string(mpcMonoOutputChannelIndices.size()));
+    
+    for (int i = 0; i < hostOutputChannelIndices.size(); i++)
+    {
+        MLOG("mpc channel " + std::to_string(mpcMonoOutputChannelIndices[i]) + " will be put in host channel " + std::to_string(hostOutputChannelIndices[i]));
+    }
+    MLOG("==============================================");
 }
 
 const std::set<uint8_t> VmpcProcessor::getPossiblyActiveMpcMonoOutChannels()

@@ -50,6 +50,7 @@ class VmpcProcessor  : public juce::AudioProcessor {
         void computeHostToMpcChannelMappings();
 
         std::vector<uint8_t> mpcMonoInputChannelIndices, mpcMonoOutputChannelIndices, hostInputChannelIndices, hostOutputChannelIndices;
+        std::vector<uint8_t> previousHostOutputChannelIndicesToRender;
         uint8_t lastHostChannelIndexThatWillBeWritten = 0;
         double m_Tempo = 0;
         bool wasPlaying = false;
