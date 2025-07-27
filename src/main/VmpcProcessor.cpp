@@ -189,7 +189,7 @@ void VmpcProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 
     computeHostToMpcChannelMappings();
 
-    logActualBusLayout();
+    //logActualBusLayout();
 }
 
 juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
@@ -1058,6 +1058,7 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
         mpcMonoChannelCounter += mpcMonoChannelsToAdd;
     }
 
+    /*
     MLOG("==============================================");
     MLOG("    Number of hostOutputChanelIndices: " + std::to_string(hostOutputChannelIndices.size()));
     MLOG("Number of mpcMonoOutputChannelIndices: " + std::to_string(mpcMonoOutputChannelIndices.size()));
@@ -1067,6 +1068,7 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
         MLOG("mpc channel " + std::to_string(mpcMonoOutputChannelIndices[i]) + " will be put in host channel " + std::to_string(hostOutputChannelIndices[i]));
     }
     MLOG("==============================================");
+    */
 }
 
 const std::set<uint8_t> VmpcProcessor::getPossiblyActiveMpcMonoOutChannels()
