@@ -653,6 +653,8 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
             buffer.clear(i, 0, buffer.getNumSamples());
         }
     }
+
+    previousHostOutputChannelIndicesToRender = hostOutputChannelIndicesToRender;
 }
 
 bool VmpcProcessor::hasEditor() const
