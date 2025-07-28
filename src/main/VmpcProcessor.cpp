@@ -597,11 +597,11 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
     std::vector<uint8_t> mpcMonoOutputChannelIndicesToRender;
     std::vector<uint8_t> hostOutputChannelIndicesToRender;
     
-    const auto possiblyActiveMpcChannels = getPossiblyActiveMpcMonoOutChannels();
+    computePossiblyActiveMpcMonoOutChannels();
 
     for (int i = 0; i < mpcMonoOutputChannelIndices.size(); i++)
     {
-        if (possiblyActiveMpcChannels.count(mpcMonoOutputChannelIndices[i]) > 0)
+        if (possiblyActiveMpcMonoOutChannels.contains(mpcMonoOutputChannelIndices[i]))
         {
             mpcMonoOutputChannelIndicesToRender.push_back(mpcMonoOutputChannelIndices[i]);
             hostOutputChannelIndicesToRender.push_back(hostOutputChannelIndices[i]);
@@ -1073,11 +1073,44 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
     */
 }
 
-const std::set<uint8_t> VmpcProcessor::getPossiblyActiveMpcMonoOutChannels()
+void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
 {
+    possiblyActiveMpcMonoOutChannels.clear();
+
+    auto insertValue = [&](const uint8_t value) {
+
+        possiblyActiveMpcMonoOutChannels.insert(value);
+
+        // It's not trivial to figure out if an MPC mixer strip is mono or stereo, because it
+        // it depends on whether the strip is associated with a mono or stereo sound. The main
+        // idea behind `getPossiblyActiveMpcMonoOutChannels` is to avoid unnecessary rendering
+        // of MIX busses in AUv2 and AUv3. The problem here is that, so far, I'm not aware of
+        // a way to make an AUv2/3 expose 2 fixed bus layouts to Logic, of which one has
+        // mixed mono and stereo channels:
+        // 1. 1x stereo in, 1x stereo out
+        // 2. 1x stereo in, 5x stereo out and 8x mono out
+        // This has led to the decision to rely on "implicit" or "default" layouts. See
+        // https://github.com/juce-framework/JUCE/issues/1508
+        // This in turn poses the problem that in Logic, all 13 busses are always reported to
+        // be active, even if the user loads the 1x stereo in, 1x stereo out plugin flavor.
+        // So it's fine if we assume all busses are stereo, as this will still prevent
+        // rendering MIX1...8, as long as the user has not configured to use individual outputs.
+        // That's why for every mono channel, we always ensure its stereo counterpart is also
+        // rendered. I.e. if we render channel 0, we also render channel 1 and vice versa.
+        if (value % 2 == 0)
+        {
+            possiblyActiveMpcMonoOutChannels.insert(value + 1);
+        }
+        else
+        {
+            possiblyActiveMpcMonoOutChannels.insert(value - 1);
+        }
+    };
+
     // We always render STEREO L/R
-    std::set<uint8_t> result{0,1};
-    
+    insertValue(0);
+    insertValue(1);
+
     for (auto &p : mpc.getSampler()->getPrograms())
     {
         if (!p.lock()) continue;
@@ -1088,7 +1121,7 @@ const std::set<uint8_t> VmpcProcessor::getPossiblyActiveMpcMonoOutChannels()
             // output is 1 for MIX 1 bus, 2 for MIX 2 bus, etc. So we subtract 1 to get 0-based
             // index, and then we add 2 to get the bus index in the plugin, because the first
             // stereo bus (for STEREO L/R, the main output) comes before the MIX busses.
-            result.emplace(output + 1);
+            insertValue(static_cast<uint8_t>(output + 1));
         }
     }
     
@@ -1097,39 +1130,9 @@ const std::set<uint8_t> VmpcProcessor::getPossiblyActiveMpcMonoOutChannels()
         for (auto &m : mpc.getDrum(i).getIndivFxMixerChannels())
         {
             if (m->getOutput() == 0) continue;
-            result.emplace(m->getOutput() + 1);
+            insertValue(static_cast<uint8_t>(m->getOutput() + 1));
         }
     }
-    
-    std::set<uint8_t> modifiedResult = result;
-
-    for (uint8_t val : result)
-    {
-        if (val % 2 == 0)
-        {
-            // It's not trivial to figure out if an MPC mixer strip is mono or stereo, because it
-            // it depends on whether the strip is associated with a mono or stereo sound. The main
-            // idea behind `getPossiblyActiveMpcMonoOutChannels` is to avoid unnecessary rendering
-            // of MIX busses in AUv2 and AUv3. The problem here is that, so far, I'm not aware of
-            // a way to make an AUv2/3 expose 2 fixed bus layouts to Logic, of which one has
-            // mixed mono and stereo channels:
-            // 1. 1x stereo in, 1x stereo out
-            // 2. 1x stereo in, 5x stereo out and 8x mono out
-            // This has led to the decision to rely on "implicit" or "default" layouts. See
-            // https://github.com/juce-framework/JUCE/issues/1508
-            // This in turn poses the problem that in Logic, all 13 busses are always reported to
-            // be active, even if the user loads the 1x stereo in, 1x stereo out plugin flavor.
-            // So it's fine if we assume all busses are stereo, as this will still prevent
-            // rendering MIX1...8, as long as the user has not configured to use individual outputs.
-            modifiedResult.emplace(val + 1);
-        }
-        else
-        {
-            modifiedResult.emplace(val - 1);
-        }
-    }
-    
-    return modifiedResult;
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
