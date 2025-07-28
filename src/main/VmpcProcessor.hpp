@@ -3,6 +3,9 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include <Mpc.hpp>
+#include <FixedVector.hpp>
+
+#include <array>
 
 namespace mpc::engine::midi { class ShortMessage; }
 
@@ -76,7 +79,13 @@ class VmpcProcessor  : public juce::AudioProcessor {
         void computeHostToMpcChannelMappings();
 
         std::vector<uint8_t> mpcMonoInputChannelIndices, mpcMonoOutputChannelIndices, hostInputChannelIndices, hostOutputChannelIndices;
-        std::vector<uint8_t> previousHostOutputChannelIndicesToRender;
+        
+        FixedVector<uint8_t, 18> mpcMonoOutputChannelIndicesToRender;
+        FixedVector<uint8_t, 18> hostOutputChannelIndicesToRender;
+        FixedVector<uint8_t, 18> previousHostOutputChannelIndicesToRender;
+
+        void computeMpcAndHostOutputChannelIndicesToRender();
+
         uint8_t lastHostChannelIndexThatWillBeWritten = 0;
         double m_Tempo = 0;
         bool wasPlaying = false;

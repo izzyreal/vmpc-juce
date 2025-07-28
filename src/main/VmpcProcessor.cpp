@@ -536,6 +536,23 @@ void VmpcProcessor::processTransport()
     }
 }
 
+void VmpcProcessor::computeMpcAndHostOutputChannelIndicesToRender()
+{
+    computePossiblyActiveMpcMonoOutChannels();
+
+    mpcMonoOutputChannelIndicesToRender.clear();
+    hostOutputChannelIndicesToRender.clear();
+
+    for (int i = 0; i < mpcMonoOutputChannelIndices.size(); i++)
+    {
+        if (possiblyActiveMpcMonoOutChannels.contains(mpcMonoOutputChannelIndices[i]))
+        {
+            mpcMonoOutputChannelIndicesToRender.push_back(mpcMonoOutputChannelIndices[i]);
+            hostOutputChannelIndicesToRender.push_back(hostOutputChannelIndices[i]);
+        }
+    }
+}
+
 void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -594,20 +611,8 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
     auto chDataIn = buffer.getArrayOfReadPointers();
     auto chDataOut = buffer.getArrayOfWritePointers();
 
-    std::vector<uint8_t> mpcMonoOutputChannelIndicesToRender;
-    std::vector<uint8_t> hostOutputChannelIndicesToRender;
-    
-    computePossiblyActiveMpcMonoOutChannels();
+    computeMpcAndHostOutputChannelIndicesToRender();
 
-    for (int i = 0; i < mpcMonoOutputChannelIndices.size(); i++)
-    {
-        if (possiblyActiveMpcMonoOutChannels.contains(mpcMonoOutputChannelIndices[i]))
-        {
-            mpcMonoOutputChannelIndicesToRender.push_back(mpcMonoOutputChannelIndices[i]);
-            hostOutputChannelIndicesToRender.push_back(hostOutputChannelIndices[i]);
-        }
-    }
-    
     server->work(chDataIn,
                  chDataOut,
                  buffer.getNumSamples(),
@@ -616,14 +621,13 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
                  hostInputChannelIndices,
                  hostOutputChannelIndicesToRender);
 
-    const bool shouldClearSomeHostChannels = previousHostOutputChannelIndicesToRender != hostOutputChannelIndicesToRender;
+    const bool shouldClearSomeHostChannels = !(previousHostOutputChannelIndicesToRender == hostOutputChannelIndicesToRender);
 
     if (shouldClearSomeHostChannels)
     {
         for (int i = 0; i < totalNumOutputChannels; i++)
         {
-            if (std::find(hostOutputChannelIndicesToRender.begin(), hostOutputChannelIndicesToRender.end(), i) ==
-                hostOutputChannelIndicesToRender.end())
+            if (!hostOutputChannelIndicesToRender.contains(i))
             {
                 buffer.clear(i, 0, buffer.getNumSamples());
             }
