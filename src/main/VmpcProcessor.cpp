@@ -513,11 +513,7 @@ void VmpcProcessor::processTransport()
 
         if (tempo != m_Tempo || mpc.getSequencer()->getTempo() != tempo)
         {
-            if (isPlaying)
-            {
-                mpc.getSequencer()->setTempo(tempo);
-            }
-
+            mpc.getSequencer()->setTempo(tempo);
             m_Tempo = tempo;
         }
 
