@@ -8,7 +8,7 @@
     {
       "name" : "display_shadow_container",
       "type" : "grid",
-      "margin" : [ -1, 0, 0, 0 ],
+      "margin" : [ 2, 0, 0, 0 ],
       "area" : [ 1, 1, 1, 3 ],
       "row_fractions" : [ 1, 40, 2 ],
       "column_fractions" : [ 150, 22, 1 ],
