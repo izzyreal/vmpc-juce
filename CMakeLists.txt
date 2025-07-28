@@ -142,7 +142,7 @@ juce_add_plugin(vmpc2000xl
     BLUETOOTH_PERMISSION_ENABLED TRUE
     BLUETOOTH_PERMISSION_TEXT "This enables VMPC2000XL to use Bluetooth MIDI devices"
     HARDENED_RUNTIME_ENABLED TRUE
-    HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input
+    HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.bluetooth
     PRODUCT_NAME "VMPC2000XL"
     ${IOS_SPECIFIC_SETTINGS}
     ${NON_IOS_SPECIFIC_SETTINGS})
