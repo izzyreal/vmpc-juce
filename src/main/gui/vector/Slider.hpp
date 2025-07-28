@@ -4,14 +4,12 @@
 #include "RectangleLabel.hpp"
 #include "Constants.hpp"
 #include "SvgComponent.hpp"
-#include "SliderCap.hpp"
 #include "hardware/HwSlider.hpp"
-
-#include "Observer.hpp"
+#include "juce_graphics/juce_graphics.h"
 
 namespace vmpc_juce::gui::vector {
 
-class Slider : public juce::Component, public mpc::Observer {
+class Slider : public juce::Component, juce::Timer {
     public:
         Slider(juce::Component *commonParentWithShadowToUse,
                 const std::function<float()> &getScaleToUse,
@@ -23,36 +21,30 @@ class Slider : public juce::Component, public mpc::Observer {
             rectangleLabel = new RectangleLabel(getScaleToUse, "NOTE\nVARIATION", "VARIATION", Constants::chassisColour, Constants::labelColour, 0.f, 7.f, getMainFontScaled);
             addAndMakeVisible(rectangleLabel);
 
-            sliderCapSvg = new SliderCap(commonParentWithShadowToUse, shadowSize, getScale);
+            sliderCapSvg = new SvgComponent({"slider_cap.svg"}, commonParentWithShadowToUse, shadowSize, getScale);
             addAndMakeVisible(sliderCapSvg);
             sliderCapSvg->setInterceptsMouseClicks(false, false);
-            mpcSlider->addObserver(this);
+            startTimer(30);
         }
         
         ~Slider() override
         {
-            mpcSlider->deleteObserver(this);
             delete rectangleLabel;
             delete sliderCapSvg;
         }
 
-        void update(mpc::Observable *, mpc::Message message) override
+        void timerCallback() override
         {
-            const auto handleUpdate = [message, this] {
-
-                const int newSliderValue = 127 - std::get<int>(message);
-                const float newSliderFraction = float(newSliderValue) * (1.f / 127.f);
-                setSliderYPosFraction(newSliderFraction);
-            };
-
-            if (juce::MessageManager::getInstance()->isThisTheMessageThread())
+            if (mpcSlider->getValue() == lastSyncedMpcSliderValue)
             {
-                handleUpdate();
+                return;
             }
-            else
-            {
-                juce::MessageManager::callAsync(handleUpdate);
-            }
+
+            const int newCosmeticSliderValue = 127 - mpcSlider->getValue();
+            const float newSliderFraction = float(newCosmeticSliderValue) * (1.f / 127.f);
+            setSliderYPosFraction(newSliderFraction);
+            
+            lastSyncedMpcSliderValue = mpcSlider->getValue();
         }
 
         void handleSliderYPosChanged()
@@ -62,12 +54,11 @@ class Slider : public juce::Component, public mpc::Observer {
             const auto width = drawableBounds.getWidth() * scale;
             const auto height = drawableBounds.getHeight() * scale;
 
-            const auto sliderStart = getHeight() * 0.34f;
-            const auto sliderEnd   = getHeight() * 0.84f;
+            const auto sliderStart = getSliderStart();
+            const auto sliderEnd   = getSliderEnd();
             const auto sliderYPos  = (sliderEnd - sliderStart) * sliderYPosFraction;
 
             sliderCapSvg->setBounds((getWidth() - width) / 2, sliderStart + sliderYPos, width, height);
-            dynamic_cast<SliderCap*>(sliderCapSvg)->setFactor(sliderYPosFraction);
             repaint();
         }
         
@@ -106,8 +97,8 @@ class Slider : public juce::Component, public mpc::Observer {
                 previousDragDistanceY = 0;
             }
             
-            const auto sliderStart = getHeight() * 0.34f;
-            const auto sliderEnd   = getHeight() * 0.84f;
+            const auto sliderStart = getSliderStart();
+            const auto sliderEnd   = getSliderEnd();
             const auto sliderLengthInPixels  = sliderEnd - sliderStart;
 
             const auto distanceToProcessInPixels = e.getDistanceFromDragStartY() - previousDragDistanceY;
@@ -177,12 +168,23 @@ class Slider : public juce::Component, public mpc::Observer {
         SvgComponent *sliderCapSvg = nullptr;
 
     private:
+        float getSliderStart()
+        {
+            return (float) getHeight() * 0.34f;
+        }
+
+        float getSliderEnd()
+        {
+            return (float) getHeight() * 0.84f;
+        }
+
         const std::shared_ptr<mpc::hardware::Slider> mpcSlider;
         RectangleLabel *rectangleLabel = nullptr;
         const std::function<float()> &getScale;
         float sliderYPosFraction = 0.f;
         int32_t previousDragDistanceY = std::numeric_limits<int32_t>::max();
         bool shouldDragCap = false;
+        int lastSyncedMpcSliderValue = -1;
 };
 
 } // namespace vmpc_juce::gui::vector

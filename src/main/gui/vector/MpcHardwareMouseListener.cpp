@@ -207,7 +207,7 @@ void MpcHardwareMouseListener::syncMpcSliderModelWithUi(juce::Component *eventCo
 
     auto hwSlider = mpc.getHardware()->getSlider();
     const auto yPosFraction = sliderComponent->getSliderYPosFraction();
-    hwSlider->setValue(yPosFraction * 127.f);
+    hwSlider->setValue(127 - (yPosFraction * 127.f));
 }
 
 bool MpcHardwareMouseListener::isPad()
