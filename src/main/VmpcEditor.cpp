@@ -19,7 +19,8 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     view = new View(vmpcProcessor.mpc,
                     vmpcProcessor.showAudioSettingsDialog,
                     vmpcProcessor.wrapperType,
-                    isInstrument);
+                    isInstrument,
+                    vmpcProcessor.shouldShowDisclaimer);
 
     const auto viewAspectRatio = view->getAspectRatio();
 

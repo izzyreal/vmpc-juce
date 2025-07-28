@@ -49,7 +49,8 @@ static std::vector<ComponentClass*> getChildComponentsOfClass(juce::Component *p
 View::View(mpc::Mpc &mpcToUse,
            const std::function<void()> &showAudioSettingsDialog,
            const juce::AudioProcessor::WrapperType wrapperType,
-           const std::function<bool()> isInstrument)
+           const std::function<bool()> isInstrument,
+           bool &shouldShowDisclaimer)
     : mpc(mpcToUse),
     getScale([this] { return (float) getHeight() / (float) base_height; }),
 
@@ -204,9 +205,13 @@ View::View(mpc::Mpc &mpcToUse,
     addAndMakeVisible(menu);
     addAndMakeVisible(tooltipOverlay);
 
-    const std::function<void()> deleteDisclaimerF = [this] { deleteDisclaimer(); };
-    disclaimer = new Disclaimer(getMainFontScaled, deleteDisclaimerF);
-    addAndMakeVisible(disclaimer);
+    if (shouldShowDisclaimer)
+    {
+        const std::function<void()> deleteDisclaimerF = [this] { deleteDisclaimer(); };
+        disclaimer = new Disclaimer(getMainFontScaled, deleteDisclaimerF);
+        addAndMakeVisible(disclaimer);
+        shouldShowDisclaimer = false;
+    }
 }
 
 const float View::getAspectRatio()
