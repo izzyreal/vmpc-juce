@@ -549,6 +549,49 @@ void VmpcProcessor::computeMpcAndHostOutputChannelIndicesToRender()
     }
 }
 
+static void generateTransportInfo(mpc::sequencer::ExternalClock &clock,
+                                  const float tempo,
+                                  const uint32_t sampleRate,
+                                  const uint16_t numSamples,
+                                  const double playStartPpqPosition)
+{
+        const double lastPpqPos = clock.getLastKnownPpqPosition();
+        const auto beatsPerFrame = 1.0 / ((1.0/(tempo/60.0)) * sampleRate);
+
+        const auto ppqPos = lastPpqPos == std::numeric_limits<double>::lowest() ? playStartPpqPosition : lastPpqPos + (numSamples * beatsPerFrame);
+
+        clock.computeTicksForCurrentBuffer(
+                    ppqPos,
+                    0.0,
+                    numSamples,
+                    sampleRate,
+                    tempo);
+}
+
+static void propagateTransportInfo(
+        mpc::sequencer::ExternalClock &clock,
+        const juce::AudioPlayHead *playHead,
+        const uint32_t sampleRate,
+        const uint16_t numSamples)
+{
+    const auto positionInfo = playHead->getPosition();
+    const auto ppqPos = positionInfo->getPpqPosition();
+    const auto ppqPosOfLastBarStart = positionInfo->getPpqPositionOfLastBarStart();
+    const auto tempo = positionInfo->getBpm();
+
+    if (ppqPos.hasValue() &&
+        ppqPosOfLastBarStart.hasValue() &&
+        tempo.hasValue())
+    {
+        clock.clearTicks();
+        clock.computeTicksForCurrentBuffer(*ppqPos,
+                                           *ppqPosOfLastBarStart,
+                                           numSamples,
+                                           sampleRate,
+                                           *tempo);
+    }
+}
+
 void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -585,22 +628,38 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
     processTransport();
     processMidiIn(midiMessages);
 
-    auto playHead = getPlayHead();
-
-    if (playHead != nullptr)
+    if (juce::JUCEApplication::isStandaloneApp())
     {
-        auto info = playHead->getPosition();
-        if (info->getIsPlaying())
+        if (mpc.getSequencer()->isPlaying())
         {
-            auto ppqPos = info->getPpqPosition();
-            if (ppqPos.hasValue())
-            {
-                mpc.getExternalClock()->clearTicks();
-                mpc.getExternalClock()->computeTicksForCurrentBuffer(*ppqPos,
-                                                                     *info->getPpqPositionOfLastBarStart(),
-                                                                     buffer.getNumSamples(), getSampleRate(),
-                                                                     m_Tempo);
-            }
+            generateTransportInfo(*mpc.getExternalClock(),
+                                  mpc.getSequencer()->getTempo(),
+                                  buffer.getNumSamples(),
+                                  getSampleRate(),
+                                  mpc.getSequencer()->getPlayStartPpqPosition());
+        }
+    }
+    else
+    {
+        const auto playHead = getPlayHead();
+        const bool isPlaying = playHead != nullptr &&
+                               playHead->getPosition().hasValue() &&
+                               playHead->getPosition()->getIsPlaying();
+
+        if (!isPlaying && mpc.getSequencer()->isPlaying())
+        {
+            generateTransportInfo(*mpc.getExternalClock(),
+                                  mpc.getSequencer()->getTempo(),
+                                  buffer.getNumSamples(),
+                                  getSampleRate(),
+                                  mpc.getSequencer()->getPlayStartPpqPosition());
+        }
+        else if (isPlaying)
+        {
+            propagateTransportInfo(*mpc.getExternalClock(),
+                                   playHead,
+                                   static_cast<uint32_t>(getSampleRate()),
+                                   static_cast<uint16_t>(buffer.getNumSamples()));
         }
     }
 
