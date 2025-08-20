@@ -544,7 +544,7 @@ void VmpcProcessor::processTransport()
         {
             mpc.getSequencer()->stop();
         }
-        else if (!isPlaying)
+        else if (!isPlaying && !mpc.getSequencer()->isPlaying())
         {
             const auto ppqPos = *info->getPpqPosition();
             const auto seqLengthInPpq = mpc::sequencer::Sequencer::tickToPpq(mpc.getSequencer()->getActiveSequence()->getLastTick());
