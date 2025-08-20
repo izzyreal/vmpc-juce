@@ -517,17 +517,48 @@ void VmpcProcessor::processTransport()
             m_Tempo = tempo;
         }
 
+        if (!isPlaying && *info->getPpqPosition() < 0)
+        {
+            MLOG("Not playing, but ppqPos is negative: " + std::to_string(*info->getPpqPosition()));
+        }
+
         if (!wasPlaying && isPlaying)
         {
             mpc.getSequencer()->setSongModeEnabled(mpc.getLayeredScreen()->getCurrentScreenName() == "song");
-            mpc.getSequencer()->playFromStart();
-        }
+            const auto ppqPos = *info->getPpqPosition();
+            const auto seqLengthInPpq = mpc::sequencer::Sequencer::tickToPpq(mpc.getSequencer()->getActiveSequence()->getLastTick());
+            
+            auto newMpcPpqPos = fmod(ppqPos, seqLengthInPpq);
+            
+            while (newMpcPpqPos < 0)
+            {
+                newMpcPpqPos += seqLengthInPpq;
+            }
 
-        if (wasPlaying && !isPlaying)
+            MLOG("Starting playing with reported ppqPos " + std::to_string(ppqPos));
+            mpc.getSequencer()->move(newMpcPpqPos);
+            mpc.getSequencer()->play();
+            //mpc.getSequencer()->playFromStart();
+        }
+        else if (wasPlaying && !isPlaying)
         {
             mpc.getSequencer()->stop();
         }
+        else if (!isPlaying)
+        {
+            const auto ppqPos = *info->getPpqPosition();
+            const auto seqLengthInPpq = mpc::sequencer::Sequencer::tickToPpq(mpc.getSequencer()->getActiveSequence()->getLastTick());
+            
+            auto newMpcPpqPos = fmod(ppqPos, seqLengthInPpq);
+            
+            while (newMpcPpqPos < 0)
+            {
+                newMpcPpqPos += seqLengthInPpq;
+            }
 
+            mpc.getSequencer()->move(newMpcPpqPos);
+        }
+        
         wasPlaying = isPlaying;
     }
 }
