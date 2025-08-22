@@ -670,11 +670,14 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
     {
         if (mpc.getSequencer()->isPlaying())
         {
+            const auto before = mpcClock->getLastProcessedIncomingPpqPosition();
             generateTransportInfo(*mpcClock,
                                   mpc.getSequencer()->getTempo(),
                                   getSampleRate(),
                                   buffer.getNumSamples(),
                                   mpc.getSequencer()->getPlayStartPpqPosition());
+            const auto after = mpcClock->getLastProcessedIncomingPpqPosition();
+            mpc.getSequencer()->bumpPpqPos(after - before);
         }
     }
     else
@@ -686,18 +689,24 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
 
         if (!isPlaying && mpc.getSequencer()->isPlaying())
         {
+            const auto before = mpcClock->getLastProcessedIncomingPpqPosition();
             generateTransportInfo(*mpcClock,
                                   mpc.getSequencer()->getTempo(),
                                   getSampleRate(),
                                   buffer.getNumSamples(),
                                   mpc.getSequencer()->getPlayStartPpqPosition());
+            const auto after = mpcClock->getLastProcessedIncomingPpqPosition();
+            mpc.getSequencer()->bumpPpqPos(after - before);
         }
         else if (isPlaying)
         {
+            const auto before = mpcClock->getLastProcessedIncomingPpqPosition();
             propagateTransportInfo(*mpcClock,
                                    playHead,
                                    static_cast<uint32_t>(getSampleRate()),
                                    static_cast<uint16_t>(buffer.getNumSamples()));
+            const auto after = mpcClock->getLastProcessedIncomingPpqPosition();
+            mpc.getSequencer()->bumpPpqPos(after - before);
         }
         else if (!isPlaying &&
                  !mpc.getSequencer()->isPlaying() &&
