@@ -669,7 +669,6 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
                                   getSampleRate(),
                                   buffer.getNumSamples(),
                                   mpc.getSequencer()->getPlayStartPpqPosition());
-            mpc.getSequencer()->bumpPpqPos(mpcClock->getLastProcessedPpqCount());
         }
     }
     else
@@ -687,7 +686,6 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
                                   getSampleRate(),
                                   buffer.getNumSamples(),
                                   mpc.getSequencer()->getPlayStartPpqPosition());
-            mpc.getSequencer()->bumpPpqPos(mpcClock->getLastProcessedPpqCount());
         }
         else if (isPlaying)
         {
