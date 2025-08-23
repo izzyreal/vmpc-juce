@@ -594,7 +594,8 @@ static void generateTransportInfo(mpc::sequencer::ExternalClock &clock,
                     0.0,
                     numSamples,
                     sampleRate,
-                    tempo);
+                    tempo,
+                    std::numeric_limits<int64_t>::lowest());
 }
 
 static void propagateTransportInfo(
@@ -607,16 +608,19 @@ static void propagateTransportInfo(
     const auto ppqPos = positionInfo->getPpqPosition();
     const auto ppqPosOfLastBarStart = positionInfo->getPpqPositionOfLastBarStart();
     const auto tempo = positionInfo->getBpm();
+    const auto timeInSamples = positionInfo->getTimeInSamples();
 
     if (ppqPos.hasValue() &&
         ppqPosOfLastBarStart.hasValue() &&
-        tempo.hasValue())
+        tempo.hasValue() &&
+        timeInSamples.hasValue())
     {
         clock.computeTicksForCurrentBuffer(*ppqPos,
                                            *ppqPosOfLastBarStart,
                                            numSamples,
                                            sampleRate,
-                                           *tempo);
+                                           *tempo,
+                                           *timeInSamples);
     }
 }
 
@@ -693,20 +697,17 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
                                    playHead,
                                    static_cast<uint32_t>(getSampleRate()),
                                    static_cast<uint16_t>(buffer.getNumSamples()));
-        }
-        else if (!isPlaying &&
-                 !mpc.getSequencer()->isPlaying() &&
-                 playHead != nullptr &&
-                 playHead->getPosition().hasValue() &&
-                 playHead->getPosition()->getPpqPosition().hasValue())
-        {
-            const auto ppqPos = playHead->getPosition()->getPpqPosition();
 
-            if (*ppqPos >= 0.0 &&
-                *ppqPos < (mpc::sequencer::Sequencer::tickToPpq(mpc.getSequencer()->getActiveSequence()->getLastTick())))
+            const auto seqLengthInPpq = mpc::sequencer::Sequencer::tickToPpq(mpc.getSequencer()->getCurrentlyPlayingSequence()->getLastTick());
+            
+            auto newMpcPpqPos = fmod(mpcClock->getLastProcessedIncomingPpqPosition(), seqLengthInPpq);
+            
+            while (newMpcPpqPos < 0)
             {
-                mpc.getSequencer()->move(*ppqPos);
+                newMpcPpqPos += seqLengthInPpq;
             }
+
+            mpc.getSequencer()->setPpqPos(newMpcPpqPos);
         }
     }
 
