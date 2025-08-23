@@ -517,11 +517,6 @@ void VmpcProcessor::processTransport()
             m_Tempo = tempo;
         }
 
-        if (!isPlaying && *info->getPpqPosition() < 0)
-        {
-            MLOG("Not playing, but ppqPos is negative: " + std::to_string(*info->getPpqPosition()));
-        }
-
         if (!wasPlaying && isPlaying)
         {
             mpc.getSequencer()->setSongModeEnabled(mpc.getLayeredScreen()->getCurrentScreenName() == "song");
@@ -535,10 +530,8 @@ void VmpcProcessor::processTransport()
                 newMpcPpqPos += seqLengthInPpq;
             }
 
-            MLOG("Starting playing with reported ppqPos " + std::to_string(ppqPos));
             mpc.getSequencer()->move(newMpcPpqPos);
             mpc.getSequencer()->play();
-            //mpc.getSequencer()->playFromStart();
         }
         else if (wasPlaying && !isPlaying)
         {
@@ -683,6 +676,7 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
     else
     {
         const auto playHead = getPlayHead();
+
         const bool isPlaying = playHead != nullptr &&
                                playHead->getPosition().hasValue() &&
                                playHead->getPosition()->getIsPlaying();
