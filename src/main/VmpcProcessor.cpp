@@ -683,6 +683,8 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
                                playHead->getPosition().hasValue() &&
                                playHead->getPosition()->getIsPlaying();
 
+        mpcClock->resetJumpOccurredInLastBuffer();
+
         if (!isPlaying && mpc.getSequencer()->isPlaying())
         {
             generateTransportInfo(*mpcClock,
