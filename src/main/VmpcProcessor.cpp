@@ -22,6 +22,7 @@
 #include <disk/AllLoader.hpp>
 #include <disk/AbstractDisk.hpp>
 
+#include <limits>
 #include <sequencer/Sequencer.hpp>
 #include <sequencer/ExternalClock.hpp>
 
@@ -520,14 +521,38 @@ void VmpcProcessor::processTransport()
         if (!wasPlaying && isPlaying)
         {
             mpc.getSequencer()->setSongModeEnabled(mpc.getLayeredScreen()->getCurrentScreenName() == "song");
-            mpc.getSequencer()->playFromStart();
-        }
+            const auto ppqPos = *info->getPpqPosition();
+            const auto seqLengthInPpq = mpc::sequencer::Sequencer::tickToPpq(mpc.getSequencer()->getActiveSequence()->getLastTick());
+            
+            auto newMpcPpqPos = fmod(ppqPos, seqLengthInPpq);
+            
+            while (newMpcPpqPos < 0)
+            {
+                newMpcPpqPos += seqLengthInPpq;
+            }
 
-        if (wasPlaying && !isPlaying)
+            mpc.getSequencer()->move(newMpcPpqPos);
+            mpc.getSequencer()->play();
+        }
+        else if (wasPlaying && !isPlaying)
         {
             mpc.getSequencer()->stop();
         }
+        else if (!isPlaying && !mpc.getSequencer()->isPlaying())
+        {
+            const auto ppqPos = *info->getPpqPosition();
+            const auto seqLengthInPpq = mpc::sequencer::Sequencer::tickToPpq(mpc.getSequencer()->getActiveSequence()->getLastTick());
+            
+            auto newMpcPpqPos = fmod(ppqPos, seqLengthInPpq);
+            
+            while (newMpcPpqPos < 0)
+            {
+                newMpcPpqPos += seqLengthInPpq;
+            }
 
+            mpc.getSequencer()->move(newMpcPpqPos);
+        }
+        
         wasPlaying = isPlaying;
     }
 }
@@ -546,6 +571,56 @@ void VmpcProcessor::computeMpcAndHostOutputChannelIndicesToRender()
             mpcMonoOutputChannelIndicesToRender.push_back(mpcMonoOutputChannelIndices[i]);
             hostOutputChannelIndicesToRender.push_back(hostOutputChannelIndices[i]);
         }
+    }
+}
+
+static void generateTransportInfo(mpc::sequencer::ExternalClock &clock,
+                                  const float tempo,
+                                  const uint32_t sampleRate,
+                                  const uint16_t numSamples,
+                                  const double playStartPpqPosition)
+{
+        const double lastPpqPos = clock.getLastProcessedIncomingPpqPosition();
+        const auto beatsPerFrame = 1.0 / ((1.0/(tempo/60.0)) * sampleRate);
+
+        // This approach does not 100% mimic the values that Reaper produces. Although it comes close, Reaper's values are 100% the same if we would
+        // compute without accumulating PPQ, and instead keep track of the number of buffers that already passed.
+        // I'm currently not sure if this actually needs to be addressed. My gut is that both implementations are more than accurate and correct
+        // enough for most artistic intents and purposes.
+        const auto ppqPos = lastPpqPos == std::numeric_limits<double>::lowest() ? playStartPpqPosition : (lastPpqPos + (numSamples * beatsPerFrame));
+
+        clock.computeTicksForCurrentBuffer(
+                    ppqPos,
+                    0.0,
+                    numSamples,
+                    sampleRate,
+                    tempo,
+                    std::numeric_limits<int64_t>::lowest());
+}
+
+static void propagateTransportInfo(
+        mpc::sequencer::ExternalClock &clock,
+        const juce::AudioPlayHead *playHead,
+        const uint32_t sampleRate,
+        const uint16_t numSamples)
+{
+    const auto positionInfo = playHead->getPosition();
+    const auto ppqPos = positionInfo->getPpqPosition();
+    const auto ppqPosOfLastBarStart = positionInfo->getPpqPositionOfLastBarStart();
+    const auto tempo = positionInfo->getBpm();
+    const auto timeInSamples = positionInfo->getTimeInSamples();
+
+    if (ppqPos.hasValue() &&
+        ppqPosOfLastBarStart.hasValue() &&
+        tempo.hasValue() &&
+        timeInSamples.hasValue())
+    {
+        clock.computeTicksForCurrentBuffer(*ppqPos,
+                                           *ppqPosOfLastBarStart,
+                                           numSamples,
+                                           sampleRate,
+                                           *tempo,
+                                           *timeInSamples);
     }
 }
 
@@ -585,22 +660,56 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
     processTransport();
     processMidiIn(midiMessages);
 
-    auto playHead = getPlayHead();
+    auto mpcClock = mpc.getExternalClock();
 
-    if (playHead != nullptr)
+    mpcClock->clearTicks();
+
+    if (juce::JUCEApplication::isStandaloneApp())
     {
-        auto info = playHead->getPosition();
-        if (info->getIsPlaying())
+        if (mpc.getSequencer()->isPlaying())
         {
-            auto ppqPos = info->getPpqPosition();
-            if (ppqPos.hasValue())
+            generateTransportInfo(*mpcClock,
+                                  mpc.getSequencer()->getTempo(),
+                                  getSampleRate(),
+                                  buffer.getNumSamples(),
+                                  mpc.getSequencer()->getPlayStartPpqPosition());
+        }
+    }
+    else
+    {
+        const auto playHead = getPlayHead();
+
+        const bool isPlaying = playHead != nullptr &&
+                               playHead->getPosition().hasValue() &&
+                               playHead->getPosition()->getIsPlaying();
+
+        mpcClock->resetJumpOccurredInLastBuffer();
+
+        if (!isPlaying && mpc.getSequencer()->isPlaying())
+        {
+            generateTransportInfo(*mpcClock,
+                                  mpc.getSequencer()->getTempo(),
+                                  getSampleRate(),
+                                  buffer.getNumSamples(),
+                                  mpc.getSequencer()->getPlayStartPpqPosition());
+        }
+        else if (isPlaying)
+        {
+            propagateTransportInfo(*mpcClock,
+                                   playHead,
+                                   static_cast<uint32_t>(getSampleRate()),
+                                   static_cast<uint16_t>(buffer.getNumSamples()));
+
+            const auto seqLengthInPpq = mpc::sequencer::Sequencer::tickToPpq(mpc.getSequencer()->getCurrentlyPlayingSequence()->getLastTick());
+            
+            auto newMpcPpqPos = fmod(mpcClock->getLastProcessedIncomingPpqPosition(), seqLengthInPpq);
+            
+            while (newMpcPpqPos < 0)
             {
-                mpc.getExternalClock()->clearTicks();
-                mpc.getExternalClock()->computeTicksForCurrentBuffer(*ppqPos,
-                                                                     *info->getPpqPositionOfLastBarStart(),
-                                                                     buffer.getNumSamples(), getSampleRate(),
-                                                                     m_Tempo);
+                newMpcPpqPos += seqLengthInPpq;
             }
+
+            mpc.getSequencer()->setPpqPos(newMpcPpqPos);
         }
     }
 
