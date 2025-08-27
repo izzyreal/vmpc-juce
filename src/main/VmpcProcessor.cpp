@@ -520,21 +520,28 @@ void VmpcProcessor::processTransport()
 
         if (!wasPlaying && isPlaying)
         {
-            mpc.getSequencer()->setSongModeEnabled(mpc.getLayeredScreen()->getCurrentScreenName() == "song");
-            const auto positionQuarterNotes = *info->getPpqPosition();
-            const auto seqLengthQuarterNotes = mpc::sequencer::Sequencer::ticksToQuarterNotes(mpc.getSequencer()->getActiveSequence()->getLastTick());
-            
-            auto newMpcPositionQuarterNotes = fmod(positionQuarterNotes, seqLengthQuarterNotes);
-            
-            while (newMpcPositionQuarterNotes < 0)
+            const bool songModeEnabled = mpc.getLayeredScreen()->getCurrentScreenName() == "song";
+
+            mpc.getSequencer()->setSongModeEnabled(songModeEnabled);
+
+            if (!songModeEnabled)
             {
-                newMpcPositionQuarterNotes += seqLengthQuarterNotes;
+                const auto positionQuarterNotes = *info->getPpqPosition();
+                const auto seqLengthQuarterNotes = mpc::sequencer::Sequencer::ticksToQuarterNotes(mpc.getSequencer()->getActiveSequence()->getLastTick());
+                
+                auto newMpcPositionQuarterNotes = fmod(positionQuarterNotes, seqLengthQuarterNotes);
+                
+                while (newMpcPositionQuarterNotes < 0)
+                {
+                    newMpcPositionQuarterNotes += seqLengthQuarterNotes;
+                }
+
+                mpc.getSequencer()->move(newMpcPositionQuarterNotes);
             }
 
-            mpc.getSequencer()->move(newMpcPositionQuarterNotes);
             mpc.getSequencer()->play();
         }
-        else if (wasPlaying && !isPlaying)
+        else if (wasPlaying && !isPlaying && mpc.getSequencer()->isPlaying())
         {
             mpc.getSequencer()->stop();
         }
@@ -692,7 +699,7 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
                                   buffer.getNumSamples(),
                                   mpc.getSequencer()->getPlayStartPositionQuarterNotes());
         }
-        else if (isPlaying)
+        else if (isPlaying && mpc.getSequencer()->isPlaying())
         {
             propagateTransportInfo(*mpcClock,
                                    playHead,
