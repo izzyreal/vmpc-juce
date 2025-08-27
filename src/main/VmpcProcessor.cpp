@@ -520,23 +520,20 @@ void VmpcProcessor::processTransport()
 
         if (!wasPlaying && isPlaying)
         {
-            const bool songModeEnabled = mpc.getLayeredScreen()->getCurrentScreenName() == "song";
+            const bool shouldEnableSongMode = mpc.getLayeredScreen()->getCurrentScreenName() == "song";
 
-            mpc.getSequencer()->setSongModeEnabled(songModeEnabled);
+            mpc.getSequencer()->setSongModeEnabled(shouldEnableSongMode);
 
-            if (!songModeEnabled)
+            const auto positionQuarterNotes = *info->getPpqPosition();
+            const bool inSongScreen = mpc.getLayeredScreen()->getCurrentScreenName() == "song";
+            
+            if (inSongScreen)
             {
-                const auto positionQuarterNotes = *info->getPpqPosition();
-                const auto seqLengthQuarterNotes = mpc::sequencer::Sequencer::ticksToQuarterNotes(mpc.getSequencer()->getActiveSequence()->getLastTick());
-                
-                auto newMpcPositionQuarterNotes = fmod(positionQuarterNotes, seqLengthQuarterNotes);
-                
-                while (newMpcPositionQuarterNotes < 0)
-                {
-                    newMpcPositionQuarterNotes += seqLengthQuarterNotes;
-                }
-
-                mpc.getSequencer()->move(newMpcPositionQuarterNotes);
+                mpc.getSequencer()->moveWithinSong(positionQuarterNotes);
+            }
+            else
+            {
+                mpc.getSequencer()->move(positionQuarterNotes);
             }
 
             mpc.getSequencer()->play();
@@ -544,20 +541,27 @@ void VmpcProcessor::processTransport()
         else if (wasPlaying && !isPlaying && mpc.getSequencer()->isPlaying())
         {
             mpc.getSequencer()->stop();
+            previousPositionQuarterNotes = std::numeric_limits<double>::lowest();
         }
         else if (!isPlaying && !mpc.getSequencer()->isPlaying())
         {
             const auto positionQuarterNotes = *info->getPpqPosition();
-            const auto seqLengthQuarterNotes = mpc::sequencer::Sequencer::ticksToQuarterNotes(mpc.getSequencer()->getActiveSequence()->getLastTick());
-            
-            auto newMpcPositionQuarterNotes = fmod(positionQuarterNotes, seqLengthQuarterNotes);
-            
-            while (newMpcPositionQuarterNotes < 0)
-            {
-                newMpcPositionQuarterNotes += seqLengthQuarterNotes;
-            }
 
-            mpc.getSequencer()->move(newMpcPositionQuarterNotes);
+            if (positionQuarterNotes != previousPositionQuarterNotes)
+            {
+                const bool inSongScreen = mpc.getLayeredScreen()->getCurrentScreenName() == "song";
+                
+                if (inSongScreen)
+                {
+                    mpc.getSequencer()->moveWithinSong(positionQuarterNotes);
+                }
+                else
+                {
+                    mpc.getSequencer()->move(positionQuarterNotes);
+                }
+
+                previousPositionQuarterNotes = positionQuarterNotes;
+            }
         }
         
         wasPlaying = isPlaying;
@@ -705,17 +709,6 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
                                    playHead,
                                    static_cast<uint32_t>(getSampleRate()),
                                    static_cast<uint16_t>(buffer.getNumSamples()));
-
-            const auto seqLengthQuarterNotes = mpc::sequencer::Sequencer::ticksToQuarterNotes(mpc.getSequencer()->getCurrentlyPlayingSequence()->getLastTick());
-            
-            auto newMpcPositionQuarterNotes = fmod(mpcClock->getLastProcessedHostPositionQuarterNotes(), seqLengthQuarterNotes);
-            
-            while (newMpcPositionQuarterNotes < 0)
-            {
-                newMpcPositionQuarterNotes += seqLengthQuarterNotes;
-            }
-
-            mpc.getSequencer()->setPosition(newMpcPositionQuarterNotes);
         }
     }
 

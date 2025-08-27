@@ -6,6 +6,7 @@
 #include <FixedVector.hpp>
 
 #include <array>
+#include <limits>
 
 namespace mpc::engine::midi { class ShortMessage; }
 
@@ -90,6 +91,7 @@ class VmpcProcessor  : public juce::AudioProcessor {
         double m_Tempo = 0;
         bool wasPlaying = false;
         int framesProcessed = 0;
+        double previousPositionQuarterNotes = std::numeric_limits<double>::lowest();
 
         std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>> midiOutputBuffer =
             std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>>(100);
