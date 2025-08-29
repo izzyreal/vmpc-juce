@@ -203,6 +203,15 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
 
     const auto wrapper = juce::PluginHostType::jucePlugInClientCurrentWrapperType;
     const bool isStandalone = juce::JUCEApplication::isStandaloneApp();
+
+    if (isStandalone)
+    {
+        juce::AudioProcessor::BusesProperties result;
+        result.addBus(false, "OUTPUT", C::discreteChannels(10));
+        result.addBus(true, "RECORD", C::discreteChannels(2));
+        return result;
+    }
+
     const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
     const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
 
@@ -216,13 +225,6 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
         monoInCount = 0;
         stereoInCount = 1;
         monoOutCount = 8;
-        stereoOutCount = 5;
-    }
-    else if (isStandalone)
-    {
-        monoInCount = 0;
-        stereoInCount = 1;
-        monoOutCount = 0;
         stereoOutCount = 5;
     }
     else /* if LV2 or VST3 */
@@ -264,6 +266,11 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
 
 bool VmpcProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
+    if (juce::JUCEApplication::isStandaloneApp())
+    {
+        return true;
+    }
+
     if (!juce::JUCEApplication::isStandaloneApp())
     {
         if (layouts.getMainInputChannelSet() != juce::AudioChannelSet::stereo() &&
@@ -1052,6 +1059,44 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
     mpcMonoOutputChannelIndices.clear();
     hostInputChannelIndices.clear();
     hostOutputChannelIndices.clear();
+    lastHostChannelIndexThatWillBeWritten = 0;
+
+    if (juce::JUCEApplication::isStandaloneApp())
+    {
+        assert(getBusCount(false) == 1);
+
+        for (int i = 0; i < getBus(false, 0)->getNumberOfChannels(); i++)
+        {
+            if (i > 9)
+            {
+                break;
+            }
+
+            mpcMonoOutputChannelIndices.push_back(i);
+            hostOutputChannelIndices.push_back(getBus(false, 0)->getChannelIndexInProcessBlockBuffer(i));
+            lastHostChannelIndexThatWillBeWritten = std::max<uint8_t>(lastHostChannelIndexThatWillBeWritten, hostOutputChannelIndices.back());
+        }
+
+        for (int i = 0; i < getBus(true, 0)->getNumberOfChannels(); i++)
+        {
+            if (i > 1)
+            {
+                break;
+            }
+
+            mpcMonoInputChannelIndices.push_back(i);
+            hostInputChannelIndices.push_back(getBus(true, 0)->getChannelIndexInProcessBlockBuffer(i));
+        }
+
+        if (mpcMonoInputChannelIndices.size() == 1 &&
+            hostInputChannelIndices.size() == 1)
+        {
+            mpcMonoInputChannelIndices.push_back(mpcMonoInputChannelIndices.back() + 1);
+            hostInputChannelIndices.push_back(hostInputChannelIndices.back());
+        }
+
+        return;
+    }
 
     int mpcMonoChannelCounter = 0;
 
