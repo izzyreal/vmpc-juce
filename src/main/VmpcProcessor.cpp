@@ -717,6 +717,11 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
                                    static_cast<uint32_t>(getSampleRate()),
                                    static_cast<uint16_t>(buffer.getNumSamples()));
         }
+        else if (isPlaying)
+        {
+            const auto newMpcPositionQuarterNotes = mpcClock->getLastProcessedHostPositionQuarterNotes();
+            mpc.getSequencer()->setPosition(newMpcPositionQuarterNotes);
+        }
     }
 
     auto chDataIn = buffer.getArrayOfReadPointers();
