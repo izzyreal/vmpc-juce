@@ -719,8 +719,16 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
         }
         else if (isPlaying)
         {
-            const auto newMpcPositionQuarterNotes = mpcClock->getLastProcessedHostPositionQuarterNotes();
-            mpc.getSequencer()->setPosition(newMpcPositionQuarterNotes);
+            const bool inSongScreen = mpc.getLayeredScreen()->getCurrentScreenName() == "song";
+
+            if (inSongScreen)
+            {
+                mpc.getSequencer()->setPositionWithinSong(mpcClock->getLastProcessedHostPositionQuarterNotes());
+            }
+            else
+            {
+                mpc.getSequencer()->setPosition(mpcClock->getLastProcessedHostPositionQuarterNotes());
+            }
         }
     }
 
