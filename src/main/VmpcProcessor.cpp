@@ -190,6 +190,8 @@ void VmpcProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 
     computeHostToMpcChannelMappings();
 
+    previousHostOutputChannelIndicesToRender.push_back(std::numeric_limits<uint8_t>::max());
+
     //logActualBusLayout();
 }
 
