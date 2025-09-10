@@ -595,32 +595,6 @@ void VmpcProcessor::computeMpcAndHostOutputChannelIndicesToRender()
     }
 }
 
-static void generateTransportInfo(mpc::sequencer::Clock &clock,
-                                  const float tempo,
-                                  const uint32_t sampleRate,
-                                  const uint16_t numSamples,
-                                  const double playStartPositionQuarterNotes)
-{
-        const double lastProcessedPositionQuarterNotes = clock.getLastProcessedHostPositionQuarterNotes();
-        const auto beatsPerFrame = 1.0 / ((1.0/(tempo/60.0)) * sampleRate);
-
-        // This approach does not 100% mimic the values that Reaper produces. Although it comes close, Reaper's values are 100% the same if we would
-        // compute without accumulating quarter notes, and instead keep track of the number of buffers that already passed.
-        // I'm currently not sure if this actually needs to be addressed. My gut is that both implementations are more than accurate and correct
-        // enough for most artistic intents and purposes.
-        const auto newPositionQuarterNotes =
-            lastProcessedPositionQuarterNotes == std::numeric_limits<double>::lowest() ?
-            playStartPositionQuarterNotes :
-            (lastProcessedPositionQuarterNotes + (numSamples * beatsPerFrame));
-
-        clock.computeTicksForCurrentBuffer(
-                    newPositionQuarterNotes,
-                    numSamples,
-                    sampleRate,
-                    tempo,
-                    std::numeric_limits<int64_t>::lowest());
-}
-
 static void propagateTransportInfo(
         mpc::sequencer::Clock &clock,
         const juce::AudioPlayHead *playHead,
@@ -688,11 +662,10 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
     {
         if (mpc.getSequencer()->isPlaying())
         {
-            generateTransportInfo(*mpcClock,
-                                  mpc.getSequencer()->getTempo(),
-                                  getSampleRate(),
-                                  buffer.getNumSamples(),
-                                  mpc.getSequencer()->getPlayStartPositionQuarterNotes());
+            mpcClock->generateTransportInfo(mpc.getSequencer()->getTempo(),
+                                            getSampleRate(),
+                                            buffer.getNumSamples(),
+                                            mpc.getSequencer()->getPlayStartPositionQuarterNotes());
         }
     }
     else
@@ -707,11 +680,10 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
 
         if (!isPlaying && mpc.getSequencer()->isPlaying())
         {
-            generateTransportInfo(*mpcClock,
-                                  mpc.getSequencer()->getTempo(),
-                                  getSampleRate(),
-                                  buffer.getNumSamples(),
-                                  mpc.getSequencer()->getPlayStartPositionQuarterNotes());
+            mpcClock->generateTransportInfo(mpc.getSequencer()->getTempo(),
+                                            getSampleRate(),
+                                            buffer.getNumSamples(),
+                                            mpc.getSequencer()->getPlayStartPositionQuarterNotes());
         }
         else if (isPlaying && mpc.getSequencer()->isPlaying())
         {
