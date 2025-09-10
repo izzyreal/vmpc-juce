@@ -24,7 +24,7 @@
 
 #include <limits>
 #include <sequencer/Sequencer.hpp>
-#include <sequencer/ExternalClock.hpp>
+#include <sequencer/Clock.hpp>
 
 #include <lcdgui/screens/SyncScreen.hpp>
 #include <lcdgui/screens/window/DirectoryScreen.hpp>
@@ -595,7 +595,7 @@ void VmpcProcessor::computeMpcAndHostOutputChannelIndicesToRender()
     }
 }
 
-static void generateTransportInfo(mpc::sequencer::ExternalClock &clock,
+static void generateTransportInfo(mpc::sequencer::Clock &clock,
                                   const float tempo,
                                   const uint32_t sampleRate,
                                   const uint16_t numSamples,
@@ -622,7 +622,7 @@ static void generateTransportInfo(mpc::sequencer::ExternalClock &clock,
 }
 
 static void propagateTransportInfo(
-        mpc::sequencer::ExternalClock &clock,
+        mpc::sequencer::Clock &clock,
         const juce::AudioPlayHead *playHead,
         const uint32_t sampleRate,
         const uint16_t numSamples)
@@ -680,7 +680,7 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
     processTransport();
     processMidiIn(midiMessages);
 
-    auto mpcClock = mpc.getExternalClock();
+    auto mpcClock = mpc.getClock();
 
     mpcClock->clearTicks();
 
