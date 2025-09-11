@@ -610,7 +610,7 @@ static void propagateTransportInfo(
         tempo.hasValue() &&
         timeInSamples.hasValue())
     {
-        clock.computeTicksForCurrentBuffer(*hostPositionQuarterNotes,
+        clock.processBufferExternal(*hostPositionQuarterNotes,
                                            numSamples,
                                            sampleRate,
                                            *tempo,
@@ -656,8 +656,6 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
 
     auto mpcClock = mpc.getClock();
 
-    mpcClock->clearTicks();
-
     if (juce::JUCEApplication::isStandaloneApp())
     {
         if (mpc.getSequencer()->isPlaying())
@@ -675,8 +673,6 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
         const bool isPlaying = playHead != nullptr &&
                                playHead->getPosition().hasValue() &&
                                playHead->getPosition()->getIsPlaying();
-
-        mpcClock->resetJumpOccurredInLastBuffer();
 
         if (!isPlaying && mpc.getSequencer()->isPlaying())
         {
