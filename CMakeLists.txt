@@ -246,8 +246,9 @@ endif()
 endif()
 
 if(MSVC)
-  getAndIncludeASIOSDK(asiosdk_2.3.3_2019-06-14)
-	target_compile_options(vmpc2000xl PRIVATE "/MP")
+    getAndIncludeASIOSDK(asiosdk_2.3.3_2019-06-14)
+    target_compile_options(vmpc2000xl PRIVATE "/MP")
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
 endif()
 
 if(GIT_FOUND)
