@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.18)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
+endif()
+
 #add_definitions(-DJUCE_ENABLE_REPAINT_DEBUGGING)
 #add_compile_definitions(JUCE_IOS_AUDIO_LOGGING=1)
 
