@@ -2,10 +2,6 @@ cmake_minimum_required(VERSION 3.18)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if(MSVC)
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
-endif()
-
 #add_definitions(-DJUCE_ENABLE_REPAINT_DEBUGGING)
 #add_compile_definitions(JUCE_IOS_AUDIO_LOGGING=1)
 
@@ -40,7 +36,11 @@ set (JUCE_ENABLE_MODULE_SOURCE_GROUPS ON)
 set (JUCE_COPY_PLUGIN_AFTER_BUILD ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
-project(vmpc2000xl VERSION ${VMPC_VERSION})
+project(vmpc2000xl VERSION ${VMPC_VERSION} LANGUAGES C CXX OBJC OBJCXX)
+
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
+endif()
 
 string(TIMESTAMP CONFIGURE_TIMESTAMP "%a %d %b %H:%M:%S %Z")
 file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/src/main/version.h "#pragma once\nnamespace version { static char const* get(){ return \"${VMPC_VERSION}\"; } static char const* getTimeStamp(){ return \"${CONFIGURE_TIMESTAMP}\"; }}")
