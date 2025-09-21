@@ -916,7 +916,7 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
             }
 
             sound->setMono(sndReader.isMono());
-            sndReader.readData(*sound->getSampleData());
+            sndReader.readData(sound->getMutableSampleData());
             sound->setName(sndReader.getName());
             sound->setTune(sndReader.getTune());
             sound->setLevel(sndReader.getLevel());
