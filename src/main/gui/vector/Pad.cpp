@@ -184,14 +184,6 @@ void Pad::filesDropped(const juce::StringArray &files, int, int)
 
 void Pad::timerCallback()
 {
-    /*
-    if (isShowingKeyboardMapping())
-    {
-        VmpcTooltipComponent::timerCallback();
-        return;
-    }
-    */
-
     if (fading)
     {
         glowSvg->setAlpha(glowSvg->getAlpha() - 0.08f);
