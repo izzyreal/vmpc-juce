@@ -34,7 +34,6 @@ private:
 
 public:
     void resized() override;
-    void paint(juce::Graphics &g) override;
     void mouseDrag(const juce::MouseEvent &event) override;
     void timerCallback() override;
     bool isInterestedInFileDrag(const juce::StringArray &files) override;

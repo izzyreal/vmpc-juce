@@ -248,13 +248,6 @@ void Pad::mouseDrag(const juce::MouseEvent &event)
     pad.lock()->setPressure(static_cast<unsigned char>(newVelo));
 }
 
-void Pad::paint(juce::Graphics &g)
-{
-    SvgComponent::paint(g);
-
-    //VmpcTooltipComponent::paintButton(g, true, true);
-}
-
 void Pad::resized()
 {
     SvgComponent::resized();
