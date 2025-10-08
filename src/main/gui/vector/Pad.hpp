@@ -2,28 +2,24 @@
 
 #include "SvgComponent.hpp"
 
-#include <Observer.hpp>
-
 #include <memory>
 
 namespace mpc { class Mpc; }
 
-namespace mpc::hardware {
-    class HwPad;
+namespace mpc::hardware2 {
+    class Pad;
 }
 
 namespace vmpc_juce::gui::vector {
 
-class Pad
-        : public SvgComponent,
-          public juce::Timer,
-          public juce::FileDragAndDropTarget,
-          public mpc::Observer
+class Pad : public SvgComponent,
+            public juce::Timer,
+            public juce::FileDragAndDropTarget
 {
 
 private:
     mpc::Mpc &mpc;
-    std::weak_ptr<mpc::hardware::HwPad> pad;
+    std::shared_ptr<mpc::hardware2::Pad> mpcPad;
     juce::Rectangle<int> rect;
     SvgComponent *glowSvg = nullptr;
 
@@ -39,9 +35,11 @@ public:
     bool isInterestedInFileDrag(const juce::StringArray &files) override;
     void filesDropped(const juce::StringArray &files, int x, int y) override;
 
-    void update(mpc::Observable *o, mpc::Message message) override;
+    Pad(juce::Component *commonParentWithShadowToUse,
+        const float shadowSizeToUse,
+        const std::function<float()> &getScaleToUse,
+        mpc::Mpc &, std::shared_ptr<mpc::hardware2::Pad>);
 
-    Pad(juce::Component *commonParentWithShadowToUse, const float shadowSizeToUse, const std::function<float()> &getScaleToUse, mpc::Mpc &, std::weak_ptr<mpc::hardware::HwPad>);
     ~Pad() override;
 };
 

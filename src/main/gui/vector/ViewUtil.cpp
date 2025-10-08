@@ -24,7 +24,8 @@
 
 #include "hardware/Hardware.hpp"
 #include "hardware/Button.hpp"
-#include "hardware/HwPad.hpp"
+#include "hardware2/Hardware2.h"
+#include "hardware2/HardwareComponent.h"
 #include "hardware/DataWheel.hpp"
 #include "hardware/Pot.hpp"
 #include "hardware/HwSlider.hpp"
@@ -193,8 +194,8 @@ void ViewUtil::createComponent(
         assert(n.name.length() == 5 || n.name.length() == 6);
         const auto digitsString = n.name.substr(4);
         const auto padNumber = std::stoi(digitsString);
-        auto hwPad = mpc.getHardware()->getPad(padNumber - 1);
-        auto pad = new Pad(parent, n.shadow_size, getScale, mpc, hwPad);
+        auto mpcPad = mpc.getHardware2()->getPad(padNumber - 1);
+        auto pad = new Pad(parent, n.shadow_size, getScale, mpc, mpcPad);
         n.svg_component = pad;
         components.push_back(pad);
         addShadow(n, getScale, pad, parent, components);

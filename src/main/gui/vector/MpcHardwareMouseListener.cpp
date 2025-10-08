@@ -1,5 +1,7 @@
 #include "MpcHardwareMouseListener.hpp"
 
+#include "hardware2/Hardware2.h"
+
 #include "Knob.hpp"
 
 #include "TooltipOverlay.hpp"
@@ -68,9 +70,9 @@ void MpcHardwareMouseListener::pushHardware(const juce::MouseEvent &e)
     {
         const auto digitsString = label.substr(4);
         const auto padNumber = std::stoi(digitsString);
-        auto pad = mpc.getHardware()->getPad(padNumber - 1);
-        const auto velocity = 127 - ((e.position.getY() / e.eventComponent->getBounds().getHeight()) * 127.f);
-        pad->push(velocity);
+        auto mpcPad = mpc.getHardware2()->getPad(padNumber - 1);
+        const auto velocity = std::clamp(static_cast<int>(127 - ((e.position.getY() / (float)e.eventComponent->getBounds().getHeight()) * 127.f)), 0, 127);
+        mpcPad->pressWithVelocity(velocity);
         return;
     }
     else if (label == "cursor")

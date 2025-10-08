@@ -12,6 +12,9 @@
 #include "Mpc.hpp"
 #include "hardware/Hardware.hpp"
 #include "hardware/DataWheel.hpp"
+#include "inputlogic/HardwareTranslator.h"
+#include "inputlogic/InputMapper.h"
+#include "inputlogic/InputAction.h"
 
 namespace vmpc_juce::gui::vector {
 
@@ -129,12 +132,14 @@ namespace vmpc_juce::gui::vector {
                     {
                         pixelCounter -= candidate;
                         mpc.getHardware()->getDataWheel()->turn(candidate);
+                        mpc.inputMapper.trigger(mpc::inputlogic::HardwareTranslator::fromDataWheelTurn(candidate));
                     }
 
                 }
                 else
                 {
                     mpc.getHardware()->getDataWheel()->turn(dY);
+                    mpc.inputMapper.trigger(mpc::inputlogic::HardwareTranslator::fromDataWheelTurn(dY));
                 }
 
                 lastDy = event.getDistanceFromDragStartY();
@@ -143,7 +148,11 @@ namespace vmpc_juce::gui::vector {
             void mouseWheelMove(const juce::MouseEvent &e, const juce::MouseWheelDetails &wheel) override
             {
                 auto dw = mpc.getHardware()->getDataWheel();
-                mouseWheelControllable.processWheelEvent(wheel, [&dw](int increment) { dw->turn(increment); });
+                auto &inputMapper = mpc.inputMapper;
+                mouseWheelControllable.processWheelEvent(wheel, [&dw, &inputMapper](int increment) {
+                        inputMapper.trigger(mpc::inputlogic::HardwareTranslator::fromDataWheelTurn(increment));
+                        dw->turn(increment);
+                        });
             }
 
             void resized() override

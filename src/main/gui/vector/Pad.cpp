@@ -1,7 +1,7 @@
 #include "Pad.hpp"
 
 #include <hardware/Hardware.hpp>
-#include <hardware/HwPad.hpp>
+#include "hardware2/HardwareComponent.h"
 
 #include <Mpc.hpp>
 #include "file/AkaiName.hpp"
@@ -27,10 +27,13 @@ using namespace mpc::disk;
 using namespace mpc::lcdgui::screens::window;
 using namespace mpc::lcdgui::screens::dialog2;
 
-Pad::Pad(juce::Component *commonParentWithShadowToUse, const float shadowSizeToUse, const std::function<float()> &getScaleToUse, mpc::Mpc &mpcToUse, std::weak_ptr<mpc::hardware::HwPad> padToUse)
-    : SvgComponent({"pad.svg", "pressed_pad.svg"}, commonParentWithShadowToUse, shadowSizeToUse, getScaleToUse), mpc(mpcToUse), pad(padToUse)
+Pad::Pad(juce::Component *commonParentWithShadowToUse,
+         const float shadowSizeToUse,
+         const std::function<float()> &getScaleToUse,
+         mpc::Mpc &mpcToUse,
+         std::shared_ptr<mpc::hardware2::Pad> mpcPadToUse)
+    : SvgComponent({"pad.svg", "pressed_pad.svg"}, commonParentWithShadowToUse, shadowSizeToUse, getScaleToUse), mpc(mpcToUse), mpcPad(mpcPadToUse)
 {
-    pad.lock()->addObserver(this);
     glowSvg = new SvgComponent({"pad_glow.svg"}, commonParentWithShadowToUse, 0.f, getScaleToUse);
     glowSvg->setAlpha(0.f);
     addAndMakeVisible(glowSvg);
@@ -156,7 +159,7 @@ void Pad::loadFile(const juce::String path, bool shouldBeConverted, std::string 
         auto programIndex = drum.getProgram();
         auto program = mpc.getSampler()->getProgram(programIndex);
         auto soundIndex = mpc.getSampler()->getSoundCount() - 1;
-        auto padIndex = pad.lock()->getIndex() + (mpc.getBank() * 16);
+        auto padIndex = mpcPad->getIndex() + (mpc.getBank() * 16);
         auto programPad = program->getPad(padIndex);
         auto padNote = programPad->getNote();
 
@@ -198,6 +201,7 @@ void Pad::timerCallback()
     repaint();
 }
 
+/*
 void Pad::update(mpc::Observable *, mpc::Message message)
 {
     const auto handleUpdate = [message, this] {
@@ -232,6 +236,7 @@ void Pad::update(mpc::Observable *, mpc::Message message)
         juce::MessageManager::callAsync(handleUpdate);
     }
 }
+*/
 
 int Pad::getVelo(int veloY)
 {
@@ -240,12 +245,14 @@ int Pad::getVelo(int veloY)
 
 void Pad::mouseDrag(const juce::MouseEvent &event)
 {
-    if (!pad.lock()->isPressed())
+    if (!mpcPad->isPressed())
+    {
         return;
+    }
 
     auto newVelo = getVelo(event.y);
 
-    pad.lock()->setPressure(static_cast<unsigned char>(newVelo));
+    mpcPad->aftertouch(static_cast<unsigned char>(newVelo));
 }
 
 void Pad::resized()
@@ -256,6 +263,6 @@ void Pad::resized()
 
 Pad::~Pad()
 {
-    pad.lock()->deleteObserver(this);
     delete glowSvg;
 }
+
