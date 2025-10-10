@@ -5,7 +5,6 @@
 #include "Mpc.hpp"
 #include "hardware/Hardware.hpp"
 #include "hardware/Pot.hpp"
-#include "hardware/HwSlider.hpp"
 #include "controls/KbMapping.hpp"
 
 #if __APPLE__

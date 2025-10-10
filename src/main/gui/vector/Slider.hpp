@@ -4,8 +4,8 @@
 #include "RectangleLabel.hpp"
 #include "Constants.hpp"
 #include "SvgComponent.hpp"
-#include "hardware/HwSlider.hpp"
-#include "juce_graphics/juce_graphics.h"
+
+#include "hardware2/HardwareComponent.h"
 
 namespace vmpc_juce::gui::vector {
 
@@ -15,7 +15,7 @@ class Slider : public juce::Component, juce::Timer {
                 const std::function<float()> &getScaleToUse,
                 const float shadowSize,
                 const std::function<juce::Font&()> &getMainFontScaled,
-                const std::shared_ptr<mpc::hardware::Slider> mpcSliderToUse)
+                const std::shared_ptr<mpc::hardware2::Slider> mpcSliderToUse)
             : mpcSlider(mpcSliderToUse), getScale(getScaleToUse)
         {
             rectangleLabel = new RectangleLabel(getScaleToUse, "NOTE\nVARIATION", "VARIATION", Constants::chassisColour, Constants::labelColour, 0.f, 7.f, getMainFontScaled);
@@ -117,7 +117,7 @@ class Slider : public juce::Component, juce::Timer {
         SvgComponent *sliderCapSvg = nullptr;
 
     private:
-        const std::shared_ptr<mpc::hardware::Slider> mpcSlider;
+        const std::shared_ptr<mpc::hardware2::Slider> mpcSlider;
         RectangleLabel *rectangleLabel = nullptr;
         const std::function<float()> &getScale;
         float sliderYPosFraction = 0.f;

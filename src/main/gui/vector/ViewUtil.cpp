@@ -26,7 +26,6 @@
 #include "hardware2/Hardware2.h"
 #include "hardware2/HardwareComponent.h"
 #include "hardware/Pot.hpp"
-#include "hardware/HwSlider.hpp"
 #include "controls/KbMapping.hpp"
 #include "controls/KeyCodeHelper.hpp"
 
@@ -153,15 +152,11 @@ void ViewUtil::createComponent(
     }
     else if (n.node_type == "slider")
     {
-        auto slider = new Slider(parent, getScale, n.shadow_size, getMainFontScaled, mpc.getHardware()->getSlider());
+        auto slider = new Slider(parent, getScale, n.shadow_size, getMainFontScaled, mpc.getHardware2()->getSlider());
         n.slider_component = slider;
         addShadow(n, getScale, slider->sliderCapSvg, parent, components);
         parent->addAndMakeVisible(n.slider_component);
         components.push_back(n.slider_component);
-
-        const auto sliderValue = mpc.getHardware()->getSlider()->getValue();
-
-        slider->setSliderYPosFraction(1.f - (float(sliderValue) / 127.f));
     }
     else if (n.node_type == "data_wheel")
     {
