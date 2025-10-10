@@ -3,12 +3,14 @@
 #include "MpcInputUtil.h"
 #include "TooltipOverlay.hpp"
 
+#include "hardware2/ComponentIdLabelMap.h"
 #include "inputlogic/HostInputEvent.h"
 #include "hardware2/Hardware2.h"
 
 #include "juce_audio_processors/juce_audio_processors.h"
 
 using namespace vmpc_juce::gui::vector;
+using namespace mpc::hardware2;
 
 bool MpcHardwareMouseListener::showKeyTooltipUponNextClick = false;
 
@@ -78,7 +80,7 @@ void MpcHardwareMouseListener::mouseDown(const juce::MouseEvent &e)
 
 void MpcHardwareMouseListener::mouseDoubleClick(const juce::MouseEvent &)
 {
-    if (label.length() >= 5 && label.substr(0, 5) == "shift")
+    if (label.length() >= 5 && label.substr(0, 5) == componentIdToLabel.at(ComponentId::SHIFT))
     {
         showKeyTooltipUponNextClick = true;
     }

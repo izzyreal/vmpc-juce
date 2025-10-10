@@ -53,8 +53,8 @@
       "children" : [
         { "name" : "rec_gain_paint", "svg" : "knob_paint.svg", "margin" : [ 7, 0, 0, 0 ], "area" : [ 1, 1, 1, 1 ] },
         { "name" : "main_volume_paint", "svg" : "knob_paint.svg", "margin" : [ 7, 0, 0, 0 ], "area" : [ 1, 2, 1, 2 ] },
-        { "name" : "rec_gain", "hardware_label" : "rec_gain", "svg" : "rec_gain.svg", "label" : "REC GAIN", "area" : [ 1, 1, 1, 1 ] },
-        { "name" : "main_volume", "hardware_label" : "main_volume", "svg" : "main_volume.svg", "label" : "MAIN VOLUME", "area" : [ 1, 2, 1, 2 ] }
+        { "name" : "rec_gain", "hardware_label" : "rec-gain", "svg" : "rec_gain.svg", "label" : "REC GAIN", "area" : [ 1, 1, 1, 1 ] },
+        { "name" : "main_volume", "hardware_label" : "main-volume", "svg" : "main_volume.svg", "label" : "MAIN VOLUME", "area" : [ 1, 2, 1, 2 ] }
       ]
     }
   ]
