@@ -48,7 +48,6 @@ namespace vmpc_juce::gui::vector {
             static bool showKeyTooltipUponNextClick;
 
             void setKeyTooltipVisibility(juce::Component *c, const bool visibleEnabled);
-            void syncMpcSliderModelWithUi(juce::Component *eventComponent);
             bool isPad();
 
             mpc::Mpc &mpc;

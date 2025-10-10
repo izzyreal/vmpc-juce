@@ -165,7 +165,7 @@ void ViewUtil::createComponent(
     }
     else if (n.node_type == "data_wheel")
     {
-        auto dataWheel = new DataWheel(mpc, parent, n.shadow_size, getScale);
+        auto dataWheel = new DataWheel(parent, n.shadow_size, getScale);
         addShadow(n, getScale, dataWheel->backgroundSvg, parent, components);
         n.data_wheel_component = dataWheel;
         parent->addAndMakeVisible(dataWheel);
@@ -317,25 +317,15 @@ void ViewUtil::createComponent(
         auto mouseListener = new MpcHardwareMouseListener(mpc, n.hardware_label);
         mouseListeners.push_back(mouseListener);
         
-        if (n.name == "rec_gain" || n.name == "main_volume")
+        for (auto it = components.rbegin(); it != components.rend(); ++it)
         {
-            auto knob = dynamic_cast<Knob*>(n.svg_component);
-            auto pot = n.name == "rec_gain" ? mpc.getHardware()->getRecPot() : mpc.getHardware()->getVolPot();
-            knob->setAngleFactor(pot->getValue() * 0.01);
-            knob->addMouseListener(mouseListener, false);
-        }
-        else
-        {
-            for (auto it = components.rbegin(); it != components.rend(); ++it)
+            if (dynamic_cast<Shadow*>(*it) != nullptr)
             {
-                if (dynamic_cast<Shadow*>(*it) != nullptr)
-                {
-                    continue;
-                }
-                
-                (*it)->addMouseListener(mouseListener, true);
-                break;
+                continue;
             }
+            
+            (*it)->addMouseListener(mouseListener, true);
+            break;
         }
         
         if (tooltipAnchor != nullptr)

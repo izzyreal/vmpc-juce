@@ -54,59 +54,10 @@ class Slider : public juce::Component, juce::Timer {
             const auto width = drawableBounds.getWidth() * scale;
             const auto height = drawableBounds.getHeight() * scale;
 
-            const auto sliderStart = getSliderStart();
-            const auto sliderEnd   = getSliderEnd();
-            const auto sliderYPos  = (sliderEnd - sliderStart) * sliderYPosFraction;
+            const auto sliderYPos  = height * sliderYPosFraction;
 
-            sliderCapSvg->setBounds((getWidth() - width) / 2, sliderStart + sliderYPos, width, height);
+            sliderCapSvg->setBounds((getWidth() - width) / 2, sliderYPos, width, height);
             repaint();
-        }
-        
-        void mouseWheelMove(const juce::MouseEvent &, const juce::MouseWheelDetails &m) override
-        {
-            sliderYPosFraction += m.deltaY;
-            sliderYPosFraction = std::clamp<float>(sliderYPosFraction, 0, 1);
-            handleSliderYPosChanged();
-        }
-
-        void mouseDown(const juce::MouseEvent &e) override
-        {
-            const auto pos = e.getMouseDownScreenPosition();
-
-            if (sliderCapSvg->getScreenBounds().contains(pos))
-            {
-                shouldDragCap = true;
-            }
-        }
-
-        void mouseUp(const juce::MouseEvent &) override
-        {
-            previousDragDistanceY = std::numeric_limits<int32_t>::max();
-            shouldDragCap = false;
-        }
-
-        void mouseDrag(const juce::MouseEvent &e) override
-        {
-            if (!shouldDragCap)
-            {
-                return;
-            }
-
-            if (previousDragDistanceY == std::numeric_limits<int32_t>::max())
-            {
-                previousDragDistanceY = 0;
-            }
-            
-            const auto sliderStart = getSliderStart();
-            const auto sliderEnd   = getSliderEnd();
-            const auto sliderLengthInPixels  = sliderEnd - sliderStart;
-
-            const auto distanceToProcessInPixels = e.getDistanceFromDragStartY() - previousDragDistanceY;
-            previousDragDistanceY = e.getDistanceFromDragStartY();
-            const auto fractionToAdd = (float) distanceToProcessInPixels / sliderLengthInPixels;
-            sliderYPosFraction += fractionToAdd;
-            sliderYPosFraction = std::clamp<float>(sliderYPosFraction, 0, 1);
-            handleSliderYPosChanged();
         }
 
         void resized() override
@@ -163,27 +114,13 @@ class Slider : public juce::Component, juce::Timer {
 
         const float getSliderYPosFraction() { return sliderYPosFraction; }
 
-        const bool isDraggingSliderCap() { return shouldDragCap; }
-
         SvgComponent *sliderCapSvg = nullptr;
 
     private:
-        float getSliderStart()
-        {
-            return (float) getHeight() * 0.34f;
-        }
-
-        float getSliderEnd()
-        {
-            return (float) getHeight() * 0.84f;
-        }
-
         const std::shared_ptr<mpc::hardware::Slider> mpcSlider;
         RectangleLabel *rectangleLabel = nullptr;
         const std::function<float()> &getScale;
         float sliderYPosFraction = 0.f;
-        int32_t previousDragDistanceY = std::numeric_limits<int32_t>::max();
-        bool shouldDragCap = false;
         int lastSyncedMpcSliderValue = -1;
 };
 

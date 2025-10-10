@@ -13,45 +13,9 @@ namespace vmpc_juce::gui::vector {
                     handleAngleChanged();
                 }
 
-            void mouseWheelMove(const juce::MouseEvent &, const juce::MouseWheelDetails &wheel) override
-            {
-                const auto increment = -wheel.deltaY;
-                angleFactor = std::clamp<float>(angleFactor + increment, 0, 1);
-                handleAngleChanged();
-            }
-
-            void mouseUp(const juce::MouseEvent &) override
-            {
-                previousDragDistanceY = previousDragDistanceY = std::numeric_limits<int32_t>::max();
-            }
-
-            void mouseDrag(const juce::MouseEvent &e) override
-            {
-                if (previousDragDistanceY == std::numeric_limits<int32_t>::max())
-                {
-                    previousDragDistanceY = 0;
-                }
-
-                const auto increment = float(e.getDistanceFromDragStartY() - previousDragDistanceY) * 0.005f * -1.f;
-
-                previousDragDistanceY = e.getDistanceFromDragStartY();
-
-                angleFactor = std::clamp<float>(angleFactor + (float) increment, 0, 1);
-                handleAngleChanged();
-            }
-
-            void setAngleFactor(float newAngleFactor)
-            {
-                angleFactor = newAngleFactor;
-                handleAngleChanged();
-            }
-
-            float getAngleFactor() { return angleFactor; }
-
         private:
             float angleFactor = 0.f;
-            int32_t previousDragDistanceY = std::numeric_limits<int32_t>::max();
-
+            
             void handleAngleChanged()
             {
                 float startAngle = juce::MathConstants<float>::pi * 2.6f / 4.0f + juce::MathConstants<float>::halfPi;

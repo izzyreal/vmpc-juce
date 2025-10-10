@@ -20,7 +20,7 @@
         {
           "name" : "data_wheel",
           "type" : "data_wheel",
-          "hardware_label" : "data-wheel",
+          "hardware_label" : "datawheel",
           "area" : [ 3, 2, 3, 2 ],
           "shadow_size" : 7
         },
