@@ -1,17 +1,99 @@
-<svg width="210mm" height="297mm" version="1.1" viewBox="0 0 210 297" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
- <defs>
-  <radialGradient id="radialGradient6-39" cx="18.607" cy="18.96" r="17.507" gradientTransform="matrix(1 0 0 1.0001 0 -.001762)" gradientUnits="userSpaceOnUse">
-   <stop stop-color="#ff8e37" offset="0"/>
-   <stop stop-color="#f60" stop-opacity="0" offset="1"/>
-  </radialGradient>
-  <radialGradient id="radialGradient6-3-0" cx="18.607" cy="18.96" r="17.507" gradientTransform="matrix(.43458 0 0 .43462 10.521 10.72)" gradientUnits="userSpaceOnUse">
-   <stop stop-color="#ffa661" offset="0"/>
-   <stop stop-color="#f60" stop-opacity="0" offset="1"/>
-  </radialGradient>
- </defs>
- <g transform="matrix(1.0399 0 0 1.0397 .81247 -.45065)">
-  <ellipse cx="18.607" cy="18.96" rx="17.507" ry="17.509" fill="url(#radialGradient6-39)" fill-rule="evenodd" stroke-width=".26447" style="-inkscape-stroke:none"/>
-  <ellipse cx="18.607" cy="18.96" rx="7.6082" ry="7.6089" fill="url(#radialGradient6-3-0)" fill-rule="evenodd" stroke-width=".11493" style="-inkscape-stroke:none"/>
-  <path d="m36.114 2.6204v32.67c0 0.12356-0.01852 0.23998-0.05292 0.35295-0.03175 0.10927-0.08202 0.21167-0.14817 0.30321v0.0037c-0.21167 0.3138-0.56886 0.51858-0.97102 0.51858h-32.67c-0.04233 0-0.08202-0.0037-0.11906-0.0071-0.1905-0.02117-0.36777-0.08467-0.52388-0.1905-0.03704-0.02117-0.07673-0.04948-0.11112-0.08123-0.254-0.21167-0.41804-0.53605-0.41804-0.89588v-32.668c0-0.37042 0.16933-0.6985 0.43921-0.91361 0.19579-0.16589 0.45508-0.26114 0.7329-0.26114h32.67c0.26723 0 0.51594 0.08811 0.71173 0.24342 0.04233 0.02831 0.08202 0.0635 0.11642 0.09869 0.0291 0.02831 0.05821 0.05662 0.07408 0.08467 0.05027 0.05662 0.0926 0.12012 0.127 0.18706 0.01852 0.03519 0.03704 0.06694 0.05027 0.10239 0.01323 0.03519 0.0291 0.07408 0.03969 0.10927 0.01058 0.03519 0.02117 0.07408 0.02646 0.11298 0.0079 0.03863 0.01588 0.07752 0.01852 0.11642 0.0026 0.03863 0.0079 0.07408 0.0079 0.11271z" fill="#ff8e37" fill-opacity=".23"/>
- </g>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="210mm"
+   height="297mm"
+   version="1.1"
+   viewBox="0 0 210 297"
+   id="svg5"
+   sodipodi:docname="pad_glow.svg"
+   inkscape:version="1.4 (e7c3feb1, 2024-10-09)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview5"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="1.6534231"
+     inkscape:cx="-4.536044"
+     inkscape:cy="72.576704"
+     inkscape:window-width="1440"
+     inkscape:window-height="785"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg5" />
+  <defs
+     id="defs4">
+    <radialGradient
+       id="radialGradient6-39"
+       cx="18.607"
+       cy="18.96"
+       r="17.507"
+       gradientTransform="matrix(1,0,0,1.0001,0,-0.001762)"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#ff8e37"
+         offset="0"
+         id="stop1" />
+      <stop
+         stop-color="#f60"
+         stop-opacity="0"
+         offset="1"
+         id="stop2" />
+    </radialGradient>
+    <radialGradient
+       id="radialGradient6-3-0"
+       cx="18.607"
+       cy="18.96"
+       r="17.507"
+       gradientTransform="matrix(0.43458,0,0,0.43462,10.521,10.72)"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         stop-color="#ffa661"
+         offset="0"
+         id="stop3" />
+      <stop
+         stop-color="#f60"
+         stop-opacity="0"
+         offset="1"
+         id="stop4" />
+    </radialGradient>
+  </defs>
+  <g
+     transform="matrix(1.0399,0,0,1.0397,-1.1436716,-1.5086029)"
+     id="g5">
+    <ellipse
+       cx="18.607"
+       cy="18.959999"
+       rx="17.507"
+       ry="17.509001"
+       fill="url(#radialGradient6-39)"
+       fill-rule="evenodd"
+       stroke-width="0.26447"
+       style="fill:url(#radialGradient6-39);-inkscape-stroke:none"
+       id="ellipse4" />
+    <ellipse
+       cx="18.607"
+       cy="18.959999"
+       rx="7.6082001"
+       ry="7.6089001"
+       fill="url(#radialGradient6-3-0)"
+       fill-rule="evenodd"
+       stroke-width="0.11493"
+       style="fill:url(#radialGradient6-3-0);-inkscape-stroke:none"
+       id="ellipse5" />
+    <path
+       d="m 36.114,2.6204 v 32.67 c 0,0.12356 -0.01852,0.23998 -0.05292,0.35295 -0.03175,0.10927 -0.08202,0.21167 -0.14817,0.30321 v 0.0037 c -0.21167,0.3138 -0.56886,0.51858 -0.97102,0.51858 h -32.67 c -0.04233,0 -0.08202,-0.0037 -0.11906,-0.0071 C 1.96233,36.44057 1.78506,36.37707 1.62895,36.27124 1.59191,36.25007 1.55222,36.22176 1.51783,36.19001 1.26383,35.97834 1.09979,35.65396 1.09979,35.29413 V 2.62613 C 1.09979,2.25571 1.26912,1.92763 1.539,1.71252 1.73479,1.54663 1.99408,1.45138 2.2719,1.45138 h 32.67 c 0.26723,0 0.51594,0.08811 0.71173,0.24342 0.04233,0.02831 0.08202,0.0635 0.11642,0.09869 0.0291,0.02831 0.05821,0.05662 0.07408,0.08467 0.05027,0.05662 0.0926,0.12012 0.127,0.18706 0.01852,0.03519 0.03704,0.06694 0.05027,0.10239 0.01323,0.03519 0.0291,0.07408 0.03969,0.10927 0.01058,0.03519 0.02117,0.07408 0.02646,0.11298 0.0079,0.03863 0.01588,0.07752 0.01852,0.11642 0.0026,0.03863 0.0079,0.07408 0.0079,0.11271 z"
+       fill="#ff8e37"
+       fill-opacity="0.23"
+       id="path5" />
+  </g>
 </svg>
