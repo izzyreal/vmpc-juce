@@ -104,6 +104,28 @@ namespace vmpc_juce::gui::vector {
             const bool iOS = juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS;
             using namespace mpc::inputlogic;
 
+            const float normX = event.position.getX() / static_cast<float>(event.eventComponent->getWidth());
+            const float normY = event.position.getY() / static_cast<float>(event.eventComponent->getHeight());
+
+            HostInputEvent hostEvent;
+            hostEvent.source = HostInputEvent::MOUSE;
+            hostEvent.payload = MouseEvent {
+                MouseEvent::ButtonState{
+                    event.mods.isLeftButtonDown(),
+                    event.mods.isMiddleButtonDown(),
+                    event.mods.isRightButtonDown()
+                },
+                MouseEvent::DATA_WHEEL,
+                normX,
+                normY,
+                0.f,
+                0.f,
+                0.f,
+                MouseEvent::DRAG
+            };
+
+            MouseEvent& mouseEvent = std::get<MouseEvent>(hostEvent.payload);
+
             if (event.mods.isAnyModifierKeyDown() || iOS)
             {
                 float iOSMultiplier = 1.0f;
@@ -115,42 +137,13 @@ namespace vmpc_juce::gui::vector {
                 if (candidate >= 1 || candidate <= -1)
                 {
                     pixelCounter -= candidate;
-
-                    // construct and dispatch HostInputEvent (fine movement)
-                    HostInputEvent hostEvent;
-                    hostEvent.source = HostInputEvent::MOUSE;
-
-                    MouseEvent mouseEvent;
-                    mouseEvent.buttonState = { event.mods.isLeftButtonDown(),
-                                               event.mods.isMiddleButtonDown(),
-                                               event.mods.isRightButtonDown() };
-                    mouseEvent.guiElement = MouseEvent::DATA_WHEEL;
-                    mouseEvent.deltaX = 0.0f;
                     mouseEvent.deltaY = static_cast<float>(candidate);
-                    mouseEvent.wheelDelta = 0.0f;
-                    mouseEvent.type = MouseEvent::MOVE;
-
-                    hostEvent.payload = mouseEvent;
                     mpc.getHardware2()->dispatchHostInput(hostEvent);
                 }
             }
             else
             {
-                // construct and dispatch HostInputEvent (coarse movement)
-                HostInputEvent hostEvent;
-                hostEvent.source = HostInputEvent::MOUSE;
-
-                MouseEvent mouseEvent;
-                mouseEvent.buttonState = { event.mods.isLeftButtonDown(),
-                                           event.mods.isMiddleButtonDown(),
-                                           event.mods.isRightButtonDown() };
-                mouseEvent.guiElement = MouseEvent::DATA_WHEEL;
-                mouseEvent.deltaX = 0.0f;
                 mouseEvent.deltaY = static_cast<float>(dY);
-                mouseEvent.wheelDelta = 0.0f;
-                mouseEvent.type = MouseEvent::DRAG;
-
-                hostEvent.payload = mouseEvent;
                 mpc.getHardware2()->dispatchHostInput(hostEvent);
             }
 

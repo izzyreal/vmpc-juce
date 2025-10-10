@@ -74,7 +74,7 @@ void MpcHardwareMouseListener::pushHardware(const juce::MouseEvent &e)
     const float normX = e.position.getX() / static_cast<float>(e.eventComponent->getWidth());
     const float normY = e.position.getY() / static_cast<float>(e.eventComponent->getHeight());
 
-    MouseEvent mouseEvent{
+    hostEvent.payload = MouseEvent {
         MouseEvent::ButtonState{
             e.mods.isLeftButtonDown(),
             e.mods.isMiddleButtonDown(),
@@ -89,14 +89,13 @@ void MpcHardwareMouseListener::pushHardware(const juce::MouseEvent &e)
         MouseEvent::BUTTON_DOWN
     };
 
+    MouseEvent& mouseEvent = std::get<MouseEvent>(hostEvent.payload);
+
     if (isPad())
     {
         const auto digitsString = label.substr(4);
         const auto padNumber = std::stoi(digitsString);
         mouseEvent.guiElement = static_cast<MouseEvent::GuiElement>(MouseEvent::PAD1 + padNumber - 1);
-        mouseEvent.type = MouseEvent::BUTTON_DOWN;
-
-        hostEvent.payload = mouseEvent;
         mpc.getHardware2()->dispatchHostInput(hostEvent);
         return;
     }    
@@ -135,21 +134,22 @@ void MpcHardwareMouseListener::pushHardware(const juce::MouseEvent &e)
 
         if (left.contains(e.position))
         {
-            mpc.getHardware()->getButton("left")->push();
+            mouseEvent.guiElement = MouseEvent::CURSOR_LEFT;
         }
         else if (top.contains(e.position))
         {
-            mpc.getHardware()->getButton("up")->push();
+            mouseEvent.guiElement = MouseEvent::CURSOR_UP;
         }
         else if (right.contains(e.position))
         {
-            mpc.getHardware()->getButton("right")->push();
+            mouseEvent.guiElement = MouseEvent::CURSOR_RIGHT;
         }
         else if (bottom.contains(e.position))
         {
-            mpc.getHardware()->getButton("down")->push();
+            mouseEvent.guiElement = MouseEvent::CURSOR_DOWN;
         }
 
+        mpc.getHardware2()->dispatchHostInput(hostEvent);
         return;
     }
     else if (label == "data-wheel" || label == "rec_gain" || label == "main_volume" || label == "slider")
