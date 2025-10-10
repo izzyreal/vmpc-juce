@@ -6,6 +6,7 @@
 
 #include "TooltipOverlay.hpp"
 #include "Slider.hpp"
+#include "inputlogic/HostInputEvent.h"
 #include "juce_audio_processors/juce_audio_processors.h"
 
 using namespace vmpc_juce::gui::vector;
@@ -64,8 +65,13 @@ void MpcHardwareMouseListener::mouseWheelMove(const juce::MouseEvent &event, con
     }
 }
 
-void MpcHardwareMouseListener::pushHardware(const juce::MouseEvent &e)
+std::optional<mpc::inputlogic::HostInputEvent> constructHostInputEvent(const juce::MouseEvent &e, std::string label)
 {
+    if (label.empty() || label == "data-wheel" || label == "rec_gain" || label == "main_volume" || label == "slider")
+    {
+        return std::nullopt;
+    }
+
     using namespace mpc::inputlogic;
 
     HostInputEvent hostEvent;
@@ -91,14 +97,66 @@ void MpcHardwareMouseListener::pushHardware(const juce::MouseEvent &e)
 
     MouseEvent& mouseEvent = std::get<MouseEvent>(hostEvent.payload);
 
-    if (isPad())
-    {
-        const auto digitsString = label.substr(4);
-        const auto padNumber = std::stoi(digitsString);
-        mouseEvent.guiElement = static_cast<MouseEvent::GuiElement>(MouseEvent::PAD1 + padNumber - 1);
-        mpc.getHardware2()->dispatchHostInput(hostEvent);
-        return;
-    }    
+    using Gui = MouseEvent::GuiElement;
+    if      (label == "pad-1")  mouseEvent.guiElement = Gui::PAD1;
+    else if (label == "pad-2")  mouseEvent.guiElement = Gui::PAD2;
+    else if (label == "pad-3")  mouseEvent.guiElement = Gui::PAD3;
+    else if (label == "pad-4")  mouseEvent.guiElement = Gui::PAD4;
+    else if (label == "pad-5")  mouseEvent.guiElement = Gui::PAD5;
+    else if (label == "pad-6")  mouseEvent.guiElement = Gui::PAD6;
+    else if (label == "pad-7")  mouseEvent.guiElement = Gui::PAD7;
+    else if (label == "pad-8")  mouseEvent.guiElement = Gui::PAD8;
+    else if (label == "pad-9")  mouseEvent.guiElement = Gui::PAD9;
+    else if (label == "pad-10") mouseEvent.guiElement = Gui::PAD10;
+    else if (label == "pad-11") mouseEvent.guiElement = Gui::PAD11;
+    else if (label == "pad-12") mouseEvent.guiElement = Gui::PAD12;
+    else if (label == "pad-13") mouseEvent.guiElement = Gui::PAD13;
+    else if (label == "pad-14") mouseEvent.guiElement = Gui::PAD14;
+    else if (label == "pad-15") mouseEvent.guiElement = Gui::PAD15;
+    else if (label == "pad-16") mouseEvent.guiElement = Gui::PAD16;
+    else if (label == "rec") mouseEvent.guiElement = Gui::REC;
+    else if (label == "overdub") mouseEvent.guiElement = Gui::OVERDUB;
+    else if (label == "stop") mouseEvent.guiElement = Gui::STOP;
+    else if (label == "play") mouseEvent.guiElement = Gui::PLAY;
+    else if (label == "play-start") mouseEvent.guiElement = Gui::PLAY_START;
+    else if (label == "main-screen") mouseEvent.guiElement = Gui::MAIN_SCREEN;
+    else if (label == "prev-step-event") mouseEvent.guiElement = Gui::PREV_STEP_EVENT;
+    else if (label == "next-step-event") mouseEvent.guiElement = Gui::NEXT_STEP_EVENT;
+    else if (label == "go-to") mouseEvent.guiElement = Gui::GO_TO;
+    else if (label == "prev-bar-start") mouseEvent.guiElement = Gui::PREV_BAR_START;
+    else if (label == "next-bar-end") mouseEvent.guiElement = Gui::NEXT_BAR_END;
+    else if (label == "tap") mouseEvent.guiElement = Gui::TAP;
+    else if (label == "next-seq") mouseEvent.guiElement = Gui::NEXT_SEQ;
+    else if (label == "track-mute") mouseEvent.guiElement = Gui::TRACK_MUTE;
+    else if (label == "open-window") mouseEvent.guiElement = Gui::OPEN_WINDOW;
+    else if (label == "full-level") mouseEvent.guiElement = Gui::FULL_LEVEL;
+    else if (label == "sixteen-levels") mouseEvent.guiElement = Gui::SIXTEEN_LEVELS;
+    else if (label == "f1") mouseEvent.guiElement = Gui::F1;
+    else if (label == "f2") mouseEvent.guiElement = Gui::F2;
+    else if (label == "f3") mouseEvent.guiElement = Gui::F3;
+    else if (label == "f4") mouseEvent.guiElement = Gui::F4;
+    else if (label == "f5") mouseEvent.guiElement = Gui::F5;
+    else if (label == "f6") mouseEvent.guiElement = Gui::F6;
+    else if (label == "shift") mouseEvent.guiElement = Gui::SHIFT;
+    else if (label == "enter") mouseEvent.guiElement = Gui::ENTER;
+    else if (label == "undo-seq") mouseEvent.guiElement = Gui::UNDO_SEQ;
+    else if (label == "erase") mouseEvent.guiElement = Gui::ERASE;
+    else if (label == "after") mouseEvent.guiElement = Gui::AFTER;
+    else if (label == "bank-a") mouseEvent.guiElement = Gui::BANK_A;
+    else if (label == "bank-b") mouseEvent.guiElement = Gui::BANK_B;
+    else if (label == "bank-c") mouseEvent.guiElement = Gui::BANK_C;
+    else if (label == "bank-d") mouseEvent.guiElement = Gui::BANK_D;
+    else if (label == "0") mouseEvent.guiElement = Gui::NUM_0;
+    else if (label == "1") mouseEvent.guiElement = Gui::NUM_1;
+    else if (label == "2") mouseEvent.guiElement = Gui::NUM_2;
+    else if (label == "3") mouseEvent.guiElement = Gui::NUM_3;
+    else if (label == "4") mouseEvent.guiElement = Gui::NUM_4;
+    else if (label == "5") mouseEvent.guiElement = Gui::NUM_5;
+    else if (label == "6") mouseEvent.guiElement = Gui::NUM_6;
+    else if (label == "7") mouseEvent.guiElement = Gui::NUM_7;
+    else if (label == "8") mouseEvent.guiElement = Gui::NUM_8;
+    else if (label == "9") mouseEvent.guiElement = Gui::NUM_9;
+    else if (label == "data-wheel") mouseEvent.guiElement = Gui::DATA_WHEEL;
     else if (label == "cursor")
     {
         juce::Path left, top, bottom, right;
@@ -148,16 +206,9 @@ void MpcHardwareMouseListener::pushHardware(const juce::MouseEvent &e)
         {
             mouseEvent.guiElement = MouseEvent::CURSOR_DOWN;
         }
-
-        mpc.getHardware2()->dispatchHostInput(hostEvent);
-        return;
-    }
-    else if (label == "data-wheel" || label == "rec_gain" || label == "main_volume" || label == "slider")
-    {
-        return;
     }
 
-    mpc.getHardware()->getButton(label)->push();
+    return hostEvent;
 }
 
 void MpcHardwareMouseListener::mouseDown(const juce::MouseEvent &e)
@@ -171,7 +222,12 @@ void MpcHardwareMouseListener::mouseDown(const juce::MouseEvent &e)
 
     setKeyTooltipVisibility(e.eventComponent, false);
     hideKeyTooltipUntilAfterMouseExit = true;
-    pushHardware(e);
+
+    if (auto hostInputEvent = constructHostInputEvent(e, label); hostInputEvent.has_value())
+    {
+        std::get<mpc::inputlogic::MouseEvent>(hostInputEvent->payload).type = mpc::inputlogic::MouseEvent::BUTTON_DOWN;
+        mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
+    }
 }
 
 void MpcHardwareMouseListener::mouseDoubleClick(const juce::MouseEvent &)
@@ -182,18 +238,12 @@ void MpcHardwareMouseListener::mouseDoubleClick(const juce::MouseEvent &)
     }
 }
 
-void MpcHardwareMouseListener::mouseUp(const juce::MouseEvent &)
+void MpcHardwareMouseListener::mouseUp(const juce::MouseEvent &e)
 {
-    if (label.length() >= 4 && label.substr(0, 4) == "pad-")
+    if (auto hostInputEvent = constructHostInputEvent(e, label); hostInputEvent.has_value())
     {
-        const auto digitsString = label.substr(4);
-        const auto padNumber = std::stoi(digitsString);
-        auto mpcPad = mpc.getHardware2()->getPad(padNumber - 1);
-        mpcPad->release();
-    }
-    else if (label != "rec_gain" && label != "main_volume" && label != "cursor" && label != "slider" && label != "data-wheel")
-    {
-        mpc.getHardware()->getButton(label)->release();
+        std::get<mpc::inputlogic::MouseEvent>(hostInputEvent->payload).type = mpc::inputlogic::MouseEvent::BUTTON_UP;
+        mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
     }
 }
 
