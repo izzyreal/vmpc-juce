@@ -17,13 +17,14 @@
 #include "Mpc.hpp"
 #include "controls/Controls.hpp"
 #include "controls/KeyEvent.hpp"
-#include "controls/KeyEventHandler.hpp"
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
 #include <nlohmann/json.hpp>
 #include "gui/vector/Constants.hpp"
 
+#include "hardware2/Hardware2.h"
+#include "inputlogic/HostInputEvent.h"
 #include "vf_freetype/vf_FreeTypeFaces.h"
 
 using namespace vmpc_juce::gui::vector;
@@ -89,8 +90,13 @@ View::View(mpc::Mpc &mpcToUse,
     const bool shouldSynthesizeKeyRepeatsForSomeKeys = wrapperType == juce::AudioProcessor::WrapperType::wrapperType_AudioUnitv3;
     keyboard = KeyboardFactory::instance(this, shouldSynthesizeKeyRepeatsForSomeKeys);
 
-    keyboard->onKeyDownFn = [&](int i) { onKeyDown(i); };
-    keyboard->onKeyUpFn = [&](int i) { onKeyUp(i); };
+    keyboard->onKeyDownFn = [&](int i) {
+        onKeyDown(i);
+    };
+
+    keyboard->onKeyUpFn = [&](int i) {
+        onKeyUp(i);
+    };
 
     setWantsKeyboardFocus(true);
 
@@ -298,12 +304,20 @@ void View::resized()
 
 void View::onKeyDown(int keyCode)
 {
-    mpc.getControls()->getKeyEventHandler().lock()->handle(mpc::controls::KeyEvent(keyCode, true));
+    using namespace mpc::inputlogic;
+    HostInputEvent hostInputEvent;
+    hostInputEvent.source = HostInputEvent::KEYBOARD;
+    hostInputEvent.payload = KeyEvent { true, keyCode };
+    mpc.getHardware2()->dispatchHostInput(hostInputEvent);
 }
 
 void View::onKeyUp(int keyCode)
 {
-    mpc.getControls()->getKeyEventHandler().lock()->handle(mpc::controls::KeyEvent(keyCode, false));
+    using namespace mpc::inputlogic;
+    HostInputEvent hostInputEvent;
+    hostInputEvent.source = HostInputEvent::KEYBOARD;
+    hostInputEvent.payload = KeyEvent { false, keyCode };
+    mpc.getHardware2()->dispatchHostInput(hostInputEvent);
 }
 
 void View::timerCallback()
