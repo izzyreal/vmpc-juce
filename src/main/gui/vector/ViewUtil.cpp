@@ -25,7 +25,6 @@
 #include "hardware/Hardware.hpp"
 #include "hardware2/Hardware2.h"
 #include "hardware2/HardwareComponent.h"
-#include "hardware/Pot.hpp"
 #include "controls/KbMapping.hpp"
 #include "controls/KeyCodeHelper.hpp"
 

@@ -3,8 +3,6 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "Mpc.hpp"
-#include "hardware/Hardware.hpp"
-#include "hardware/Pot.hpp"
 #include "controls/KbMapping.hpp"
 
 #if __APPLE__
