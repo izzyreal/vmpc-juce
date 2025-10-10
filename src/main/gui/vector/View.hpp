@@ -39,8 +39,8 @@ namespace vmpc_juce::gui::vector {
             void timerCallback() override;
 
         private:
-            void onKeyUp(int);
-            void onKeyDown(int);
+            void onKeyUp(int, bool ctrlDown, bool altDown, bool shiftDown);
+            void onKeyDown(int, bool ctrlDown, bool altDown, bool shiftDown);
             mpc::Mpc &mpc;
             void deleteDisclaimer();
             std::string name = "default_compact";

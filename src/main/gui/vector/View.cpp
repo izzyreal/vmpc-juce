@@ -17,6 +17,7 @@
 #include "Mpc.hpp"
 #include "controls/Controls.hpp"
 #include "controls/KeyEvent.hpp"
+#include "controls/KeyCodeHelper.hpp"
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
@@ -26,6 +27,8 @@
 #include "hardware2/Hardware2.h"
 #include "inputlogic/HostInputEvent.h"
 #include "vf_freetype/vf_FreeTypeFaces.h"
+
+#include <tuple>
 
 using namespace vmpc_juce::gui::vector;
 
@@ -90,12 +93,34 @@ View::View(mpc::Mpc &mpcToUse,
     const bool shouldSynthesizeKeyRepeatsForSomeKeys = wrapperType == juce::AudioProcessor::WrapperType::wrapperType_AudioUnitv3;
     keyboard = KeyboardFactory::instance(this, shouldSynthesizeKeyRepeatsForSomeKeys);
 
-    keyboard->onKeyDownFn = [&](int i) {
-        onKeyDown(i);
+    auto getKeyboardMods = [&]() -> std::tuple<bool, bool, bool> {
+        using namespace mpc::controls;
+
+        bool shiftDown = keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(VmpcKeyCode::VMPC_KEY_Shift)) ||
+            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(VmpcKeyCode::VMPC_KEY_LeftShift)) ||
+            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(VmpcKeyCode::VMPC_KEY_RightShift));
+
+        bool altDown = keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(VmpcKeyCode::VMPC_KEY_OptionOrAlt)) ||
+            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(VmpcKeyCode::VMPC_KEY_LeftOptionOrAlt)) ||
+            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(VmpcKeyCode::VMPC_KEY_RightOptionOrAlt));
+
+        bool ctrlDown = keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(VmpcKeyCode::VMPC_KEY_Control)) ||
+            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(VmpcKeyCode::VMPC_KEY_LeftControl)) ||
+            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(VmpcKeyCode::VMPC_KEY_RightControl));
+
+        return {shiftDown, altDown, ctrlDown };
+    };
+    
+    keyboard->onKeyDownFn = [&, keyMods = getKeyboardMods](int i) {
+        if (about != nullptr) return;
+        auto [shiftDown, altDown, ctrlDown] = keyMods();
+        onKeyDown(i, ctrlDown, altDown, shiftDown);
     };
 
-    keyboard->onKeyUpFn = [&](int i) {
-        onKeyUp(i);
+    keyboard->onKeyUpFn = [&, keyMods = getKeyboardMods](int i) {
+        if (about != nullptr) return;
+        auto [shiftDown, altDown, ctrlDown] = keyMods();
+        onKeyUp(i, ctrlDown, altDown, shiftDown);
     };
 
     setWantsKeyboardFocus(true);
@@ -167,8 +192,6 @@ View::View(mpc::Mpc &mpcToUse,
         removeChildComponent(about);
         delete about;
         about = nullptr;
-        keyboard->onKeyDownFn = [&](int i) { onKeyDown(i); };
-        keyboard->onKeyUpFn = [&](int i) { onKeyUp(i); };
     };
 
     const auto openAbout = [this, closeAbout, wrapperType, isInstrument] {
@@ -198,8 +221,6 @@ View::View(mpc::Mpc &mpcToUse,
         }
 
         about = new About(getScale, getMainFontScaled, closeAbout, wrapperTypeString);
-        keyboard->onKeyUpFn = {};
-        keyboard->onKeyDownFn = {};
         addAndMakeVisible(about);
         resized();
     };
@@ -302,21 +323,21 @@ void View::resized()
     }
 }
 
-void View::onKeyDown(int keyCode)
+void View::onKeyDown(int keyCode, bool ctrlDown, bool altDown, bool shiftDown)
 {
     using namespace mpc::inputlogic;
     HostInputEvent hostInputEvent;
     hostInputEvent.source = HostInputEvent::KEYBOARD;
-    hostInputEvent.payload = KeyEvent { true, keyCode };
+    hostInputEvent.payload = KeyEvent { true, keyCode, shiftDown, ctrlDown, altDown};
     mpc.getHardware2()->dispatchHostInput(hostInputEvent);
 }
 
-void View::onKeyUp(int keyCode)
+void View::onKeyUp(int keyCode, bool ctrlDown, bool altDown, bool shiftDown)
 {
     using namespace mpc::inputlogic;
     HostInputEvent hostInputEvent;
     hostInputEvent.source = HostInputEvent::KEYBOARD;
-    hostInputEvent.payload = KeyEvent { false, keyCode };
+    hostInputEvent.payload = KeyEvent { false, keyCode, shiftDown, ctrlDown, altDown};
     mpc.getHardware2()->dispatchHostInput(hostInputEvent);
 }
 
