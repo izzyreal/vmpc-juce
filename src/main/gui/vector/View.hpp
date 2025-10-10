@@ -17,8 +17,9 @@ namespace vmpc_juce::gui::vector {
     class Menu;
     class Disclaimer;
     class About;
+    class Pad;
 
-    class View : public juce::Component {
+    class View : public juce::Component, public juce::Timer {
 
         public:
             View(mpc::Mpc &mpc,
@@ -34,6 +35,8 @@ namespace vmpc_juce::gui::vector {
             const std::pair<int, int> getInitialRootWindowDimensions();
 
             const float getAspectRatio();
+
+            void timerCallback() override;
 
         private:
             void onKeyUp(int);
@@ -67,6 +70,8 @@ namespace vmpc_juce::gui::vector {
 
             std::vector<char> keyTooltipFontData;
             juce::Font keyTooltipFont;
+
+            std::vector<Pad*> pads;
 
             friend class Lcd;
     };

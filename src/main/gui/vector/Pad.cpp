@@ -56,7 +56,6 @@ bool Pad::isInterestedInFileDrag(const juce::StringArray &files)
                 fading = true;
                 glowSvg->setAlpha(1.f);
                 repaint();
-                startTimer(100);
             }
             return true;
         }
@@ -185,58 +184,42 @@ void Pad::filesDropped(const juce::StringArray &files, int, int)
     }
 }
 
-void Pad::timerCallback()
+void Pad::sharedTimerCallback()
 {
-    if (fading)
+    if (mpcPad->getVelocity() != lastProcessedVelo)
     {
-        glowSvg->setAlpha(glowSvg->getAlpha() - 0.08f);
-    }
+        lastProcessedVelo = mpcPad->getVelocity();
 
-    if (glowSvg->getAlpha() == 0.f)
-    {
-        fading = false;
-        stopTimer();
-    }
-
-    repaint();
-}
-
-/*
-void Pad::update(mpc::Observable *, mpc::Message message)
-{
-    const auto handleUpdate = [message, this] {
-
-        int velocity = std::get<int>(message);
-
-        if (velocity == 255)
+        if (lastProcessedVelo.has_value())
+        {
+            glowSvg->setAlpha(static_cast<float>(*lastProcessedVelo) / 127.f);
+            setSvgPath("pressed_pad.svg");
+            fading = false;
+            timerDivisionCounter = 0;
+            repaint();
+        }
+        else
         {
             setSvgPath("pad.svg");
             fading = true;
         }
-        else
-        {
-            if (velocity > 127)
-            {
-                velocity = 127;
-            }
-
-            glowSvg->setAlpha(velocity / 127.f);
-            fading = false;
-            startTimer(100);
-            setSvgPath("pressed_pad.svg");
-        }
-    };
-
-    if (juce::MessageManager::getInstance()->isThisTheMessageThread())
-    {
-        handleUpdate();
     }
-    else
+
+    if (!fading || (timerDivisionCounter++ != 10))
     {
-        juce::MessageManager::callAsync(handleUpdate);
+        return;
+    }
+
+    timerDivisionCounter = 0;
+
+    glowSvg->setAlpha(glowSvg->getAlpha() - 0.08f);
+    repaint();
+
+    if (glowSvg->getAlpha() == 0.f)
+    {
+        fading = false;
     }
 }
-*/
 
 int Pad::getVelo(int veloY)
 {

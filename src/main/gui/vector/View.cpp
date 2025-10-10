@@ -9,6 +9,7 @@
 #include "Menu.hpp"
 #include "Disclaimer.hpp"
 #include "About.hpp"
+#include "Pad.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "InitialWindowDimensions.hpp"
@@ -106,6 +107,8 @@ View::View(mpc::Mpc &mpcToUse,
     tooltipOverlay = new TooltipOverlay();
 
     ViewUtil::createComponent(mpc, view_root, components, this, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, getKeyTooltipFontScaled, mouseListeners, tooltipOverlay);
+
+    pads = getChildComponentsOfClass<Pad>(this);
 
     Led *fullLevelLed = nullptr;
     Led *sixteenLevelsLed = nullptr;
@@ -212,6 +215,8 @@ View::View(mpc::Mpc &mpcToUse,
         addAndMakeVisible(disclaimer);
         shouldShowDisclaimer = false;
     }
+
+    startTimer(10);
 }
 
 const float View::getAspectRatio()
@@ -300,4 +305,13 @@ void View::onKeyUp(int keyCode)
 {
     mpc.getControls()->getKeyEventHandler().lock()->handle(mpc::controls::KeyEvent(keyCode, false));
 }
+
+void View::timerCallback()
+{
+    for (auto &p : pads)
+    {
+        p->sharedTimerCallback();
+    }
+}
+
 
