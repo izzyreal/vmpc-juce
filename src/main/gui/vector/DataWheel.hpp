@@ -11,10 +11,7 @@
 
 #include "Mpc.hpp"
 #include "hardware2/Hardware2.h"
-#include "hardware2/HardwareComponent.h"
-#include "inputlogic/HardwareTranslator.h"
-#include "inputlogic/InputMapper.h"
-#include "inputlogic/InputAction.h"
+#include "inputlogic/HostInputEvent.h"
 
 namespace vmpc_juce::gui::vector {
 
@@ -38,18 +35,10 @@ namespace vmpc_juce::gui::vector {
                 backgroundSvg->setInterceptsMouseClicks(false, false);
                 lines->setInterceptsMouseClicks(false, false);
                 dimpleSvg->setInterceptsMouseClicks(false, false);
-                /*
-                mpc.getHardware()->getDataWheel()->updateUi = [this](int increment) {
-                    juce::MessageManager::callAsync([this, increment] {
-                            setAngle(getAngle() + (increment * 0.02f));
-                            });
-                };
-                */
             }
 
             ~DataWheel() override
             {
-                //mpc.getHardware2()->getDataWheel()->updateUi = {};
                 delete backgroundSvg;
                 delete lines;
                 delete dimpleSvg;
@@ -103,61 +92,91 @@ namespace vmpc_juce::gui::vector {
                 lastDy = 0;
             }
 
-            void mouseDrag(const juce::MouseEvent &event) override
+        void mouseDrag(const juce::MouseEvent &event) override
+        {
+            if (mouseDownEventSources.size() > 1 && event.source.getLastMouseDownTime() != latestMouseDownTime)
+                return;
+
+            auto dY = -(event.getDistanceFromDragStartY() - lastDy);
+            if (dY == 0)
+                return;
+
+            const bool iOS = juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS;
+            using namespace mpc::inputlogic;
+
+            if (event.mods.isAnyModifierKeyDown() || iOS)
             {
-                if (mouseDownEventSources.size() > 1 && event.source.getLastMouseDownTime() != latestMouseDownTime)
+                float iOSMultiplier = 1.0f;
+                for (int i = 1; i < mouseDownEventSources.size(); i++)
+                    iOSMultiplier *= 10.f;
+
+                pixelCounter += (dY * fineSensitivity * (iOS ? iOSMultiplier : 1.0));
+                auto candidate = static_cast<int>(pixelCounter);
+                if (candidate >= 1 || candidate <= -1)
                 {
-                    return;
+                    pixelCounter -= candidate;
+
+                    // construct and dispatch HostInputEvent (fine movement)
+                    HostInputEvent hostEvent;
+                    hostEvent.source = HostInputEvent::MOUSE;
+
+                    MouseEvent mouseEvent;
+                    mouseEvent.buttonState = { event.mods.isLeftButtonDown(),
+                                               event.mods.isMiddleButtonDown(),
+                                               event.mods.isRightButtonDown() };
+                    mouseEvent.guiElement = MouseEvent::DATA_WHEEL;
+                    mouseEvent.deltaX = 0.0f;
+                    mouseEvent.deltaY = static_cast<float>(candidate);
+                    mouseEvent.wheelDelta = 0.0f;
+                    mouseEvent.type = MouseEvent::MOVE;
+
+                    hostEvent.payload = mouseEvent;
+                    mpc.getHardware2()->dispatchHostInput(hostEvent);
                 }
+            }
+            else
+            {
+                // construct and dispatch HostInputEvent (coarse movement)
+                HostInputEvent hostEvent;
+                hostEvent.source = HostInputEvent::MOUSE;
 
-                auto dY = -(event.getDistanceFromDragStartY() - lastDy);
+                MouseEvent mouseEvent;
+                mouseEvent.buttonState = { event.mods.isLeftButtonDown(),
+                                           event.mods.isMiddleButtonDown(),
+                                           event.mods.isRightButtonDown() };
+                mouseEvent.guiElement = MouseEvent::DATA_WHEEL;
+                mouseEvent.deltaX = 0.0f;
+                mouseEvent.deltaY = static_cast<float>(dY);
+                mouseEvent.wheelDelta = 0.0f;
+                mouseEvent.type = MouseEvent::DRAG;
 
-                if (dY == 0)
-                {
-                    return;
-                }
-
-                const bool iOS = juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS;
-
-                auto dataWheel = mpc.getHardware2()->getDataWheel();
-
-                if (event.mods.isAnyModifierKeyDown() || iOS)
-                {
-                    float iOSMultiplier = 1.0;
-
-                    for (int i = 1; i < mouseDownEventSources.size(); i++)
-                    {
-                        iOSMultiplier *= 10.f;
-                    }
-
-                    pixelCounter += (dY * fineSensitivity * (iOS ? iOSMultiplier : 1.0));
-                    auto candidate = static_cast<int>(pixelCounter);
-                    if (candidate >= 1 || candidate <= -1)
-                    {
-                        pixelCounter -= candidate;
-                        dataWheel->turn(candidate);
-                        mpc.inputMapper.trigger(mpc::inputlogic::HardwareTranslator::fromDataWheelTurn(candidate));
-                    }
-
-                }
-                else
-                {
-                    dataWheel->turn(dY);
-                    //mpc.inputMapper.trigger(mpc::inputlogic::HardwareTranslator::fromDataWheelTurn(dY));
-                }
-
-                lastDy = event.getDistanceFromDragStartY();
+                hostEvent.payload = mouseEvent;
+                mpc.getHardware2()->dispatchHostInput(hostEvent);
             }
 
-            void mouseWheelMove(const juce::MouseEvent &e, const juce::MouseWheelDetails &wheel) override
-            {
-                auto dw = mpc.getHardware2()->getDataWheel();
-                auto &inputMapper = mpc.inputMapper;
-                mouseWheelControllable.processWheelEvent(wheel, [&dw, &inputMapper](int increment) {
-                        inputMapper.trigger(mpc::inputlogic::HardwareTranslator::fromDataWheelTurn(increment));
-                        dw->turn(increment);
-                        });
-            }
+            lastDy = event.getDistanceFromDragStartY();
+        }
+
+        void mouseWheelMove(const juce::MouseEvent &e, const juce::MouseWheelDetails &wheel) override
+        {
+            using namespace mpc::inputlogic;
+
+            mouseWheelControllable.processWheelEvent(wheel, [this](int increment) {
+                HostInputEvent hostEvent;
+                hostEvent.source = HostInputEvent::MOUSE;
+
+                MouseEvent mouseEvent;
+                mouseEvent.buttonState = { false, false, false };
+                mouseEvent.guiElement = MouseEvent::DATA_WHEEL;
+                mouseEvent.deltaX = 0.0f;
+                mouseEvent.deltaY = 0.0f;
+                mouseEvent.wheelDelta = static_cast<float>(increment);
+                mouseEvent.type = MouseEvent::WHEEL;
+
+                hostEvent.payload = mouseEvent;
+                mpc.getHardware2()->dispatchHostInput(hostEvent);
+            });
+        }
 
             void resized() override
             {

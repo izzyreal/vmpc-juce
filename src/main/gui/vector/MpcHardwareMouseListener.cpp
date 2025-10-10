@@ -66,15 +66,40 @@ void MpcHardwareMouseListener::mouseWheelMove(const juce::MouseEvent &event, con
 
 void MpcHardwareMouseListener::pushHardware(const juce::MouseEvent &e)
 {
+    using namespace mpc::inputlogic;
+
+    HostInputEvent hostEvent;
+    hostEvent.source = HostInputEvent::MOUSE;
+
+    const float normX = e.position.getX() / static_cast<float>(e.eventComponent->getWidth());
+    const float normY = e.position.getY() / static_cast<float>(e.eventComponent->getHeight());
+
+    MouseEvent mouseEvent{
+        MouseEvent::ButtonState{
+            e.mods.isLeftButtonDown(),
+            e.mods.isMiddleButtonDown(),
+            e.mods.isRightButtonDown()
+        },
+        MouseEvent::NONE,
+        normX,
+        normY,
+        0.f,
+        0.f,
+        0.f,
+        MouseEvent::DOWN
+    };
+
     if (isPad())
     {
         const auto digitsString = label.substr(4);
         const auto padNumber = std::stoi(digitsString);
-        auto mpcPad = mpc.getHardware2()->getPad(padNumber - 1);
-        const auto velocity = std::clamp(static_cast<int>(127 - ((e.position.getY() / (float)e.eventComponent->getBounds().getHeight()) * 127.f)), 0, 127);
-        mpcPad->pressWithVelocity(velocity);
+        mouseEvent.guiElement = static_cast<MouseEvent::GuiElement>(MouseEvent::PAD1 + padNumber - 1);
+        mouseEvent.type = MouseEvent::DOWN;
+
+        hostEvent.payload = mouseEvent;
+        mpc.getHardware2()->dispatchHostInput(hostEvent);
         return;
-    }
+    }    
     else if (label == "cursor")
     {
         juce::Path left, top, bottom, right;
