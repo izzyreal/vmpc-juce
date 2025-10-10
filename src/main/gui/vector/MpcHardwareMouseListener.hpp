@@ -5,7 +5,6 @@
 #include "Mpc.hpp"
 #include "hardware/Hardware.hpp"
 #include "hardware/Button.hpp"
-#include "hardware/HwPad.hpp"
 #include "hardware/DataWheel.hpp"
 #include "hardware/Pot.hpp"
 #include "hardware/HwSlider.hpp"
