@@ -23,7 +23,6 @@
 #include "MpcHardwareMouseListener.hpp"
 
 #include "hardware/Hardware.hpp"
-#include "hardware/Button.hpp"
 #include "hardware2/Hardware2.h"
 #include "hardware2/HardwareComponent.h"
 #include "hardware/Pot.hpp"
