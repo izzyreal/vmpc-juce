@@ -1,6 +1,5 @@
 #include "Pad.hpp"
 
-#include <hardware/Hardware.hpp>
 #include "hardware2/HardwareComponent.h"
 
 #include <Mpc.hpp>

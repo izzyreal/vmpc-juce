@@ -10,8 +10,8 @@
 #include "gui/MouseWheelControllable.hpp"
 
 #include "Mpc.hpp"
-#include "hardware/Hardware.hpp"
-#include "hardware/DataWheel.hpp"
+#include "hardware2/Hardware2.h"
+#include "hardware2/HardwareComponent.h"
 #include "inputlogic/HardwareTranslator.h"
 #include "inputlogic/InputMapper.h"
 #include "inputlogic/InputAction.h"
@@ -38,18 +38,18 @@ namespace vmpc_juce::gui::vector {
                 backgroundSvg->setInterceptsMouseClicks(false, false);
                 lines->setInterceptsMouseClicks(false, false);
                 dimpleSvg->setInterceptsMouseClicks(false, false);
-
+                /*
                 mpc.getHardware()->getDataWheel()->updateUi = [this](int increment) {
                     juce::MessageManager::callAsync([this, increment] {
                             setAngle(getAngle() + (increment * 0.02f));
                             });
                 };
-
+                */
             }
 
             ~DataWheel() override
             {
-                mpc.getHardware()->getDataWheel()->updateUi = {};
+                //mpc.getHardware2()->getDataWheel()->updateUi = {};
                 delete backgroundSvg;
                 delete lines;
                 delete dimpleSvg;
@@ -113,9 +113,13 @@ namespace vmpc_juce::gui::vector {
                 auto dY = -(event.getDistanceFromDragStartY() - lastDy);
 
                 if (dY == 0)
+                {
                     return;
+                }
 
                 const bool iOS = juce::SystemStats::getOperatingSystemType() == juce::SystemStats::OperatingSystemType::iOS;
+
+                auto dataWheel = mpc.getHardware2()->getDataWheel();
 
                 if (event.mods.isAnyModifierKeyDown() || iOS)
                 {
@@ -131,15 +135,15 @@ namespace vmpc_juce::gui::vector {
                     if (candidate >= 1 || candidate <= -1)
                     {
                         pixelCounter -= candidate;
-                        mpc.getHardware()->getDataWheel()->turn(candidate);
+                        dataWheel->turn(candidate);
                         mpc.inputMapper.trigger(mpc::inputlogic::HardwareTranslator::fromDataWheelTurn(candidate));
                     }
 
                 }
                 else
                 {
-                    mpc.getHardware()->getDataWheel()->turn(dY);
-                    mpc.inputMapper.trigger(mpc::inputlogic::HardwareTranslator::fromDataWheelTurn(dY));
+                    dataWheel->turn(dY);
+                    //mpc.inputMapper.trigger(mpc::inputlogic::HardwareTranslator::fromDataWheelTurn(dY));
                 }
 
                 lastDy = event.getDistanceFromDragStartY();
@@ -147,7 +151,7 @@ namespace vmpc_juce::gui::vector {
 
             void mouseWheelMove(const juce::MouseEvent &e, const juce::MouseWheelDetails &wheel) override
             {
-                auto dw = mpc.getHardware()->getDataWheel();
+                auto dw = mpc.getHardware2()->getDataWheel();
                 auto &inputMapper = mpc.inputMapper;
                 mouseWheelControllable.processWheelEvent(wheel, [&dw, &inputMapper](int increment) {
                         inputMapper.trigger(mpc::inputlogic::HardwareTranslator::fromDataWheelTurn(increment));
