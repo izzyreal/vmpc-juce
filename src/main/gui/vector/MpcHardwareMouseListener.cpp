@@ -86,7 +86,7 @@ void MpcHardwareMouseListener::pushHardware(const juce::MouseEvent &e)
         0.f,
         0.f,
         0.f,
-        MouseEvent::DOWN
+        MouseEvent::BUTTON_DOWN
     };
 
     if (isPad())
@@ -94,7 +94,7 @@ void MpcHardwareMouseListener::pushHardware(const juce::MouseEvent &e)
         const auto digitsString = label.substr(4);
         const auto padNumber = std::stoi(digitsString);
         mouseEvent.guiElement = static_cast<MouseEvent::GuiElement>(MouseEvent::PAD1 + padNumber - 1);
-        mouseEvent.type = MouseEvent::DOWN;
+        mouseEvent.type = MouseEvent::BUTTON_DOWN;
 
         hostEvent.payload = mouseEvent;
         mpc.getHardware2()->dispatchHostInput(hostEvent);
