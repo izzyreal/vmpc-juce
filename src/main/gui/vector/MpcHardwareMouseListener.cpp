@@ -163,8 +163,8 @@ void MpcHardwareMouseListener::mouseUp(const juce::MouseEvent &)
     {
         const auto digitsString = label.substr(4);
         const auto padNumber = std::stoi(digitsString);
-        auto pad = mpc.getHardware()->getPad(padNumber - 1);
-        pad->release();
+        auto mpcPad = mpc.getHardware2()->getPad(padNumber - 1);
+        mpcPad->release();
     }
     else if (label != "rec_gain" && label != "main_volume" && label != "cursor" && label != "slider" && label != "data-wheel")
     {
