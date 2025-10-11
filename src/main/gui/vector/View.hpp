@@ -12,7 +12,6 @@ class Keyboard;
 namespace vmpc_juce::gui::vector {
 
     class Lcd;
-    class LedController;
     class TooltipOverlay;
     class Menu;
     class Disclaimer;
@@ -52,7 +51,6 @@ namespace vmpc_juce::gui::vector {
             const std::function<juce::Font&()> getMpc2000xlFaceplateGlyphsScaled;
             const std::function<juce::Font&()> getKeyTooltipFontScaled;
             Keyboard *keyboard = nullptr;
-            LedController *ledController = nullptr;
             TooltipOverlay *tooltipOverlay = nullptr;
             Menu *menu = nullptr;
             Disclaimer *disclaimer = nullptr;

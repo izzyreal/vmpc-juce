@@ -4,7 +4,6 @@
 #include "FlexBoxWrapper.hpp"
 #include "ViewUtil.hpp"
 #include "Led.hpp"
-#include "LedController.hpp"
 #include "TooltipOverlay.hpp"
 #include "Menu.hpp"
 #include "Disclaimer.hpp"
@@ -141,47 +140,6 @@ View::View(mpc::Mpc &mpcToUse,
 
     pads = getChildComponentsOfClass<Pad>(this);
 
-    Led *fullLevelLed = nullptr;
-    Led *sixteenLevelsLed = nullptr;
-    Led *nextSeqLed = nullptr;
-    Led *trackMuteLed = nullptr;
-    Led *padBankALed = nullptr;
-    Led *padBankBLed = nullptr;
-    Led *padBankCLed = nullptr;
-    Led *padBankDLed = nullptr;
-    Led *afterLed = nullptr;
-    Led *undoSeqLed = nullptr;
-    Led *recLed = nullptr;
-    Led *overDubLed = nullptr;
-    Led *playLed = nullptr;
-
-    const auto leds = getChildComponentsOfClass<Led>(this);
-
-    for (auto &l : leds)
-    {
-        const auto ledName = l->getLedName();
-        if (ledName == "full_level_led") fullLevelLed = l;
-        else if (ledName == "16_levels_led") sixteenLevelsLed = l;
-        else if (ledName == "next_seq_led") nextSeqLed = l;
-        else if (ledName == "track_mute_led") trackMuteLed = l;
-        else if (ledName == "bank_a_led") padBankALed = l;
-        else if (ledName == "bank_b_led") padBankBLed = l;
-        else if (ledName == "bank_c_led") padBankCLed = l;
-        else if (ledName == "bank_d_led") padBankDLed = l;
-        else if (ledName == "after_led") afterLed = l;
-        else if (ledName == "undo_seq_led") undoSeqLed = l;
-        else if (ledName == "rec_led") recLed = l;
-        else if (ledName == "over_dub_led") overDubLed = l;
-        else if (ledName == "play_led") playLed = l;
-    }
-
-    if (leds.size() == 13)
-    {
-        ledController = new LedController(mpc, fullLevelLed, sixteenLevelsLed, nextSeqLed, trackMuteLed, padBankALed, padBankBLed, padBankCLed, padBankDLed, afterLed, undoSeqLed, recLed, overDubLed, playLed);
-        
-        ledController->setPadBankA(true);
-    }
-    
     const auto openKeyboardScreen = [&] { mpc.getLayeredScreen()->openScreen("vmpc-keyboard"); };
     const auto setKeyboardShortcutTooltipsVisibility = [&](const bool visibleEnabled){
         tooltipOverlay->setAllKeyTooltipsVisibility(visibleEnabled);
@@ -268,7 +226,6 @@ View::~View()
         delete m;
     }
 
-    delete ledController;
     delete tooltipOverlay;
     delete menu;
     delete disclaimer;

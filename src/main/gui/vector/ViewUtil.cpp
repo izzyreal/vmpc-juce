@@ -22,7 +22,6 @@
 #include "KeyTooltip.hpp"
 #include "MpcHardwareMouseListener.hpp"
 
-#include "hardware/Hardware.hpp"
 #include "hardware2/Hardware2.h"
 #include "hardware2/HardwareComponent.h"
 #include "controls/KbMapping.hpp"
