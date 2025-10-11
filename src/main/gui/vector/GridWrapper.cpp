@@ -51,6 +51,10 @@ static void processChildren(
         {
             component = c.rectangle_component;
         }
+        else if (c.node_type == "slider_border")
+        {
+            component = c.slider_border_component;
+        }
         else if (c.node_type == "slider")
         {
             component = c.slider_component;

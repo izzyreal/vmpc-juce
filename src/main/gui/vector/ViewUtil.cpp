@@ -12,7 +12,8 @@
 #include "Rectangle.hpp"
 #include "Constants.hpp"
 #include "NumKey.hpp"
-#include "Slider.hpp"
+#include "SliderBorder.h"
+#include "Slider.h"
 #include "Shadow.hpp"
 #include "DataWheel.hpp"
 #include "Knob.hpp"
@@ -148,13 +149,19 @@ void ViewUtil::createComponent(
         n.num_key_component = numKey;
         tooltipAnchor = numKey;
     }
+    else if (n.node_type == "slider_border")
+    {
+        auto sliderBorder = new SliderBorder(getScale, getMainFontScaled);
+        parent->addAndMakeVisible(sliderBorder);
+        components.push_back(sliderBorder);
+        n.slider_border_component = sliderBorder;
+    }
     else if (n.node_type == "slider")
     {
-        auto slider = new Slider(parent, getScale, n.shadow_size, getMainFontScaled, mpc.getHardware2()->getSlider());
+        auto slider = new Slider(getScale);
+        parent->addAndMakeVisible(slider);
+        components.push_back(slider);
         n.slider_component = slider;
-        addShadow(n, getScale, slider->sliderCapSvg, parent, components);
-        parent->addAndMakeVisible(n.slider_component);
-        components.push_back(n.slider_component);
     }
     else if (n.node_type == "data_wheel")
     {

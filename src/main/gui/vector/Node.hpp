@@ -67,6 +67,7 @@ namespace vmpc_juce::gui::vector {
         juce::Component *j_or_l_shape_component;
         juce::Component *rectangle_component;
         juce::Component *num_key_component;
+        juce::Component *slider_border_component;
         juce::Component *slider_component;
         juce::Component *data_wheel_component;
         juce::Component *lcd_component;
