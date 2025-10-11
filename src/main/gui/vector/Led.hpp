@@ -2,16 +2,28 @@
 
 #include "SvgComponent.hpp"
 
+#include "hardware2/HardwareComponent.h"
+
 namespace vmpc_juce::gui::vector {
 
     class Led : public SvgComponent {
         public:
             enum LedColor { RED, GREEN };
 
-            Led(const std::string ledNameToUse, const LedColor ledColorToUse, const std::function<float()> &getScaleToUse)
-                : SvgComponent({"led_off.svg", ledColorToUse == RED ? "led_on_red.svg" : "led_on_green.svg" }, nullptr, 0, getScaleToUse), ledColor(ledColorToUse), ledName(ledNameToUse)
-        {
-        }
+            Led(const std::shared_ptr<mpc::hardware2::Led> mpcLedToUse,
+                    const LedColor ledColorToUse,
+                    const std::function<float()> &getScaleToUse)
+                : SvgComponent({"led_off.svg", ledColorToUse == RED ? "led_on_red.svg" : "led_on_green.svg" },
+                               nullptr,
+                               0,
+                               getScaleToUse),
+                ledColor(ledColorToUse),
+                mpcLed(mpcLedToUse)
+                {
+                    setLedOnEnabled(true);
+                }
+
+            void sharedTimerCallback() { setLedOnEnabled(mpcLed->isEnabled()); }
 
             void setLedOnEnabled(const bool b)
             {
@@ -34,13 +46,10 @@ namespace vmpc_juce::gui::vector {
                 setSvgPath("led_on_green.svg");
             }
 
-            const std::string getLedName() { return ledName; }
-
         private:
             const LedColor ledColor;
             bool ledOnEnabled = false;
-            const std::string ledName;
-
+            const std::shared_ptr<mpc::hardware2::Led> mpcLed;
     };
 
 } // namespace vmpc_juce::gui::vector

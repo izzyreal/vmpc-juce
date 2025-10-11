@@ -175,7 +175,12 @@ void ViewUtil::createComponent(
     }
     else if (n.node_type == "red_led" || n.node_type == "green_led")
     {
-        auto led = new Led(n.name, n.node_type == "red_led" ? Led::LedColor::RED : Led::LedColor::GREEN, getScale);
+        auto mpcLed = mpc.getHardware2()->getLed(n.hardware_label);
+        if (!mpcLed)
+        {
+            printf("");
+        }
+        auto led = new Led(mpcLed, n.node_type == "red_led" ? Led::LedColor::RED : Led::LedColor::GREEN, getScale);
         n.led_component = led;
         parent->addAndMakeVisible(led);
         components.push_back(led);

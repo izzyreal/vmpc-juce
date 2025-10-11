@@ -139,6 +139,7 @@ View::View(mpc::Mpc &mpcToUse,
     ViewUtil::createComponent(mpc, view_root, components, this, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, getKeyTooltipFontScaled, mouseListeners, tooltipOverlay);
 
     pads = getChildComponentsOfClass<Pad>(this);
+    leds = getChildComponentsOfClass<Led>(this);
 
     const auto openKeyboardScreen = [&] { mpc.getLayeredScreen()->openScreen("vmpc-keyboard"); };
     const auto setKeyboardShortcutTooltipsVisibility = [&](const bool visibleEnabled){
@@ -303,6 +304,11 @@ void View::timerCallback()
     for (auto &p : pads)
     {
         p->sharedTimerCallback();
+    }
+
+    for (auto &l : leds)
+    {
+        l->sharedTimerCallback();
     }
 }
 
