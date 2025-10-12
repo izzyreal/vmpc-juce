@@ -7,6 +7,7 @@
 
 #include <sequencer/Track.hpp>
 
+#include <sampler/Pad.hpp>
 #include <sampler/NoteParameters.hpp>
 
 #include <disk/SoundLoader.hpp>
