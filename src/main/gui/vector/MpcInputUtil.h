@@ -20,13 +20,10 @@ static std::optional<mpc::inputlogic::HostInputEvent> constructHostInputEventFro
 
     using namespace mpc::inputlogic;
 
-    HostInputEvent hostEvent;
-    hostEvent.source = HostInputEvent::MOUSE;
-
     const float normX = e.position.getX() / static_cast<float>(e.eventComponent->getWidth());
     const float normY = e.position.getY() / static_cast<float>(e.eventComponent->getHeight());
 
-    hostEvent.payload = MouseEvent {
+    mpc::inputlogic::MouseEvent mouseEvent {
         MouseEvent::ButtonState{
             e.mods.isLeftButtonDown(),
             e.mods.isMiddleButtonDown(),
@@ -40,8 +37,6 @@ static std::optional<mpc::inputlogic::HostInputEvent> constructHostInputEventFro
         0.f,
         mouseEventType
     };
-
-    MouseEvent& mouseEvent = std::get<MouseEvent>(hostEvent.payload);
 
     if (mpc::hardware2::componentLabelToId.count(label) > 0)
     {
@@ -98,6 +93,6 @@ static std::optional<mpc::inputlogic::HostInputEvent> constructHostInputEventFro
         }
     }
 
-    return hostEvent;
+    return HostInputEvent(mouseEvent);
 }
 

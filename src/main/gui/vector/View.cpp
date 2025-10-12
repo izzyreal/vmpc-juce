@@ -284,18 +284,14 @@ void View::resized()
 void View::onKeyDown(int keyCode, bool ctrlDown, bool altDown, bool shiftDown)
 {
     using namespace mpc::inputlogic;
-    HostInputEvent hostInputEvent;
-    hostInputEvent.source = HostInputEvent::KEYBOARD;
-    hostInputEvent.payload = KeyEvent { true, keyCode, shiftDown, ctrlDown, altDown};
+    HostInputEvent hostInputEvent(KeyEvent { true, keyCode, shiftDown, ctrlDown, altDown});
     mpc.getHardware2()->dispatchHostInput(hostInputEvent);
 }
 
 void View::onKeyUp(int keyCode, bool ctrlDown, bool altDown, bool shiftDown)
 {
     using namespace mpc::inputlogic;
-    HostInputEvent hostInputEvent;
-    hostInputEvent.source = HostInputEvent::KEYBOARD;
-    hostInputEvent.payload = KeyEvent { false, keyCode, shiftDown, ctrlDown, altDown};
+    HostInputEvent hostInputEvent(KeyEvent { false, keyCode, shiftDown, ctrlDown, altDown});
     mpc.getHardware2()->dispatchHostInput(hostInputEvent);
 }
 
