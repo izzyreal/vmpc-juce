@@ -153,7 +153,7 @@ void VmpcProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     mpc.panic();
     auto seq = mpc.getSequencer();
     bool seqWasPlaying = seq->isPlaying();
-    bool seqWasOverdubbing = seq->isOverDubbing();
+    bool seqWasOverdubbing = seq->isOverdubbing();
     bool seqWasRecording = seq->isRecording();
     bool countWasEnabled = seq->isCountEnabled();
 
