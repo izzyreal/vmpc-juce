@@ -50,18 +50,39 @@ void MpcHardwareMouseListener::mouseExit(const juce::MouseEvent &)
     lastEventComponent = nullptr;
 }
 
-void MpcHardwareMouseListener::mouseWheelMove(const juce::MouseEvent &event, const juce::MouseWheelDetails &)
+void MpcHardwareMouseListener::mouseWheelMove(const juce::MouseEvent &event,
+                                              const juce::MouseWheelDetails &wheel)
 {
     setKeyTooltipVisibility(event.eventComponent, false);
 
-    if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(event, label, mpc::inputlogic::MouseEvent::MouseEventType::WHEEL); hostInputEvent.has_value())
+    // Keep an accumulator as a class member: float wheelAccumulator = 0.f;
+    float sensitivity = 10.0f;
+
+    // macOS often gives tiny deltas for smooth/inertial scrolling
+    if (wheel.isSmooth)
+        sensitivity *= 4.0f;   // boost for touch/trackpad
+    if (wheel.isInertial)
+        sensitivity *= 2.0f;   // boost inertial motion a bit too
+
+    wheelAccumulator += -wheel.deltaY * sensitivity;
+
+    int stepDelta = static_cast<int>(wheelAccumulator);
+    if (stepDelta != 0)
     {
-        mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
+        wheelAccumulator -= stepDelta; // preserve remainder
+
+        if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(
+                event, label, mpc::inputlogic::GestureEvent::Type::UPDATE, stepDelta);
+            hostInputEvent.has_value())
+        {
+            mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
+        }
     }
 }
 
 void MpcHardwareMouseListener::mouseDown(const juce::MouseEvent &e)
 {
+    printf("MpcHardwareMouseListener mouseDown\n");
     if (showKeyTooltipUponNextClick)
     {
         setKeyTooltipVisibility(e.eventComponent, true);
@@ -72,23 +93,38 @@ void MpcHardwareMouseListener::mouseDown(const juce::MouseEvent &e)
     setKeyTooltipVisibility(e.eventComponent, false);
     hideKeyTooltipUntilAfterMouseExit = true;
 
-    if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(e, label, mpc::inputlogic::MouseEvent::MouseEventType::BUTTON_DOWN); hostInputEvent.has_value())
+    previousDragY = e.position.getY();
+    dragYAccumulator = 0.f;
+
+    if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(e, label, mpc::inputlogic::GestureEvent::Type::BEGIN);
+        hostInputEvent.has_value())
     {
         mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
     }
 }
 
-void MpcHardwareMouseListener::mouseDoubleClick(const juce::MouseEvent &)
+void MpcHardwareMouseListener::mouseDoubleClick(const juce::MouseEvent &e)
 {
+    printf("MpcHardwareMouseListener mouseDoubleClick\n");
+
     if (label.length() >= 5 && label.substr(0, 5) == componentIdToLabel.at(ComponentId::SHIFT))
     {
         showKeyTooltipUponNextClick = true;
+    }
+
+    if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(e, label, mpc::inputlogic::GestureEvent::Type::REPEAT);
+        hostInputEvent.has_value())
+    {
+        mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
     }
 }
 
 void MpcHardwareMouseListener::mouseUp(const juce::MouseEvent &e)
 {
-    if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(e, label, mpc::inputlogic::MouseEvent::MouseEventType::BUTTON_UP); hostInputEvent.has_value())
+    printf("MpcHardwareMouseListener mouseUp\n");
+
+    if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(e, label, mpc::inputlogic::GestureEvent::Type::END);
+        hostInputEvent.has_value())
     {
         mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
     }
@@ -96,10 +132,29 @@ void MpcHardwareMouseListener::mouseUp(const juce::MouseEvent &e)
 
 void MpcHardwareMouseListener::mouseDrag(const juce::MouseEvent &e)
 {
-    if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(e, label, mpc::inputlogic::MouseEvent::MouseEventType::DRAG); hostInputEvent.has_value())
+    const float deltaY = previousDragY - e.position.getY();
+    dragYAccumulator += deltaY;
+
+    constexpr float stepThreshold = 4.0f; // pixels per tick
+    int stepDelta = 0;
+
+    if (std::abs(dragYAccumulator) >= stepThreshold)
     {
-        mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
+        stepDelta = static_cast<int>(dragYAccumulator / stepThreshold);
+        dragYAccumulator -= stepDelta * stepThreshold; // preserve remainder
     }
+
+    if (stepDelta != 0)
+    {
+        if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(
+                e, label, mpc::inputlogic::GestureEvent::Type::UPDATE, stepDelta);
+            hostInputEvent.has_value())
+        {
+            mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
+        }
+    }
+
+    previousDragY = e.position.getY();
 }
 
 void MpcHardwareMouseListener::setKeyTooltipVisibility(juce::Component *c, const bool visibleEnabled)

@@ -11,7 +11,8 @@
 
 static std::optional<mpc::inputlogic::HostInputEvent> constructHostInputEventFromJuceMouseEvent(const juce::MouseEvent &e,
                                                                               std::string label,
-                                                                              mpc::inputlogic::MouseEvent::MouseEventType mouseEventType)
+                                                                              mpc::inputlogic::GestureEvent::Type gestureEventType,
+                                                                              const int stepDelta = 0)
 {
     if (label.empty())
     {
@@ -23,24 +24,18 @@ static std::optional<mpc::inputlogic::HostInputEvent> constructHostInputEventFro
     const float normX = e.position.getX() / static_cast<float>(e.eventComponent->getWidth());
     const float normY = e.position.getY() / static_cast<float>(e.eventComponent->getHeight());
 
-    mpc::inputlogic::MouseEvent mouseEvent {
-        MouseEvent::ButtonState{
-            e.mods.isLeftButtonDown(),
-            e.mods.isMiddleButtonDown(),
-            e.mods.isRightButtonDown()
-        },
-        mpc::hardware2::ComponentId::NONE,
+    mpc::inputlogic::GestureEvent gestureEvent {
+        gestureEventType,
         normX,
         normY,
-        0.f,
-        0.f,
-        0.f,
-        mouseEventType
+        stepDelta,
+        gestureEventType == GestureEvent::Type::REPEAT ? 2 : 0,
+        mpc::hardware2::ComponentId::NONE
     };
 
     if (mpc::hardware2::componentLabelToId.count(label) > 0)
     {
-        mouseEvent.componentId = mpc::hardware2::componentLabelToId.at(label);
+        gestureEvent.componentId = mpc::hardware2::componentLabelToId.at(label);
     }
     else if (label == "cursor")
     {
@@ -77,22 +72,22 @@ static std::optional<mpc::inputlogic::HostInputEvent> constructHostInputEventFro
 
         if (left.contains(e.position))
         {
-            mouseEvent.componentId = mpc::hardware2::ComponentId::CURSOR_LEFT;
+            gestureEvent.componentId = mpc::hardware2::ComponentId::CURSOR_LEFT;
         }
         else if (top.contains(e.position))
         {
-            mouseEvent.componentId = mpc::hardware2::ComponentId::CURSOR_UP;
+            gestureEvent.componentId = mpc::hardware2::ComponentId::CURSOR_UP;
         }
         else if (right.contains(e.position))
         {
-            mouseEvent.componentId = mpc::hardware2::ComponentId::CURSOR_RIGHT;
+            gestureEvent.componentId = mpc::hardware2::ComponentId::CURSOR_RIGHT;
         }
         else if (bottom.contains(e.position))
         {
-            mouseEvent.componentId = mpc::hardware2::ComponentId::CURSOR_DOWN;
+            gestureEvent.componentId = mpc::hardware2::ComponentId::CURSOR_DOWN;
         }
     }
 
-    return HostInputEvent(mouseEvent);
+    return HostInputEvent(gestureEvent);
 }
 
