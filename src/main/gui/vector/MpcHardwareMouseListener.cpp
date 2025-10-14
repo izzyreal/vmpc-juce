@@ -5,7 +5,6 @@
 
 #include "hardware2/ComponentIdLabelMap.h"
 #include "inputlogic/HostInputEvent.h"
-#include "hardware2/Hardware2.h"
 
 #include "juce_audio_processors/juce_audio_processors.h"
 
@@ -75,7 +74,7 @@ void MpcHardwareMouseListener::mouseWheelMove(const juce::MouseEvent &event,
                 event, label, mpc::inputlogic::GestureEvent::Type::UPDATE, stepDelta);
             hostInputEvent.has_value())
         {
-            mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
+            mpc.dispatchHostInput(*hostInputEvent);
         }
     }
 }
@@ -101,7 +100,7 @@ void MpcHardwareMouseListener::mouseDown(const juce::MouseEvent &e)
     if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(e, label, gestureType);
         hostInputEvent.has_value())
     {
-        mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
+        mpc.dispatchHostInput(*hostInputEvent);
     }
 }
 
@@ -120,7 +119,7 @@ void MpcHardwareMouseListener::mouseUp(const juce::MouseEvent &e)
     if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(e, label, mpc::inputlogic::GestureEvent::Type::END);
         hostInputEvent.has_value())
     {
-        mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
+        mpc.dispatchHostInput(*hostInputEvent);
     }
 }
 
@@ -144,7 +143,7 @@ void MpcHardwareMouseListener::mouseDrag(const juce::MouseEvent &e)
                 e, label, mpc::inputlogic::GestureEvent::Type::UPDATE, stepDelta);
             hostInputEvent.has_value())
         {
-            mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
+            mpc.dispatchHostInput(*hostInputEvent);
         }
     }
 

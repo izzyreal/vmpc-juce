@@ -22,7 +22,6 @@
 #include <nlohmann/json.hpp>
 #include "gui/vector/Constants.hpp"
 
-#include "hardware2/Hardware2.h"
 #include "inputlogic/HostInputEvent.h"
 #include "vf_freetype/vf_FreeTypeFaces.h"
 
@@ -284,14 +283,14 @@ void View::onKeyDown(int keyCode, bool ctrlDown, bool altDown, bool shiftDown)
 {
     using namespace mpc::inputlogic;
     HostInputEvent hostInputEvent(KeyEvent { true, keyCode, shiftDown, ctrlDown, altDown});
-    mpc.getHardware2()->dispatchHostInput(hostInputEvent);
+    mpc.dispatchHostInput(hostInputEvent);
 }
 
 void View::onKeyUp(int keyCode, bool ctrlDown, bool altDown, bool shiftDown)
 {
     using namespace mpc::inputlogic;
     HostInputEvent hostInputEvent(KeyEvent { false, keyCode, shiftDown, ctrlDown, altDown});
-    mpc.getHardware2()->dispatchHostInput(hostInputEvent);
+    mpc.dispatchHostInput(hostInputEvent);
 }
 
 void View::timerCallback()
