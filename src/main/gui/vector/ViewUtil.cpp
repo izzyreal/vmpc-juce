@@ -356,7 +356,7 @@ void ViewUtil::createComponent(
                 const auto offset = unscaledOffsetsFromAnchor[i];
 
                 const auto getTooltipText = [&mpc, label]{
-                    const auto kbMapping = mpc.getControls()->getKbMapping().lock();
+                    const auto kbMapping = mpc.inputController->getKbMapping();
                     const auto vmpcKeyCode = kbMapping->getKeyCodeFromLabel(label);
                     return mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(vmpcKeyCode);
                 };

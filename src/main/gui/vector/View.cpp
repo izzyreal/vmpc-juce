@@ -14,7 +14,6 @@
 #include "InitialWindowDimensions.hpp"
 
 #include "Mpc.hpp"
-#include "controls/Controls.hpp"
 #include "controls/KeyEvent.hpp"
 #include "controls/KeyCodeHelper.hpp"
 
