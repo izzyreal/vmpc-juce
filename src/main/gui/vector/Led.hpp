@@ -2,6 +2,7 @@
 
 #include "SvgComponent.hpp"
 
+#include "controller/ClientInputControllerBase.h"
 #include "hardware2/HardwareComponent.h"
 
 namespace vmpc_juce::gui::vector {
@@ -11,6 +12,7 @@ namespace vmpc_juce::gui::vector {
             enum LedColor { RED, GREEN };
 
             Led(const std::shared_ptr<mpc::hardware2::Led> mpcLedToUse,
+                    std::shared_ptr<mpc::controller::ClientInputControllerBase> inputControllerToUse,
                     const LedColor ledColorToUse,
                     const std::function<float()> &getScaleToUse)
                 : SvgComponent({"led_off.svg", ledColorToUse == RED ? "led_on_red.svg" : "led_on_green.svg" },
@@ -18,12 +20,22 @@ namespace vmpc_juce::gui::vector {
                                0,
                                getScaleToUse),
                 ledColor(ledColorToUse),
-                mpcLed(mpcLedToUse)
+                mpcLed(mpcLedToUse),
+                inputController(inputControllerToUse)
                 {
                     setLedOnEnabled(true);
                 }
 
-            void sharedTimerCallback() { setLedOnEnabled(mpcLed->isEnabled()); }
+            void sharedTimerCallback()
+            {
+                if (mpcLed->getLabel() == "rec" || mpcLed->getLabel() == "overdub")
+                {
+                    setLedOnEnabled(mpcLed->isEnabled() || inputController->buttonLockTracker.isLocked(mpcLed->getLabel()));
+                    return;
+                }
+
+                setLedOnEnabled(mpcLed->isEnabled());
+            }
 
             void setLedOnEnabled(const bool b)
             {
@@ -50,6 +62,7 @@ namespace vmpc_juce::gui::vector {
             const LedColor ledColor;
             bool ledOnEnabled = false;
             const std::shared_ptr<mpc::hardware2::Led> mpcLed;
+            const std::shared_ptr<mpc::controller::ClientInputControllerBase> inputController;
     };
 
 } // namespace vmpc_juce::gui::vector

@@ -96,7 +96,9 @@ void MpcHardwareMouseListener::mouseDown(const juce::MouseEvent &e)
     previousDragY = e.position.getY();
     dragYAccumulator = 0.f;
 
-    if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(e, label, mpc::inputlogic::GestureEvent::Type::BEGIN);
+    const auto gestureType = e.getNumberOfClicks() >= 2 ? mpc::inputlogic::GestureEvent::Type::REPEAT : mpc::inputlogic::GestureEvent::Type::BEGIN;
+
+    if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(e, label, gestureType);
         hostInputEvent.has_value())
     {
         mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
@@ -105,17 +107,9 @@ void MpcHardwareMouseListener::mouseDown(const juce::MouseEvent &e)
 
 void MpcHardwareMouseListener::mouseDoubleClick(const juce::MouseEvent &e)
 {
-    printf("MpcHardwareMouseListener mouseDoubleClick\n");
-
     if (label.length() >= 5 && label.substr(0, 5) == componentIdToLabel.at(ComponentId::SHIFT))
     {
         showKeyTooltipUponNextClick = true;
-    }
-
-    if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(e, label, mpc::inputlogic::GestureEvent::Type::REPEAT);
-        hostInputEvent.has_value())
-    {
-        mpc.getHardware2()->dispatchHostInput(*hostInputEvent);
     }
 }
 
