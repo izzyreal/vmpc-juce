@@ -4,6 +4,8 @@
 
 #include <Mpc.hpp>
 #include "file/AkaiName.hpp"
+#include "juce_graphics/juce_graphics.h"
+#include "lcdgui/screens/DrumScreen.hpp"
 
 #include <sequencer/Track.hpp>
 
@@ -15,6 +17,7 @@
 
 #include <lcdgui/screens/window/VmpcConvertAndLoadWavScreen.hpp>
 #include <lcdgui/screens/dialog2/PopupScreen.hpp>
+#include <lcdgui/ScreenGroups.h>
 
 #include <StrUtil.hpp>
 
@@ -26,6 +29,25 @@ using namespace vmpc_juce::gui::vector;
 using namespace mpc::disk;
 using namespace mpc::lcdgui::screens::window;
 using namespace mpc::lcdgui::screens::dialog2;
+
+static int getDrumIndexForCurrentScreen(mpc::Mpc& mpc, const std::string& currentScreenName)
+{
+    const bool isSamplerScreen = mpc::lcdgui::screengroups::isSamplerScreen(currentScreenName);
+    return isSamplerScreen
+        ? mpc.screens->get<mpc::lcdgui::screens::DrumScreen>("drum")->getDrum()
+        : mpc.getSequencer()->getActiveTrack()->getBus() - 1;
+}
+
+static std::shared_ptr<mpc::sampler::Program> getProgramForCurrentScreen(mpc::Mpc& mpc)
+{
+    const auto currentScreenName = mpc.getLayeredScreen()->getCurrentScreenName();
+    const int drumIndex = getDrumIndexForCurrentScreen(mpc, currentScreenName);
+    if (drumIndex < 0)
+        return nullptr;
+
+    auto sampler = mpc.getSampler();
+    return sampler->getProgram(mpc.getDrum(drumIndex).getProgram());
+}
 
 Pad::Pad(juce::Component *commonParentWithShadowToUse,
          const float shadowSizeToUse,
@@ -53,7 +75,7 @@ bool Pad::isInterestedInFileDrag(const juce::StringArray &files)
         {
             if (glowSvg->getAlpha() == 0.f)
             {
-                fading = true;
+                //fading = true;
                 glowSvg->setAlpha(1.f);
                 repaint();
             }
@@ -186,39 +208,150 @@ void Pad::filesDropped(const juce::StringArray &files, int, int)
 
 void Pad::sharedTimerCallback()
 {
-    if (mpcPad->getVelocity() != lastProcessedVelo)
-    {
-        lastProcessedVelo = mpcPad->getVelocity();
+    static float decay = 0.05f;
+    static auto applyDecay = [&](float &f) { f -= decay; };
+    static float decayThreshold = 0.f;
+    const int padIndexWithBank = mpcPad->getIndex() + (mpc.getBank() * 16);
 
-        if (lastProcessedVelo.has_value())
+    using PadPressSource = mpc::sampler::Program::PadPressSource;
+
+    if (mpcPad->isPressed())
+    {
+        bool hasPrimaryPress = false;
+
+        for (auto &p : primaryPresses)
         {
-            glowSvg->setAlpha(static_cast<float>(*lastProcessedVelo) / 127.f);
-            setSvgPath("pressed_pad.svg");
-            fading = false;
-            timerDivisionCounter = 0;
-            repaint();
+            if (p.alpha == 1.f)
+            {
+                hasPrimaryPress = true;
+                break;
+            }
+        }
+
+        if (!hasPrimaryPress)
+        {
+            primaryPresses.push_back({padIndexWithBank, 1.f, true});
+        }
+    }
+    else
+    {
+        for (auto it = primaryPresses.begin(); it != primaryPresses.end();)
+        {
+            if (it->alpha <= decayThreshold)
+            {
+                primaryPresses.erase(it);
+            }
+            else
+            {
+                //it->alpha -= decay;
+                applyDecay(it->alpha);
+                ++it;
+            }
+        }
+    }
+
+    float primaryPressAlpha = 0.f;
+    for (auto &p : primaryPresses) primaryPressAlpha += p.alpha;
+    glowSvg->setAlpha(std::clamp(primaryPressAlpha, 0.f, 1.f));
+
+    const auto program = getProgramForCurrentScreen(mpc);
+
+    const auto pressCountWithinActiveBank = program->isPadPressedBySource(padIndexWithBank, PadPressSource::NON_PHYSICAL);
+    
+    if (pressCountWithinActiveBank > 0)
+    {
+        bool hasSecondaryPress = false;
+
+        for (auto &p : secondaryPresses)
+        {
+            if (p.alpha == 1.f && p.padIndexWithBank == padIndexWithBank)
+            {
+                hasSecondaryPress = true;
+                break;
+            }
+        }
+
+        if (!hasSecondaryPress)
+        {
+            secondaryPresses.push_back({padIndexWithBank, 1.f, false});
+        }
+    }
+    else
+    {
+        for (auto it = secondaryPresses.begin(); it != secondaryPresses.end();)
+        {
+            if (it->alpha <= decayThreshold)
+            {
+                secondaryPresses.erase(it);
+                continue;
+            }
+
+            applyDecay(it->alpha);
+            ++it;
+        }
+    }
+
+    for (int i = mpcPad->getIndex(); i < 64; i += 16)
+    {
+        if (i == padIndexWithBank) continue;
+
+        const int programPressCount = program->isPadPressedBySource(i, PadPressSource::NON_PHYSICAL);
+
+        if (programPressCount > 0)
+        {
+            bool hasTertiaryPress = false;
+
+            for (auto &p : tertiaryPresses)
+            {
+                if (p.alpha == 1.f && p.padIndexWithBank == i)
+                {
+                    hasTertiaryPress = true;
+                    break;
+                }
+            }
+
+            if (!hasTertiaryPress)
+            {
+                tertiaryPresses.push_back({i, 1.f, false});
+            }
         }
         else
         {
-            setSvgPath("pad.svg");
-            fading = true;
+            for (auto it = tertiaryPresses.begin(); it != tertiaryPresses.end();)
+            {
+                if (it->alpha <= decayThreshold)
+                {
+                    tertiaryPresses.erase(it);
+                    continue;
+                }
+                applyDecay(it->alpha);
+                ++it;
+            }
         }
     }
 
-    if (!fading || (timerDivisionCounter++ != 10))
+    bool bankHasChanged = false;
+
+    if (mpc.getBank() != lastBank)
     {
-        return;
+        bankHasChanged = true;
+        lastBank = mpc.getBank();
+    }
+    
+    if (bankHasChanged)
+    {
+        for (auto &p : secondaryPresses)
+        {
+            if (p.alpha == 1.f) p.alpha -= decay;
+        }
+
+        for (auto &p : tertiaryPresses)
+        {
+            if (p.alpha == 1.f) p.alpha -= decay;
+        }
     }
 
-    timerDivisionCounter = 0;
-
-    glowSvg->setAlpha(glowSvg->getAlpha() - 0.08f);
     repaint();
-
-    if (glowSvg->getAlpha() == 0.f)
-    {
-        fading = false;
-    }
 }
 
 int Pad::getVelo(int veloY)
@@ -247,5 +380,40 @@ void Pad::resized()
 Pad::~Pad()
 {
     delete glowSvg;
+}
+
+void Pad::paint(juce::Graphics& g)
+{
+    SvgComponent::paint(g);
+
+    float secondaryPressAlpha = 0.f;
+
+    for (auto &p : secondaryPresses)
+    {
+        if (p.isPhysical) continue;
+        secondaryPressAlpha += p.alpha;
+    }
+
+    secondaryPressAlpha = std::clamp(secondaryPressAlpha, 0.f, 1.f);
+
+    auto colour = juce::Colours::blue.withAlpha(0.5f * secondaryPressAlpha);
+
+    g.setColour(colour);
+    g.fillRoundedRectangle(getLocalBounds().reduced(20, 20).toFloat(), 4.0f);
+
+    float tertiaryPressAlpha = 0.f;
+
+    for (auto &p : tertiaryPresses)
+    {
+        if (p.isPhysical) continue;
+        tertiaryPressAlpha += p.alpha;
+    }
+
+    tertiaryPressAlpha = std::clamp(tertiaryPressAlpha, 0.f, 1.f);
+
+    colour = juce::Colours::crimson.withAlpha(0.5f * tertiaryPressAlpha);
+
+    g.setColour(colour);
+    g.fillRoundedRectangle(getLocalBounds().reduced(10, 10).toFloat(), 4.0f);
 }
 
