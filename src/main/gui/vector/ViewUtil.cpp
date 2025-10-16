@@ -158,7 +158,7 @@ void ViewUtil::createComponent(
     }
     else if (n.node_type == "slider")
     {
-        auto slider = new Slider(mpc.getHardware2()->getSlider(), getScale);
+        auto slider = new Slider(mpc, mpc.getHardware2()->getSlider(), getScale);
         parent->addAndMakeVisible(slider);
         components.push_back(slider);
         n.slider_component = slider;
@@ -232,11 +232,11 @@ void ViewUtil::createComponent(
 
         if (n.name == "rec_gain")
         {
-            svgComponent = new Knob(Knob::KnobType::REC_GAIN, parent, getScale);
+            svgComponent = new Knob(mpc.getHardware2()->getRecPot(), Knob::KnobType::REC_GAIN, parent, getScale);
         }
         else if (n.name == "main_volume")
         {
-            svgComponent = new Knob(Knob::KnobType::MAIN_VOLUME, parent, getScale);
+            svgComponent = new Knob(mpc.getHardware2()->getVolPot(), Knob::KnobType::MAIN_VOLUME, parent, getScale);
         }
         else
         {

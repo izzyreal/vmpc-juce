@@ -12,7 +12,9 @@
 static std::optional<mpc::inputlogic::HostInputEvent> constructHostInputEventFromJuceMouseEvent(const juce::MouseEvent &e,
                                                                               std::string label,
                                                                               mpc::inputlogic::GestureEvent::Type gestureEventType,
-                                                                              const int stepDelta = 0)
+                                                                              const int discreteDelta = 0,
+                                                                              const float continuousDelta = 0.f,
+                                                                              const std::optional<float> customNormY = std::nullopt)
 {
     if (label.empty())
     {
@@ -22,13 +24,14 @@ static std::optional<mpc::inputlogic::HostInputEvent> constructHostInputEventFro
     using namespace mpc::inputlogic;
 
     const float normX = e.position.getX() / static_cast<float>(e.eventComponent->getWidth());
-    const float normY = e.position.getY() / static_cast<float>(e.eventComponent->getHeight());
+    const float normY = customNormY.has_value() ? *customNormY : e.position.getY() / static_cast<float>(e.eventComponent->getHeight());
 
     mpc::inputlogic::GestureEvent gestureEvent {
         gestureEventType,
         normX,
         normY,
-        stepDelta,
+        discreteDelta,
+        continuousDelta,
         gestureEventType == GestureEvent::Type::REPEAT ? 2 : 0,
         mpc::hardware2::ComponentId::NONE
     };

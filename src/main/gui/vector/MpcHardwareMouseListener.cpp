@@ -71,8 +71,8 @@ void MpcHardwareMouseListener::mouseWheelMove(const juce::MouseEvent &event,
         wheelAccumulator -= stepDelta; // preserve remainder
 
         if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(
-                event, label, mpc::inputlogic::GestureEvent::Type::UPDATE, stepDelta);
-            hostInputEvent.has_value())
+                event, label, mpc::inputlogic::GestureEvent::Type::UPDATE, stepDelta, -wheel.deltaY * sensitivity);
+            hostInputEvent)
         {
             mpc.dispatchHostInput(*hostInputEvent);
         }
@@ -81,7 +81,6 @@ void MpcHardwareMouseListener::mouseWheelMove(const juce::MouseEvent &event,
 
 void MpcHardwareMouseListener::mouseDown(const juce::MouseEvent &e)
 {
-    printf("MpcHardwareMouseListener mouseDown\n");
     if (showKeyTooltipUponNextClick)
     {
         setKeyTooltipVisibility(e.eventComponent, true);
@@ -114,8 +113,6 @@ void MpcHardwareMouseListener::mouseDoubleClick(const juce::MouseEvent &e)
 
 void MpcHardwareMouseListener::mouseUp(const juce::MouseEvent &e)
 {
-    printf("MpcHardwareMouseListener mouseUp\n");
-
     if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(e, label, mpc::inputlogic::GestureEvent::Type::END);
         hostInputEvent.has_value())
     {
@@ -125,23 +122,37 @@ void MpcHardwareMouseListener::mouseUp(const juce::MouseEvent &e)
 
 void MpcHardwareMouseListener::mouseDrag(const juce::MouseEvent &e)
 {
-    const float deltaY = previousDragY - e.position.getY();
-    dragYAccumulator += deltaY;
-
-    constexpr float stepThreshold = 4.0f; // pixels per tick
-    int stepDelta = 0;
-
-    if (std::abs(dragYAccumulator) >= stepThreshold)
+    if (label == "slider")
     {
-        stepDelta = static_cast<int>(dragYAccumulator / stepThreshold);
-        dragYAccumulator -= stepDelta * stepThreshold; // preserve remainder
+        // Dragging is handled directly by the component
+        return;
     }
 
-    if (stepDelta != 0)
+    const float deltaY = previousDragY - e.position.getY();
+
+    // Always track accumulator for discrete steps
+    dragYAccumulator += deltaY;
+
+    constexpr float pixelsPerStep = 4.0f;
+    int discreteDelta = 0;
+
+    if (std::abs(dragYAccumulator) >= pixelsPerStep)
+    {
+        discreteDelta = static_cast<int>(dragYAccumulator / pixelsPerStep);
+        dragYAccumulator -= discreteDelta * pixelsPerStep;
+    }
+
+    const float continuousDelta = deltaY;
+
+    if (discreteDelta != 0 || continuousDelta != 0.0f)
     {
         if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(
-                e, label, mpc::inputlogic::GestureEvent::Type::UPDATE, stepDelta);
-            hostInputEvent.has_value())
+                e,
+                label,
+                mpc::inputlogic::GestureEvent::Type::UPDATE,
+                discreteDelta,
+                continuousDelta);
+            hostInputEvent)
         {
             mpc.dispatchHostInput(*hostInputEvent);
         }

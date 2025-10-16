@@ -9,6 +9,7 @@
 #include "Disclaimer.hpp"
 #include "About.hpp"
 #include "Pad.hpp"
+#include "Knob.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "InitialWindowDimensions.hpp"
@@ -140,6 +141,12 @@ View::View(mpc::Mpc &mpcToUse,
     pads = getChildComponentsOfClass<Pad>(this);
     leds = getChildComponentsOfClass<Led>(this);
     dataWheel = getChildComponentsOfClass<DataWheel>(this).front();
+
+    for (auto &knob : getChildComponentsOfClass<Knob>(this))
+    {
+        if (knob->knobType == Knob::KnobType::MAIN_VOLUME) volKnob = knob;
+        else if (knob->knobType == Knob::KnobType::REC_GAIN) recKnob = knob;
+    }
 
     const auto openKeyboardScreen = [&] { mpc.getLayeredScreen()->openScreen("vmpc-keyboard"); };
     const auto setKeyboardShortcutTooltipsVisibility = [&](const bool visibleEnabled){
@@ -308,6 +315,8 @@ void View::timerCallback()
     }
 
     dataWheel->sharedTimerCallback();
+    recKnob->sharedTimerCallback();
+    volKnob->sharedTimerCallback();
 }
 
 

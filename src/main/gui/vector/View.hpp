@@ -19,6 +19,7 @@ namespace vmpc_juce::gui::vector {
     class Pad;
     class Led;
     class DataWheel;
+    class Knob;
 
     class View : public juce::Component, public juce::Timer {
 
@@ -74,6 +75,8 @@ namespace vmpc_juce::gui::vector {
             std::vector<Pad*> pads;
             std::vector<Led*> leds;
             DataWheel *dataWheel;
+            Knob *recKnob;
+            Knob *volKnob;
 
             friend class Lcd;
     };
