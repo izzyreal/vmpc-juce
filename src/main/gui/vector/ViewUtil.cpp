@@ -23,8 +23,8 @@
 #include "KeyTooltip.hpp"
 #include "MpcHardwareMouseListener.hpp"
 
-#include "hardware2/Hardware2.h"
-#include "hardware2/HardwareComponent.h"
+#include "hardware/Hardware.h"
+#include "hardware/HardwareComponent.h"
 #include "controls/KbMapping.hpp"
 #include "controls/KeyCodeHelper.hpp"
 
@@ -158,14 +158,14 @@ void ViewUtil::createComponent(
     }
     else if (n.node_type == "slider")
     {
-        auto slider = new Slider(mpc, mpc.getHardware2()->getSlider(), getScale);
+        auto slider = new Slider(mpc, mpc.getHardware()->getSlider(), getScale);
         parent->addAndMakeVisible(slider);
         components.push_back(slider);
         n.slider_component = slider;
     }
     else if (n.node_type == "data_wheel")
     {
-        auto dataWheel = new DataWheel(mpc.getHardware2()->getDataWheel(), parent, n.shadow_size, getScale);
+        auto dataWheel = new DataWheel(mpc.getHardware()->getDataWheel(), parent, n.shadow_size, getScale);
         addShadow(n, getScale, dataWheel->backgroundSvg, parent, components);
         n.data_wheel_component = dataWheel;
         parent->addAndMakeVisible(dataWheel);
@@ -182,7 +182,7 @@ void ViewUtil::createComponent(
     }
     else if (n.node_type == "red_led" || n.node_type == "green_led")
     {
-        auto mpcLed = mpc.getHardware2()->getLed(n.hardware_label);
+        auto mpcLed = mpc.getHardware()->getLed(n.hardware_label);
         auto led = new Led(mpcLed, mpc.inputController, n.node_type == "red_led" ? Led::LedColor::RED : Led::LedColor::GREEN, getScale);
         n.led_component = led;
         parent->addAndMakeVisible(led);
@@ -193,7 +193,7 @@ void ViewUtil::createComponent(
         assert(n.name.length() == 5 || n.name.length() == 6);
         const auto digitsString = n.name.substr(4);
         const auto padNumber = std::stoi(digitsString);
-        auto mpcPad = mpc.getHardware2()->getPad(padNumber - 1);
+        auto mpcPad = mpc.getHardware()->getPad(padNumber - 1);
         auto pad = new Pad(parent, n.shadow_size, getScale, mpc, mpcPad);
         n.svg_component = pad;
         components.push_back(pad);
@@ -232,11 +232,11 @@ void ViewUtil::createComponent(
 
         if (n.name == "rec_gain")
         {
-            svgComponent = new Pot(mpc.getHardware2()->getRecPot(), Pot::PotType::REC_GAIN, parent, getScale);
+            svgComponent = new Pot(mpc.getHardware()->getRecPot(), Pot::PotType::REC_GAIN, parent, getScale);
         }
         else if (n.name == "main_volume")
         {
-            svgComponent = new Pot(mpc.getHardware2()->getVolPot(), Pot::PotType::MAIN_VOLUME, parent, getScale);
+            svgComponent = new Pot(mpc.getHardware()->getVolPot(), Pot::PotType::MAIN_VOLUME, parent, getScale);
         }
         else
         {

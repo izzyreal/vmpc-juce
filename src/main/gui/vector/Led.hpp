@@ -3,7 +3,7 @@
 #include "SvgComponent.hpp"
 
 #include "controller/ClientInputControllerBase.h"
-#include "hardware2/HardwareComponent.h"
+#include "hardware/HardwareComponent.h"
 
 namespace vmpc_juce::gui::vector {
 
@@ -11,7 +11,7 @@ namespace vmpc_juce::gui::vector {
         public:
             enum LedColor { RED, GREEN };
 
-            Led(const std::shared_ptr<mpc::hardware2::Led> mpcLedToUse,
+            Led(const std::shared_ptr<mpc::hardware::Led> mpcLedToUse,
                     std::shared_ptr<mpc::controller::ClientInputControllerBase> inputControllerToUse,
                     const LedColor ledColorToUse,
                     const std::function<float()> &getScaleToUse)
@@ -61,7 +61,7 @@ namespace vmpc_juce::gui::vector {
         private:
             const LedColor ledColor;
             bool ledOnEnabled = false;
-            const std::shared_ptr<mpc::hardware2::Led> mpcLed;
+            const std::shared_ptr<mpc::hardware::Led> mpcLed;
             const std::shared_ptr<mpc::controller::ClientInputControllerBase> inputController;
     };
 

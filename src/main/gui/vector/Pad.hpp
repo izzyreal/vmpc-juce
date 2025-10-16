@@ -7,7 +7,7 @@
 
 namespace mpc { class Mpc; }
 
-namespace mpc::hardware2 {
+namespace mpc::hardware {
     class Pad;
 }
 
@@ -30,7 +30,7 @@ private:
     int lastBank = -1;
 
     mpc::Mpc &mpc;
-    std::shared_ptr<mpc::hardware2::Pad> mpcPad;
+    std::shared_ptr<mpc::hardware::Pad> mpcPad;
     juce::Rectangle<int> rect;
     SvgComponent *glowSvg = nullptr;
     int16_t timerDivisionCounter = 0;
@@ -50,7 +50,7 @@ public:
     Pad(juce::Component *commonParentWithShadowToUse,
         const float shadowSizeToUse,
         const std::function<float()> &getScaleToUse,
-        mpc::Mpc &, std::shared_ptr<mpc::hardware2::Pad>);
+        mpc::Mpc &, std::shared_ptr<mpc::hardware::Pad>);
 
     ~Pad() override;
 };

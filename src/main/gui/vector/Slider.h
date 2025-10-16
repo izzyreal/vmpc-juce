@@ -9,7 +9,7 @@ namespace vmpc_juce::gui::vector {
 
 class Slider: public juce::Component {
     public:
-        Slider(mpc::Mpc &mpc, std::shared_ptr<mpc::hardware2::Slider> mpcSlider, const std::function<float()> &getScaleToUse)
+        Slider(mpc::Mpc &mpc, std::shared_ptr<mpc::hardware::Slider> mpcSlider, const std::function<float()> &getScaleToUse)
             : getScale(getScaleToUse)
         {
             sliderCap = new SliderCap(mpc, mpcSlider, {"slider_cap.svg"}, this, 5, getScale);

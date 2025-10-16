@@ -2,7 +2,7 @@
 
 #include "inputlogic/HostInputEvent.h"
 
-#include "hardware2/ComponentIdLabelMap.h"
+#include "hardware/ComponentId.h"
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
@@ -18,7 +18,7 @@ static std::optional<HostInputEvent> makeAbsoluteGestureFromMouse(
     GestureEvent::Type type,
     std::optional<float> customNormY)
 {
-    if (!mpc::hardware2::componentLabelToId.count(label))
+    if (!mpc::hardware::componentLabelToId.count(label))
     {
         return std::nullopt;
     }
@@ -35,7 +35,7 @@ static std::optional<HostInputEvent> makeAbsoluteGestureFromMouse(
             normY,
             0.f,
             0,
-            mpc::hardware2::componentLabelToId.at(label)
+            mpc::hardware::componentLabelToId.at(label)
         }
     };
 }
@@ -47,7 +47,7 @@ static std::optional<mpc::inputlogic::HostInputEvent> makeRelativeGestureFromMou
 {
     using namespace mpc::inputlogic;
 
-    if (!mpc::hardware2::componentLabelToId.count(label))
+    if (!mpc::hardware::componentLabelToId.count(label))
     {
         return std::nullopt;
     }
@@ -59,7 +59,7 @@ static std::optional<mpc::inputlogic::HostInputEvent> makeRelativeGestureFromMou
             0.f,
             continuousDelta,
             0,
-            mpc::hardware2::componentLabelToId.at(label)
+            mpc::hardware::componentLabelToId.at(label)
         }
     };
 }
@@ -87,12 +87,12 @@ static std::optional<mpc::inputlogic::HostInputEvent> constructHostInputEventFro
         discreteDelta,
         continuousDelta,
         gestureEventType == GestureEvent::Type::REPEAT ? 2 : 0,
-        mpc::hardware2::ComponentId::NONE
+        mpc::hardware::ComponentId::NONE
     };
 
-    if (mpc::hardware2::componentLabelToId.count(label) > 0)
+    if (mpc::hardware::componentLabelToId.count(label) > 0)
     {
-        gestureEvent.componentId = mpc::hardware2::componentLabelToId.at(label);
+        gestureEvent.componentId = mpc::hardware::componentLabelToId.at(label);
     }
     else if (label == "cursor")
     {
@@ -129,19 +129,19 @@ static std::optional<mpc::inputlogic::HostInputEvent> constructHostInputEventFro
 
         if (left.contains(e.position))
         {
-            gestureEvent.componentId = mpc::hardware2::ComponentId::CURSOR_LEFT;
+            gestureEvent.componentId = mpc::hardware::ComponentId::CURSOR_LEFT;
         }
         else if (top.contains(e.position))
         {
-            gestureEvent.componentId = mpc::hardware2::ComponentId::CURSOR_UP;
+            gestureEvent.componentId = mpc::hardware::ComponentId::CURSOR_UP;
         }
         else if (right.contains(e.position))
         {
-            gestureEvent.componentId = mpc::hardware2::ComponentId::CURSOR_RIGHT;
+            gestureEvent.componentId = mpc::hardware::ComponentId::CURSOR_RIGHT;
         }
         else if (bottom.contains(e.position))
         {
-            gestureEvent.componentId = mpc::hardware2::ComponentId::CURSOR_DOWN;
+            gestureEvent.componentId = mpc::hardware::ComponentId::CURSOR_DOWN;
         }
     }
 

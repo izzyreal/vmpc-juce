@@ -3,13 +3,13 @@
 #include "MpcInputUtil.h"
 #include "TooltipOverlay.hpp"
 
-#include "hardware2/ComponentIdLabelMap.h"
+#include "hardware/ComponentId.h"
 #include "inputlogic/HostInputEvent.h"
 
 #include "juce_audio_processors/juce_audio_processors.h"
 
 using namespace vmpc_juce::gui::vector;
-using namespace mpc::hardware2;
+using namespace mpc::hardware;
 
 bool MpcHardwareMouseListener::showKeyTooltipUponNextClick = false;
 

@@ -8,13 +8,13 @@
 #include "SvgComponent.hpp"
 #include "DataWheelLines.hpp"
 
-#include "hardware2/HardwareComponent.h"
+#include "hardware/HardwareComponent.h"
 
 namespace vmpc_juce::gui::vector {
 
     class DataWheel : public juce::Component {
         public:
-            DataWheel(std::shared_ptr<mpc::hardware2::DataWheel> dataWheelModelToUse, juce::Component *commonParentWithShadowToUse,
+            DataWheel(std::shared_ptr<mpc::hardware::DataWheel> dataWheelModelToUse, juce::Component *commonParentWithShadowToUse,
                       const float shadowSizeToUse,
                       const std::function<float()> &getScaleToUse)
                 : commonParentWithShadow(commonParentWithShadowToUse),
@@ -69,7 +69,7 @@ namespace vmpc_juce::gui::vector {
             SvgComponent *backgroundSvg = nullptr;
 
         private:
-            std::shared_ptr<mpc::hardware2::DataWheel> dataWheelModel;
+            std::shared_ptr<mpc::hardware::DataWheel> dataWheelModel;
             float lastAngle = std::numeric_limits<float>::max();
             SvgComponent *dimpleSvg = nullptr;
             DataWheelLines *lines = nullptr;

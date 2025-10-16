@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DraggableSvgComponent.h"
-#include "hardware2/HardwareComponent.h"
+#include "hardware/HardwareComponent.h"
 #include "inputlogic/HostInputEvent.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 
@@ -12,7 +12,7 @@ namespace vmpc_juce::gui::vector {
 
 class SliderCap : public DraggableSvgComponent {
 public:
-    SliderCap(mpc::Mpc &mpcToUse, std::shared_ptr<mpc::hardware2::Slider> modelToUse,
+    SliderCap(mpc::Mpc &mpcToUse, std::shared_ptr<mpc::hardware::Slider> modelToUse,
               const std::vector<std::string>& svgPaths,
               juce::Component* commonParentWithShadowToUse,
               float shadowSizeToUse,
@@ -33,7 +33,7 @@ public:
         const float modelValue = model->getValue();
         float norm = std::clamp((modelValue - min) / (max - min), 0.0f, 1.0f);
 
-        if (model->getDirection() == mpc::hardware2::Slider::Direction::UpIncreases)
+        if (model->getDirection() == mpc::hardware::Slider::Direction::UpIncreases)
         {
             norm = 1.f - norm;
         }
@@ -48,7 +48,7 @@ public:
 
 private:
     mpc::Mpc &mpc;
-    std::shared_ptr<mpc::hardware2::Slider> model;
+    std::shared_ptr<mpc::hardware::Slider> model;
     bool isDragging = false;
 
     void mouseDown(const juce::MouseEvent& e) override

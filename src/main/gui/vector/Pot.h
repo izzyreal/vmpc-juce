@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SvgComponent.hpp"
-#include "hardware2/HardwareComponent.h"
+#include "hardware/HardwareComponent.h"
 #include <limits>
 
 namespace vmpc_juce::gui::vector {
@@ -9,7 +9,7 @@ namespace vmpc_juce::gui::vector {
         public:
             enum PotType { REC_GAIN, MAIN_VOLUME };
 
-            Pot(std::shared_ptr<mpc::hardware2::Pot> modelToUse,
+            Pot(std::shared_ptr<mpc::hardware::Pot> modelToUse,
                     const PotType potTypeToUse,
                     juce::Component *commonParentWithShadowToUse,
                     const std::function<float()> &getScaleToUse)
@@ -35,7 +35,7 @@ namespace vmpc_juce::gui::vector {
             PotType potType;
 
         private:
-            std::shared_ptr<mpc::hardware2::Pot> model;
+            std::shared_ptr<mpc::hardware::Pot> model;
             float lastValue = std::numeric_limits<float>::max();
 
             void handleAngleChanged(const float newAngle)

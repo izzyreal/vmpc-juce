@@ -1,6 +1,6 @@
 #include "Pad.hpp"
 
-#include "hardware2/HardwareComponent.h"
+#include "hardware/HardwareComponent.h"
 
 #include <Mpc.hpp>
 #include "file/AkaiName.hpp"
@@ -53,7 +53,7 @@ Pad::Pad(juce::Component *commonParentWithShadowToUse,
          const float shadowSizeToUse,
          const std::function<float()> &getScaleToUse,
          mpc::Mpc &mpcToUse,
-         std::shared_ptr<mpc::hardware2::Pad> mpcPadToUse)
+         std::shared_ptr<mpc::hardware::Pad> mpcPadToUse)
     : SvgComponent({"pad.svg", "pressed_pad.svg"}, commonParentWithShadowToUse, shadowSizeToUse, getScaleToUse), mpc(mpcToUse), mpcPad(mpcPadToUse)
 {
     glowSvg = new SvgComponent({"pad_glow.svg"}, commonParentWithShadowToUse, 0.f, getScaleToUse);
