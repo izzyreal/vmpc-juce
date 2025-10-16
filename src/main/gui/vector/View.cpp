@@ -10,6 +10,7 @@
 #include "About.hpp"
 #include "Pad.hpp"
 #include "Knob.hpp"
+#include "Slider.h"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "InitialWindowDimensions.hpp"
@@ -141,6 +142,7 @@ View::View(mpc::Mpc &mpcToUse,
     pads = getChildComponentsOfClass<Pad>(this);
     leds = getChildComponentsOfClass<Led>(this);
     dataWheel = getChildComponentsOfClass<DataWheel>(this).front();
+    sliderCap = getChildComponentsOfClass<SliderCap>(this).front();
 
     for (auto &knob : getChildComponentsOfClass<Knob>(this))
     {
@@ -317,6 +319,7 @@ void View::timerCallback()
     dataWheel->sharedTimerCallback();
     recKnob->sharedTimerCallback();
     volKnob->sharedTimerCallback();
+    sliderCap->sharedTimerCallback();
 }
 
 

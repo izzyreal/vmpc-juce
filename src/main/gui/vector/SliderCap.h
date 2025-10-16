@@ -10,7 +10,7 @@
 
 namespace vmpc_juce::gui::vector {
 
-class SliderCap : public DraggableSvgComponent, private juce::Timer {
+class SliderCap : public DraggableSvgComponent {
 public:
     SliderCap(mpc::Mpc &mpcToUse, std::shared_ptr<mpc::hardware2::Slider> modelToUse,
               const std::vector<std::string>& svgPaths,
@@ -20,7 +20,30 @@ public:
         : DraggableSvgComponent(svgPaths, commonParentWithShadowToUse, shadowSizeToUse, getScaleToUse),
           mpc(mpcToUse), model(modelToUse)
     {
-        startTimerHz(30); // poll ~33 ms
+    }
+
+    void sharedTimerCallback()
+    {
+        if (isDragging)
+        {
+            return;
+        }
+
+        const auto [min, max] = model->getRangeAs<float>();
+        const float modelValue = model->getValue();
+        float norm = std::clamp((modelValue - min) / (max - min), 0.0f, 1.0f);
+
+        if (model->getDirection() == mpc::hardware2::Slider::Direction::UpIncreases)
+        {
+            norm = 1.f - norm;
+        }
+
+        if (const auto *parent = getParentComponent())
+        {
+            const float range = static_cast<float>(parent->getHeight() - getHeight());
+            const int newY = static_cast<int>(std::lround(range * norm));
+            setTopLeftPosition(getX(), newY);
+        }
     }
 
 private:
@@ -43,38 +66,10 @@ private:
     void mouseDrag(const juce::MouseEvent& e) override
     {
         DraggableSvgComponent::mouseDrag(e);
-        if (auto hostInputEvent = constructHostInputEventFromJuceMouseEvent(e,
-                                                                            "slider",
-                                                                            mpc::inputlogic::GestureEvent::Type::UPDATE,
-                                                                            0.f,
-                                                                            0.f,
+        if (auto hostInputEvent = makeAbsoluteGestureFromMouse(e, "slider", mpc::inputlogic::GestureEvent::Type::UPDATE,
                                                                             getNormalizedY()); hostInputEvent) 
         {
             mpc.dispatchHostInput(*hostInputEvent);
-        }
-    }
-
-    void timerCallback() override
-    {
-        if (isDragging)
-        {
-            return;
-        }
-
-        const auto [min, max] = model->getRangeAs<float>();
-        const float modelValue = model->getValue();
-        float norm = std::clamp((modelValue - min) / (max - min), 0.0f, 1.0f);
-
-        if (model->getDirection() == mpc::hardware2::Slider::Direction::UpIncreases)
-        {
-            norm = 1.f - norm;
-        }
-
-        if (const auto *parent = getParentComponent())
-        {
-            const float range = static_cast<float>(parent->getHeight() - getHeight());
-            const int newY = static_cast<int>(std::lround(range * norm));
-            setTopLeftPosition(getX(), newY);
         }
     }
 };

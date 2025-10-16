@@ -53,8 +53,6 @@ namespace vmpc_juce::gui::vector {
             bool hideKeyTooltipUntilAfterMouseExit = false;
             
             float previousDragY = 0.f;
-            float dragYAccumulator = 0.f;
-            float wheelAccumulator = 0.f;
     };
 
 } // namespace vmpc_juce::gui::vector

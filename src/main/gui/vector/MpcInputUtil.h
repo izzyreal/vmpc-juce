@@ -9,6 +9,62 @@
 #include <string>
 #include <optional>
 
+using HostInputEvent = mpc::inputlogic::HostInputEvent;
+using GestureEvent = mpc::inputlogic::GestureEvent;
+
+static std::optional<HostInputEvent> makeAbsoluteGestureFromMouse(
+    const juce::MouseEvent& e,
+    const std::string& label,
+    GestureEvent::Type type,
+    std::optional<float> customNormY)
+{
+    if (!mpc::hardware2::componentLabelToId.count(label))
+    {
+        return std::nullopt;
+    }
+
+    auto bounds = e.eventComponent ? e.eventComponent->getLocalBounds() : juce::Rectangle<int>();
+    float normY = customNormY.has_value()
+        ? *customNormY
+        : (bounds.isEmpty() ? 0.0f : juce::jlimit(0.0f, 1.0f, 1.0f - (float)e.position.getY() / (float)bounds.getHeight()));
+
+    return HostInputEvent{
+        GestureEvent{
+            type,
+            GestureEvent::Movement::Absolute,
+            normY,
+            0.f,
+            0,
+            mpc::hardware2::componentLabelToId.at(label)
+        }
+    };
+}
+
+static std::optional<mpc::inputlogic::HostInputEvent> makeRelativeGestureFromMouse(
+    const std::string& label,
+    GestureEvent::Type type,
+    float continuousDelta)
+{
+    using namespace mpc::inputlogic;
+
+    if (!mpc::hardware2::componentLabelToId.count(label))
+    {
+        return std::nullopt;
+    }
+
+    return HostInputEvent{
+        GestureEvent{
+            type,
+            GestureEvent::Movement::Relative,
+            0.f,
+            continuousDelta,
+            0,
+            mpc::hardware2::componentLabelToId.at(label)
+        }
+    };
+}
+
+/*
 static std::optional<mpc::inputlogic::HostInputEvent> constructHostInputEventFromJuceMouseEvent(const juce::MouseEvent &e,
                                                                               std::string label,
                                                                               mpc::inputlogic::GestureEvent::Type gestureEventType,
@@ -23,12 +79,10 @@ static std::optional<mpc::inputlogic::HostInputEvent> constructHostInputEventFro
 
     using namespace mpc::inputlogic;
 
-    const float normX = e.position.getX() / static_cast<float>(e.eventComponent->getWidth());
     const float normY = customNormY.has_value() ? *customNormY : e.position.getY() / static_cast<float>(e.eventComponent->getHeight());
 
     mpc::inputlogic::GestureEvent gestureEvent {
         gestureEventType,
-        normX,
         normY,
         discreteDelta,
         continuousDelta,
@@ -93,4 +147,4 @@ static std::optional<mpc::inputlogic::HostInputEvent> constructHostInputEventFro
 
     return HostInputEvent(gestureEvent);
 }
-
+*/
