@@ -22,6 +22,7 @@
 #include <nlohmann/json.hpp>
 #include "gui/vector/Constants.hpp"
 
+#include "gui/vector/DataWheel.hpp"
 #include "inputlogic/HostInputEvent.h"
 #include "vf_freetype/vf_FreeTypeFaces.h"
 
@@ -138,6 +139,7 @@ View::View(mpc::Mpc &mpcToUse,
 
     pads = getChildComponentsOfClass<Pad>(this);
     leds = getChildComponentsOfClass<Led>(this);
+    dataWheel = getChildComponentsOfClass<DataWheel>(this).front();
 
     const auto openKeyboardScreen = [&] { mpc.getLayeredScreen()->openScreen("vmpc-keyboard"); };
     const auto setKeyboardShortcutTooltipsVisibility = [&](const bool visibleEnabled){
@@ -304,6 +306,8 @@ void View::timerCallback()
     {
         l->sharedTimerCallback();
     }
+
+    dataWheel->sharedTimerCallback();
 }
 
 

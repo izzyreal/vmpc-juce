@@ -165,7 +165,7 @@ void ViewUtil::createComponent(
     }
     else if (n.node_type == "data_wheel")
     {
-        auto dataWheel = new DataWheel(parent, n.shadow_size, getScale);
+        auto dataWheel = new DataWheel(mpc.getHardware2()->getDataWheel(), parent, n.shadow_size, getScale);
         addShadow(n, getScale, dataWheel->backgroundSvg, parent, components);
         n.data_wheel_component = dataWheel;
         parent->addAndMakeVisible(dataWheel);

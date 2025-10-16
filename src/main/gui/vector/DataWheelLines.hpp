@@ -29,16 +29,15 @@ namespace vmpc_juce::gui::vector {
                 const auto line_thickness = scale * 0.5f;
                 const float lineOffset = line_thickness / 2;
 
-                for (int i = 0; i < 12; ++i)
+                for (int i = 1; i < 12; ++i)
                 {
-                    if (i == 6) continue;
-                    float line_angle = juce::MathConstants<float>::twoPi * i / 12.0f + angle;
+                    float line_angle = juce::MathConstants<float>::twoPi * (i / 12.0f + angle);
                     float brightness = 0.7f + 0.5f * std::cos(line_angle + juce::MathConstants<float>::pi);
                     brightness = std::min<float>(brightness, 0.5f);
                     juce::Colour greyColor = juce::Colours::grey.withBrightness(brightness);
                     juce::Colour blackColor = juce::Colours::black;
 
-                    juce::Point<float> direction(std::cos(line_angle), std::sin(line_angle));
+                    juce::Point<float> direction(std::sin(line_angle), -std::cos(line_angle));
                     juce::Point<float> outerPoint = center + direction * innerRadius;
                     juce::Point<float> innerPoint = outerPoint - direction * lineLength;
                     juce::Point<float> offset(-direction.y * lineOffset, direction.x * lineOffset);
