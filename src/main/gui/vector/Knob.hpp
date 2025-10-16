@@ -27,10 +27,7 @@ namespace vmpc_juce::gui::vector {
 
                 if (lastValue != currentValue)
                 {
-                    const auto [min, max] = model->getRangeAs<float>();
-                    const float modelValue = model->getValue();
-                    float norm = std::clamp((modelValue - min) / (max - min), 0.0f, 1.0f);
-                    handleAngleChanged(norm);
+                    handleAngleChanged(currentValue);
                     lastValue = currentValue;
                 }
             }
