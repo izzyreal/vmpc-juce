@@ -28,9 +28,10 @@ namespace vmpc_juce::gui::vector {
 
             void sharedTimerCallback()
             {
-                if (mpcLed->getLabel() == "rec" || mpcLed->getLabel() == "overdub")
+                using namespace mpc::hardware;
+                if (mpcLed->getId() == ComponentId::REC_LED || mpcLed->getId() == ComponentId::OVERDUB_LED)
                 {
-                    setLedOnEnabled(mpcLed->isEnabled() || inputController->buttonLockTracker.isLocked(mpcLed->getLabel()));
+                    setLedOnEnabled(mpcLed->isEnabled() || inputController->buttonLockTracker.isLocked(mpcLed->getId()));
                     return;
                 }
 

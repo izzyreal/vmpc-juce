@@ -23,6 +23,7 @@
 #include "KeyTooltip.hpp"
 #include "MpcHardwareMouseListener.hpp"
 
+#include "hardware/ComponentId.h"
 #include "hardware/Hardware.h"
 #include "hardware/HardwareComponent.h"
 #include "controls/KbMapping.hpp"
@@ -182,7 +183,7 @@ void ViewUtil::createComponent(
     }
     else if (n.node_type == "red_led" || n.node_type == "green_led")
     {
-        auto mpcLed = mpc.getHardware()->getLed(n.hardware_label);
+        auto mpcLed = mpc.getHardware()->getLed(mpc::hardware::componentLabelToId.at(n.hardware_label));
         auto led = new Led(mpcLed, mpc.inputController, n.node_type == "red_led" ? Led::LedColor::RED : Led::LedColor::GREEN, getScale);
         n.led_component = led;
         parent->addAndMakeVisible(led);

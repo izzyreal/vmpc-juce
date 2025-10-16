@@ -35,7 +35,7 @@
       "column_fractions" : [ 2, 10, 2 ],
       "children" : [
         { "name" : "after_label", "hardware_label" : "after", "label" : "AFTER", "margin" : [ 1, 0, 0, 0 ], "area" : [ 2, 2, 2, 2 ] },
-        { "name" : "after_led", "hardware_label" : "after", "type" : "green_led", "margin" : [ 0, 0, 1, 0 ], "area" : [ 3, 2, 3, 2 ] },
+        { "name" : "after_or_assign_led", "hardware_label" : "after-or-assign-led", "type" : "green_led", "margin" : [ 0, 0, 1, 0 ], "area" : [ 3, 2, 3, 2 ] },
         { "name" : "after", "hardware_label" : "after", "shadow_size" : 1, "svg" : "medium_key.svg", "area" : [ 4, 2, 4, 2 ] },
         { "name" : "assign_label", "hardware_label" : "after", "margin" : [ 0.35, 0, 0, 0 ], "label" : "ASSIGN", "label_style" : "cursor_digit", "area" : [ 5, 1, 5, 3 ] }
       ]
@@ -61,7 +61,7 @@
       "children" : [
         { "name" : "tap_tempo_note_repeat", "hardware_label" : "tap", "shadow_size" : 1, "svg" : "big_key.svg", "label" : "TAP TEMPO\nNOTE REPEAT", "area" : [ 2, 1, 2, 2 ] },
         { "name" : "undo_seq_label", "label" : "UNDO SEQ", "margin" : [ 0, 0, 10, 0 ], "area" : [ 3, 1, 3, 1 ] },
-        { "name" : "undo_seq_led", "hardware_label" : "undo-seq", "type" : "green_led", "area" : [ 3, 1, 3, 1 ] },
+        { "name" : "undo_seq_led", "hardware_label" : "undo-seq-led", "type" : "green_led", "area" : [ 3, 1, 3, 1 ] },
         { "name" : "undo_seq", "hardware_label" : "undo-seq", "shadow_size" : 1, "svg" : "medium_key.svg", "margin" : [ 15, 0, 0, 0 ], "area" : [ 3, 1, 3, 1 ] },
         { "name" : "erase_label", "hardware_label" : "erase", "label" : "ERASE", "margin" : [ 0, 0, 3, 0 ], "area" : [ 3, 2, 3, 2 ] },
         { "name" : "erase", "hardware_label" : "erase", "shadow_size" : 1, "svg" : "medium_key.svg", "margin" : [ 15, 0, 0, 0 ], "area" : [ 3, 2, 3, 2 ] }
