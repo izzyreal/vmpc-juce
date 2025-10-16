@@ -5,18 +5,18 @@
 #include <limits>
 
 namespace vmpc_juce::gui::vector {
-    class Knob : public SvgComponent {
+    class Pot : public SvgComponent {
         public:
-            enum KnobType { REC_GAIN, MAIN_VOLUME };
+            enum PotType { REC_GAIN, MAIN_VOLUME };
 
-            Knob(std::shared_ptr<mpc::hardware2::Pot> modelToUse,
-                    const KnobType knobTypeToUse,
+            Pot(std::shared_ptr<mpc::hardware2::Pot> modelToUse,
+                    const PotType potTypeToUse,
                     juce::Component *commonParentWithShadowToUse,
                     const std::function<float()> &getScaleToUse)
-                : SvgComponent({ knobTypeToUse == REC_GAIN ? "rec_gain.svg" : "main_volume.svg" },
+                : SvgComponent({ potTypeToUse == REC_GAIN ? "rec_gain.svg" : "main_volume.svg" },
                         commonParentWithShadowToUse, 5.f,
                         getScaleToUse),
-                knobType(knobTypeToUse),
+                potType(potTypeToUse),
                 model(modelToUse)
                 {
                 }
@@ -32,7 +32,7 @@ namespace vmpc_juce::gui::vector {
                 }
             }
 
-            KnobType knobType;
+            PotType potType;
 
         private:
             std::shared_ptr<mpc::hardware2::Pot> model;

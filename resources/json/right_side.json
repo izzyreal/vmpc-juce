@@ -5,7 +5,7 @@
   "column_fractions" : [ 1 ],
   "children" : [
     { "name" : "logo", "svg" : "logo.svg", "margin" : [ 0, 4, 0, 4 ], "width" : "auto", "area" : [ 2, 1, 2, 1 ] },
-    { "include" : "right_side_buttons_and_knobs", "area" : [ 4, 1, 4, 1 ] },
+    { "include" : "right_side_buttons_and_pots", "area" : [ 4, 1, 4, 1 ] },
     { "include" : "pads", "area" : [ 6, 1, 6, 1 ] }
   ]
 }

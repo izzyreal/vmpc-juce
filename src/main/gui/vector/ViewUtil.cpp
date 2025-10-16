@@ -16,7 +16,7 @@
 #include "Slider.h"
 #include "Shadow.hpp"
 #include "DataWheel.hpp"
-#include "Knob.hpp"
+#include "Pot.h"
 #include "Lcd.hpp"
 #include "Led.hpp"
 #include "Pad.hpp"
@@ -232,11 +232,11 @@ void ViewUtil::createComponent(
 
         if (n.name == "rec_gain")
         {
-            svgComponent = new Knob(mpc.getHardware2()->getRecPot(), Knob::KnobType::REC_GAIN, parent, getScale);
+            svgComponent = new Pot(mpc.getHardware2()->getRecPot(), Pot::PotType::REC_GAIN, parent, getScale);
         }
         else if (n.name == "main_volume")
         {
-            svgComponent = new Knob(mpc.getHardware2()->getVolPot(), Knob::KnobType::MAIN_VOLUME, parent, getScale);
+            svgComponent = new Pot(mpc.getHardware2()->getVolPot(), Pot::PotType::MAIN_VOLUME, parent, getScale);
         }
         else
         {

@@ -9,7 +9,7 @@
 #include "Disclaimer.hpp"
 #include "About.hpp"
 #include "Pad.hpp"
-#include "Knob.hpp"
+#include "Pot.h"
 #include "Slider.h"
 
 #include "VmpcJuceResourceUtil.hpp"
@@ -144,10 +144,10 @@ View::View(mpc::Mpc &mpcToUse,
     dataWheel = getChildComponentsOfClass<DataWheel>(this).front();
     sliderCap = getChildComponentsOfClass<SliderCap>(this).front();
 
-    for (auto &knob : getChildComponentsOfClass<Knob>(this))
+    for (auto &pot : getChildComponentsOfClass<Pot>(this))
     {
-        if (knob->knobType == Knob::KnobType::MAIN_VOLUME) volKnob = knob;
-        else if (knob->knobType == Knob::KnobType::REC_GAIN) recKnob = knob;
+        if (pot->potType == Pot::PotType::MAIN_VOLUME) volPot = pot;
+        else if (pot->potType == Pot::PotType::REC_GAIN) recPot = pot;
     }
 
     const auto openKeyboardScreen = [&] { mpc.getLayeredScreen()->openScreen("vmpc-keyboard"); };
@@ -317,8 +317,8 @@ void View::timerCallback()
     }
 
     dataWheel->sharedTimerCallback();
-    recKnob->sharedTimerCallback();
-    volKnob->sharedTimerCallback();
+    recPot->sharedTimerCallback();
+    volPot->sharedTimerCallback();
     sliderCap->sharedTimerCallback();
 }
 
