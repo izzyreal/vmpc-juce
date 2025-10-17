@@ -316,7 +316,16 @@ void ViewUtil::createComponent(
 
     if (!n.hardware_label.empty())
     {
-        auto mouseListener = new MpcHardwareMouseListener(mpc, n.hardware_label);
+        std::string label = n.hardware_label;
+        const std::string suffix = "-led";
+
+        if (label.size() > suffix.size() &&
+            label.compare(label.size() - suffix.size(), suffix.size(), suffix) == 0)
+        {
+            label.erase(label.size() - suffix.size());
+        }
+        
+        auto mouseListener = new MpcHardwareMouseListener(mpc, label);
         mouseListeners.push_back(mouseListener);
         
         for (auto it = components.rbegin(); it != components.rend(); ++it)
