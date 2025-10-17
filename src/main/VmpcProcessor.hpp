@@ -54,19 +54,15 @@ class VmpcProcessor  : public juce::AudioProcessor {
         void processTransport();
         void computeHostToMpcChannelMappings();
 
-        std::vector<uint8_t> mpcMonoInputChannelIndices, mpcMonoOutputChannelIndices, hostInputChannelIndices, hostOutputChannelIndices;
+        std::vector<int8_t> mpcMonoInputChannelIndices, mpcMonoOutputChannelIndices, hostInputChannelIndices, hostOutputChannelIndices;
         
-//        FixedVector<uint8_t, 18> mpcMonoOutputChannelIndicesToRender;
-//        FixedVector<uint8_t, 18> hostOutputChannelIndicesToRender;
-//        FixedVector<uint8_t, 18> previousHostOutputChannelIndicesToRender;
-
-        std::vector<uint8_t> mpcMonoOutputChannelIndicesToRender;
-        std::vector<uint8_t> hostOutputChannelIndicesToRender;
-        std::vector<uint8_t> previousHostOutputChannelIndicesToRender;
+        std::vector<int8_t> mpcMonoOutputChannelIndicesToRender;
+        std::vector<int8_t> hostOutputChannelIndicesToRender;
+        std::vector<int8_t> previousHostOutputChannelIndicesToRender;
 
         void computeMpcAndHostOutputChannelIndicesToRender();
 
-        uint8_t lastHostChannelIndexThatWillBeWritten = 0;
+        int8_t lastHostChannelIndexThatWillBeWritten = 0;
         double m_Tempo = 0;
         bool wasPlaying = false;
         int framesProcessed = 0;
@@ -79,7 +75,7 @@ class VmpcProcessor  : public juce::AudioProcessor {
 
         bool layoutChanged = false;
 
-        std::unordered_set<uint8_t> possiblyActiveMpcMonoOutChannels;
+        std::unordered_set<int8_t> possiblyActiveMpcMonoOutChannels;
 
         void computePossiblyActiveMpcMonoOutChannels();
 

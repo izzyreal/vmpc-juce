@@ -196,7 +196,7 @@ void VmpcProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     computeHostToMpcChannelMappings();
 
     previousHostOutputChannelIndicesToRender.clear();
-    previousHostOutputChannelIndicesToRender.push_back(std::numeric_limits<uint8_t>::max());
+    previousHostOutputChannelIndicesToRender.push_back(std::numeric_limits<int8_t>::max());
 
     //logActualBusLayout();
 }
@@ -521,11 +521,10 @@ void VmpcProcessor::processTransport()
 
     bool syncEnabled = syncScreen->getModeIn() == 1;
 
-    if (syncEnabled)
+    if (const auto positionInfo = getPlayHead()->getPosition(); positionInfo.hasValue() && syncEnabled)
     {
-        const auto info = getPlayHead()->getPosition();
-        const double tempo = info->getBpm().orFallback(120);
-        const bool isPlaying = info->getIsPlaying();
+        const double tempo = positionInfo->getBpm().orFallback(120);
+        const bool isPlaying = positionInfo->getIsPlaying();
 
         if (tempo != m_Tempo || mpc.getSequencer()->getTempo() != tempo)
         {
@@ -533,15 +532,16 @@ void VmpcProcessor::processTransport()
             m_Tempo = tempo;
         }
 
+        const auto positionQuarterNotes = positionInfo->getPpqPosition().orFallback(0);
+
         if (!wasPlaying && isPlaying)
         {
             const bool shouldEnableSongMode = mpc.getLayeredScreen()->getCurrentScreenName() == "song";
 
             mpc.getSequencer()->setSongModeEnabled(shouldEnableSongMode);
 
-            const auto positionQuarterNotes = *info->getPpqPosition();
             const bool inSongScreen = mpc.getLayeredScreen()->getCurrentScreenName() == "song";
-            
+
             if (inSongScreen)
             {
                 mpc.getSequencer()->moveWithinSong(positionQuarterNotes);
@@ -560,8 +560,6 @@ void VmpcProcessor::processTransport()
         }
         else if (!isPlaying && !mpc.getSequencer()->isPlaying())
         {
-            const auto positionQuarterNotes = *info->getPpqPosition();
-
             if (positionQuarterNotes != previousPositionQuarterNotes)
             {
                 const bool inSongScreen = mpc.getLayeredScreen()->getCurrentScreenName() == "song";
@@ -598,6 +596,11 @@ void VmpcProcessor::computeMpcAndHostOutputChannelIndicesToRender()
             hostOutputChannelIndicesToRender.push_back(hostOutputChannelIndices[i]);
         }
     }
+    
+    for (auto &i : mpcMonoOutputChannelIndicesToRender) assert(i >= 0);
+    for (auto &i : hostOutputChannelIndicesToRender) assert(i >= 0);
+    for (auto &i : previousHostOutputChannelIndicesToRender) assert(i >= 0);
+    for (auto &i : possiblyActiveMpcMonoOutChannels) assert(i >= 0);
 }
 
 static void propagateTransportInfo(
@@ -1063,7 +1066,7 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
 
             mpcMonoOutputChannelIndices.push_back(i);
             hostOutputChannelIndices.push_back(getBus(false, 0)->getChannelIndexInProcessBlockBuffer(i));
-            lastHostChannelIndexThatWillBeWritten = std::max<uint8_t>(lastHostChannelIndexThatWillBeWritten, hostOutputChannelIndices.back());
+            lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(lastHostChannelIndexThatWillBeWritten, hostOutputChannelIndices.back());
         }
 
         for (int i = 0; i < getBus(true, 0)->getNumberOfChannels(); i++)
@@ -1172,13 +1175,13 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
 
             if (busWasRequestedToBeStereoButIsMono)
             {
-                lastHostChannelIndexThatWillBeWritten = std::max<uint8_t>(lastHostChannelIndexThatWillBeWritten, bus->getChannelIndexInProcessBlockBuffer(0));
+                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(lastHostChannelIndexThatWillBeWritten, bus->getChannelIndexInProcessBlockBuffer(0));
             }
             else
             {
                 hostOutputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(1));
                 mpcMonoOutputChannelIndices.push_back(mpcMonoChannelCounter + 1);
-                lastHostChannelIndexThatWillBeWritten = std::max<uint8_t>(lastHostChannelIndexThatWillBeWritten, bus->getChannelIndexInProcessBlockBuffer(1));
+                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(lastHostChannelIndexThatWillBeWritten, bus->getChannelIndexInProcessBlockBuffer(1));
             }
         }
         else
@@ -1191,11 +1194,11 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
             {
                 hostOutputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(1));
                 mpcMonoOutputChannelIndices.push_back(mpcMonoChannelCounter + 2);
-                lastHostChannelIndexThatWillBeWritten = std::max<uint8_t>(lastHostChannelIndexThatWillBeWritten, bus->getChannelIndexInProcessBlockBuffer(1));
+                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(lastHostChannelIndexThatWillBeWritten, bus->getChannelIndexInProcessBlockBuffer(1));
             }
             else
             {
-                lastHostChannelIndexThatWillBeWritten = std::max<uint8_t>(lastHostChannelIndexThatWillBeWritten, bus->getChannelIndexInProcessBlockBuffer(0));
+                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(lastHostChannelIndexThatWillBeWritten, bus->getChannelIndexInProcessBlockBuffer(0));
             }
         }
 
@@ -1219,7 +1222,7 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
 {
     possiblyActiveMpcMonoOutChannels.clear();
 
-    auto insertValue = [&](const uint8_t value) {
+    auto insertValue = [&](const int8_t value) {
 
         possiblyActiveMpcMonoOutChannels.insert(value);
 
@@ -1263,7 +1266,7 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
             // output is 1 for MIX 1 bus, 2 for MIX 2 bus, etc. So we subtract 1 to get 0-based
             // index, and then we add 2 to get the bus index in the plugin, because the first
             // stereo bus (for STEREO L/R, the main output) comes before the MIX busses.
-            insertValue(static_cast<uint8_t>(output + 1));
+            insertValue(static_cast<int8_t>(output + 1));
         }
     }
     
@@ -1272,7 +1275,7 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
         for (auto &m : mpc.getDrum(i).getIndivFxMixerChannels())
         {
             if (m->getOutput() == 0) continue;
-            insertValue(static_cast<uint8_t>(m->getOutput() + 1));
+            insertValue(static_cast<int8_t>(m->getOutput() + 1));
         }
     }
 }
