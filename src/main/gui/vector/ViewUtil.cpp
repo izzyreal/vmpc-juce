@@ -339,7 +339,7 @@ void ViewUtil::createComponent(
             if (n.node_type == "data_wheel")
             {
                 componentIds = { ComponentId::DATA_WHEEL };
-                unscaledOffsetsFromAnchor = { { -10.f, 0.f }, { 10.f, 0.f } };
+                unscaledOffsetsFromAnchor = { { -12.f, 0.f }, { 10.f, 0.f } };
             }
             else if (n.hardware_label == "cursor")
             {

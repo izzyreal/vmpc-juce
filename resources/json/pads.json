@@ -84,7 +84,7 @@
     { "name" : "pad-8",  "type" : "pad", "hardware_label" : "pad-8-or-op", "width" : "auto", "area" : [ 6, 7, 6, 7 ] },
     { "name" : "pad-1",  "type" : "pad", "hardware_label" : "pad-1-or-ab", "width" : "auto", "area" : [ 8, 1, 8, 1 ] },
     { "name" : "pad-2",  "type" : "pad", "hardware_label" : "pad-2-or-cd", "width" : "auto", "area" : [ 8, 3, 8, 3 ] },
-    { "name" : "pad-3",  "type" : "pad", "hardware_label" : "pad-3-or-yz", "width" : "auto", "area" : [ 8, 5, 8, 5 ] },
+    { "name" : "pad-3",  "type" : "pad", "hardware_label" : "pad-3-or-ef", "width" : "auto", "area" : [ 8, 5, 8, 5 ] },
     { "name" : "pad-4",  "type" : "pad", "hardware_label" : "pad-4-or-gh", "width" : "auto", "area" : [ 8, 7, 8, 7 ] }
       ]
     }
