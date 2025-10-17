@@ -47,6 +47,7 @@ static std::optional<mpc::inputlogic::HostInputEvent> makeRelativeGestureFromMou
 {
     using namespace mpc::inputlogic;
 
+    printf("component label: %s\n", label.c_str());
     if (!mpc::hardware::componentLabelToId.count(label))
     {
         return std::nullopt;
