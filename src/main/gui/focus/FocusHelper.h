@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_utils/juce_audio_utils.h>
 
 #include <cstdint> 
 #include <optional>
@@ -17,6 +18,8 @@
 #elif __linux__
   extern "C" bool isEditorKeyWindow(void* componentPeerNativeHandle);
 #endif
+
+#include "Logger.hpp"
 
 namespace vmpc_juce::gui::focus {
     class FocusHelper : public juce::Component, juce::Timer {
@@ -36,7 +39,7 @@ namespace vmpc_juce::gui::focus {
         public:
             FocusHelper(const std::function<void()> onFocusLostToUse) : onFocusLost(onFocusLostToUse)
             {
-                startTimer(100);
+                startTimer(50);
             }
 
             ~FocusHelper() override
@@ -173,21 +176,62 @@ namespace vmpc_juce::gui::focus {
                         }
                     }
                 }
-
-                const bool newFocus =
-                    isForegroundProcess &&
-                    isActiveWindow &&
-                    hasFocusedComponent &&
-                    peerIsValid &&
-                    peerHandleIsValid &&
-                    isEditorFrontmost;
+                
+                bool newFocus;
+                
+                if (juce::PluginHostType::jucePlugInClientCurrentWrapperType == juce::AudioProcessor::wrapperType_AudioUnitv3)
+                {
+                    //MLOG("Setting focus for AUv3");
+                    newFocus = isForegroundProcess &&
+                               peerIsValid &&
+                               peerHandleIsValid &&
+                               isEditorFrontmost;
+                }
+                else if (juce::PluginHostType().isReaper())
+                {
+                    //MLOG("Setting focus for Reaper");
+                    newFocus = isForegroundProcess &&
+                               peerIsValid &&
+                               peerHandleIsValid &&
+                               isEditorFrontmost;
+                }
+                else
+                {
+                    //MLOG("Setting focus for not-Reaper");
+                    newFocus = isForegroundProcess &&
+                               isActiveWindow &&
+                               hasFocusedComponent &&
+                               peerIsValid &&
+                               peerHandleIsValid &&
+                               isEditorFrontmost;
+                }
 
                 if (focus && !newFocus)
                 {
                     onFocusLost();
                 }
 
+                if (newFocus != focus)
+                {
+                    if (!newFocus)
+                    {
+                        std::string reason = "NO FOCUS: ";
+                        if (!isForegroundProcess)   reason += "[background process] ";
+                        if (!isActiveWindow)        reason += "[inactive window] ";
+                        if (!hasFocusedComponent)   reason += "[no focused component] ";
+                        if (!peerIsValid)           reason += "[invalid peer] ";
+                        if (!peerHandleIsValid)     reason += "[invalid native handle] ";
+                        if (!isEditorFrontmost)     reason += "[editor not frontmost] ";
+
+                        MLOG(reason);
+                    }
+                    else
+                    {
+                        MLOG("we have focus");
+                    }
+                }
                 focus = newFocus;
+
             }
     };
 }

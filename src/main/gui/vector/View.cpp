@@ -92,7 +92,6 @@ View::View(mpc::Mpc &mpcToUse,
     keyTooltipFont = juce::Font(FreeTypeFaces::createTypefaceForFont(keyTooltipFont));
 
     focusHelper = new focus::FocusHelper([inputController = mpc.inputController]{
-        printf("focus lost!\n");
         using FocusEvent = mpc::inputlogic::FocusEvent;
         mpc::inputlogic::HostInputEvent hostInputEvent(FocusEvent{FocusEvent::Type::Lost});
         inputController->dispatchHostInput(hostInputEvent);
