@@ -38,13 +38,16 @@ namespace vmpc_juce::gui::vector {
 
             void sharedTimerCallback()
             {
-                const float currentAngle = dataWheelModel->getAngle();
+                const float targetAngle = dataWheelModel->getAngle(); // unwrapped, may be >> 1 or << -1
+                const float diff = targetAngle - displayAngle;
 
-                if (lastAngle != currentAngle)
-                {
-                    handleAngleChanged(currentAngle);
-                    lastAngle = currentAngle;
-                }
+                const float animationSpeedToUse = std::abs(diff) > 0.02f ? animationSpeed : 100.f;
+                // Smoothly move displayAngle toward targetAngle
+                const float step = diff * juce::jmin(animationSpeedToUse * 0.016f, 1.0f);
+                displayAngle += step;
+
+                // Convert to [0,1) only when drawing
+                handleAngleChanged(std::fmod(displayAngle, 1.f));
             }
 
             ~DataWheel() override
@@ -77,6 +80,9 @@ namespace vmpc_juce::gui::vector {
             const float shadowSize;
             const std::function<float()> &getScale;
 
+            float displayAngle = 0.0f;   // the angle currently being *drawn*
+            float animationSpeed = 20.0f; // larger = faster interpolation
+
             void handleAngleChanged(const float newAngle)
             {
                 const auto drawableBounds = dimpleSvg->getDrawableBounds();
@@ -88,11 +94,12 @@ namespace vmpc_juce::gui::vector {
                 const auto centerY = getHeight() / 2.0f;
 
                 const auto radius = std::min(getWidth(), getHeight()) * 0.27f;
+                
                 const auto theta = newAngle * juce::MathConstants<float>::twoPi;
                 const auto xPos = centerX + std::sin(theta) * radius - width / 2.0f;
                 const auto yPos = centerY - std::cos(theta) * radius - height / 2.0f;
 
-                dimpleSvg->setBounds(std::round(xPos), std::round(yPos), width, height);
+                dimpleSvg->setBounds(static_cast<int>(xPos), static_cast<int>(yPos), static_cast<int>(width), static_cast<int>(height));
 
                 lines->setAngle(newAngle);
                 repaint();
