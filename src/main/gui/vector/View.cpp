@@ -20,6 +20,7 @@
 #include "controls/KeyCodeHelper.hpp"
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
+#include "gui/focus/FocusHelper.h"
 
 #include <nlohmann/json.hpp>
 #include "gui/vector/Constants.hpp"
@@ -90,7 +91,14 @@ View::View(mpc::Mpc &mpcToUse,
     keyTooltipFont.setTypefaceStyle("SemiBold");
     keyTooltipFont = juce::Font(FreeTypeFaces::createTypefaceForFont(keyTooltipFont));
 
+    focusHelper = new FocusHelper([]{
+        printf("focus lost!\n");
+    });
+    
+    addAndMakeVisible(focusHelper);
+    
     const bool shouldSynthesizeKeyRepeatsForSomeKeys = wrapperType == juce::AudioProcessor::WrapperType::wrapperType_AudioUnitv3;
+
     keyboard = KeyboardFactory::instance(this, shouldSynthesizeKeyRepeatsForSomeKeys);
 
     auto getKeyboardMods = [&]() -> std::tuple<bool, bool, bool> {
@@ -112,13 +120,13 @@ View::View(mpc::Mpc &mpcToUse,
     };
     
     keyboard->onKeyDownFn = [&, keyMods = getKeyboardMods](int i) {
-        if (about != nullptr) return;
+        if (!focusHelper->hasFocus() || about != nullptr) return;
         auto [shiftDown, altDown, ctrlDown] = keyMods();
         onKeyDown(i, ctrlDown, altDown, shiftDown);
     };
 
     keyboard->onKeyUpFn = [&, keyMods = getKeyboardMods](int i) {
-        if (about != nullptr) return;
+        if (!focusHelper->hasFocus() || about != nullptr) return;
         auto [shiftDown, altDown, ctrlDown] = keyMods();
         onKeyUp(i, ctrlDown, altDown, shiftDown);
     };
@@ -226,6 +234,8 @@ const std::pair<int, int> View::getInitialRootWindowDimensions()
 
 View::~View()
 {
+    delete focusHelper;
+    
     for (auto &c : components)
     {
         delete c;
@@ -321,5 +331,3 @@ void View::timerCallback()
     volPot->sharedTimerCallback();
     sliderCap->sharedTimerCallback();
 }
-
-

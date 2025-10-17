@@ -7,6 +7,8 @@
 
 namespace mpc { class Mpc; }
 
+namespace vmpc_juce::gui::focus { class FocusHelper; }
+
 class Keyboard;
 
 namespace vmpc_juce::gui::vector {
@@ -54,7 +56,10 @@ namespace vmpc_juce::gui::vector {
             const std::function<juce::Font&()> getMainFontScaled;
             const std::function<juce::Font&()> getMpc2000xlFaceplateGlyphsScaled;
             const std::function<juce::Font&()> getKeyTooltipFontScaled;
+            
+            vmpc_juce::gui::focus::FocusHelper *focusHelper = nullptr;
             Keyboard *keyboard = nullptr;
+
             TooltipOverlay *tooltipOverlay = nullptr;
             Menu *menu = nullptr;
             Disclaimer *disclaimer = nullptr;
