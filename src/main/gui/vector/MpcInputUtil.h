@@ -23,10 +23,9 @@ static std::optional<HostInputEvent> makeAbsoluteGestureFromMouse(
         return std::nullopt;
     }
 
-    auto bounds = e.eventComponent ? e.eventComponent->getLocalBounds() : juce::Rectangle<int>();
-    float normY = customNormY.has_value()
+    const float normY = customNormY.has_value()
         ? *customNormY
-        : (bounds.isEmpty() ? 0.0f : juce::jlimit(0.0f, 1.0f, (float)e.position.getY() / (float)bounds.getHeight()));
+        : juce::jlimit(0.0f, 1.0f, (float)e.position.getY() / (float)e.eventComponent->getHeight());
 
     return HostInputEvent{
         GestureEvent{
@@ -40,24 +39,24 @@ static std::optional<HostInputEvent> makeAbsoluteGestureFromMouse(
     };
 }
 
-static std::optional<mpc::inputlogic::HostInputEvent> makeRelativeGestureFromMouse(
+static std::optional<mpc::inputlogic::HostInputEvent> makeRelativeGestureFromMouse(const juce::MouseEvent &e,
     const std::string& label,
     GestureEvent::Type type,
     float continuousDelta)
 {
     using namespace mpc::inputlogic;
 
-    printf("component label: %s\n", label.c_str());
     if (!mpc::hardware::componentLabelToId.count(label))
     {
         return std::nullopt;
     }
+    const float normY = juce::jlimit(0.0f, 1.0f, (float)e.position.getY() / (float)e.eventComponent->getHeight());
 
     return HostInputEvent{
         GestureEvent{
             type,
             GestureEvent::Movement::Relative,
-            0.f,
+            normY,
             continuousDelta,
             0,
             mpc::hardware::componentLabelToId.at(label)

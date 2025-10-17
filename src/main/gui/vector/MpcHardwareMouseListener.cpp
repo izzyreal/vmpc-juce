@@ -68,7 +68,7 @@ void MpcHardwareMouseListener::mouseWheelMove(const juce::MouseEvent &event,
 
     const float continuousDelta = -wheel.deltaY * sensitivity;
 
-    if (auto hostInputEvent = makeRelativeGestureFromMouse(label, GestureEvent::Type::UPDATE, continuousDelta);
+    if (auto hostInputEvent = makeRelativeGestureFromMouse(event, label, GestureEvent::Type::UPDATE, continuousDelta);
         hostInputEvent)
     {
         mpc.dispatchHostInput(*hostInputEvent);
@@ -128,7 +128,7 @@ void MpcHardwareMouseListener::mouseDrag(const juce::MouseEvent &e)
 
     if (deltaY != 0.0f)
     {
-        if (auto hostInputEvent = makeRelativeGestureFromMouse(
+        if (auto hostInputEvent = makeRelativeGestureFromMouse(e,
                 label,
                 mpc::inputlogic::GestureEvent::Type::UPDATE,
                 deltaY);
