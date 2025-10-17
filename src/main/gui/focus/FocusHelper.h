@@ -19,7 +19,7 @@
 #endif
 
 namespace vmpc_juce::gui::focus {
-    class FocusHelper : juce::Component, juce::Timer {
+    class FocusHelper : public juce::Component, juce::Timer {
 
         private:
             const std::function<void()> onFocusLost;

@@ -6,7 +6,7 @@
 
 #include <Cocoa/Cocoa.h>
 
-extern "C" bool isEditorKeyWindowMacOs(void* nsviewPtr)
+extern "C" bool isEditorKeyWindow(void* nsviewPtr)
 {
     NSView* view = (__bridge NSView*)nsviewPtr;
     return [NSApp keyWindow] == [view window];

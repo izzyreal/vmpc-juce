@@ -91,7 +91,7 @@ View::View(mpc::Mpc &mpcToUse,
     keyTooltipFont.setTypefaceStyle("SemiBold");
     keyTooltipFont = juce::Font(FreeTypeFaces::createTypefaceForFont(keyTooltipFont));
 
-    focusHelper = new FocusHelper([]{
+    focusHelper = new focus::FocusHelper([]{
         printf("focus lost!\n");
     });
     
