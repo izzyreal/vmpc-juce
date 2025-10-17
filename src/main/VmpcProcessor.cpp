@@ -50,6 +50,11 @@ using namespace vmpc_juce;
 VmpcProcessor::VmpcProcessor()
     : AudioProcessor(getBusesProperties())
 {
+    mpcMonoOutputChannelIndicesToRender.reserve(18);
+    hostOutputChannelIndicesToRender.reserve(18);
+    previousHostOutputChannelIndicesToRender.reserve(18);
+    possiblyActiveMpcMonoOutChannels.reserve(10);
+    
     time_t currentTime = time(nullptr);
     struct tm* currentLocalTime = localtime(&currentTime);
     auto timeString = std::string(asctime(currentLocalTime));
@@ -587,7 +592,7 @@ void VmpcProcessor::computeMpcAndHostOutputChannelIndicesToRender()
 
     for (int i = 0; i < mpcMonoOutputChannelIndices.size(); i++)
     {
-        if (possiblyActiveMpcMonoOutChannels.contains(mpcMonoOutputChannelIndices[i]))
+        if (possiblyActiveMpcMonoOutChannels.count(mpcMonoOutputChannelIndices[i]) > 0)
         {
             mpcMonoOutputChannelIndicesToRender.push_back(mpcMonoOutputChannelIndices[i]);
             hostOutputChannelIndicesToRender.push_back(hostOutputChannelIndices[i]);
@@ -722,7 +727,7 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
     {
         for (int i = 0; i < totalNumOutputChannels; i++)
         {
-            if (!hostOutputChannelIndicesToRender.contains(i))
+            if (std::find(hostOutputChannelIndicesToRender.begin(), hostOutputChannelIndicesToRender.end(), i) == hostOutputChannelIndicesToRender.end())
             {
                 buffer.clear(i, 0, buffer.getNumSamples());
             }

@@ -3,40 +3,15 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include <Mpc.hpp>
-#include <FixedVector.hpp>
 
 #include <array>
 #include <limits>
+#include <vector>
+#include <unordered_set>
 
 namespace mpc::engine::midi { class ShortMessage; }
 
 namespace vmpc_juce {
-
-template <typename T, std::size_t Capacity>
-class FixedSet {
-    std::array<T, Capacity> data_;
-    std::size_t size_ = 0;
-
-public:
-    void insert(const T& value) {
-        for (std::size_t i = 0; i < size_; ++i)
-            if (data_[i] == value) return;
-        if (size_ < Capacity) {
-            data_[size_++] = value;
-        }
-    }
-
-    bool contains(const T& value) const {
-        for (std::size_t i = 0; i < size_; ++i)
-            if (data_[i] == value) return true;
-        return false;
-    }
-
-    void clear()
-    {
-        size_ = 0;
-    }
-};
 
 class VmpcProcessor  : public juce::AudioProcessor {
 
@@ -81,9 +56,13 @@ class VmpcProcessor  : public juce::AudioProcessor {
 
         std::vector<uint8_t> mpcMonoInputChannelIndices, mpcMonoOutputChannelIndices, hostInputChannelIndices, hostOutputChannelIndices;
         
-        FixedVector<uint8_t, 18> mpcMonoOutputChannelIndicesToRender;
-        FixedVector<uint8_t, 18> hostOutputChannelIndicesToRender;
-        FixedVector<uint8_t, 18> previousHostOutputChannelIndicesToRender;
+//        FixedVector<uint8_t, 18> mpcMonoOutputChannelIndicesToRender;
+//        FixedVector<uint8_t, 18> hostOutputChannelIndicesToRender;
+//        FixedVector<uint8_t, 18> previousHostOutputChannelIndicesToRender;
+
+        std::vector<uint8_t> mpcMonoOutputChannelIndicesToRender;
+        std::vector<uint8_t> hostOutputChannelIndicesToRender;
+        std::vector<uint8_t> previousHostOutputChannelIndicesToRender;
 
         void computeMpcAndHostOutputChannelIndicesToRender();
 
@@ -100,7 +79,7 @@ class VmpcProcessor  : public juce::AudioProcessor {
 
         bool layoutChanged = false;
 
-        FixedSet<uint8_t, 10> possiblyActiveMpcMonoOutChannels;
+        std::unordered_set<uint8_t> possiblyActiveMpcMonoOutChannels;
 
         void computePossiblyActiveMpcMonoOutChannels();
 
