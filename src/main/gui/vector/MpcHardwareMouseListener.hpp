@@ -3,7 +3,6 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "Mpc.hpp"
-#include "controls/KbMapping.hpp"
 
 #if __APPLE__
 #include <TargetConditionals.h>

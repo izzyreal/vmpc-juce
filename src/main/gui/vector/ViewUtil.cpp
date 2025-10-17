@@ -26,7 +26,7 @@
 #include "hardware/ComponentId.h"
 #include "hardware/Hardware.h"
 #include "hardware/HardwareComponent.h"
-#include "controls/KbMapping.hpp"
+#include "inputlogic/KeyboardBindings.h"
 #include "controls/KeyCodeHelper.hpp"
 
 using namespace vmpc_juce::gui::vector;
@@ -332,39 +332,52 @@ void ViewUtil::createComponent(
         
         if (tooltipAnchor != nullptr)
         {
-            std::vector<std::string> hardwareLabels;
+            using ComponentId = mpc::hardware::ComponentId;
+            std::vector<ComponentId> componentIds;
             std::vector<std::pair<float, float>> unscaledOffsetsFromAnchor;
 
             if (n.node_type == "data_wheel")
             {
-                hardwareLabels = { "datawheel-down", "datawheel-up" };
+                componentIds = { ComponentId::DATA_WHEEL };
                 unscaledOffsetsFromAnchor = { { -10.f, 0.f }, { 10.f, 0.f } };
             }
             else if (n.hardware_label == "cursor")
             {
-                hardwareLabels = { "left", "right", "up", "down" };
+                componentIds = {
+                    ComponentId::CURSOR_LEFT_OR_DIGIT,
+                    ComponentId::CURSOR_RIGHT_OR_DIGIT,
+                    ComponentId::CURSOR_UP,
+                    ComponentId::CURSOR_DOWN
+                }; 
                 unscaledOffsetsFromAnchor = { { -15.f, 0.f }, { 15.f, 0.f }, { 0.f, -9.f }, { 0.f, 9.f } };
             }
             else
             {
-                hardwareLabels = { n.hardware_label };
+                componentIds = { mpc::hardware::componentLabelToId.at(n.hardware_label) };
                 unscaledOffsetsFromAnchor = { { 0.f, 0.f } };
             }
 
-            for (size_t i = 0; i < hardwareLabels.size(); i++)
+            size_t offsetsIndex = 0;
+
+            for (size_t i = 0; i < componentIds.size(); i++)
             {
-                const auto label = hardwareLabels[i];
-                const auto offset = unscaledOffsetsFromAnchor[i];
+                auto keycodes = mpc.inputController->getKeyboardBindings()->lookupComponent(componentIds[i]);
 
-                const auto getTooltipText = [&mpc, label]{
-                    const auto kbMapping = mpc.inputController->getKbMapping();
-                    const auto vmpcKeyCode = kbMapping->getKeyCodeFromLabel(label);
-                    return mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(vmpcKeyCode);
-                };
+                for (size_t j = 0; j < keycodes.size(); j++)
+                {
+                    if (offsetsIndex >= unscaledOffsetsFromAnchor.size()) break;
 
-                const auto tooltip = new KeyTooltip(getTooltipText, tooltipAnchor, offset, getKeyTooltipFontScaled, getScale, n.hardware_label);
-                components.push_back(tooltip);
-                tooltipOverlay->addChildComponent(tooltip);
+                    const auto offset = unscaledOffsetsFromAnchor[offsetsIndex++];
+
+                    const auto getTooltipText = [&mpc, keycode = keycodes[j]]{
+                        const auto keyboardBindings = mpc.inputController->getKeyboardBindings();
+                        return mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(keycode);
+                    };
+
+                    const auto tooltip = new KeyTooltip(getTooltipText, tooltipAnchor, offset, getKeyTooltipFontScaled, getScale, n.hardware_label);
+                    components.push_back(tooltip);
+                    tooltipOverlay->addChildComponent(tooltip);
+                }
             }
         }
     }

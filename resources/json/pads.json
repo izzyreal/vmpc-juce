@@ -70,22 +70,22 @@
       "shadow_size" : 2,
       "shadow_darkness" : 0.5,
       "children" : [
-        { "name" : "pad-13", "type" : "pad", "hardware_label" : "pad-13", "width" : "auto", "area" : [ 2, 1, 2, 1 ] },
-        { "name" : "pad-14", "type" : "pad", "hardware_label" : "pad-14", "width" : "auto", "area" : [ 2, 3, 2, 3 ] },
-        { "name" : "pad-15", "type" : "pad", "hardware_label" : "pad-15", "width" : "auto", "area" : [ 2, 5, 2, 5 ] },
-        { "name" : "pad-16", "type" : "pad", "hardware_label" : "pad-16", "width" : "auto", "area" : [ 2, 7, 2, 7 ] },
-        { "name" : "pad-9", "type" : "pad", "hardware_label" : "pad-9", "width" : "auto", "area" : [ 4, 1, 4, 1 ] },
-        { "name" : "pad-10", "type" : "pad", "hardware_label" : "pad-10", "width" : "auto", "area" : [ 4, 3, 4, 3 ] },
-        { "name" : "pad-11", "type" : "pad", "hardware_label" : "pad-11", "width" : "auto", "area" : [ 4, 5, 4, 5 ] },
-        { "name" : "pad-12", "type" : "pad", "hardware_label" : "pad-12", "width" : "auto", "area" : [ 4, 7, 4, 7 ] },
-        { "name" : "pad-5", "type" : "pad", "hardware_label" : "pad-5", "width" : "auto", "area" : [ 6, 1, 6, 1 ] },
-        { "name" : "pad-6", "type" : "pad", "hardware_label" : "pad-6", "width" : "auto", "area" : [ 6, 3, 6, 3 ] },
-        { "name" : "pad-7", "type" : "pad", "hardware_label" : "pad-7", "width" : "auto", "area" : [ 6, 5, 6, 5 ] },
-        { "name" : "pad-8", "type" : "pad", "hardware_label" : "pad-8", "width" : "auto", "area" : [ 6, 7, 6, 7 ] },
-        { "name" : "pad-1", "type" : "pad", "hardware_label" : "pad-1", "width" : "auto", "area" : [ 8, 1, 8, 1 ] },
-        { "name" : "pad-2", "type" : "pad", "hardware_label" : "pad-2", "width" : "auto", "area" : [ 8, 3, 8, 3 ] },
-        { "name" : "pad-3", "type" : "pad", "hardware_label" : "pad-3", "width" : "auto", "area" : [ 8, 5, 8, 5 ] },
-        { "name" : "pad-4", "type" : "pad", "hardware_label" : "pad-4", "width" : "auto", "area" : [ 8, 7, 8, 7 ] }
+    { "name" : "pad-13", "type" : "pad", "hardware_label" : "pad-13-or-yz", "width" : "auto", "area" : [ 2, 1, 2, 1 ] },
+    { "name" : "pad-14", "type" : "pad", "hardware_label" : "pad-14-or-ampersand-octothorpe", "width" : "auto", "area" : [ 2, 3, 2, 3 ] },
+    { "name" : "pad-15", "type" : "pad", "hardware_label" : "pad-15-or-hyphen-eclamation-mark", "width" : "auto", "area" : [ 2, 5, 2, 5 ] },
+    { "name" : "pad-16", "type" : "pad", "hardware_label" : "pad-16-or-parentheses", "width" : "auto", "area" : [ 2, 7, 2, 7 ] },
+    { "name" : "pad-9",  "type" : "pad", "hardware_label" : "pad-9-or-qr", "width" : "auto", "area" : [ 4, 1, 4, 1 ] },
+    { "name" : "pad-10", "type" : "pad", "hardware_label" : "pad-10-or-st", "width" : "auto", "area" : [ 4, 3, 4, 3 ] },
+    { "name" : "pad-11", "type" : "pad", "hardware_label" : "pad-11-or-uv", "width" : "auto", "area" : [ 4, 5, 4, 5 ] },
+    { "name" : "pad-12", "type" : "pad", "hardware_label" : "pad-12-or-wx", "width" : "auto", "area" : [ 4, 7, 4, 7 ] },
+    { "name" : "pad-5",  "type" : "pad", "hardware_label" : "pad-5-or-ij", "width" : "auto", "area" : [ 6, 1, 6, 1 ] },
+    { "name" : "pad-6",  "type" : "pad", "hardware_label" : "pad-6-or-kl", "width" : "auto", "area" : [ 6, 3, 6, 3 ] },
+    { "name" : "pad-7",  "type" : "pad", "hardware_label" : "pad-7-or-mn", "width" : "auto", "area" : [ 6, 5, 6, 5 ] },
+    { "name" : "pad-8",  "type" : "pad", "hardware_label" : "pad-8-or-op", "width" : "auto", "area" : [ 6, 7, 6, 7 ] },
+    { "name" : "pad-1",  "type" : "pad", "hardware_label" : "pad-1-or-ab", "width" : "auto", "area" : [ 8, 1, 8, 1 ] },
+    { "name" : "pad-2",  "type" : "pad", "hardware_label" : "pad-2-or-cd", "width" : "auto", "area" : [ 8, 3, 8, 3 ] },
+    { "name" : "pad-3",  "type" : "pad", "hardware_label" : "pad-3-or-yz", "width" : "auto", "area" : [ 8, 5, 8, 5 ] },
+    { "name" : "pad-4",  "type" : "pad", "hardware_label" : "pad-4-or-gh", "width" : "auto", "area" : [ 8, 7, 8, 7 ] }
       ]
     }
   ]
