@@ -13,6 +13,7 @@
 #include "lcdgui/screens/OthersScreen.hpp"
 
 #include "gui/AuxLCDWindow.hpp"
+#include "gui/focus/FocusHelper.h"
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
@@ -24,7 +25,12 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
     {
         shadow.setColor(Constants::lcdOffBacklit.brighter().withAlpha(0.4f));
         resetAuxWindowF = [&] { resetAuxWindow(); };
-        resetKeyboardAuxParent = [&] { getView()->keyboard->setAuxParent(nullptr); };
+
+        resetKeyboardAuxParent = [&] {
+            getView()->keyboard->setAuxParent(nullptr);
+            getView()->focusHelper->setAuxComponent(nullptr);
+        };
+
         getLcdImage = [&]() -> juce::Image& { return img; };
         drawPixelsToImg();
         startTimer(25);
@@ -164,10 +170,12 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             {
                 auxWindow = new vmpc_juce::gui::AuxLCDWindow(resetAuxWindowF, getLcdImage, resetKeyboardAuxParent, Constants::lcdOff);
                 view->keyboard->setAuxParent(auxWindow);
+                view->focusHelper->setAuxComponent(auxWindow);
             }
             else
             {
                 view->keyboard->setAuxParent(nullptr);
+                view->focusHelper->setAuxComponent(nullptr);
                 delete auxWindow;
                 auxWindow = nullptr;
             }

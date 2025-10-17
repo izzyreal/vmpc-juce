@@ -85,6 +85,8 @@ namespace vmpc_juce::gui::vector {
             Pot *volPot;
             SliderCap *sliderCap;
 
+            Lcd *lcd;
+
             friend class Lcd;
     };
 
