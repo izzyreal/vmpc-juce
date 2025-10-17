@@ -26,7 +26,7 @@ static std::optional<HostInputEvent> makeAbsoluteGestureFromMouse(
     auto bounds = e.eventComponent ? e.eventComponent->getLocalBounds() : juce::Rectangle<int>();
     float normY = customNormY.has_value()
         ? *customNormY
-        : (bounds.isEmpty() ? 0.0f : juce::jlimit(0.0f, 1.0f, 1.0f - (float)e.position.getY() / (float)bounds.getHeight()));
+        : (bounds.isEmpty() ? 0.0f : juce::jlimit(0.0f, 1.0f, (float)e.position.getY() / (float)bounds.getHeight()));
 
     return HostInputEvent{
         GestureEvent{
