@@ -213,8 +213,6 @@ void Pad::sharedTimerCallback()
     static float decayThreshold = 0.f;
     const int padIndexWithBank = mpcPad->getIndex() + (mpc.getBank() * 16);
 
-    using PadPressSource = mpc::sampler::Program::PadPressSource;
-
     if (mpcPad->isPressed())
     {
         bool hasPrimaryPress = false;
@@ -254,78 +252,81 @@ void Pad::sharedTimerCallback()
     for (auto &p : primaryPresses) primaryPressAlpha += p.alpha;
     glowSvg->setAlpha(std::clamp(primaryPressAlpha, 0.f, 1.f));
 
-    const auto program = getProgramForCurrentScreen(mpc);
-
-    const auto pressCountWithinActiveBank = program->isPadPressedBySource(padIndexWithBank, PadPressSource::NON_PHYSICAL);
-    
-    if (pressCountWithinActiveBank > 0)
+    if (const auto program = getProgramForCurrentScreen(mpc); program)
     {
-        bool hasSecondaryPress = false;
+        using PadPressSource = mpc::sampler::Program::PadPressSource;
 
-        for (auto &p : secondaryPresses)
+        const auto pressCountWithinActiveBank = program->isPadPressedBySource(padIndexWithBank, PadPressSource::NON_PHYSICAL);
+        
+        if (pressCountWithinActiveBank > 0)
         {
-            if (p.alpha == 1.f && p.padIndexWithBank == padIndexWithBank)
+            bool hasSecondaryPress = false;
+
+            for (auto &p : secondaryPresses)
             {
-                hasSecondaryPress = true;
-                break;
-            }
-        }
-
-        if (!hasSecondaryPress)
-        {
-            secondaryPresses.push_back({padIndexWithBank, 1.f, false});
-        }
-    }
-    else
-    {
-        for (auto it = secondaryPresses.begin(); it != secondaryPresses.end();)
-        {
-            if (it->alpha <= decayThreshold)
-            {
-                secondaryPresses.erase(it);
-                continue;
-            }
-
-            applyDecay(it->alpha);
-            ++it;
-        }
-    }
-
-    for (int i = mpcPad->getIndex(); i < 64; i += 16)
-    {
-        if (i == padIndexWithBank) continue;
-
-        const int programPressCount = program->isPadPressedBySource(i, PadPressSource::NON_PHYSICAL);
-
-        if (programPressCount > 0)
-        {
-            bool hasTertiaryPress = false;
-
-            for (auto &p : tertiaryPresses)
-            {
-                if (p.alpha == 1.f && p.padIndexWithBank == i)
+                if (p.alpha == 1.f && p.padIndexWithBank == padIndexWithBank)
                 {
-                    hasTertiaryPress = true;
+                    hasSecondaryPress = true;
                     break;
                 }
             }
 
-            if (!hasTertiaryPress)
+            if (!hasSecondaryPress)
             {
-                tertiaryPresses.push_back({i, 1.f, false});
+                secondaryPresses.push_back({padIndexWithBank, 1.f, false});
             }
         }
         else
         {
-            for (auto it = tertiaryPresses.begin(); it != tertiaryPresses.end();)
+            for (auto it = secondaryPresses.begin(); it != secondaryPresses.end();)
             {
                 if (it->alpha <= decayThreshold)
                 {
-                    tertiaryPresses.erase(it);
+                    secondaryPresses.erase(it);
                     continue;
                 }
+
                 applyDecay(it->alpha);
                 ++it;
+            }
+        }
+
+        for (int i = mpcPad->getIndex(); i < 64; i += 16)
+        {
+            if (i == padIndexWithBank) continue;
+
+            const int programPressCount = program->isPadPressedBySource(i, PadPressSource::NON_PHYSICAL);
+
+            if (programPressCount > 0)
+            {
+                bool hasTertiaryPress = false;
+
+                for (auto &p : tertiaryPresses)
+                {
+                    if (p.alpha == 1.f && p.padIndexWithBank == i)
+                    {
+                        hasTertiaryPress = true;
+                        break;
+                    }
+                }
+
+                if (!hasTertiaryPress)
+                {
+                    tertiaryPresses.push_back({i, 1.f, false});
+                }
+            }
+            else
+            {
+                for (auto it = tertiaryPresses.begin(); it != tertiaryPresses.end();)
+                {
+                    if (it->alpha <= decayThreshold)
+                    {
+                        tertiaryPresses.erase(it);
+                        continue;
+                    }
+                    applyDecay(it->alpha);
+                    ++it;
+                }
             }
         }
     }
