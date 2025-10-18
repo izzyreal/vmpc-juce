@@ -138,7 +138,9 @@ namespace vmpc_juce::gui::focus
 
             // --- handle transitions ---
             if (focus && !newFocus)
+            {
                 onFocusLost();
+            }
 
             if (newFocus != focus)
             {

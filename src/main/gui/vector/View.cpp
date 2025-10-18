@@ -91,7 +91,14 @@ View::View(mpc::Mpc &mpcToUse,
     keyTooltipFont.setTypefaceStyle("SemiBold");
     keyTooltipFont = juce::Font(FreeTypeFaces::createTypefaceForFont(keyTooltipFont));
 
-    focusHelper = new focus::FocusHelper([inputController = mpc.inputController]{
+    const bool shouldSynthesizeKeyRepeatsForSomeKeys = wrapperType == juce::AudioProcessor::WrapperType::wrapperType_AudioUnitv3;
+
+    keyboard = KeyboardFactory::instance(shouldSynthesizeKeyRepeatsForSomeKeys);
+
+    focusHelper = new focus::FocusHelper([inputController = mpc.inputController, focusHelperKeyboard = keyboard]{
+
+        focusHelperKeyboard->allKeysUp();
+
         using FocusEvent = mpc::inputlogic::FocusEvent;
         mpc::inputlogic::HostInputEvent hostInputEvent(FocusEvent{FocusEvent::Type::Lost});
         inputController->dispatchHostInput(hostInputEvent);
@@ -99,9 +106,7 @@ View::View(mpc::Mpc &mpcToUse,
     
     addAndMakeVisible(focusHelper);
     
-    const bool shouldSynthesizeKeyRepeatsForSomeKeys = wrapperType == juce::AudioProcessor::WrapperType::wrapperType_AudioUnitv3;
-
-    keyboard = KeyboardFactory::instance(this, shouldSynthesizeKeyRepeatsForSomeKeys);
+    keyboard->hasFocus = [helper = focusHelper] { return helper->hasFocus(); };
 
     auto getKeyboardMods = [&]() -> std::tuple<bool, bool, bool> {
         using namespace mpc::controls;

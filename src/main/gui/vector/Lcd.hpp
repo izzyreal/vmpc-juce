@@ -27,7 +27,6 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
         resetAuxWindowF = [&] { resetAuxWindow(); };
 
         resetKeyboardAuxParent = [&] {
-            getView()->keyboard->setAuxParent(nullptr);
             getView()->focusHelper->setAuxComponent(nullptr);
         };
 
@@ -169,12 +168,10 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             if (auxWindow == nullptr)
             {
                 auxWindow = new vmpc_juce::gui::AuxLCDWindow(resetAuxWindowF, getLcdImage, resetKeyboardAuxParent, Constants::lcdOff);
-                view->keyboard->setAuxParent(auxWindow);
                 view->focusHelper->setAuxComponent(auxWindow);
             }
             else
             {
-                view->keyboard->setAuxParent(nullptr);
                 view->focusHelper->setAuxComponent(nullptr);
                 delete auxWindow;
                 auxWindow = nullptr;
