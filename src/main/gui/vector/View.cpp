@@ -16,8 +16,7 @@
 #include "InitialWindowDimensions.hpp"
 
 #include "Mpc.hpp"
-#include "controls/KeyEvent.hpp"
-#include "controls/KeyCodeHelper.hpp"
+#include "input/KeyCodeHelper.hpp"
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 #include "gui/focus/FocusHelper.h"
@@ -26,7 +25,7 @@
 #include "gui/vector/Constants.hpp"
 
 #include "gui/vector/DataWheel.hpp"
-#include "inputlogic/HostInputEvent.h"
+#include "input/HostInputEvent.h"
 #include "vf_freetype/vf_FreeTypeFaces.h"
 
 #include <tuple>
@@ -99,8 +98,8 @@ View::View(mpc::Mpc &mpcToUse,
 
         focusHelperKeyboard->allKeysUp();
 
-        using FocusEvent = mpc::inputlogic::FocusEvent;
-        mpc::inputlogic::HostInputEvent hostInputEvent(FocusEvent{FocusEvent::Type::Lost});
+        using FocusEvent = mpc::input::FocusEvent;
+        mpc::input::HostInputEvent hostInputEvent(FocusEvent{FocusEvent::Type::Lost});
         inputController->dispatchHostInput(hostInputEvent);
     });
     
@@ -109,7 +108,7 @@ View::View(mpc::Mpc &mpcToUse,
     keyboard->hasFocus = [helper = focusHelper] { return helper->hasFocus(); };
 
     auto getKeyboardMods = [&]() -> std::tuple<bool, bool, bool> {
-        using namespace mpc::controls;
+        using namespace mpc::input;
 
         bool shiftDown = keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(VmpcKeyCode::VMPC_KEY_Shift)) ||
             keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(VmpcKeyCode::VMPC_KEY_LeftShift)) ||
@@ -309,14 +308,14 @@ void View::resized()
 
 void View::onKeyDown(int keyCode, bool ctrlDown, bool altDown, bool shiftDown)
 {
-    using namespace mpc::inputlogic;
+    using namespace mpc::input;
     HostInputEvent hostInputEvent(KeyEvent { true, keyCode, shiftDown, ctrlDown, altDown});
     mpc.dispatchHostInput(hostInputEvent);
 }
 
 void View::onKeyUp(int keyCode, bool ctrlDown, bool altDown, bool shiftDown)
 {
-    using namespace mpc::inputlogic;
+    using namespace mpc::input;
     HostInputEvent hostInputEvent(KeyEvent { false, keyCode, shiftDown, ctrlDown, altDown});
     mpc.dispatchHostInput(hostInputEvent);
 }

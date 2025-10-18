@@ -26,8 +26,8 @@
 #include "hardware/ComponentId.h"
 #include "hardware/Hardware.h"
 #include "hardware/HardwareComponent.h"
-#include "inputlogic/KeyboardBindings.h"
-#include "controls/KeyCodeHelper.hpp"
+#include "input/KeyboardBindings.h"
+#include "input/KeyCodeHelper.hpp"
 
 using namespace vmpc_juce::gui::vector;
 
@@ -380,7 +380,7 @@ void ViewUtil::createComponent(
 
                     const auto getTooltipText = [&mpc, keycode = keycodes[j]]{
                         const auto keyboardBindings = mpc.inputController->getKeyboardBindings();
-                        return mpc::controls::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(keycode);
+                        return mpc::input::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(keycode);
                     };
 
                     const auto tooltip = new KeyTooltip(getTooltipText, tooltipAnchor, offset, getKeyTooltipFontScaled, getScale, n.hardware_label);

@@ -4,7 +4,7 @@
 #include "TooltipOverlay.hpp"
 
 #include "hardware/ComponentId.h"
-#include "inputlogic/HostInputEvent.h"
+#include "input/HostInputEvent.h"
 
 #include "juce_audio_processors/juce_audio_processors.h"
 
@@ -108,7 +108,7 @@ void MpcHardwareMouseListener::mouseDoubleClick(const juce::MouseEvent&)
 
 void MpcHardwareMouseListener::mouseUp(const juce::MouseEvent &e)
 {
-    if (auto hostInputEvent = makeAbsoluteGestureFromMouse(e, label, mpc::inputlogic::GestureEvent::Type::END, std::nullopt);
+    if (auto hostInputEvent = makeAbsoluteGestureFromMouse(e, label, mpc::input::GestureEvent::Type::END, std::nullopt);
         hostInputEvent)
     {
         mpc.dispatchHostInput(*hostInputEvent);
@@ -130,7 +130,7 @@ void MpcHardwareMouseListener::mouseDrag(const juce::MouseEvent &e)
     {
         if (auto hostInputEvent = makeRelativeGestureFromMouse(e,
                 label,
-                mpc::inputlogic::GestureEvent::Type::UPDATE,
+                mpc::input::GestureEvent::Type::UPDATE,
                 deltaY);
             hostInputEvent)
         {

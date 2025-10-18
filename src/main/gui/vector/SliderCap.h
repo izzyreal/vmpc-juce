@@ -2,7 +2,7 @@
 
 #include "DraggableSvgComponent.h"
 #include "hardware/HardwareComponent.h"
-#include "inputlogic/HostInputEvent.h"
+#include "input/HostInputEvent.h"
 #include "juce_gui_basics/juce_gui_basics.h"
 
 #include "MpcInputUtil.h"
@@ -66,7 +66,7 @@ private:
     void mouseDrag(const juce::MouseEvent& e) override
     {
         DraggableSvgComponent::mouseDrag(e);
-        if (auto hostInputEvent = makeAbsoluteGestureFromMouse(e, "slider", mpc::inputlogic::GestureEvent::Type::UPDATE,
+        if (auto hostInputEvent = makeAbsoluteGestureFromMouse(e, "slider", mpc::input::GestureEvent::Type::UPDATE,
                                                                             getNormalizedY()); hostInputEvent) 
         {
             mpc.dispatchHostInput(*hostInputEvent);
