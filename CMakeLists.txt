@@ -65,7 +65,7 @@ FetchContent_Declare(melatonin_blur
 
 FetchContent_Declare(juce-raw-keyboard-input-module
   GIT_REPOSITORY https://github.com/izzyreal/juce-raw-keyboard-input-module.git
-  GIT_TAG        main
+  GIT_TAG        external-focus-provider
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/juce-raw-keyboard-input-module
 )
 
