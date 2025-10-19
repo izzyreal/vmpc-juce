@@ -802,7 +802,7 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
     auto screen = layeredScreen->getCurrentScreenName();
     auto previousScreen = layeredScreen->getPreviousScreenName();
     auto previousSamplerScreen = mpc.getPreviousSamplerScreenName();
-    auto focus = mpc.getLayeredScreen()->getFocus();
+    auto focus = mpc.getLayeredScreen()->getFocusedFieldName();
     auto soundIndex = mpc.getSampler()->getSoundIndex();
     auto lastPressedPad = mpc.getPad();
     auto lastPressedNote = mpc.getNote();
