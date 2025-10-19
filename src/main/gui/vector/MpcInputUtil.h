@@ -98,7 +98,7 @@ static std::optional<HostInputEvent> makeAbsoluteGestureFromMouse(
             GestureEvent::Movement::Absolute,
             normY,
             0.f,
-            0,
+            e.getNumberOfClicks(),
             componentId
         }
     };
@@ -123,7 +123,7 @@ static std::optional<mpc::input::HostInputEvent> makeRelativeGestureFromMouse(co
             GestureEvent::Movement::Relative,
             normY,
             continuousDelta,
-            0,
+            e.getNumberOfClicks(),
             mpc::hardware::componentLabelToId.at(label)
         }
     };
