@@ -75,7 +75,7 @@ VmpcProcessor::VmpcProcessor()
     }
     else
     {
-        auto syncScreen = mpc.screens->get<SyncScreen>("sync");
+        auto syncScreen = mpc.screens->get<SyncScreen>();
         syncScreen->modeIn = 1;
         mpc.setPluginModeEnabled(true);
     }
@@ -517,7 +517,7 @@ void VmpcProcessor::processTransport()
         return;
     }
 
-    auto syncScreen = mpc.screens->get<SyncScreen>("sync");
+    auto syncScreen = mpc.screens->get<SyncScreen>();
 
     bool syncEnabled = syncScreen->getModeIn() == 1;
 
@@ -985,7 +985,7 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
         layeredScreen->openScreen(previousScreen);
         layeredScreen->Draw();
 
-        auto directoryScreen = mpc.screens->get<DirectoryScreen>("directory");
+        auto directoryScreen = mpc.screens->get<DirectoryScreen>();
         directoryScreen->setPreviousScreenName(previousScreen == "save" ? "save" : "load");
 
         layeredScreen->openScreen(screen);

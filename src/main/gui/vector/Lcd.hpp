@@ -33,13 +33,13 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
         getLcdImage = [&]() -> juce::Image& { return img; };
         drawPixelsToImg();
         startTimer(25);
-        auto othersScreen = mpc.screens->get<mpc::lcdgui::screens::OthersScreen>("others");
+        auto othersScreen = mpc.screens->get<mpc::lcdgui::screens::OthersScreen>();
         othersScreen->addObserver(this);
     }
 
         ~Lcd() override
         {
-            auto othersScreen = mpc.screens->get<mpc::lcdgui::screens::OthersScreen>("others");
+            auto othersScreen = mpc.screens->get<mpc::lcdgui::screens::OthersScreen>();
             othersScreen->deleteObserver(this);
             delete auxWindow;
         }
@@ -120,7 +120,7 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
             const auto pixels = layeredScreen->getPixels();
 
-            auto othersScreen = mpc.screens->get<mpc::lcdgui::screens::OthersScreen>("others");
+            auto othersScreen = mpc.screens->get<mpc::lcdgui::screens::OthersScreen>();
             auto contrast = othersScreen->getContrast();
 
             juce::Colour c;

@@ -34,7 +34,7 @@ static int getDrumIndexForCurrentScreen(mpc::Mpc& mpc, const std::string& curren
 {
     const bool isSamplerScreen = mpc::lcdgui::screengroups::isSamplerScreen(currentScreenName);
     return isSamplerScreen
-        ? mpc.screens->get<mpc::lcdgui::screens::DrumScreen>("drum")->getDrum()
+        ? mpc.screens->get<mpc::lcdgui::screens::DrumScreen>()->getDrum()
         : mpc.getSequencer()->getActiveTrack()->getBus() - 1;
 }
 
@@ -109,7 +109,7 @@ void Pad::loadFile(const juce::String path, bool shouldBeConverted, std::string 
         }
 
         soundLoader.loadSound(file, result, sound, shouldBeConverted);
-        auto popupScreen = mpc.screens->get<PopupScreen>("popup");
+        auto popupScreen = mpc.screens->get<PopupScreen>();
 
         if (!result.success) {
             sampler->deleteSound(sound);
@@ -120,8 +120,7 @@ void Pad::loadFile(const juce::String path, bool shouldBeConverted, std::string 
                     loadFile(path, shouldBeConverted2, screenToReturnTo);
                 };
 
-                auto convertAndLoadWavScreen = mpc.screens->get<VmpcConvertAndLoadWavScreen>(
-                        "vmpc-convert-and-load-wav");
+                auto convertAndLoadWavScreen = mpc.screens->get<VmpcConvertAndLoadWavScreen>();
                 convertAndLoadWavScreen->setLoadRoutine(loadRoutine);
                 layeredScreen->openScreen("vmpc-convert-and-load-wav");
             }
