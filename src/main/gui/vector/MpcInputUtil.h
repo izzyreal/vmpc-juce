@@ -12,15 +12,80 @@
 using HostInputEvent = mpc::input::HostInputEvent;
 using GestureEvent = mpc::input::GestureEvent;
 
+static mpc::hardware::ComponentId getCursorComponentId(const juce::MouseEvent &e)
+{
+    juce::Path left, top, bottom, right;
+
+    left.startNewSubPath(0.f, 0.f);
+    left.lineTo(0.2f, 0.f);
+    left.lineTo(0.25f, 0.5f);
+    left.lineTo(0.2f, 1.f);
+    left.lineTo(0.f, 1.f);
+    left.closeSubPath();
+
+    top.startNewSubPath(0.2f, 0.f);
+    top.lineTo(0.8f, 0.f);
+    top.lineTo(0.75f, 0.5f);
+    top.lineTo(0.25f, 0.5f);
+    top.lineTo(0.2f, 0.f);
+    top.closeSubPath();
+
+    right = left;
+    right.applyTransform(juce::AffineTransform(-1.0f, 0.0f, 1.f, 0.0f, 1.0f, 0.0f));
+
+    bottom = top;
+    bottom.applyTransform(juce::AffineTransform().verticalFlip(1.f));
+
+    const auto compWidth = e.eventComponent->getWidth();
+    const auto compHeight = e.eventComponent->getHeight();
+    juce::AffineTransform scaleTransform = juce::AffineTransform().scaled(compWidth, compHeight);
+
+    left.applyTransform(scaleTransform);
+    top.applyTransform(scaleTransform);
+    right.applyTransform(scaleTransform);
+    bottom.applyTransform(scaleTransform);
+
+    if (left.contains(e.position))
+    {
+        return mpc::hardware::ComponentId::CURSOR_LEFT_OR_DIGIT;
+    }
+    else if (top.contains(e.position))
+    {
+        return mpc::hardware::ComponentId::CURSOR_UP;
+    }
+    else if (right.contains(e.position))
+    {
+        return mpc::hardware::ComponentId::CURSOR_RIGHT_OR_DIGIT;
+    }
+    else if (bottom.contains(e.position))
+    {
+        return mpc::hardware::ComponentId::CURSOR_DOWN;
+    }
+
+    return mpc::hardware::ComponentId::NONE;
+}
+
+
 static std::optional<HostInputEvent> makeAbsoluteGestureFromMouse(
     const juce::MouseEvent& e,
     const std::string& label,
     GestureEvent::Type type,
     std::optional<float> customNormY)
 {
-    if (!mpc::hardware::componentLabelToId.count(label))
+    if (!mpc::hardware::componentLabelToId.count(label) && label != "cursor")
     {
         return std::nullopt;
+    }
+
+    mpc::hardware::ComponentId componentId;
+
+    if (label == "cursor")
+    {
+        componentId = getCursorComponentId(e);
+    }
+    else
+    {
+        componentId = mpc::hardware::componentLabelToId.at(label);
     }
 
     const float normY = customNormY.has_value()
@@ -34,7 +99,7 @@ static std::optional<HostInputEvent> makeAbsoluteGestureFromMouse(
             normY,
             0.f,
             0,
-            mpc::hardware::componentLabelToId.at(label)
+            componentId
         }
     };
 }
@@ -64,87 +129,3 @@ static std::optional<mpc::input::HostInputEvent> makeRelativeGestureFromMouse(co
     };
 }
 
-/*
-static std::optional<mpc::input::HostInputEvent> constructHostInputEventFromJuceMouseEvent(const juce::MouseEvent &e,
-                                                                              std::string label,
-                                                                              mpc::input::GestureEvent::Type gestureEventType,
-                                                                              const int discreteDelta = 0,
-                                                                              const float continuousDelta = 0.f,
-                                                                              const std::optional<float> customNormY = std::nullopt)
-{
-    if (label.empty())
-    {
-        return std::nullopt;
-    }
-
-    using namespace mpc::input;
-
-    const float normY = customNormY.has_value() ? *customNormY : e.position.getY() / static_cast<float>(e.eventComponent->getHeight());
-
-    mpc::input::GestureEvent gestureEvent {
-        gestureEventType,
-        normY,
-        discreteDelta,
-        continuousDelta,
-        gestureEventType == GestureEvent::Type::REPEAT ? 2 : 0,
-        mpc::hardware::ComponentId::NONE
-    };
-
-    if (mpc::hardware::componentLabelToId.count(label) > 0)
-    {
-        gestureEvent.componentId = mpc::hardware::componentLabelToId.at(label);
-    }
-    else if (label == "cursor")
-    {
-        juce::Path left, top, bottom, right;
-
-        left.startNewSubPath(0.f, 0.f);
-        left.lineTo(0.2f, 0.f);
-        left.lineTo(0.25f, 0.5f);
-        left.lineTo(0.2f, 1.f);
-        left.lineTo(0.f, 1.f);
-        left.closeSubPath();
-
-        top.startNewSubPath(0.2f, 0.f);
-        top.lineTo(0.8f, 0.f);
-        top.lineTo(0.75f, 0.5f);
-        top.lineTo(0.25f, 0.5f);
-        top.lineTo(0.2f, 0.f);
-        top.closeSubPath();
-
-        right = left;
-        right.applyTransform(juce::AffineTransform(-1.0f, 0.0f, 1.f, 0.0f, 1.0f, 0.0f));
-
-        bottom = top;
-        bottom.applyTransform(juce::AffineTransform().verticalFlip(1.f));
-
-        const auto compWidth = e.eventComponent->getWidth();
-        const auto compHeight = e.eventComponent->getHeight();
-        juce::AffineTransform scaleTransform = juce::AffineTransform().scaled(compWidth, compHeight);
-
-        left.applyTransform(scaleTransform);
-        top.applyTransform(scaleTransform);
-        right.applyTransform(scaleTransform);
-        bottom.applyTransform(scaleTransform);
-
-        if (left.contains(e.position))
-        {
-            gestureEvent.componentId = mpc::hardware::ComponentId::CURSOR_LEFT;
-        }
-        else if (top.contains(e.position))
-        {
-            gestureEvent.componentId = mpc::hardware::ComponentId::CURSOR_UP;
-        }
-        else if (right.contains(e.position))
-        {
-            gestureEvent.componentId = mpc::hardware::ComponentId::CURSOR_RIGHT;
-        }
-        else if (bottom.contains(e.position))
-        {
-            gestureEvent.componentId = mpc::hardware::ComponentId::CURSOR_DOWN;
-        }
-    }
-
-    return HostInputEvent(gestureEvent);
-}
-*/
