@@ -37,7 +37,7 @@ private:
     std::optional<int> pressedBank = std::nullopt;
 
     int getVelo(int veloY);
-    void loadFile(const juce::String path, bool shouldBeConverted, std::string screenToReturnTo);
+    void loadFile(const juce::String path, bool shouldBeConverted);
 
 public:
     void resized() override;
