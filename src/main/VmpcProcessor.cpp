@@ -800,7 +800,6 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
     auto layeredScreen = mpc.getLayeredScreen();
 
     auto screen = layeredScreen->getCurrentScreenName();
-    auto previousScreen = layeredScreen->getPreviousScreenName();
     auto focus = mpc.getLayeredScreen()->getFocusedFieldName();
     auto soundIndex = mpc.getSampler()->getSoundIndex();
     auto lastPressedPad = mpc.getPad();
@@ -810,7 +809,6 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
     root->addChildElement(mpc_ui);
 
     mpc_ui->setAttribute("screen", screen);
-    mpc_ui->setAttribute("previousScreen", previousScreen);
     mpc_ui->setAttribute("focus", focus);
     mpc_ui->setAttribute("soundIndex", soundIndex);
     mpc_ui->setAttribute("lastPressedNote", lastPressedNote);
@@ -970,16 +968,9 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
         mpc.setPad(static_cast<unsigned char>(mpc_ui->getIntAttribute("lastPressedPad")));
 
         auto screen = mpc_ui->getStringAttribute("screen").toStdString();
-        auto previousScreen = mpc_ui->getStringAttribute("previousScreen").toStdString();
         auto layeredScreen = mpc.getLayeredScreen();
 
         auto currentScreen = layeredScreen->getCurrentScreenName();
-
-        layeredScreen->openScreen(previousScreen);
-        layeredScreen->Draw();
-
-        auto directoryScreen = mpc.screens->get<DirectoryScreen>();
-        directoryScreen->setPreviousScreenName(previousScreen == "save" ? "save" : "load");
 
         layeredScreen->openScreen(screen);
         auto focus = mpc_ui->getStringAttribute("focus").toStdString();
