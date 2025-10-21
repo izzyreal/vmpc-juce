@@ -1,11 +1,11 @@
 #pragma once
 
-#include "DraggableSvgComponent.h"
-#include "hardware/HardwareComponent.h"
-#include "input/HostInputEvent.h"
-#include "juce_gui_basics/juce_gui_basics.h"
+#include "DraggableSvgComponent.hpp"
+#include "hardware/HardwareComponent.hpp"
+#include "input/HostInputEvent.hpp"
+#include <juce_gui_basics/juce_gui_basics.h>
 
-#include "MpcInputUtil.h"
+#include "MpcInputUtil.hpp"
 #include "Mpc.hpp"
 
 namespace vmpc_juce::gui::vector {

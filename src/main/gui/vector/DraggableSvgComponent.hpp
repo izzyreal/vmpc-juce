@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SvgComponent.hpp"
-#include "juce_gui_basics/juce_gui_basics.h"
+#include <juce_gui_basics/juce_gui_basics.h>
 
 namespace vmpc_juce::gui::vector {
 

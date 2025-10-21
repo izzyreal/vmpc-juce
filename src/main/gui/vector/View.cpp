@@ -9,8 +9,8 @@
 #include "Disclaimer.hpp"
 #include "About.hpp"
 #include "Pad.hpp"
-#include "Pot.h"
-#include "Slider.h"
+#include "Pot.hpp"
+#include "Slider.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "InitialWindowDimensions.hpp"
@@ -19,13 +19,13 @@
 #include "input/KeyCodeHelper.hpp"
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
-#include "gui/focus/FocusHelper.h"
+#include "gui/focus/FocusHelper.hpp"
 
 #include <nlohmann/json.hpp>
 #include "gui/vector/Constants.hpp"
 
 #include "gui/vector/DataWheel.hpp"
-#include "input/HostInputEvent.h"
+#include "input/HostInputEvent.hpp"
 #include "vf_freetype/vf_FreeTypeFaces.h"
 
 #include <tuple>
@@ -74,18 +74,18 @@ View::View(mpc::Mpc &mpcToUse,
     })
 {
     mainFontData = VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
-    FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true, mainFontData.data(), mainFontData.size());
+    FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true, mainFontData.data(), static_cast<int>(mainFontData.size()));
     mainFont.setTypefaceName("Neutral Sans");
     mainFont = juce::Font(FreeTypeFaces::createTypefaceForFont(mainFont));
 
     mpc2000xlFaceplateGlyphsFontData = VmpcJuceResourceUtil::getResourceData("fonts/mpc2000xl-faceplate-glyphs.ttf");
     FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true,
-            mpc2000xlFaceplateGlyphsFontData.data(), mpc2000xlFaceplateGlyphsFontData.size(), true);
+            mpc2000xlFaceplateGlyphsFontData.data(), static_cast<int>(mpc2000xlFaceplateGlyphsFontData.size()), true);
     mpc2000xlFaceplateGlyphsFont.setTypefaceName("MPC2000XL Faceplate-Glyphs");
     mpc2000xlFaceplateGlyphsFont = juce::Font(FreeTypeFaces::createTypefaceForFont(mpc2000xlFaceplateGlyphsFont));
 
     keyTooltipFontData = VmpcJuceResourceUtil::getResourceData("fonts/FiraCode-SemiBold.ttf");
-    FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true, keyTooltipFontData.data(), keyTooltipFontData.size());
+    FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true, keyTooltipFontData.data(), static_cast<int>(keyTooltipFontData.size()));
     keyTooltipFont.setTypefaceName("Fira Code");
     keyTooltipFont.setTypefaceStyle("SemiBold");
     keyTooltipFont = juce::Font(FreeTypeFaces::createTypefaceForFont(keyTooltipFont));
@@ -288,12 +288,12 @@ void View::resized()
     const auto menuHeight = Menu::heightAtScale1 * scale;
     const auto menuWidthWithMargin = (Menu::widthAtScale1 + menuMargin) * scale;
     const auto menuHeightWithMargin = (Menu::heightAtScale1 + menuMargin) * scale;
-    const auto menuX = getWidth() - menuWidthWithMargin;
-    const auto menuY = getHeight() - menuHeightWithMargin;
+    const auto menuX = static_cast<float>(getWidth()) - menuWidthWithMargin;
+    const auto menuY = static_cast<float>(getHeight()) - menuHeightWithMargin;
     
-    menu->setBounds(menuX, menuY, menuWidth, menuHeight);
+    menu->setBounds(static_cast<int>(menuX), static_cast<int>(menuY), static_cast<int>(menuWidth), static_cast<int>(menuHeight));
 
-    auto rect = getLocalBounds().reduced(getWidth() * 0.25, getHeight() * 0.25);
+    auto rect = getLocalBounds().reduced(static_cast<int>(static_cast<float>(getWidth()) * 0.25f), static_cast<int>(static_cast<float>(getHeight()) * 0.25f));
 
     if (disclaimer != nullptr)
     {

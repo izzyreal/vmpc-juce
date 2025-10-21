@@ -4,7 +4,6 @@
 
 #include <Mpc.hpp>
 
-#include <array>
 #include <limits>
 #include <vector>
 #include <unordered_set>

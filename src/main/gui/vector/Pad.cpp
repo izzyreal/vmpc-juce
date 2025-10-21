@@ -1,10 +1,10 @@
 #include "Pad.hpp"
 
-#include "hardware/HardwareComponent.h"
+#include "hardware/HardwareComponent.hpp"
 
 #include <Mpc.hpp>
 #include "file/AkaiName.hpp"
-#include "juce_graphics/juce_graphics.h"
+#include <juce_graphics/juce_graphics.h>
 #include "lcdgui/screens/DrumScreen.hpp"
 
 #include <sequencer/Track.hpp>
@@ -16,13 +16,11 @@
 #include <disk/MpcFile.hpp>
 
 #include <lcdgui/screens/window/VmpcConvertAndLoadWavScreen.hpp>
-#include <lcdgui/ScreenGroups.h>
+#include <lcdgui/ScreenGroups.hpp>
 
 #include <StrUtil.hpp>
 
 #include <Logger.hpp>
-
-#include <math.h>
 
 using namespace vmpc_juce::gui::vector;
 using namespace mpc::disk;

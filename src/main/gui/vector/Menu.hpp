@@ -1,11 +1,11 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <juce_audio_processors/juce_audio_processors.h>
 
 #include "SvgComponent.hpp"
 #include "TooltipOverlay.hpp"
 #include "InfoTooltip.hpp"
-#include "juce_audio_processors/juce_audio_processors.h"
 
 #ifdef __APPLE__
 #include <TargetConditionals.h>
@@ -37,6 +37,7 @@ namespace vmpc_juce::gui::vector {
                     const std::function<void()> &openAboutToUse,
                     juce::AudioProcessor::WrapperType wrapperTypeToUse)
                 : mpc(mpcToUse),
+                wrapperType(wrapperTypeToUse),
                 getScale(getScaleToUse),
                 showAudioSettingsDialog(showAudioSettingsDialogToUse),
                 resetWindowSize(resetWindowSizeToUse),
@@ -44,8 +45,7 @@ namespace vmpc_juce::gui::vector {
                 setKeyboardShortcutTooltipsVisibility(setKeyboardShortcutTooltipsVisibilityToUse),
                 getMainFontScaled(getMainFontScaledToUse),
                 openAbout(openAboutToUse),
-                tooltipOverlay(tooltipOverlayToUse),
-                wrapperType(wrapperTypeToUse)
+                tooltipOverlay(tooltipOverlayToUse)
         {
             juce::Desktop::getInstance().addFocusChangeListener(this);
 
@@ -170,7 +170,7 @@ namespace vmpc_juce::gui::vector {
                 }
             }
 
-            void mouseExit(const juce::MouseEvent &e) override
+            void mouseExit(const juce::MouseEvent&) override
             {
                 setKeyboardShortcutTooltipsVisibility(false);
                 infoTooltip->setVisible(false);
@@ -189,7 +189,11 @@ namespace vmpc_juce::gui::vector {
             }
 #endif
 
+#if TARGET_OS_IPHONE
             void mouseUp(const juce::MouseEvent &e) override
+#else
+            void mouseUp(const juce::MouseEvent&) override
+#endif
             {
                 if (speakerIcon != nullptr) speakerIcon->setAlpha(1.f);
                 if (resetZoomIcon != nullptr) resetZoomIcon->setAlpha(1.f);
@@ -247,16 +251,16 @@ namespace vmpc_juce::gui::vector {
 
                 if (expanded || mouseOverExpansion)
                 {
-                    for (int i = 1; i < iconsToDraw.size(); i++)
+                    for (size_t i = 1; i < iconsToDraw.size(); i++)
                     {
                         visibleIcons.insert(visibleIcons.begin(), iconsToDraw[i]);
                     }
                 }
 
-                for (int8_t idx = visibleIcons.size() - 1; idx >= 0; idx--)
+                for (int8_t idx = static_cast<int8_t>(visibleIcons.size()) - 1; idx >= 0; idx--)
                 {
-                    const auto icon = visibleIcons[idx];
-                    grid.templateColumns.insert(0, juce::Grid::Px((getWidth()/float(totalAvailableIconCount)) - (lineThickness * 2)));
+                    const auto icon = visibleIcons[static_cast<size_t>(idx)];
+                    grid.templateColumns.insert(0, juce::Grid::Px((static_cast<float>(getWidth())/float(totalAvailableIconCount)) - (lineThickness * 2)));
 
                     juce::GridItem::Margin margin { 3.f * scale };
 
@@ -301,7 +305,7 @@ namespace vmpc_juce::gui::vector {
                 const auto margin = 5.f * scale;
 
                 const auto fixedHeight = (heightAtScale1 * scale) - (lineThickness * 3);
-                const auto centerY = (getHeight() - fixedHeight) / 2.0f;
+                const auto centerY = (static_cast<float>(getHeight()) - fixedHeight) / 2.0f;
 
                 auto rect = getIconBounds().toFloat().expanded(margin, lineThickness);
                 rect.setY(centerY);
@@ -338,12 +342,12 @@ namespace vmpc_juce::gui::vector {
 
             const static int totalAvailableIconCount = 9;
             constexpr static const float widthAtScale1 = 15.f * totalAvailableIconCount * 1.1;
-            constexpr static const float heightAtScale1 = 16.f * 1.1;
+            constexpr static const float heightAtScale1 = 16.f * 1.1f;
 
         private:
             void handleClick(const juce::MouseEvent e)
             {
-                if (menuIcon->getBounds().expanded(getScale() * 3).contains(e.getPosition()))
+                if (menuIcon->getBounds().expanded(static_cast<int>(getScale() * 3.f)).contains(e.getPosition()))
                 {
                     expanded = !expanded;
                     dontExpandUponMove = !expanded;
@@ -507,7 +511,7 @@ namespace vmpc_juce::gui::vector {
             {
                 for (auto &icon : getPlatformAvailableIcons())
                 {
-                    if (icon->getBounds().expanded(getScale() * 3).contains(position))
+                    if (icon->getBounds().expanded(static_cast<int>(getScale() * 3.f)).contains(position))
                     {
                         return icon;
                     }

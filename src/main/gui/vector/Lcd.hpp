@@ -1,11 +1,11 @@
 #pragma once
 #include "Observer.hpp"
-#include "juce_graphics/juce_graphics.h"
+#include <juce_graphics/juce_graphics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "Constants.hpp"
 #include "View.hpp"
-#include "melatonin_blur/melatonin/shadows.h"
+#include <melatonin_blur/melatonin/shadows.h>
 
 #include "Mpc.hpp"
 #include "lcdgui/Screens.hpp"
@@ -13,7 +13,7 @@
 #include "lcdgui/screens/OthersScreen.hpp"
 
 #include "gui/AuxLCDWindow.hpp"
-#include "gui/focus/FocusHelper.h"
+#include "gui/focus/FocusHelper.hpp"
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 

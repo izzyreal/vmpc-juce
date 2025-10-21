@@ -1,8 +1,10 @@
 #include "VmpcProcessor.hpp"
-#include "juce_audio_basics/juce_audio_basics.h"
-#include "juce_audio_processors/juce_audio_processors.h"
-#include "juce_core/system/juce_PlatformDefs.h"
-#include "juce_gui_basics/juce_gui_basics.h"
+
+#include <juce_audio_basics/juce_audio_basics.h>
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_core/system/juce_PlatformDefs.h>
+#include <juce_gui_basics/juce_gui_basics.h>
+
 #include "version.h"
 
 #include "lcdgui/screens/VmpcSettingsScreen.hpp"
@@ -588,7 +590,7 @@ void VmpcProcessor::computeMpcAndHostOutputChannelIndicesToRender()
     mpcMonoOutputChannelIndicesToRender.clear();
     hostOutputChannelIndicesToRender.clear();
 
-    for (int i = 0; i < mpcMonoOutputChannelIndices.size(); i++)
+    for (size_t i = 0; i < mpcMonoOutputChannelIndices.size(); i++)
     {
         if (possiblyActiveMpcMonoOutChannels.count(mpcMonoOutputChannelIndices[i]) > 0)
         {
@@ -620,7 +622,7 @@ static void propagateTransportInfo(
     {
         clock.processBufferExternal(*hostPositionQuarterNotes,
                                            numSamples,
-                                           sampleRate,
+                                           static_cast<int>(sampleRate),
                                            *tempo,
                                            *timeInSamples);
     }
@@ -668,9 +670,9 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
     {
         if (mpc.getSequencer()->isPlaying())
         {
-            mpcClock->generateTransportInfo(mpc.getSequencer()->getTempo(),
-                                            getSampleRate(),
-                                            buffer.getNumSamples(),
+            mpcClock->generateTransportInfo(static_cast<float>(mpc.getSequencer()->getTempo()),
+                                            static_cast<uint32_t>(getSampleRate()),
+                                            static_cast<uint16_t>(buffer.getNumSamples()),
                                             mpc.getSequencer()->getPlayStartPositionQuarterNotes());
         }
     }
@@ -684,9 +686,9 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer& buffer, juce::MidiBuff
 
         if (!isPlaying && mpc.getSequencer()->isPlaying())
         {
-            mpcClock->generateTransportInfo(mpc.getSequencer()->getTempo(),
-                                            getSampleRate(),
-                                            buffer.getNumSamples(),
+            mpcClock->generateTransportInfo(static_cast<float>(mpc.getSequencer()->getTempo()),
+                                            static_cast<uint32_t>(getSampleRate()),
+                                            static_cast<uint16_t>(buffer.getNumSamples()),
                                             mpc.getSequencer()->getPlayStartPositionQuarterNotes());
         }
         else if (isPlaying && mpc.getSequencer()->isPlaying())
@@ -1048,8 +1050,8 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
                 break;
             }
 
-            mpcMonoOutputChannelIndices.push_back(i);
-            hostOutputChannelIndices.push_back(getBus(false, 0)->getChannelIndexInProcessBlockBuffer(i));
+            mpcMonoOutputChannelIndices.push_back(static_cast<int8_t>(i));
+            hostOutputChannelIndices.push_back(static_cast<int8_t>(getBus(false, 0)->getChannelIndexInProcessBlockBuffer(i)));
             lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(lastHostChannelIndexThatWillBeWritten, hostOutputChannelIndices.back());
         }
 
@@ -1060,8 +1062,8 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
                 break;
             }
 
-            mpcMonoInputChannelIndices.push_back(i);
-            hostInputChannelIndices.push_back(getBus(true, 0)->getChannelIndexInProcessBlockBuffer(i));
+            mpcMonoInputChannelIndices.push_back(static_cast<int8_t>(i));
+            hostInputChannelIndices.push_back(static_cast<int8_t>(getBus(true, 0)->getChannelIndexInProcessBlockBuffer(i)));
         }
 
         if (mpcMonoInputChannelIndices.size() == 1 &&
@@ -1101,19 +1103,19 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
 
         if (bus->getBusIndex() < 1)
         {
-            const bool busWasRequestedToBeStereoButIsMono = bus->getNumberOfChannels() == 1;
+            const bool busWasRequestedToBeStereoButIsMono2 = bus->getNumberOfChannels() == 1;
 
-            hostInputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(0));
-            mpcMonoInputChannelIndices.push_back(mpcMonoChannelCounter);
+            hostInputChannelIndices.push_back(static_cast<int8_t>(bus->getChannelIndexInProcessBlockBuffer(0)));
+            mpcMonoInputChannelIndices.push_back(static_cast<int8_t>(mpcMonoChannelCounter));
 
-            hostInputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(busWasRequestedToBeStereoButIsMono ? 0 : 1));
-            mpcMonoInputChannelIndices.push_back(mpcMonoChannelCounter + 1);
+            hostInputChannelIndices.push_back(static_cast<int8_t>(bus->getChannelIndexInProcessBlockBuffer(busWasRequestedToBeStereoButIsMono2 ? 0 : 1)));
+            mpcMonoInputChannelIndices.push_back(static_cast<int8_t>(mpcMonoChannelCounter + 1));
         }
         else
         {
             jassert(bus->getNumberOfChannels() == 1);
-            hostInputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(0));
-            mpcMonoInputChannelIndices.push_back(mpcMonoChannelCounter);
+            hostInputChannelIndices.push_back(static_cast<int8_t>(bus->getChannelIndexInProcessBlockBuffer(0)));
+            mpcMonoInputChannelIndices.push_back(static_cast<int8_t>(mpcMonoChannelCounter));
         }
 
         mpcMonoChannelCounter += mpcMonoChannelsToAdd;
@@ -1154,35 +1156,43 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
         if (bus->getBusIndex() < 5)
         {
             // Here we process stereo buses STEREO OUT L/R, MIX 1/2, MIX 3/4, MIX 5/6 and MIX 7/8
-            hostOutputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(0));
-            mpcMonoOutputChannelIndices.push_back(mpcMonoChannelCounter);
+            hostOutputChannelIndices.push_back(static_cast<int8_t>(bus->getChannelIndexInProcessBlockBuffer(0)));
+            mpcMonoOutputChannelIndices.push_back(static_cast<int8_t>(mpcMonoChannelCounter));
 
             if (busWasRequestedToBeStereoButIsMono)
             {
-                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(lastHostChannelIndexThatWillBeWritten, bus->getChannelIndexInProcessBlockBuffer(0));
+                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(
+                        lastHostChannelIndexThatWillBeWritten,
+                        static_cast<int8_t>(bus->getChannelIndexInProcessBlockBuffer(0)));
             }
             else
             {
-                hostOutputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(1));
-                mpcMonoOutputChannelIndices.push_back(mpcMonoChannelCounter + 1);
-                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(lastHostChannelIndexThatWillBeWritten, bus->getChannelIndexInProcessBlockBuffer(1));
+                hostOutputChannelIndices.push_back(static_cast<int8_t>(bus->getChannelIndexInProcessBlockBuffer(1)));
+                mpcMonoOutputChannelIndices.push_back(static_cast<int8_t>(mpcMonoChannelCounter + 1));
+                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(
+                        lastHostChannelIndexThatWillBeWritten,
+                        static_cast<int8_t>(bus->getChannelIndexInProcessBlockBuffer(1)));
             }
         }
         else
         {
             // Here we process mono buses STEREO OUT L, STEREO OUT R, MIX 1 ... MIX 8
-            hostOutputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(0));
-            mpcMonoOutputChannelIndices.push_back(mpcMonoChannelCounter + 2);
+            hostOutputChannelIndices.push_back(static_cast<int8_t>(bus->getChannelIndexInProcessBlockBuffer(0)));
+            mpcMonoOutputChannelIndices.push_back(static_cast<int8_t>(mpcMonoChannelCounter + 2));
 
             if (busWasRequestedToBeMonoButIsStereo)
             {
-                hostOutputChannelIndices.push_back(bus->getChannelIndexInProcessBlockBuffer(1));
-                mpcMonoOutputChannelIndices.push_back(mpcMonoChannelCounter + 2);
-                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(lastHostChannelIndexThatWillBeWritten, bus->getChannelIndexInProcessBlockBuffer(1));
+                hostOutputChannelIndices.push_back(static_cast<int8_t>(bus->getChannelIndexInProcessBlockBuffer(1)));
+                mpcMonoOutputChannelIndices.push_back(static_cast<int8_t>(mpcMonoChannelCounter + 2));
+                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(
+                        lastHostChannelIndexThatWillBeWritten,
+                        static_cast<int8_t>(bus->getChannelIndexInProcessBlockBuffer(1)));
             }
             else
             {
-                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(lastHostChannelIndexThatWillBeWritten, bus->getChannelIndexInProcessBlockBuffer(0));
+                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(
+                        lastHostChannelIndexThatWillBeWritten,
+                        static_cast<int8_t>(bus->getChannelIndexInProcessBlockBuffer(0)));
             }
         }
 

@@ -1,7 +1,7 @@
 #ifdef __linux__
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <unistd.h>
+#include <X11/Xlib.hpp>
+#include <X11/Xatom.hpp>
+#include <unistd.hpp>
 
 extern "C" bool isEditorKeyWindow(void* componentPeerNativeHandle)
 {

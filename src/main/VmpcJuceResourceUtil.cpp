@@ -1,7 +1,7 @@
 #include "VmpcJuceResourceUtil.hpp"
 
 #ifdef MAC_BUNDLE_RESOURCES
-#include "MacBundleResources.h"
+#include "MacBundleResources.hpp"
 #include "mpc_fs.hpp"
 #else
 #include <cmrc/cmrc.hpp>

@@ -8,7 +8,7 @@
 #include "SvgComponent.hpp"
 #include "DataWheelLines.hpp"
 
-#include "hardware/HardwareComponent.h"
+#include "hardware/HardwareComponent.hpp"
 
 namespace vmpc_juce::gui::vector {
 

@@ -1,5 +1,5 @@
 #ifdef _WIN32
-#include <windows.h>
+#include <windows.hpp>
 
 extern "C" bool isEditorKeyWindow(void* componentPeerNativeHandle)
 {

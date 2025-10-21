@@ -1,8 +1,8 @@
 #pragma once
 
-#include "input/HostInputEvent.h"
+#include "input/HostInputEvent.hpp"
 
-#include "hardware/ComponentId.h"
+#include "hardware/ComponentId.hpp"
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
@@ -38,7 +38,7 @@ static mpc::hardware::ComponentId getCursorComponentId(const juce::MouseEvent &e
 
     const auto compWidth = e.eventComponent->getWidth();
     const auto compHeight = e.eventComponent->getHeight();
-    juce::AffineTransform scaleTransform = juce::AffineTransform().scaled(compWidth, compHeight);
+    juce::AffineTransform scaleTransform = juce::AffineTransform().scaled(static_cast<float>(compWidth), static_cast<float>(compHeight));
 
     left.applyTransform(scaleTransform);
     top.applyTransform(scaleTransform);

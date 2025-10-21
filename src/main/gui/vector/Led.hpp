@@ -2,8 +2,8 @@
 
 #include "SvgComponent.hpp"
 
-#include "controller/ClientInputControllerBase.h"
-#include "hardware/HardwareComponent.h"
+#include "controller/ClientInputControllerBase.hpp"
+#include "hardware/HardwareComponent.hpp"
 
 namespace vmpc_juce::gui::vector {
 

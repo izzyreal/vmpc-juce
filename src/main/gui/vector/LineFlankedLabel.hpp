@@ -2,7 +2,7 @@
 
 #include "SimpleLabel.hpp"
 #include "Constants.hpp"
-#include "juce_graphics/juce_graphics.h"
+#include <juce_graphics/juce_graphics.h>
 
 namespace vmpc_juce::gui::vector {
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "juce_graphics/juce_graphics.h"
-#include "melatonin_blur/melatonin/shadows.h"
+#include <juce_graphics/juce_graphics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include <melatonin_blur/melatonin/shadows.h>
 #include <melatonin_blur/melatonin_blur.h>
 
 namespace vmpc_juce::gui::vector {

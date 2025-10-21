@@ -2,7 +2,7 @@
 #include <TargetConditionals.h>
 #if TARGET_OS_OSX
 
-#include "FocusHelper.h"
+#include "gui/focus/FocusHelper.hpp"
 
 #include <Cocoa/Cocoa.h>
 

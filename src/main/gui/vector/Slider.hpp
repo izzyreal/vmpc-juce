@@ -2,8 +2,8 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "Constants.hpp"
-#include "gui/vector/SliderCap.h"
-#include "juce_graphics/juce_graphics.h"
+#include "gui/vector/SliderCap.hpp"
+#include <juce_graphics/juce_graphics.h>
 
 namespace vmpc_juce::gui::vector {
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "juce_gui_basics/juce_gui_basics.h"
+#include <juce_gui_basics/juce_gui_basics.h>
 
 namespace vmpc_juce::gui {
     class VmpcAuxLcdLookAndFeel : public juce::LookAndFeel_V4 {

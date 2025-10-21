@@ -1,7 +1,8 @@
 #pragma once
 
-#include "melatonin_blur/melatonin/shadows.h"
 #include <juce_gui_basics/juce_gui_basics.h>
+
+#include <melatonin_blur/melatonin/shadows.h>
 #include <melatonin_blur/melatonin_blur.h>
 
 namespace vmpc_juce::gui::vector {
@@ -43,7 +44,7 @@ namespace vmpc_juce::gui::vector {
                 auto arrowHeight = getArrowHeightScaled();
                 auto rect = getLocalBounds().toFloat();
 
-                rect.reduce(shadowMargin, shadowMargin);
+                rect.reduce(static_cast<float>(shadowMargin), static_cast<float>(shadowMargin));
 
                 rect = rect.withTrimmedTop(arrowHeight);
 
@@ -60,9 +61,9 @@ namespace vmpc_juce::gui::vector {
 
                 if (tooltipIsPositionedBelowAnchor)
                 {
-                    path.startNewSubPath(arrowX - triangleWidth / 2, rectTopY);
-                    path.lineTo(arrowX, rectTopY - arrowHeight);
-                    path.lineTo(arrowX + triangleWidth / 2, rectTopY);
+                    path.startNewSubPath(static_cast<float>(arrowX) - triangleWidth / 2, rectTopY);
+                    path.lineTo(static_cast<float>(arrowX), rectTopY - arrowHeight);
+                    path.lineTo(static_cast<float>(arrowX) + triangleWidth / 2, rectTopY);
                     path.lineTo(rectRightX - radius, rectTopY);
                     path.addArc(rectRightX - radius * 2, rectTopY, radius * 2, radius * 2, 0, juce::MathConstants<float>::pi * 0.5f);
                     path.lineTo(rectRightX, rectBottomY - radius);
@@ -74,9 +75,9 @@ namespace vmpc_juce::gui::vector {
                 }
                 else
                 {
-                    path.startNewSubPath(arrowX - triangleWidth / 2, rectBottomY);
-                    path.lineTo(arrowX, rectBottomY + arrowHeight);
-                    path.lineTo(arrowX + triangleWidth / 2, rectBottomY);
+                    path.startNewSubPath(static_cast<float>(arrowX) - triangleWidth / 2, rectBottomY);
+                    path.lineTo(static_cast<float>(arrowX), rectBottomY + arrowHeight);
+                    path.lineTo(static_cast<float>(arrowX) + triangleWidth / 2, rectBottomY);
                     path.lineTo(rectRightX - radius, rectBottomY);
                     path.addArc(rectRightX - radius * 2, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi, juce::MathConstants<float>::pi * 0.5f);
                     path.lineTo(rectRightX, rectTopY + radius);
@@ -116,16 +117,16 @@ namespace vmpc_juce::gui::vector {
                 const auto tooltipOverlayBounds = tooltipOverlay->getBounds();
 
                 auto arrowTipPos = getUpArrowTipPosWithinTooltipOverlay();
-                auto tooltipX = (arrowTipPos.x - (textWidthWithMargin * 0.5f));
+                auto tooltipX = (static_cast<float>(arrowTipPos.x) - (textWidthWithMargin * 0.5f));
                 auto tooltipY = arrowTipPos.y;
-                auto rect = juce::Rectangle<int>(tooltipX, tooltipY, textWidthWithMargin, tooltipHeight);
+                auto rect = juce::Rectangle<int>(static_cast<int>(tooltipX), tooltipY, static_cast<int>(textWidthWithMargin), static_cast<int>(tooltipHeight));
 
                 if (rect.getBottom() > tooltipOverlayBounds.getBottom())
                 {
                     arrowTipPos = getDownArrowTipPosWithinTooltipOverlay();
-                    tooltipX = (arrowTipPos.x - (textWidthWithMargin * 0.5f));
+                    tooltipX = (static_cast<float>(arrowTipPos.x) - (textWidthWithMargin * 0.5f));
                     tooltipY = arrowTipPos.y;
-                    rect = juce::Rectangle<int>(tooltipX, tooltipY - tooltipHeight - (margin * 2), textWidthWithMargin, tooltipHeight);
+                    rect = juce::Rectangle<int>(static_cast<int>(tooltipX), static_cast<int>(static_cast<float>(tooltipY) - tooltipHeight - (margin * 2)), static_cast<int>(textWidthWithMargin), static_cast<int>(tooltipHeight));
                     tooltipIsPositionedBelowAnchor = false;
                 }
                 else
@@ -133,9 +134,9 @@ namespace vmpc_juce::gui::vector {
                     tooltipIsPositionedBelowAnchor = true;
                 }
 
-                if (rect.getRight() + margin > tooltipOverlayBounds.getRight())
+                if (static_cast<float>(rect.getRight()) + margin > static_cast<float>(tooltipOverlayBounds.getRight()))
                 {
-                    rect.setX(tooltipOverlayBounds.getRight() - (rect.getWidth() + margin));
+                    rect.setX(static_cast<int>(static_cast<float>(tooltipOverlayBounds.getRight()) - (static_cast<float>(rect.getWidth()) + margin)));
                 }
                 else if (rect.getX() < tooltipOverlayBounds.getX())
                 {
@@ -156,7 +157,7 @@ namespace vmpc_juce::gui::vector {
                 }
 
                 auto anchorTopCenter = anchor->getBounds().getTopLeft() + juce::Point<int>(anchor->getWidth() / 2, 0);
-                return tooltipOverlay->getLocalPoint(anchor->getParentComponent(), anchorTopCenter).translated(0, 2.f * getScale());
+                return tooltipOverlay->getLocalPoint(anchor->getParentComponent(), anchorTopCenter).translated(0, static_cast<int>(2.f * getScale()));
             }
 
             juce::Point<int> getUpArrowTipPosWithinTooltipOverlay()
@@ -167,7 +168,7 @@ namespace vmpc_juce::gui::vector {
                 }
 
                 auto anchorBottomCenter = anchor->getBounds().getBottomLeft() + juce::Point<int>(anchor->getWidth() / 2, 0);
-                return tooltipOverlay->getLocalPoint(anchor->getParentComponent(), anchorBottomCenter).translated(0, 2.f * getScale());
+                return tooltipOverlay->getLocalPoint(anchor->getParentComponent(), anchorBottomCenter).translated(0, static_cast<int>(2.f * getScale()));
             }
 
             juce::Point<int> getDownArrowTipPosWithinSelf()
@@ -194,7 +195,7 @@ namespace vmpc_juce::gui::vector {
 
             float getTextWidth()
             {
-                return getFont().getStringWidth(tooltipText);
+                return static_cast<float>(getFont().getStringWidth(tooltipText));
             }
 
             juce::Font getFont()

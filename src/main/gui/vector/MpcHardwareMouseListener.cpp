@@ -1,12 +1,12 @@
 #include "MpcHardwareMouseListener.hpp"
 
-#include "MpcInputUtil.h"
+#include "MpcInputUtil.hpp"
 #include "TooltipOverlay.hpp"
 
-#include "hardware/ComponentId.h"
-#include "input/HostInputEvent.h"
+#include "hardware/ComponentId.hpp"
+#include "input/HostInputEvent.hpp"
 
-#include "juce_audio_processors/juce_audio_processors.h"
+#include <juce_audio_processors/juce_audio_processors.h>
 
 using namespace vmpc_juce::gui::vector;
 using namespace mpc::hardware;

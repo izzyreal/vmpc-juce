@@ -1,6 +1,6 @@
 #pragma once
 
-#include "juce_graphics/juce_graphics.h"
+#include <juce_graphics/juce_graphics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_core/juce_core.h>
 
