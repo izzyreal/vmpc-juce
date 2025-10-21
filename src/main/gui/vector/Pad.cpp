@@ -26,12 +26,13 @@
 
 using namespace vmpc_juce::gui::vector;
 using namespace mpc::disk;
+using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens::window;
 using namespace mpc::lcdgui::screens::dialog2;
 
-static int getDrumIndexForCurrentScreen(mpc::Mpc& mpc, const std::string& currentScreenName)
+static int getDrumIndexForCurrentScreen(mpc::Mpc& mpc, const std::shared_ptr<ScreenComponent> screen)
 {
-    const bool isSamplerScreen = mpc::lcdgui::screengroups::isSamplerScreen(currentScreenName);
+    const bool isSamplerScreen = screengroups::isSamplerScreen(screen);
     return isSamplerScreen
         ? mpc.screens->get<mpc::lcdgui::screens::DrumScreen>()->getDrum()
         : mpc.getSequencer()->getActiveTrack()->getBus() - 1;
@@ -39,8 +40,8 @@ static int getDrumIndexForCurrentScreen(mpc::Mpc& mpc, const std::string& curren
 
 static std::shared_ptr<mpc::sampler::Program> getProgramForCurrentScreen(mpc::Mpc& mpc)
 {
-    const auto currentScreenName = mpc.getLayeredScreen()->getCurrentScreenName();
-    const int drumIndex = getDrumIndexForCurrentScreen(mpc, currentScreenName);
+    const auto currentScreen = mpc.getLayeredScreen()->getCurrentScreen();
+    const int drumIndex = getDrumIndexForCurrentScreen(mpc, currentScreen);
     if (drumIndex < 0)
         return nullptr;
 
