@@ -123,15 +123,10 @@ Used to load the LCD bitmap font's glyphs.
 License: MIT,
 <link>https://github.com/kbuffardi/Bitmap/blob/master/LICENSE</link>
 
-rapidjson
-<link>https://github.com/Tencent/rapidjson</link>
-JSON parsing, used for reading LCD screen layout definitions.
-License: MIT,
-<link>https://github.com/Tencent/rapidjson/blob/master/license.txt</link>
-
 nlohmann/json
 <link>https://github.com/nlohmann/json</link>
-JSON parsing, used for reading vector UI layout definitions.
+JSON parsing, used for reading vector UI layout definitions, LCD screen
+layouts and various persisted configurations.
 License: MIT,
 <link>https://github.com/nlohmann/json/blob/develop/LICENSE.MIT</link>
 
