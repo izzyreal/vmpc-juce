@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.22)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -55,6 +55,7 @@ FetchContent_Declare(JUCE
   GIT_REPOSITORY https://github.com/izzyreal/JUCE.git
   GIT_TAG        7.0.9-vmpc
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/JUCE
+  GIT_SHALLOW    ON
 )
 
 FetchContent_Declare(melatonin_blur
@@ -69,10 +70,8 @@ FetchContent_Declare(juce-raw-keyboard-input-module
 )
 
 FetchContent_Declare(json
-  GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG        v3.11.3
-  GIT_SHALLOW    ON
-  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/deps/json
+    URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 
 FetchContent_Declare(mpc
@@ -83,11 +82,9 @@ FetchContent_Declare(mpc
 
 FetchContent_Declare(tl-expected
   GIT_REPOSITORY https://github.com/TartanLlama/expected.git
-  GIT_TAG        v1.0.0
+  GIT_TAG        v1.3.1
   GIT_SHALLOW    ON
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/deps/expected
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
 )
 
 set(BUILD_EXAMPLES OFF)
@@ -100,17 +97,32 @@ FetchContent_Declare(miniz
   GIT_REPOSITORY https://github.com/richgel999/miniz
   GIT_TAG        master
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/deps/miniz
+  GIT_SHALLOW    ON
 )
+message(STATUS "Downloading miniz")
 FetchContent_MakeAvailable(miniz)
 endif()
 endif()
 
-FetchContent_MakeAvailable(mpc JUCE juce-raw-keyboard-input-module melatonin_blur json)
+message(STATUS "Downloading mpc")
+FetchContent_MakeAvailable(mpc)
+
+message(STATUS "Downloading JUCE")
+FetchContent_MakeAvailable(JUCE)
+
+message(STATUS "Downloading juce-raw-keyboard-input-module")
+FetchContent_MakeAvailable(juce-raw-keyboard-input-module)
+
+message(STATUS "Downloading melatonin_blur")
+FetchContent_MakeAvailable(melatonin_blur)
+
+message(STATUS "Downloading json")
+FetchContent_MakeAvailable(json)
 
 FetchContent_GetProperties(tl-expected)
-
 if(NOT tl-expected_POPULATED)
-  FetchContent_Populate(tl-expected)
+    message(STATUS "Downloading tl-expected")
+    FetchContent_MakeAvailable(tl-expected)
 endif()
 
 if (IOS)
