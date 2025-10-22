@@ -80,13 +80,6 @@ FetchContent_Declare(mpc
   SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/mpc
 )
 
-FetchContent_Declare(tl-expected
-  GIT_REPOSITORY https://github.com/TartanLlama/expected.git
-  GIT_TAG        v1.3.1
-  GIT_SHALLOW    ON
-  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/deps/expected
-)
-
 set(BUILD_EXAMPLES OFF)
 set(BUILD_TESTS OFF)
 set(INSTALL_PROJECT OFF)
@@ -118,12 +111,6 @@ FetchContent_MakeAvailable(melatonin_blur)
 
 message(STATUS "Downloading json...")
 FetchContent_MakeAvailable(json)
-
-FetchContent_GetProperties(tl-expected)
-if(NOT tl-expected_POPULATED)
-    message(STATUS "Downloading tl-expected...")
-    FetchContent_MakeAvailable(tl-expected)
-endif()
 
 if (IOS)
     set(IOS_SPECIFIC_SETTINGS
@@ -185,7 +172,6 @@ set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/src/main")
 target_include_directories(vmpc2000xl PUBLIC
   ${_src_root_path}
   ${mpc_SOURCE_DIR}/src/main
-  ${tl-expected_SOURCE_DIR}/include
 )
 
 if (APPLE)
