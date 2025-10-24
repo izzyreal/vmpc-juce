@@ -1,14 +1,10 @@
 #include "VmpcProcessor.hpp"
 
-#include <juce_audio_basics/juce_audio_basics.h>
-#include <juce_audio_processors/juce_audio_processors.h>
-#include <juce_core/system/juce_PlatformDefs.h>
-#include <juce_gui_basics/juce_gui_basics.h>
+#include "VmpcEditor.hpp"
+#include "JuceToMpcMidiEventConvertor.hpp"
 
-#include "version.h"
-
-#include "lcdgui/screens/VmpcSettingsScreen.hpp"
-#include "AutoSave.hpp"
+#include <version.h>
+#include <AutoSave.hpp>
 
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audiomidi/DiskRecorder.hpp>
@@ -24,17 +20,18 @@
 #include <disk/AllLoader.hpp>
 #include <disk/AbstractDisk.hpp>
 
-#include <limits>
 #include <sequencer/Sequencer.hpp>
 #include <sequencer/Clock.hpp>
-
 #include <lcdgui/screens/SyncScreen.hpp>
 #include <lcdgui/screens/window/DirectoryScreen.hpp>
-
+#include <lcdgui/screens/VmpcSettingsScreen.hpp>
 #include <engine/audio/server/NonRealTimeAudioServer.hpp>
-#include <engine/midi/ShortMessage.hpp>
+#include <input/HostInputEvent.hpp>
 
-#include "VmpcEditor.hpp"
+#include <juce_audio_basics/juce_audio_basics.h>
+#include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_core/system/juce_PlatformDefs.h>
+#include <juce_gui_basics/juce_gui_basics.h>
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
@@ -385,60 +382,9 @@ void VmpcProcessor::processMidiIn(juce::MidiBuffer& midiMessages)
     for (const auto& meta : midiMessages)
     {
         const auto& m = meta.getMessage();
-        int timeStamp = static_cast<int>(m.getTimeStamp());
-        int velocity = m.getVelocity();
-        std::shared_ptr<ShortMessage> tootMsg;
 
-        if (m.isNoteOn())
-        {
-            tootMsg = std::make_shared<ShortMessage>();
-            tootMsg->setMessage(ShortMessage::NOTE_ON, m.getChannel() - 1, m.getNoteNumber(), velocity);
-        }
-        else if (m.isNoteOff())
-        {
-            tootMsg = std::make_shared<ShortMessage>();
-            tootMsg->setMessage(ShortMessage::NOTE_OFF, m.getChannel() - 1, m.getNoteNumber(), 0);
-        }
-        else if (m.isController())
-        {
-            tootMsg = std::make_shared<ShortMessage>();
-            tootMsg->setMessage(ShortMessage::CONTROL_CHANGE, m.getChannel() - 1, m.getControllerNumber(), m.getControllerValue());
-        }
-        else if (m.isAftertouch())
-        {
-            tootMsg = std::make_shared<ShortMessage>();
-            tootMsg->setMessage(ShortMessage::POLY_PRESSURE, m.getChannel() - 1, m.getNoteNumber(), m.getAfterTouchValue());
-        }
-        else if (m.isChannelPressure())
-        {
-            tootMsg = std::make_shared<ShortMessage>();
-            tootMsg->setMessage(ShortMessage::CHANNEL_PRESSURE, m.getChannel() - 1, m.getChannelPressureValue(), 0);
-        }
-        else if (m.isMidiClock())
-        {
-            tootMsg = std::make_shared<ShortMessage>();
-            tootMsg->setMessage(ShortMessage::TIMING_CLOCK);
-        }
-        else if (m.isMidiStart())
-        {
-            tootMsg = std::make_shared<ShortMessage>();
-            tootMsg->setMessage(ShortMessage::START);
-        }
-        else if (m.isMidiContinue())
-        {
-            tootMsg = std::make_shared<ShortMessage>();
-            tootMsg->setMessage(ShortMessage::CONTINUE);
-        }
-        else if (m.isMidiStop())
-        {
-            tootMsg = std::make_shared<ShortMessage>();
-            tootMsg->setMessage(ShortMessage::STOP);
-        }
-
-        if (tootMsg)
-        {
-            mpc.getMpcMidiInput(0)->transport(tootMsg.get(), timeStamp);
-        }
+        mpc::input::MidiEvent mpcMidiEvent = vmpc_juce::JuceToMpcMidiEventConvertor::convert(m);
+        mpc.dispatchHostInput(mpc::input::HostInputEvent(mpcMidiEvent));
     }
 }
 
