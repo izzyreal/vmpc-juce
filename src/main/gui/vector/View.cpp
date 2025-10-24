@@ -94,13 +94,13 @@ View::View(mpc::Mpc &mpcToUse,
 
     keyboard = KeyboardFactory::instance(shouldSynthesizeKeyRepeatsForSomeKeys);
 
-    focusHelper = new focus::FocusHelper([inputController = mpc.inputController, focusHelperKeyboard = keyboard]{
+    focusHelper = new focus::FocusHelper([clientEventController = mpc.clientEventController, focusHelperKeyboard = keyboard]{
 
         focusHelperKeyboard->allKeysUp();
 
         using FocusEvent = mpc::input::FocusEvent;
         mpc::input::HostInputEvent hostInputEvent(FocusEvent{FocusEvent::Type::Lost});
-        inputController->dispatchHostInput(hostInputEvent);
+        clientEventController->dispatchHostInput(hostInputEvent);
     });
     
     addAndMakeVisible(focusHelper);

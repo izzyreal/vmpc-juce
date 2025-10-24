@@ -2,7 +2,8 @@
 
 #include "SvgComponent.hpp"
 
-#include "controller/ClientHardwareControllerBase.hpp"
+#include "controller/ClientEventController.hpp"
+#include "controller/ClientHardwareEventController.hpp"
 #include "hardware/Component.hpp"
 
 namespace vmpc_juce::gui::vector {
@@ -12,7 +13,7 @@ namespace vmpc_juce::gui::vector {
             enum LedColor { RED, GREEN };
 
             Led(const std::shared_ptr<mpc::hardware::Led> mpcLedToUse,
-                    std::shared_ptr<mpc::controller::ClientHardwareControllerBase> clientHardwareControllerToUse,
+                    std::shared_ptr<mpc::controller::ClientEventController> clientEventControllerToUse,
                     const LedColor ledColorToUse,
                     const std::function<float()> &getScaleToUse)
                 : SvgComponent({"led_off.svg", ledColorToUse == RED ? "led_on_red.svg" : "led_on_green.svg" },
@@ -21,7 +22,7 @@ namespace vmpc_juce::gui::vector {
                                getScaleToUse),
                 ledColor(ledColorToUse),
                 mpcLed(mpcLedToUse),
-                clientHardwareController(clientHardwareControllerToUse)
+                clientEventController(clientEventControllerToUse)
                 {
                     setLedOnEnabled(true);
                 }
@@ -32,12 +33,14 @@ namespace vmpc_juce::gui::vector {
                 
                 if (mpcLed->getId() == ComponentId::REC_LED)
                 {
-                    setLedOnEnabled(mpcLed->isEnabled() || clientHardwareController->buttonLockTracker.isLocked(ComponentId::REC));
+                    setLedOnEnabled(mpcLed->isEnabled() ||
+                            clientEventController->clientHardwareEventController->buttonLockTracker.isLocked(ComponentId::REC));
                     return;
                 }
                 if (mpcLed->getId() == ComponentId::OVERDUB_LED)
                 {
-                    setLedOnEnabled(mpcLed->isEnabled() || clientHardwareController->buttonLockTracker.isLocked(ComponentId::OVERDUB));
+                    setLedOnEnabled(mpcLed->isEnabled() ||
+                            clientEventController->clientHardwareEventController->buttonLockTracker.isLocked(ComponentId::OVERDUB));
                     return;
                 }
 
@@ -69,7 +72,7 @@ namespace vmpc_juce::gui::vector {
             const LedColor ledColor;
             bool ledOnEnabled = false;
             const std::shared_ptr<mpc::hardware::Led> mpcLed;
-            const std::shared_ptr<mpc::controller::ClientHardwareControllerBase> clientHardwareController;
+            const std::shared_ptr<mpc::controller::ClientEventController> clientEventController;
     };
 
 } // namespace vmpc_juce::gui::vector

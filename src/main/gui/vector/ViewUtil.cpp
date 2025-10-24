@@ -25,8 +25,6 @@
 
 #include "hardware/ComponentId.hpp"
 #include "hardware/Hardware.hpp"
-#include "hardware/Component.hpp"
-#include "input/KeyboardBindings.hpp"
 #include "input/KeyCodeHelper.hpp"
 
 using namespace vmpc_juce::gui::vector;
@@ -184,7 +182,7 @@ void ViewUtil::createComponent(
     else if (n.node_type == "red_led" || n.node_type == "green_led")
     {
         auto mpcLed = mpc.getHardware()->getLed(mpc::hardware::componentLabelToId.at(n.hardware_label));
-        auto led = new Led(mpcLed, mpc.inputController, n.node_type == "red_led" ? Led::LedColor::RED : Led::LedColor::GREEN, getScale);
+        auto led = new Led(mpcLed, mpc.clientEventController, n.node_type == "red_led" ? Led::LedColor::RED : Led::LedColor::GREEN, getScale);
         n.led_component = led;
         parent->addAndMakeVisible(led);
         components.push_back(led);
@@ -370,7 +368,7 @@ void ViewUtil::createComponent(
 
             for (size_t i = 0; i < componentIds.size(); i++)
             {
-                auto keycodes = mpc.inputController->getKeyboardBindings()->lookupComponent(componentIds[i]);
+                auto keycodes = mpc.clientEventController->getKeyboardBindings()->lookupComponent(componentIds[i]);
 
                 for (size_t j = 0; j < keycodes.size(); j++)
                 {
@@ -379,7 +377,7 @@ void ViewUtil::createComponent(
                     const auto offset = unscaledOffsetsFromAnchor[offsetsIndex++];
 
                     const auto getTooltipText = [&mpc, keycode = keycodes[j]]{
-                        const auto keyboardBindings = mpc.inputController->getKeyboardBindings();
+                        const auto keyboardBindings = mpc.clientEventController->getKeyboardBindings();
                         return mpc::input::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(keycode);
                     };
 
