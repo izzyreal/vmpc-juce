@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DraggableSvgComponent.hpp"
-#include "hardware/HardwareComponent.hpp"
+#include "hardware/Component.hpp"
 #include "input/HostInputEvent.hpp"
 #include <juce_gui_basics/juce_gui_basics.h>
 

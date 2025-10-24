@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SvgComponent.hpp"
-#include "hardware/HardwareComponent.hpp"
+#include "hardware/Component.hpp"
 #include <limits>
 
 namespace vmpc_juce::gui::vector {

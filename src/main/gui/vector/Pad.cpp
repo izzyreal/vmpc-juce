@@ -1,6 +1,6 @@
 #include "Pad.hpp"
 
-#include "hardware/HardwareComponent.hpp"
+#include "hardware/Component.hpp"
 
 #include <Mpc.hpp>
 #include "file/AkaiName.hpp"
