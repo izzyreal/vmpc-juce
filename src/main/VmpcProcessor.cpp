@@ -383,7 +383,7 @@ void VmpcProcessor::processMidiIn(juce::MidiBuffer& midiMessages)
     {
         const auto& m = meta.getMessage();
 
-        mpc::input::MidiEvent mpcMidiEvent = vmpc_juce::JuceToMpcMidiEventConvertor::convert(m);
+        mpc::client::event::ClientMidiEvent mpcMidiEvent = vmpc_juce::JuceToMpcMidiEventConvertor::convert(m);
         mpc.dispatchHostInput(mpc::input::HostInputEvent(mpcMidiEvent));
     }
 }
