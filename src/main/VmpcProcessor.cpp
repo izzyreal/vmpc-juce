@@ -8,7 +8,6 @@
 
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audiomidi/DiskRecorder.hpp>
-#include <audiomidi/MidiInput.hpp>
 #include <audiomidi/MidiOutput.hpp>
 #include <audiomidi/SoundRecorder.hpp>
 
