@@ -2,6 +2,7 @@
 
 #include "VmpcEditor.hpp"
 #include "JuceToMpcMidiEventConvertor.hpp"
+#include "controller/ClientEventController.hpp"
 
 #include <version.h>
 #include <AutoSave.hpp>
@@ -749,8 +750,8 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
     auto screen = layeredScreen->getCurrentScreenName();
     auto focus = mpc.getLayeredScreen()->getFocusedFieldName();
     auto soundIndex = mpc.getSampler()->getSoundIndex();
-    auto lastPressedPad = mpc.getPad();
-    auto lastPressedNote = mpc.getNote();
+    auto lastPressedPad = mpc.clientEventController->getSelectedPad();
+    auto lastPressedNote = mpc.clientEventController->getSelectedNote();
 
     auto mpc_ui = new juce::XmlElement("MPC-UI");
     root->addChildElement(mpc_ui);
@@ -911,8 +912,8 @@ void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
         }
 
         mpc.getSampler()->setSoundIndex(mpc_ui->getIntAttribute("soundIndex"));
-        mpc.setNote(mpc_ui->getIntAttribute("lastPressedNote"));
-        mpc.setPad(static_cast<unsigned char>(mpc_ui->getIntAttribute("lastPressedPad")));
+        mpc.clientEventController->setSelectedNote(mpc_ui->getIntAttribute("lastPressedNote"));
+        mpc.clientEventController->setSelectedPad(static_cast<unsigned char>(mpc_ui->getIntAttribute("lastPressedPad")));
 
         auto screen = mpc_ui->getStringAttribute("screen").toStdString();
         auto layeredScreen = mpc.getLayeredScreen();

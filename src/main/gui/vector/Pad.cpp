@@ -1,5 +1,6 @@
 #include "Pad.hpp"
 
+#include "controller/ClientEventController.hpp"
 #include "hardware/Component.hpp"
 
 #include <Mpc.hpp>
@@ -173,7 +174,8 @@ void Pad::loadFile(const juce::String path, bool shouldBeConverted)
         auto programIndex = drum.getProgram();
         auto program = mpc.getSampler()->getProgram(programIndex);
         auto soundIndex = mpc.getSampler()->getSoundCount() - 1;
-        auto padIndex = mpcPad->getIndex() + (mpc.getBank() * 16);
+        const int bank = static_cast<int>(mpc.clientEventController->getActiveBank());
+        auto padIndex = mpcPad->getIndex() + (bank * 16);
         auto programPad = program->getPad(padIndex);
         auto padNote = programPad->getNote();
 
@@ -203,7 +205,8 @@ void Pad::sharedTimerCallback()
     static float decay = 0.05f;
     static auto applyDecay = [&](float &f) { f -= decay; };
     static float decayThreshold = 0.f;
-    const int padIndexWithBank = mpcPad->getIndex() + (mpc.getBank() * 16);
+    const int bank = static_cast<int>(mpc.clientEventController->getActiveBank());
+    const int padIndexWithBank = mpcPad->getIndex() + (bank * 16);
 
     if (mpcPad->isPressed())
     {
@@ -325,10 +328,10 @@ void Pad::sharedTimerCallback()
 
     bool bankHasChanged = false;
 
-    if (mpc.getBank() != lastBank)
+    if (bank != lastBank)
     {
         bankHasChanged = true;
-        lastBank = mpc.getBank();
+        lastBank = bank;
     }
     
     if (bankHasChanged)
