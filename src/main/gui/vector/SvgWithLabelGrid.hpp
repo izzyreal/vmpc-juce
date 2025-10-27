@@ -4,20 +4,22 @@
 
 #include <vector>
 
-namespace vmpc_juce::gui::vector {
+namespace vmpc_juce::gui::vector
+{
 
-class SvgWithLabelGrid : public juce::Component {
+    class SvgWithLabelGrid : public juce::Component
+    {
     public:
-        SvgWithLabelGrid(const node &n, const std::function<float()>& getScale);
+        SvgWithLabelGrid(const node &n, const std::function<float()> &getScale);
         ~SvgWithLabelGrid() override;
 
         void resized() override;
 
-        std::vector<juce::Component*> components;
+        std::vector<juce::Component *> components;
 
     private:
         const node &myNode;
-        const std::function<float()>& getScale;
-};
+        const std::function<float()> &getScale;
+    };
 
 } // namespace vmpc_juce::gui::vector

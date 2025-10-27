@@ -6,73 +6,87 @@
 #include "controller/ClientHardwareEventController.hpp"
 #include "hardware/Component.hpp"
 
-namespace vmpc_juce::gui::vector {
+namespace vmpc_juce::gui::vector
+{
 
-    class Led : public SvgComponent {
-        public:
-            enum LedColor { RED, GREEN };
+    class Led : public SvgComponent
+    {
+    public:
+        enum LedColor
+        {
+            RED,
+            GREEN
+        };
 
-            Led(const std::shared_ptr<mpc::hardware::Led> mpcLedToUse,
-                    std::shared_ptr<mpc::controller::ClientEventController> clientEventControllerToUse,
-                    const LedColor ledColorToUse,
-                    const std::function<float()> &getScaleToUse)
-                : SvgComponent({"led_off.svg", ledColorToUse == RED ? "led_on_red.svg" : "led_on_green.svg" },
-                               nullptr,
-                               0,
-                               getScaleToUse),
-                ledColor(ledColorToUse),
-                mpcLed(mpcLedToUse),
-                clientEventController(clientEventControllerToUse)
-                {
-                    setLedOnEnabled(true);
-                }
+        Led(const std::shared_ptr<mpc::hardware::Led> mpcLedToUse,
+            std::shared_ptr<mpc::controller::ClientEventController>
+                clientEventControllerToUse,
+            const LedColor ledColorToUse,
+            const std::function<float()> &getScaleToUse)
+            : SvgComponent({"led_off.svg", ledColorToUse == RED
+                                               ? "led_on_red.svg"
+                                               : "led_on_green.svg"},
+                           nullptr, 0, getScaleToUse),
+              ledColor(ledColorToUse), mpcLed(mpcLedToUse),
+              clientEventController(clientEventControllerToUse)
+        {
+            setLedOnEnabled(true);
+        }
 
-            void sharedTimerCallback()
+        void sharedTimerCallback()
+        {
+            using namespace mpc::hardware;
+
+            if (mpcLed->getId() == ComponentId::REC_LED)
             {
-                using namespace mpc::hardware;
-                
-                if (mpcLed->getId() == ComponentId::REC_LED)
-                {
-                    setLedOnEnabled(mpcLed->isEnabled() ||
-                            clientEventController->clientHardwareEventController->buttonLockTracker.isLocked(ComponentId::REC));
-                    return;
-                }
-                if (mpcLed->getId() == ComponentId::OVERDUB_LED)
-                {
-                    setLedOnEnabled(mpcLed->isEnabled() ||
-                            clientEventController->clientHardwareEventController->buttonLockTracker.isLocked(ComponentId::OVERDUB));
-                    return;
-                }
-
-                setLedOnEnabled(mpcLed->isEnabled());
+                setLedOnEnabled(
+                    mpcLed->isEnabled() ||
+                    clientEventController->clientHardwareEventController
+                        ->buttonLockTracker.isLocked(ComponentId::REC));
+                return;
+            }
+            if (mpcLed->getId() == ComponentId::OVERDUB_LED)
+            {
+                setLedOnEnabled(
+                    mpcLed->isEnabled() ||
+                    clientEventController->clientHardwareEventController
+                        ->buttonLockTracker.isLocked(ComponentId::OVERDUB));
+                return;
             }
 
-            void setLedOnEnabled(const bool b)
+            setLedOnEnabled(mpcLed->isEnabled());
+        }
+
+        void setLedOnEnabled(const bool b)
+        {
+            if (ledOnEnabled == b)
             {
-                if (ledOnEnabled == b) return;
-
-                ledOnEnabled = b;
-
-                if (!ledOnEnabled)
-                {
-                    setSvgPath("led_off.svg");
-                    return;
-                }
-
-                if (ledColor == RED)
-                {
-                    setSvgPath("led_on_red.svg");
-                    return;
-                }
-
-                setSvgPath("led_on_green.svg");
+                return;
             }
 
-        private:
-            const LedColor ledColor;
-            bool ledOnEnabled = false;
-            const std::shared_ptr<mpc::hardware::Led> mpcLed;
-            const std::shared_ptr<mpc::controller::ClientEventController> clientEventController;
+            ledOnEnabled = b;
+
+            if (!ledOnEnabled)
+            {
+                setSvgPath("led_off.svg");
+                return;
+            }
+
+            if (ledColor == RED)
+            {
+                setSvgPath("led_on_red.svg");
+                return;
+            }
+
+            setSvgPath("led_on_green.svg");
+        }
+
+    private:
+        const LedColor ledColor;
+        bool ledOnEnabled = false;
+        const std::shared_ptr<mpc::hardware::Led> mpcLed;
+        const std::shared_ptr<mpc::controller::ClientEventController>
+            clientEventController;
     };
 
 } // namespace vmpc_juce::gui::vector

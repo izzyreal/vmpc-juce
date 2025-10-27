@@ -6,23 +6,32 @@
 
 #include "ViewUtil.hpp"
 
-namespace vmpc_juce::gui::vector {
+namespace vmpc_juce::gui::vector
+{
 
-class Shadow : public juce::Component {
+    class Shadow : public juce::Component
+    {
 
     public:
-        Shadow(const std::function<float()> &getScaleToUse, const std::function<juce::Path()> getPathToUse, const float shadowSizeToUse, const float shadowDarknessToUse, const bool isInnerToUse) :
-            getPath(getPathToUse), getScale(getScaleToUse), shadowSize(shadowSizeToUse), shadowDarkness(shadowDarknessToUse), isInner(isInnerToUse)
+        Shadow(const std::function<float()> &getScaleToUse,
+               const std::function<juce::Path()> getPathToUse,
+               const float shadowSizeToUse, const float shadowDarknessToUse,
+               const bool isInnerToUse)
+            : getPath(getPathToUse), getScale(getScaleToUse),
+              shadowSize(shadowSizeToUse), shadowDarkness(shadowDarknessToUse),
+              isInner(isInnerToUse)
         {
             setInterceptsMouseClicks(false, false);
 
             if (isInner)
             {
-                innerShadow.setColor(juce::Colours::black.withAlpha(shadowDarkness));
+                innerShadow.setColor(
+                    juce::Colours::black.withAlpha(shadowDarkness));
             }
             else
             {
-                dropShadow.setColor(juce::Colours::black.withAlpha(shadowDarkness));
+                dropShadow.setColor(
+                    juce::Colours::black.withAlpha(shadowDarkness));
             }
         }
 
@@ -30,10 +39,12 @@ class Shadow : public juce::Component {
         {
             auto scale = getScale();
             auto radius = scale * shadowSize;
-            juce::Point<float> offset = { 1.f * scale * shadowSize, 0.1f * scale * shadowSize };
+            juce::Point<float> offset = {1.f * scale * shadowSize,
+                                         0.1f * scale * shadowSize};
             auto path = getPath();
             juce::AffineTransform transform;
-            const auto shadowDimensions = ViewUtil::getShadowDimensions(shadowSize, scale);
+            const auto shadowDimensions =
+                ViewUtil::getShadowDimensions(shadowSize, scale);
 
             transform = transform.translated(shadowDimensions);
             path.applyTransform(transform);
@@ -60,6 +71,6 @@ class Shadow : public juce::Component {
         const float shadowSize;
         const float shadowDarkness;
         const bool isInner;
-};
+    };
 
 } // namespace vmpc_juce::gui::vector

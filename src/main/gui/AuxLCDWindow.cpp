@@ -2,10 +2,11 @@
 
 using namespace vmpc_juce::gui;
 
-void AuxLCDWindowMaximizeButton::paint(juce::Graphics& g)
+void AuxLCDWindowMaximizeButton::paint(juce::Graphics &g)
 {
     const int rows = 5;
-    const int xOffset = (getWidth() / VmpcAuxLcdLookAndFeel::LCD_PIXEL_SIZE) - (rows + 1);
+    const int xOffset =
+        (getWidth() / VmpcAuxLcdLookAndFeel::LCD_PIXEL_SIZE) - (rows + 1);
 
     for (int i = 0; i < rows; i++)
     {
@@ -20,24 +21,31 @@ void AuxLCDWindowMaximizeButton::paint(juce::Graphics& g)
     }
 }
 
-void AuxLCDWindowMaximizeButton::mouseDown(const juce::MouseEvent& e)
+void AuxLCDWindowMaximizeButton::mouseDown(const juce::MouseEvent &e)
 {
-    dynamic_cast<AuxLCDWindow*>(getParentComponent())->showButtons();
+    dynamic_cast<AuxLCDWindow *>(getParentComponent())->showButtons();
 }
 
 void AuxLCDWindowMaximizeButton::mouseEnter(const juce::MouseEvent &e)
 {
-    dynamic_cast<AuxLCDWindow*>(getParentComponent())->showButtons();
+    dynamic_cast<AuxLCDWindow *>(getParentComponent())->showButtons();
 }
 
-void AuxLCDWindowMaximizeButton::paintButton(juce::Graphics&, bool /*shouldDrawButtonAsHighlighted*/,
-                                             bool /*shouldDrawButtonAsDown*/)
+void AuxLCDWindowMaximizeButton::paintButton(
+    juce::Graphics &, bool /*shouldDrawButtonAsHighlighted*/,
+    bool /*shouldDrawButtonAsDown*/)
 {
-
 }
 
-AuxLCDWindow::AuxLCDWindow(const std::function<void()> &resetAuxWindowToUse, const std::function<juce::Image&()> &getLcdImageToUse, const std::function<void()> &resetKeyboardAuxParentToUse, const juce::Colour backgroundColourToUse)
-: TopLevelWindow("auxlcdwindow", /*addToDesktop*/true), resetKeyboardAuxParent(resetKeyboardAuxParentToUse), resetAuxWindow(resetAuxWindowToUse), backgroundColour(backgroundColourToUse)
+AuxLCDWindow::AuxLCDWindow(
+    const std::function<void()> &resetAuxWindowToUse,
+    const std::function<juce::Image &()> &getLcdImageToUse,
+    const std::function<void()> &resetKeyboardAuxParentToUse,
+    const juce::Colour backgroundColourToUse)
+    : TopLevelWindow("auxlcdwindow", /*addToDesktop*/ true),
+      resetKeyboardAuxParent(resetKeyboardAuxParentToUse),
+      resetAuxWindow(resetAuxWindowToUse),
+      backgroundColour(backgroundColourToUse)
 {
     setLookAndFeel(&lookAndFeel);
     setVisible(true);
@@ -50,7 +58,8 @@ AuxLCDWindow::AuxLCDWindow(const std::function<void()> &resetAuxWindowToUse, con
 
     auxLcd = new AuxLCD(getLcdImageToUse);
     addAndMakeVisible(auxLcd);
-    resizableCorner = std::make_unique<MyResizableCornerComponent>(this, &constrainer);
+    resizableCorner =
+        std::make_unique<MyResizableCornerComponent>(this, &constrainer);
     addAndMakeVisible(resizableCorner.get());
 
     setResizeLimits(minWidth, minHeight, maxWidth, maxHeight);
@@ -58,22 +67,26 @@ AuxLCDWindow::AuxLCDWindow(const std::function<void()> &resetAuxWindowToUse, con
 
     auxLcd->setCentrePosition(getLocalBounds().getCentre());
 
-    constrainer.setFixedAspectRatio((float)defaultWidth/defaultHeight);
+    constrainer.setFixedAspectRatio((float)defaultWidth / defaultHeight);
 
     setAlwaysOnTop(true);
     setWantsKeyboardFocus(true);
 
     resizableCorner->setAlwaysOnTop(true);
-    
+
     addAndMakeVisible(&maximizeButton);
-    maximizeButton.onClick = [this]{
-        auto screen = juce::Desktop::getInstance().getDisplays().getDisplayForPoint(maximizeButton.getBounds().getCentre());
-        
+    maximizeButton.onClick = [this]
+    {
+        auto screen =
+            juce::Desktop::getInstance().getDisplays().getDisplayForPoint(
+                maximizeButton.getBounds().getCentre());
+
         if (screen != nullptr)
         {
-            const auto ratio = (float) getWidth() / getHeight();
+            const auto ratio = (float)getWidth() / getHeight();
             setTopLeftPosition(0, 0);
-            setSize(screen->userArea.getWidth(), screen->userArea.getWidth() / ratio);
+            setSize(screen->userArea.getWidth(),
+                    screen->userArea.getWidth() / ratio);
         }
     };
     startTimer(100);
@@ -122,7 +135,7 @@ void AuxLCDWindow::timerCallback()
     {
         return;
     }
-    
+
     if (buttonsHaveBeenShownForMs > 2000)
     {
         hideButtons();
@@ -149,39 +162,40 @@ void AuxLCDWindow::paint(juce::Graphics &g)
     g.fillAll(backgroundColour);
 }
 
-void AuxLCDWindow::setResizeLimits (int newMinimumWidth,
-                                       int newMinimumHeight,
-                                       int newMaximumWidth,
-                                       int newMaximumHeight) noexcept
+void AuxLCDWindow::setResizeLimits(int newMinimumWidth, int newMinimumHeight,
+                                   int newMaximumWidth,
+                                   int newMaximumHeight) noexcept
 {
-    constrainer.setSizeLimits (newMinimumWidth, newMinimumHeight,
-                                      newMaximumWidth, newMaximumHeight);
+    constrainer.setSizeLimits(newMinimumWidth, newMinimumHeight,
+                              newMaximumWidth, newMaximumHeight);
 
-    setBoundsConstrained (getBounds());
+    setBoundsConstrained(getBounds());
 }
 
-void AuxLCDWindow::setBoundsConstrained(const juce::Rectangle<int>& newBounds)
+void AuxLCDWindow::setBoundsConstrained(const juce::Rectangle<int> &newBounds)
 {
-    constrainer.setBoundsForComponent (this, newBounds, false, false, false, false);
+    constrainer.setBoundsForComponent(this, newBounds, false, false, false,
+                                      false);
 }
 
 void AuxLCDWindow::resized()
 {
-    auto hRatio = (float) LCD_W / (LCD_W + MARGIN);
-    auto vRatio = (float) LCD_H / (LCD_H + MARGIN);
+    auto hRatio = (float)LCD_W / (LCD_W + MARGIN);
+    auto vRatio = (float)LCD_H / (LCD_H + MARGIN);
     auxLcd->setSize(getWidth() * hRatio, getHeight() * vRatio);
 
     auxLcd->setCentrePosition(getLocalBounds().getCentre());
 
     const int widgetSize = 40;
-    resizableCorner->setBounds (getWidth() - widgetSize,
-                                getHeight() - widgetSize + 2,
-                                widgetSize, widgetSize);
+    resizableCorner->setBounds(getWidth() - widgetSize,
+                               getHeight() - widgetSize + 2, widgetSize,
+                               widgetSize);
 
-    maximizeButton.setBounds(getWidth() - widgetSize, 0, widgetSize, widgetSize);
+    maximizeButton.setBounds(getWidth() - widgetSize, 0, widgetSize,
+                             widgetSize);
 }
 
-void AuxLCDWindow::mouseMove(const juce::MouseEvent&)
+void AuxLCDWindow::mouseMove(const juce::MouseEvent &)
 {
     showButtons();
 }
@@ -191,25 +205,25 @@ void AuxLCDWindow::mouseEnter(const juce::MouseEvent &e)
     showButtons();
 }
 
-void AuxLCDWindow::mouseDown(const juce::MouseEvent& e)
+void AuxLCDWindow::mouseDown(const juce::MouseEvent &e)
 {
     dragStarted = true;
     dragger.startDraggingComponent(this, e);
-    
+
     showButtons();
 }
 
-void AuxLCDWindow::mouseUp(const juce::MouseEvent&)
+void AuxLCDWindow::mouseUp(const juce::MouseEvent &)
 {
     dragStarted = false;
     showButtons();
 }
 
-void AuxLCDWindow::mouseDrag(const juce::MouseEvent& e)
+void AuxLCDWindow::mouseDrag(const juce::MouseEvent &e)
 {
     if (dragStarted)
     {
-        dragger.dragComponent (this, e, &constrainer);
+        dragger.dragComponent(this, e, &constrainer);
     }
 
     showButtons();
@@ -233,7 +247,9 @@ void AuxLCDWindow::repaintAuxLcdLocalBounds(juce::Rectangle<int> dirtyArea)
 
     auto scale = auxBounds.getWidth() / (248.f);
 
-    auto auxRepaintBounds = juce::Rectangle<int>(dirtyArea.getX() * scale, dirtyArea.getY() * scale, dirtyArea.getWidth() * scale, dirtyArea.getHeight() * scale);
+    auto auxRepaintBounds = juce::Rectangle<int>(
+        dirtyArea.getX() * scale, dirtyArea.getY() * scale,
+        dirtyArea.getWidth() * scale, dirtyArea.getHeight() * scale);
 
     auxLcd->repaint(auxRepaintBounds.expanded(3));
 }

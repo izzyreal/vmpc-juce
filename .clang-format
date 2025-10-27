@@ -1,0 +1,26 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+UseTab: Never
+ColumnLimit: 80
+
+BreakBeforeBraces: Allman
+SpaceBeforeParens: ControlStatements
+AllowShortFunctionsOnASingleLine: Empty
+
+NamespaceIndentation: All
+AccessModifierOffset: -4
+IndentAccessModifiers: false
+
+PointerAlignment: Right
+ReferenceAlignment: Right
+DerivePointerAlignment: false
+SortIncludes: false
+
+AlwaysBreakBeforeMultilineStrings: true
+InsertBraces: true
+
+AllowShortLambdasOnASingleLine: Empty
+ContinuationIndentWidth: 4
+
+IndentCaseLabels: true
+

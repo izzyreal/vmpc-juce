@@ -3,14 +3,18 @@
 #include <X11/Xatom.hpp>
 #include <unistd.hpp>
 
-extern "C" bool isEditorKeyWindow(void* componentPeerNativeHandle)
+extern "C" bool isEditorKeyWindow(void *componentPeerNativeHandle)
 {
     if (!componentPeerNativeHandle)
+    {
         return false;
+    }
 
-    Display* display = XOpenDisplay(nullptr);
+    Display *display = XOpenDisplay(nullptr);
     if (!display)
+    {
         return false;
+    }
 
     ::Window window = reinterpret_cast<::Window>(componentPeerNativeHandle);
     ::Window focused;

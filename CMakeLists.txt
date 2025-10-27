@@ -8,6 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(FetchContent)
 include(cmake/ResourceBundling.cmake)
 include(cmake/ASIOSDK.cmake)
+include(cmake/ClangFormat.cmake)
 
 find_package(Git)
 

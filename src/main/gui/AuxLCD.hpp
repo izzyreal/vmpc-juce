@@ -7,10 +7,10 @@
 class AuxLCD : public juce::Component
 {
 public:
-    explicit AuxLCD(const std::function<juce::Image&()> &getLcdImage);
+    explicit AuxLCD(const std::function<juce::Image &()> &getLcdImage);
 
 private:
-    const std::function<juce::Image&()> getLcdImage;
+    const std::function<juce::Image &()> getLcdImage;
 
-    void paint(juce::Graphics& g) override;
+    void paint(juce::Graphics &g) override;
 };

@@ -15,28 +15,34 @@ std::string ImportDocumentUrlProcessor::destinationDir()
     return mpc->getDisk()->getAbsolutePath();
 }
 
-bool ImportDocumentUrlProcessor::destinationExists(const char* filename, const char* relativePath)
+bool ImportDocumentUrlProcessor::destinationExists(const char *filename,
+                                                   const char *relativePath)
 {
-  auto newFilePath = fs::path(destinationDir()).append(relativePath).append(filename);
-  return fs::exists(newFilePath);
+    auto newFilePath =
+        fs::path(destinationDir()).append(relativePath).append(filename);
+    return fs::exists(newFilePath);
 }
 
-std::shared_ptr<std::ostream> ImportDocumentUrlProcessor::openOutputStream(const char* filename, const char* relativePath)
+std::shared_ptr<std::ostream>
+ImportDocumentUrlProcessor::openOutputStream(const char *filename,
+                                             const char *relativePath)
 {
-  auto newFileDir = fs::path(destinationDir()).append(relativePath);
-  fs::create_directories(newFileDir);
-  auto newFilePath = newFileDir.append(filename);
-  mpc::disk::MpcFile newFile(newFilePath);
-  return newFile.getOutputStream();
+    auto newFileDir = fs::path(destinationDir()).append(relativePath);
+    fs::create_directories(newFileDir);
+    auto newFilePath = newFileDir.append(filename);
+    mpc::disk::MpcFile newFile(newFilePath);
+    return newFile.getOutputStream();
 }
 
 void ImportDocumentUrlProcessor::initFiles()
 {
     auto layeredScreen = mpc->getLayeredScreen();
     auto currentScreen = layeredScreen->getCurrentScreenName();
-    if (currentScreen == "load" || currentScreen == "save" || currentScreen == "directory")
+    if (currentScreen == "load" || currentScreen == "save" ||
+        currentScreen == "directory")
     {
-        layeredScreen->openScreen(currentScreen == "directory" ? "load" : "black");
+        layeredScreen->openScreen(currentScreen == "directory" ? "load"
+                                                               : "black");
         mpc->getDisk()->initFiles();
         layeredScreen->openScreen(currentScreen);
     }

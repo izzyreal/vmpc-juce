@@ -2,16 +2,11 @@
 
 using namespace vmpc_juce;
 
-AudioMidiSettingsComponent::AudioMidiSettingsComponent(juce::AudioDeviceManager& deviceManagerToUse,
-                                                       int maxAudioInputChannels,
-                                                       int maxAudioOutputChannels)
-        : deviceSelector(deviceManagerToUse,
-                         0, maxAudioInputChannels,
-                         0, maxAudioOutputChannels,
-                         true,
-                         true,
-                         true,
-                         false)
+AudioMidiSettingsComponent::AudioMidiSettingsComponent(
+    juce::AudioDeviceManager &deviceManagerToUse, int maxAudioInputChannels,
+    int maxAudioOutputChannels)
+    : deviceSelector(deviceManagerToUse, 0, maxAudioInputChannels, 0,
+                     maxAudioOutputChannels, true, true, true, false)
 {
     setOpaque(true);
     addAndMakeVisible(deviceSelector);
@@ -19,7 +14,8 @@ AudioMidiSettingsComponent::AudioMidiSettingsComponent(juce::AudioDeviceManager&
 
 void AudioMidiSettingsComponent::paint(juce::Graphics &g)
 {
-    g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+    g.fillAll(
+        getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
 }
 
 void AudioMidiSettingsComponent::resized()

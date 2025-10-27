@@ -29,43 +29,47 @@
 
 using namespace vmpc_juce::gui::vector;
 
-float ViewUtil::getLabelHeight(const std::string& text, const std::function<float()>& getScale)
+float ViewUtil::getLabelHeight(const std::string &text,
+                               const std::function<float()> &getScale)
 {
-    const auto newlineCount = (float) std::count(text.begin(), text.end(), '\n');
+    const auto newlineCount = (float)std::count(text.begin(), text.end(), '\n');
 
-    return ((Constants::BASE_FONT_SIZE * (newlineCount + 1)) + (Constants::LINE_SIZE * newlineCount)) * getScale();
+    return ((Constants::BASE_FONT_SIZE * (newlineCount + 1)) +
+            (Constants::LINE_SIZE * newlineCount)) *
+           getScale();
 }
 
-static void addShadow(const node &n, const std::function<float()> &getScale, SvgComponent *svgComponent, juce::Component *parent, std::vector<juce::Component*> &components)
+static void addShadow(const node &n, const std::function<float()> &getScale,
+                      SvgComponent *svgComponent, juce::Component *parent,
+                      std::vector<juce::Component *> &components)
 {
     if (n.shadow_size == 0.f)
     {
         return;
     }
 
-    const auto getShadowPath = [svgComponent] () -> juce::Path {
+    const auto getShadowPath = [svgComponent]() -> juce::Path
+    {
         return svgComponent->getShadowPath();
     };
 
-    const auto shadowDarkness = n.shadow_darkness > 0.f ? n.shadow_darkness : 0.4f;
-    auto shadow = new Shadow(getScale, getShadowPath, n.shadow_size, shadowDarkness, n.is_inner_shadow);
+    const auto shadowDarkness =
+        n.shadow_darkness > 0.f ? n.shadow_darkness : 0.4f;
+    auto shadow = new Shadow(getScale, getShadowPath, n.shadow_size,
+                             shadowDarkness, n.is_inner_shadow);
     svgComponent->shadow = shadow;
     components.push_back(shadow);
     parent->addAndMakeVisible(shadow);
-
 }
 
 void ViewUtil::createComponent(
-        mpc::Mpc &mpc,
-        node &n,
-        std::vector<juce::Component*> &components,
-        juce::Component* parent,
-        const std::function<float()> &getScale,
-        const std::function<juce::Font&()> &getMainFontScaled,
-        const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaled,
-        const std::function<juce::Font&()> &getKeyTooltipFontScaled,
-        std::vector<juce::MouseListener*> &mouseListeners,
-        juce::Component *tooltipOverlay)
+    mpc::Mpc &mpc, node &n, std::vector<juce::Component *> &components,
+    juce::Component *parent, const std::function<float()> &getScale,
+    const std::function<juce::Font &()> &getMainFontScaled,
+    const std::function<juce::Font &()> &getMpc2000xlFaceplateGlyphsScaled,
+    const std::function<juce::Font &()> &getKeyTooltipFontScaled,
+    std::vector<juce::MouseListener *> &mouseListeners,
+    juce::Component *tooltipOverlay)
 {
     juce::Component *tooltipAnchor = nullptr;
 
@@ -85,7 +89,10 @@ void ViewUtil::createComponent(
     if (n.node_type == "grid")
     {
         auto gridWrapper = new GridWrapper(n, getScale);
-        createComponents(mpc, n, gridWrapper->components, gridWrapper, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, getKeyTooltipFontScaled, mouseListeners, tooltipOverlay);
+        createComponents(mpc, n, gridWrapper->components, gridWrapper, getScale,
+                         getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled,
+                         getKeyTooltipFontScaled, mouseListeners,
+                         tooltipOverlay);
         components.push_back(gridWrapper);
         parent->addAndMakeVisible(gridWrapper);
         n.grid_wrapper_component = gridWrapper;
@@ -93,28 +100,40 @@ void ViewUtil::createComponent(
     else if (n.node_type == "flex_box")
     {
         auto flexBoxWrapper = new FlexBoxWrapper(n, getScale);
-        createComponents(mpc, n, flexBoxWrapper->components, flexBoxWrapper, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, getKeyTooltipFontScaled, mouseListeners, tooltipOverlay);
+        createComponents(
+            mpc, n, flexBoxWrapper->components, flexBoxWrapper, getScale,
+            getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled,
+            getKeyTooltipFontScaled, mouseListeners, tooltipOverlay);
         components.push_back(flexBoxWrapper);
         parent->addAndMakeVisible(flexBoxWrapper);
         n.flex_box_wrapper_component = flexBoxWrapper;
     }
     else if (n.node_type == "line_flanked_label")
     {
-        auto lineFlankedLabel = new LineFlankedLabel(n.label, getScale, getMainFontScaled);
+        auto lineFlankedLabel =
+            new LineFlankedLabel(n.label, getScale, getMainFontScaled);
         components.push_back(lineFlankedLabel);
         parent->addAndMakeVisible(lineFlankedLabel);
         n.line_flanked_label_component = lineFlankedLabel;
     }
     else if (n.node_type == "j_shape" || n.node_type == "l_shape")
     {
-        const auto jOrLShape = new JOrLShape(n.node_type == "j_shape" ? JOrLShape::Shape::J : JOrLShape::Shape::L, getScale);
+        const auto jOrLShape =
+            new JOrLShape(n.node_type == "j_shape" ? JOrLShape::Shape::J
+                                                   : JOrLShape::Shape::L,
+                          getScale);
         components.push_back(jOrLShape);
         parent->addAndMakeVisible(jOrLShape);
         n.j_or_l_shape_component = jOrLShape;
     }
-    else if (n.node_type == "face_paint_grey_rectangle" || n.node_type == "chassis_rectangle" || n.node_type == "lcd_rectangle")
+    else if (n.node_type == "face_paint_grey_rectangle" ||
+             n.node_type == "chassis_rectangle" ||
+             n.node_type == "lcd_rectangle")
     {
-        const auto rectangle = new Rectangle(n.node_type == "chassis_rectangle" ? Constants::chassisColour : n.node_type == "lcd_rectangle" ? Constants::lcdOff : Constants::greyFacePaintColour);
+        const auto rectangle = new Rectangle(
+            n.node_type == "chassis_rectangle" ? Constants::chassisColour
+            : n.node_type == "lcd_rectangle"   ? Constants::lcdOff
+                                             : Constants::greyFacePaintColour);
         components.push_back(rectangle);
         parent->addAndMakeVisible(rectangle);
         n.rectangle_component = rectangle;
@@ -137,11 +156,19 @@ void ViewUtil::createComponent(
                 doingTop = false;
                 continue;
             }
-            if (doingTop) topLabel += c;
-            else bottomLabel += c;
+            if (doingTop)
+            {
+                topLabel += c;
+            }
+            else
+            {
+                bottomLabel += c;
+            }
         }
 
-        const auto numKey = new NumKey(getScale, topLabel, bottomLabel, n.svg, parent, n.shadow_size, getMainFontScaled);
+        const auto numKey =
+            new NumKey(getScale, topLabel, bottomLabel, n.svg, parent,
+                       n.shadow_size, getMainFontScaled);
         addShadow(n, getScale, numKey->getSvgComponent(), parent, components);
         components.push_back(numKey);
         parent->addAndMakeVisible(numKey);
@@ -164,7 +191,8 @@ void ViewUtil::createComponent(
     }
     else if (n.node_type == "data_wheel")
     {
-        auto dataWheel = new DataWheel(mpc.getHardware()->getDataWheel(), parent, n.shadow_size, getScale);
+        auto dataWheel = new DataWheel(mpc.getHardware()->getDataWheel(),
+                                       parent, n.shadow_size, getScale);
         addShadow(n, getScale, dataWheel->backgroundSvg, parent, components);
         n.data_wheel_component = dataWheel;
         parent->addAndMakeVisible(dataWheel);
@@ -174,15 +202,22 @@ void ViewUtil::createComponent(
     else if (n.node_type == "lcd")
     {
         auto lcd = new Lcd(mpc);
-        if (n.magic_multiplier > 0.f) lcd->magicMultiplier = n.magic_multiplier;
+        if (n.magic_multiplier > 0.f)
+        {
+            lcd->magicMultiplier = n.magic_multiplier;
+        }
         n.lcd_component = lcd;
         parent->addAndMakeVisible(lcd);
         components.push_back(lcd);
     }
     else if (n.node_type == "red_led" || n.node_type == "green_led")
     {
-        auto mpcLed = mpc.getHardware()->getLed(mpc::hardware::componentLabelToId.at(n.hardware_label));
-        auto led = new Led(mpcLed, mpc.clientEventController, n.node_type == "red_led" ? Led::LedColor::RED : Led::LedColor::GREEN, getScale);
+        auto mpcLed = mpc.getHardware()->getLed(
+            mpc::hardware::componentLabelToId.at(n.hardware_label));
+        auto led = new Led(mpcLed, mpc.clientEventController,
+                           n.node_type == "red_led" ? Led::LedColor::RED
+                                                    : Led::LedColor::GREEN,
+                           getScale);
         n.led_component = led;
         parent->addAndMakeVisible(led);
         components.push_back(led);
@@ -202,7 +237,8 @@ void ViewUtil::createComponent(
     }
     else if (!n.svg.empty() && n.label.empty())
     {
-        auto svgComponent = new SvgComponent({n.svg}, parent, n.shadow_size, getScale, n.svg_placement);
+        auto svgComponent = new SvgComponent({n.svg}, parent, n.shadow_size,
+                                             getScale, n.svg_placement);
         components.push_back(svgComponent);
         addShadow(n, getScale, svgComponent, parent, components);
         parent->addAndMakeVisible(svgComponent);
@@ -216,36 +252,42 @@ void ViewUtil::createComponent(
     }
     else if (!n.svg.empty() && !n.label.empty())
     {
-        LabelComponent* labelComponent;
+        LabelComponent *labelComponent;
 
         if (n.label_style == "function_key")
         {
-            labelComponent = new RectangleLabel(getScale, n.label, n.label, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 10.f, getMainFontScaled);
+            labelComponent = new RectangleLabel(
+                getScale, n.label, n.label, Constants::greyFacePaintColour,
+                Constants::darkLabelColour, 0.5f, 10.f, getMainFontScaled);
         }
         else
         {
-            labelComponent = new SimpleLabel(getScale, n.label, Constants::labelColour, getMainFontScaled);
+            labelComponent = new SimpleLabel(
+                getScale, n.label, Constants::labelColour, getMainFontScaled);
         }
 
         SvgComponent *svgComponent;
 
         if (n.name == "rec_gain")
         {
-            svgComponent = new Pot(mpc.getHardware()->getRecPot(), Pot::PotType::REC_GAIN, parent, getScale);
+            svgComponent = new Pot(mpc.getHardware()->getRecPot(),
+                                   Pot::PotType::REC_GAIN, parent, getScale);
         }
         else if (n.name == "main_volume")
         {
-            svgComponent = new Pot(mpc.getHardware()->getVolPot(), Pot::PotType::MAIN_VOLUME, parent, getScale);
+            svgComponent = new Pot(mpc.getHardware()->getVolPot(),
+                                   Pot::PotType::MAIN_VOLUME, parent, getScale);
         }
         else
         {
-            svgComponent = new SvgComponent({n.svg}, parent, n.shadow_size, getScale);
+            svgComponent =
+                new SvgComponent({n.svg}, parent, n.shadow_size, getScale);
         }
 
         n.svg_component = svgComponent;
         n.label_component = labelComponent;
 
-        if (dynamic_cast<GridWrapper*>(parent))
+        if (dynamic_cast<GridWrapper *>(parent))
         {
             auto svgWithLabelGrid = new SvgWithLabelGrid(n, getScale);
             svgWithLabelGrid->components.push_back(labelComponent);
@@ -278,33 +320,47 @@ void ViewUtil::createComponent(
     }
     else if (!n.label.empty())
     {
-        LabelComponent* labelComponent = nullptr;
+        LabelComponent *labelComponent = nullptr;
 
-        const auto fontGetter = n.font == "faceplate-glyphs" ? getMpc2000xlFaceplateGlyphsScaled : getMainFontScaled;
+        const auto fontGetter = n.font == "faceplate-glyphs"
+                                    ? getMpc2000xlFaceplateGlyphsScaled
+                                    : getMainFontScaled;
 
         if (n.label_style == "chassis_background")
         {
-            labelComponent = new RectangleLabel(getScale, n.label, n.label_text_to_calculate_width, Constants::chassisColour, Constants::darkLabelColour, 0.f, 2.f, fontGetter);
+            labelComponent = new RectangleLabel(
+                getScale, n.label, n.label_text_to_calculate_width,
+                Constants::chassisColour, Constants::darkLabelColour, 0.f, 2.f,
+                fontGetter);
         }
         else if (n.label_style == "rounded")
         {
-            labelComponent = new RectangleLabel(getScale, n.label, n.label_text_to_calculate_width, Constants::darkLabelColour, Constants::chassisColour, 1.5f, 6.f, fontGetter);
+            labelComponent = new RectangleLabel(
+                getScale, n.label, n.label_text_to_calculate_width,
+                Constants::darkLabelColour, Constants::chassisColour, 1.5f, 6.f,
+                fontGetter);
         }
         else if (n.label_style == "pad_letters")
         {
-            labelComponent = new SimpleLabel(getScale, n.label, Constants::betweenChassisAndLabelColour, fontGetter); 
+            labelComponent = new SimpleLabel(
+                getScale, n.label, Constants::betweenChassisAndLabelColour,
+                fontGetter);
         }
         else if (n.label_style == "cursor_digit")
         {
-            labelComponent = new RectangleLabel(getScale, n.label, n.label, Constants::greyFacePaintColour, Constants::darkLabelColour, 0.5f, 5.f, fontGetter);
+            labelComponent = new RectangleLabel(
+                getScale, n.label, n.label, Constants::greyFacePaintColour,
+                Constants::darkLabelColour, 0.5f, 5.f, fontGetter);
         }
         else if (n.label_style == "dark")
         {
-            labelComponent = new SimpleLabel(getScale, n.label, Constants::darkLabelColour, fontGetter); 
+            labelComponent = new SimpleLabel(
+                getScale, n.label, Constants::darkLabelColour, fontGetter);
         }
         else
         {
-            labelComponent = new SimpleLabel(getScale, n.label, Constants::labelColour, fontGetter);
+            labelComponent = new SimpleLabel(
+                getScale, n.label, Constants::labelColour, fontGetter);
         }
 
         n.label_component = labelComponent;
@@ -318,25 +374,26 @@ void ViewUtil::createComponent(
         const std::string suffix = "-led";
 
         if (label.size() > suffix.size() &&
-            label.compare(label.size() - suffix.size(), suffix.size(), suffix) == 0)
+            label.compare(label.size() - suffix.size(), suffix.size(),
+                          suffix) == 0)
         {
             label.erase(label.size() - suffix.size());
         }
-        
+
         auto mouseListener = new MpcHardwareMouseListener(mpc, label);
         mouseListeners.push_back(mouseListener);
-        
+
         for (auto it = components.rbegin(); it != components.rend(); ++it)
         {
-            if (dynamic_cast<Shadow*>(*it) != nullptr)
+            if (dynamic_cast<Shadow *>(*it) != nullptr)
             {
                 continue;
             }
-            
+
             (*it)->addMouseListener(mouseListener, true);
             break;
         }
-        
+
         if (tooltipAnchor != nullptr)
         {
             using ComponentId = mpc::hardware::ComponentId;
@@ -345,43 +402,53 @@ void ViewUtil::createComponent(
 
             if (n.node_type == "data_wheel")
             {
-                componentIds = { ComponentId::DATA_WHEEL };
-                unscaledOffsetsFromAnchor = { { -12.f, 0.f }, { 10.f, 0.f } };
+                componentIds = {ComponentId::DATA_WHEEL};
+                unscaledOffsetsFromAnchor = {{-12.f, 0.f}, {10.f, 0.f}};
             }
             else if (n.hardware_label == "cursor")
             {
-                componentIds = {
-                    ComponentId::CURSOR_LEFT_OR_DIGIT,
-                    ComponentId::CURSOR_RIGHT_OR_DIGIT,
-                    ComponentId::CURSOR_UP,
-                    ComponentId::CURSOR_DOWN
-                }; 
-                unscaledOffsetsFromAnchor = { { -15.f, 0.f }, { 15.f, 0.f }, { 0.f, -9.f }, { 0.f, 9.f } };
+                componentIds = {ComponentId::CURSOR_LEFT_OR_DIGIT,
+                                ComponentId::CURSOR_RIGHT_OR_DIGIT,
+                                ComponentId::CURSOR_UP,
+                                ComponentId::CURSOR_DOWN};
+                unscaledOffsetsFromAnchor = {
+                    {-15.f, 0.f}, {15.f, 0.f}, {0.f, -9.f}, {0.f, 9.f}};
             }
             else
             {
-                componentIds = { mpc::hardware::componentLabelToId.at(n.hardware_label) };
-                unscaledOffsetsFromAnchor = { { 0.f, 0.f } };
+                componentIds = {
+                    mpc::hardware::componentLabelToId.at(n.hardware_label)};
+                unscaledOffsetsFromAnchor = {{0.f, 0.f}};
             }
 
             size_t offsetsIndex = 0;
 
             for (size_t i = 0; i < componentIds.size(); i++)
             {
-                auto keycodes = mpc.clientEventController->getKeyboardBindings()->lookupComponent(componentIds[i]);
+                auto keycodes = mpc.clientEventController->getKeyboardBindings()
+                                    ->lookupComponent(componentIds[i]);
 
                 for (size_t j = 0; j < keycodes.size(); j++)
                 {
-                    if (offsetsIndex >= unscaledOffsetsFromAnchor.size()) break;
+                    if (offsetsIndex >= unscaledOffsetsFromAnchor.size())
+                    {
+                        break;
+                    }
 
-                    const auto offset = unscaledOffsetsFromAnchor[offsetsIndex++];
+                    const auto offset =
+                        unscaledOffsetsFromAnchor[offsetsIndex++];
 
-                    const auto getTooltipText = [&mpc, keycode = keycodes[j]]{
-                        const auto keyboardBindings = mpc.clientEventController->getKeyboardBindings();
-                        return mpc::input::KeyCodeHelper::guessCharactersPrintedOnKeyUnicode(keycode);
+                    const auto getTooltipText = [&mpc, keycode = keycodes[j]]
+                    {
+                        const auto keyboardBindings =
+                            mpc.clientEventController->getKeyboardBindings();
+                        return mpc::input::KeyCodeHelper::
+                            guessCharactersPrintedOnKeyUnicode(keycode);
                     };
 
-                    const auto tooltip = new KeyTooltip(getTooltipText, tooltipAnchor, offset, getKeyTooltipFontScaled, getScale, n.hardware_label);
+                    const auto tooltip = new KeyTooltip(
+                        getTooltipText, tooltipAnchor, offset,
+                        getKeyTooltipFontScaled, getScale, n.hardware_label);
                     components.push_back(tooltip);
                     tooltipOverlay->addChildComponent(tooltip);
                 }
@@ -389,27 +456,27 @@ void ViewUtil::createComponent(
         }
     }
 
-    if (auto labelComponent = dynamic_cast<LabelComponent*>(n.label_component); labelComponent != nullptr && n.font_scale > 0.f)
+    if (auto labelComponent = dynamic_cast<LabelComponent *>(n.label_component);
+        labelComponent != nullptr && n.font_scale > 0.f)
     {
         labelComponent->setFontScale(n.font_scale);
     }
 }
 
 void ViewUtil::createComponents(
-        mpc::Mpc &mpc,
-        node &n,
-        std::vector<juce::Component*> &components,
-        juce::Component *parent,
-        const std::function<float()> &getScale,
-        const std::function<juce::Font&()> &getMainFontScaled,
-        const std::function<juce::Font&()> &getMpc2000xlFaceplateGlyphsScaled,
-        const std::function<juce::Font&()> &getKeyTooltipFontScaled,
-        std::vector<juce::MouseListener*> &mouseListeners,
-        juce::Component *tooltipOverlay)
+    mpc::Mpc &mpc, node &n, std::vector<juce::Component *> &components,
+    juce::Component *parent, const std::function<float()> &getScale,
+    const std::function<juce::Font &()> &getMainFontScaled,
+    const std::function<juce::Font &()> &getMpc2000xlFaceplateGlyphsScaled,
+    const std::function<juce::Font &()> &getKeyTooltipFontScaled,
+    std::vector<juce::MouseListener *> &mouseListeners,
+    juce::Component *tooltipOverlay)
 {
-    for (auto& c : n.children)
+    for (auto &c : n.children)
     {
-        createComponent(mpc, c, components, parent, getScale, getMainFontScaled, getMpc2000xlFaceplateGlyphsScaled, getKeyTooltipFontScaled, mouseListeners, tooltipOverlay);
+        createComponent(mpc, c, components, parent, getScale, getMainFontScaled,
+                        getMpc2000xlFaceplateGlyphsScaled,
+                        getKeyTooltipFontScaled, mouseListeners,
+                        tooltipOverlay);
     }
 }
-

@@ -6,16 +6,16 @@
 #include <optional>
 
 #if __APPLE__
-  #include <TargetConditionals.h>
-  #if TARGET_OS_IOS
-    extern "C" bool isEditorKeyWindow(void* componentPeerNativeHandle);
-  #elif TARGET_OS_OSX
-    extern "C" bool isEditorKeyWindow(void* componentPeerNativeHandle);
-  #endif
+#include <TargetConditionals.h>
+#if TARGET_OS_IOS
+extern "C" bool isEditorKeyWindow(void *componentPeerNativeHandle);
+#elif TARGET_OS_OSX
+extern "C" bool isEditorKeyWindow(void *componentPeerNativeHandle);
+#endif
 #elif _WIN32
-  extern "C" bool isEditorKeyWindow(void* componentPeerNativeHandle);
+extern "C" bool isEditorKeyWindow(void *componentPeerNativeHandle);
 #elif __linux__
-  extern "C" bool isEditorKeyWindow(void* componentPeerNativeHandle);
+extern "C" bool isEditorKeyWindow(void *componentPeerNativeHandle);
 #endif
 
 #include "Logger.hpp"
@@ -26,7 +26,7 @@ namespace vmpc_juce::gui::focus
     {
     private:
         const std::function<void()> onFocusLost;
-        juce::Component* auxComponent = nullptr;
+        juce::Component *auxComponent = nullptr;
 
         bool focus = false;
 
@@ -55,41 +55,53 @@ namespace vmpc_juce::gui::focus
             }
         }
 
-        bool hasFocus() const { return focus; }
+        bool hasFocus() const
+        {
+            return focus;
+        }
 
-        void setAuxComponent(juce::Component* comp) { auxComponent = comp; }
+        void setAuxComponent(juce::Component *comp)
+        {
+            auxComponent = comp;
+        }
 
         void timerCallback() override
         {
-            const bool isForegroundProcess = juce::Process::isForegroundProcess();
+            const bool isForegroundProcess =
+                juce::Process::isForegroundProcess();
 
-            const auto* activeWindow = juce::TopLevelWindow::getActiveTopLevelWindow();
+            const auto *activeWindow =
+                juce::TopLevelWindow::getActiveTopLevelWindow();
             const bool isActiveWindow = activeWindow != nullptr;
-            const bool hasFocusedComponent = getCurrentlyFocusedComponent() != nullptr;
+            const bool hasFocusedComponent =
+                getCurrentlyFocusedComponent() != nullptr;
 
-            const juce::ComponentPeer* primaryPeer = getPeer();
+            const juce::ComponentPeer *primaryPeer = getPeer();
             bool peerIsValid = primaryPeer != nullptr;
             bool peerHandleIsValid = false;
             bool isEditorFrontmost = false;
 
-            void* primaryHandle = nullptr;
+            void *primaryHandle = nullptr;
 
             if (primaryPeer)
             {
                 primaryHandle = primaryPeer->getNativeHandle();
                 peerHandleIsValid = primaryHandle != nullptr;
                 if (peerHandleIsValid)
+                {
                     isEditorFrontmost = isEditorKeyWindow(primaryHandle);
+                }
             }
 
-            if ((!peerIsValid || !peerHandleIsValid || !isEditorFrontmost) && auxComponent)
+            if ((!peerIsValid || !peerHandleIsValid || !isEditorFrontmost) &&
+                auxComponent)
             {
-                const juce::ComponentPeer* auxPeer = auxComponent->getPeer();
+                const juce::ComponentPeer *auxPeer = auxComponent->getPeer();
                 const bool auxPeerValid = auxPeer != nullptr;
 
                 if (auxPeerValid)
                 {
-                    void* auxHandle = auxPeer->getNativeHandle();
+                    void *auxHandle = auxPeer->getNativeHandle();
                     const bool auxHandleValid = auxHandle != nullptr;
 
                     if (auxHandleValid && isEditorKeyWindow(auxHandle))
@@ -111,28 +123,21 @@ namespace vmpc_juce::gui::focus
                 juce::AudioProcessor::wrapperType_AudioUnitv3)
             {
                 // AUv3 case
-                newFocus = isForegroundProcess &&
-                           peerIsValid &&
-                           peerHandleIsValid &&
-                           isEditorFrontmost;
+                newFocus = isForegroundProcess && peerIsValid &&
+                           peerHandleIsValid && isEditorFrontmost;
             }
             else if (juce::PluginHostType().isReaper())
             {
                 // Reaper-specific rule
-                newFocus = isForegroundProcess &&
-                           peerIsValid &&
-                           peerHandleIsValid &&
-                           isEditorFrontmost;
+                newFocus = isForegroundProcess && peerIsValid &&
+                           peerHandleIsValid && isEditorFrontmost;
             }
             else
             {
                 // Generic / other hosts
-                newFocus = isForegroundProcess &&
-                           isActiveWindow &&
-                           hasFocusedComponent &&
-                           peerIsValid &&
-                           peerHandleIsValid &&
-                           isEditorFrontmost;
+                newFocus = isForegroundProcess && isActiveWindow &&
+                           hasFocusedComponent && peerIsValid &&
+                           peerHandleIsValid && isEditorFrontmost;
             }
 
             // --- handle transitions ---
@@ -146,12 +151,30 @@ namespace vmpc_juce::gui::focus
                 if (!newFocus)
                 {
                     std::string reason = "NO FOCUS: ";
-                    if (!isForegroundProcess) reason += "[background process] ";
-                    if (!isActiveWindow) reason += "[inactive window] ";
-                    if (!hasFocusedComponent) reason += "[no focused component] ";
-                    if (!peerIsValid) reason += "[invalid peer] ";
-                    if (!peerHandleIsValid) reason += "[invalid native handle] ";
-                    if (!isEditorFrontmost) reason += "[editor not frontmost] ";
+                    if (!isForegroundProcess)
+                    {
+                        reason += "[background process] ";
+                    }
+                    if (!isActiveWindow)
+                    {
+                        reason += "[inactive window] ";
+                    }
+                    if (!hasFocusedComponent)
+                    {
+                        reason += "[no focused component] ";
+                    }
+                    if (!peerIsValid)
+                    {
+                        reason += "[invalid peer] ";
+                    }
+                    if (!peerHandleIsValid)
+                    {
+                        reason += "[invalid native handle] ";
+                    }
+                    if (!isEditorFrontmost)
+                    {
+                        reason += "[editor not frontmost] ";
+                    }
                     MLOG(reason);
                 }
                 else
@@ -163,5 +186,4 @@ namespace vmpc_juce::gui::focus
             focus = newFocus;
         }
     };
-}
-
+} // namespace vmpc_juce::gui::focus

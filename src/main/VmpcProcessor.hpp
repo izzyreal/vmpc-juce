@@ -8,53 +8,61 @@
 #include <vector>
 #include <unordered_set>
 
-namespace mpc::engine::midi { class ShortMessage; }
+namespace mpc::engine::midi
+{
+    class ShortMessage;
+}
 
-namespace vmpc_juce {
+namespace vmpc_juce
+{
 
-class VmpcProcessor  : public juce::AudioProcessor {
+    class VmpcProcessor : public juce::AudioProcessor
+    {
 
     public:
         VmpcProcessor();
         ~VmpcProcessor() override;
 
-        void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+        void prepareToPlay(double sampleRate, int samplesPerBlock) override;
 
         void releaseResources() override {}
 
-        bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
+        bool isBusesLayoutSupported(const BusesLayout &layouts) const override;
 
-        void processBlock (juce::AudioSampleBuffer&, juce::MidiBuffer&) override;
+        void processBlock(juce::AudioSampleBuffer &,
+                          juce::MidiBuffer &) override;
 
-        juce::AudioProcessorEditor* createEditor() override;
+        juce::AudioProcessorEditor *createEditor() override;
         bool hasEditor() const override;
 
         const juce::String getName() const override;
 
         bool acceptsMidi() const override;
         bool producesMidi() const override;
-        bool isMidiEffect () const override;
+        bool isMidiEffect() const override;
         double getTailLengthSeconds() const override;
 
         int getNumPrograms() override;
         int getCurrentProgram() override;
-        void setCurrentProgram (int index) override;
-        const juce::String getProgramName (int index) override;
-        void changeProgramName (int index, const juce::String& newName) override;
+        void setCurrentProgram(int index) override;
+        const juce::String getProgramName(int index) override;
+        void changeProgramName(int index, const juce::String &newName) override;
 
-        void getStateInformation (juce::MemoryBlock& destData) override;
-        void setStateInformation (const void* data, int sizeInBytes) override;
+        void getStateInformation(juce::MemoryBlock &destData) override;
+        void setStateInformation(const void *data, int sizeInBytes) override;
 
         int lastUIWidth = 0, lastUIHeight = 0;
 
     private:
-        void processMidiIn(juce::MidiBuffer& midiMessages);
-        void processMidiOut(juce::MidiBuffer& midiMessages, bool discard);
+        void processMidiIn(juce::MidiBuffer &midiMessages);
+        void processMidiOut(juce::MidiBuffer &midiMessages, bool discard);
         void processTransport();
         void computeHostToMpcChannelMappings();
 
-        std::vector<int8_t> mpcMonoInputChannelIndices, mpcMonoOutputChannelIndices, hostInputChannelIndices, hostOutputChannelIndices;
-        
+        std::vector<int8_t> mpcMonoInputChannelIndices,
+            mpcMonoOutputChannelIndices, hostInputChannelIndices,
+            hostOutputChannelIndices;
+
         std::vector<int8_t> mpcMonoOutputChannelIndicesToRender;
         std::vector<int8_t> hostOutputChannelIndicesToRender;
         std::vector<int8_t> previousHostOutputChannelIndicesToRender;
@@ -65,10 +73,13 @@ class VmpcProcessor  : public juce::AudioProcessor {
         double m_Tempo = 0;
         bool wasPlaying = false;
         int framesProcessed = 0;
-        double previousPositionQuarterNotes = std::numeric_limits<double>::lowest();
+        double previousPositionQuarterNotes =
+            std::numeric_limits<double>::lowest();
 
-        std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>> midiOutputBuffer =
-            std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>>(100);
+        std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>>
+            midiOutputBuffer =
+                std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>>(
+                    100);
 
         static BusesProperties getBusesProperties();
 
@@ -82,8 +93,8 @@ class VmpcProcessor  : public juce::AudioProcessor {
 
     public:
         bool shouldShowDisclaimer = true;
-        std::function<void()> showAudioSettingsDialog = [](){};
+        std::function<void()> showAudioSettingsDialog = []() {};
         mpc::Mpc mpc;
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VmpcProcessor)
-};
-}
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(VmpcProcessor)
+    };
+} // namespace vmpc_juce

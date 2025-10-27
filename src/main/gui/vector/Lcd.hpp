@@ -17,29 +17,41 @@
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
-namespace vmpc_juce::gui::vector {
+namespace vmpc_juce::gui::vector
+{
 
-class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
+    class Lcd : public juce::Component, juce::Timer, public mpc::Observer
+    {
     public:
         Lcd(mpc::Mpc &mpcToUse) : mpc(mpcToUse)
-    {
-        shadow.setColor(Constants::lcdOffBacklit.brighter().withAlpha(0.4f));
-        resetAuxWindowF = [&] { resetAuxWindow(); };
+        {
+            shadow.setColor(
+                Constants::lcdOffBacklit.brighter().withAlpha(0.4f));
+            resetAuxWindowF = [&]
+            {
+                resetAuxWindow();
+            };
 
-        resetKeyboardAuxParent = [&] {
-            getView()->focusHelper->setAuxComponent(nullptr);
-        };
+            resetKeyboardAuxParent = [&]
+            {
+                getView()->focusHelper->setAuxComponent(nullptr);
+            };
 
-        getLcdImage = [&]() -> juce::Image& { return img; };
-        drawPixelsToImg();
-        startTimer(25);
-        auto othersScreen = mpc.screens->get<mpc::lcdgui::screens::OthersScreen>();
-        othersScreen->addObserver(this);
-    }
+            getLcdImage = [&]() -> juce::Image &
+            {
+                return img;
+            };
+            drawPixelsToImg();
+            startTimer(25);
+            auto othersScreen =
+                mpc.screens->get<mpc::lcdgui::screens::OthersScreen>();
+            othersScreen->addObserver(this);
+        }
 
         ~Lcd() override
         {
-            auto othersScreen = mpc.screens->get<mpc::lcdgui::screens::OthersScreen>();
+            auto othersScreen =
+                mpc.screens->get<mpc::lcdgui::screens::OthersScreen>();
             othersScreen->deleteObserver(this);
             delete auxWindow;
         }
@@ -50,7 +62,11 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
             if (msg == "contrast")
             {
-                mpc.getLayeredScreen()->getFocusedLayer()->SetDirty(); // Could be done less invasively by just redrawing the current pixels of the LCD screens, but with updated colors
+                mpc.getLayeredScreen()
+                    ->getFocusedLayer()
+                    ->SetDirty(); // Could be done less invasively by just
+                                  // redrawing the current pixels of the LCD
+                                  // screens, but with updated colors
                 repaint();
             }
         }
@@ -76,7 +92,10 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
                 for (uint8_t x = 0; x < 248; x++)
                 {
                     const bool on = rawPixels[x][y];
-                    if (!on) p.addRectangle(x*2, y*2, 2, 2);
+                    if (!on)
+                    {
+                        p.addRectangle(x * 2, y * 2, 2, 2);
+                    }
                 }
             }
 
@@ -94,9 +113,13 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             }
 
             const auto dirtyArea = layeredScreen->getDirtyArea();
-            dirtyRect = juce::Rectangle<int>(dirtyArea.L, dirtyArea.T, dirtyArea.W(), dirtyArea.H());
+            dirtyRect = juce::Rectangle<int>(dirtyArea.L, dirtyArea.T,
+                                             dirtyArea.W(), dirtyArea.H());
             const auto dirtyRectForAuxLcd = dirtyRect;
-            const auto dirtyRectT = dirtyRect.toFloat().transformedBy(juce::AffineTransform().scaled(2.f)).transformedBy(getTransform());
+            const auto dirtyRectT =
+                dirtyRect.toFloat()
+                    .transformedBy(juce::AffineTransform().scaled(2.f))
+                    .transformedBy(getTransform());
 
             layeredScreen->Draw();
             drawPixelsToImg();
@@ -121,14 +144,18 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
             const auto pixels = layeredScreen->getPixels();
 
-            auto othersScreen = mpc.screens->get<mpc::lcdgui::screens::OthersScreen>();
+            auto othersScreen =
+                mpc.screens->get<mpc::lcdgui::screens::OthersScreen>();
             auto contrast = othersScreen->getContrast();
 
             juce::Colour c;
 
-            auto halfOn = Constants::lcdOnLight.darker(static_cast<float>(contrast * 0.02));
-            auto on = Constants::lcdOn.darker(static_cast<float>(contrast * 0.02));
-            auto off = Constants::lcdOff.brighter(static_cast<float>(contrast * 0.01428));
+            auto halfOn = Constants::lcdOnLight.darker(
+                static_cast<float>(contrast * 0.02));
+            auto on =
+                Constants::lcdOn.darker(static_cast<float>(contrast * 0.02));
+            auto off = Constants::lcdOff.brighter(
+                static_cast<float>(contrast * 0.01428));
 
             const auto rectX = dirtyRect.getX();
             const auto rectY = dirtyRect.getY();
@@ -142,7 +169,8 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
                     const auto x_x2 = x * 2;
                     const auto y_x2 = y * 2;
 
-                    if ((*pixels)[static_cast<size_t>(x)][static_cast<size_t>(y)])
+                    if ((*pixels)[static_cast<size_t>(x)]
+                                 [static_cast<size_t>(y)])
                     {
                         c = halfOn;
                         img.setPixelAt(x_x2, y_x2, on);
@@ -162,13 +190,15 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             dirtyRect = juce::Rectangle<int>();
         }
 
-        void mouseDoubleClick (const juce::MouseEvent&) override
+        void mouseDoubleClick(const juce::MouseEvent &) override
         {
             auto view = getView();
 
             if (auxWindow == nullptr)
             {
-                auxWindow = new vmpc_juce::gui::AuxLCDWindow(resetAuxWindowF, getLcdImage, resetKeyboardAuxParent, Constants::lcdOff);
+                auxWindow = new vmpc_juce::gui::AuxLCDWindow(
+                    resetAuxWindowF, getLcdImage, resetKeyboardAuxParent,
+                    Constants::lcdOff);
                 view->focusHelper->setAuxComponent(auxWindow);
             }
             else
@@ -179,11 +209,13 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             }
         }
 
-        void mouseDown(const juce::MouseEvent& e) override {
+        void mouseDown(const juce::MouseEvent &e) override
+        {
             getParentComponent()->mouseDown(e);
         }
 
-        void mouseDrag(const juce::MouseEvent& e) override {
+        void mouseDrag(const juce::MouseEvent &e) override
+        {
             getParentComponent()->mouseDrag(e);
         }
 
@@ -191,19 +223,20 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
     private:
         mpc::Mpc &mpc;
-        vmpc_juce::gui::AuxLCDWindow* auxWindow = nullptr;
+        vmpc_juce::gui::AuxLCDWindow *auxWindow = nullptr;
         juce::Rectangle<int> dirtyRect;
-        juce::Image img = juce::Image(juce::Image::PixelFormat::RGB, 248*2, 60*2, false);
+        juce::Image img =
+            juce::Image(juce::Image::PixelFormat::RGB, 248 * 2, 60 * 2, false);
 
         std::function<void()> resetAuxWindowF;
         std::function<void()> resetKeyboardAuxParent;
-        std::function<juce::Image&()> getLcdImage;
+        std::function<juce::Image &()> getLcdImage;
 
         melatonin::DropShadow shadow;
 
         juce::AffineTransform getTransform()
         {
-            const auto asp_ratio = 60.f/248.f;
+            const auto asp_ratio = 60.f / 248.f;
             const auto w = float(getWidth()) * magicMultiplier;
             const auto h = w * asp_ratio;
             const auto img_scale = w / (248 * 2);
@@ -215,7 +248,7 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             juce::AffineTransform t;
             t = t.scaled(img_scale);
             t = t.translated(x_offset, y_offset);
-            return t; 
+            return t;
         }
 
         void resetAuxWindow()
@@ -223,20 +256,21 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             if (auxWindow != nullptr)
             {
                 auxWindow->removeFromDesktop();
-                delete auxWindow; auxWindow = nullptr;
+                delete auxWindow;
+                auxWindow = nullptr;
             }
         }
 
-        View* getView()
+        View *getView()
         {
             juce::Component *ancestor = getParentComponent();
 
-            while(dynamic_cast<View*>(ancestor) == nullptr)
+            while (dynamic_cast<View *>(ancestor) == nullptr)
             {
                 ancestor = ancestor->getParentComponent();
             }
 
-            return dynamic_cast<View*>(ancestor);
+            return dynamic_cast<View *>(ancestor);
         }
-};
+    };
 } // namespace vmpc_juce::gui::vector

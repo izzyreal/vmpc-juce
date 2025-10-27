@@ -14,7 +14,7 @@ void TooltipOverlay::setAllKeyTooltipsVisibility(const bool visibleEnabled)
 {
     for (auto &c : getChildren())
     {
-        if (dynamic_cast<KeyTooltip*>(c) == nullptr)
+        if (dynamic_cast<KeyTooltip *>(c) == nullptr)
         {
             continue;
         }
@@ -22,11 +22,12 @@ void TooltipOverlay::setAllKeyTooltipsVisibility(const bool visibleEnabled)
     }
 }
 
-void TooltipOverlay::setKeyTooltipVisibility(const std::string label, const bool visibleEnabled)
+void TooltipOverlay::setKeyTooltipVisibility(const std::string label,
+                                             const bool visibleEnabled)
 {
     for (auto &c : getChildren())
     {
-        if (auto t = dynamic_cast<KeyTooltip*>(c); t != nullptr)
+        if (auto t = dynamic_cast<KeyTooltip *>(c); t != nullptr)
         {
             if (t->getHardwareLabel() == label)
             {

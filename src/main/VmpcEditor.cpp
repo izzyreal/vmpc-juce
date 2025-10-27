@@ -6,20 +6,20 @@
 using namespace vmpc_juce;
 using namespace vmpc_juce::gui::vector;
 
-VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
-    : AudioProcessorEditor(vmpcProcessorToUse), vmpcProcessor(vmpcProcessorToUse)
+VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
+    : AudioProcessorEditor(vmpcProcessorToUse),
+      vmpcProcessor(vmpcProcessorToUse)
 {
     setWantsKeyboardFocus(true);
-    
-    std::function<bool()> isInstrument = [&] {
+
+    std::function<bool()> isInstrument = [&]
+    {
         const std::string auComponentType = vmpcProcessor.auComponentType();
         return auComponentType.empty() || auComponentType == "aumu";
     };
-    
-    view = new View(vmpcProcessor.mpc,
-                    vmpcProcessor.showAudioSettingsDialog,
-                    vmpcProcessor.wrapperType,
-                    isInstrument,
+
+    view = new View(vmpcProcessor.mpc, vmpcProcessor.showAudioSettingsDialog,
+                    vmpcProcessor.wrapperType, isInstrument,
                     vmpcProcessor.shouldShowDisclaimer);
 
     const auto viewAspectRatio = view->getAspectRatio();
@@ -29,7 +29,8 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
 
     const auto initialDimensions = view->getInitialRootWindowDimensions();
 
-    if (initialWindowWidth == 0 || initialWindowHeight == 0 /* || check if aspect ratio is different */) 
+    if (initialWindowWidth == 0 ||
+        initialWindowHeight == 0 /* || check if aspect ratio is different */)
     {
         initialWindowWidth = initialDimensions.first;
         initialWindowHeight = initialDimensions.second;
@@ -38,7 +39,8 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
 #if JUCE_IOS
     if (juce::JUCEApplication::isStandaloneApp())
     {
-        const auto primaryDisplay = juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
+        const auto primaryDisplay =
+            juce::Desktop::getInstance().getDisplays().getPrimaryDisplay();
 
         if (primaryDisplay != nullptr)
         {
@@ -57,10 +59,15 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
 #else
 
     setSize(initialWindowWidth, initialWindowHeight);
-    const bool useCornerResizer = vmpcProcessor.wrapperType != juce::AudioProcessor::wrapperType_AudioUnitv3;
+    const bool useCornerResizer = vmpcProcessor.wrapperType !=
+                                  juce::AudioProcessor::wrapperType_AudioUnitv3;
     setResizable(true, useCornerResizer);
     getConstrainer()->setFixedAspectRatio(viewAspectRatio);
-    getConstrainer()->setSizeLimits(static_cast<int>(static_cast<float>(initialDimensions.first) / 2.f), static_cast<int>(static_cast<float>(initialDimensions.second) / 2.f), static_cast<int>(static_cast<float>(initialDimensions.first) * 1.1f), static_cast<int>(static_cast<float>(initialDimensions.second) * 1.1f));
+    getConstrainer()->setSizeLimits(
+        static_cast<int>(static_cast<float>(initialDimensions.first) / 2.f),
+        static_cast<int>(static_cast<float>(initialDimensions.second) / 2.f),
+        static_cast<int>(static_cast<float>(initialDimensions.first) * 1.1f),
+        static_cast<int>(static_cast<float>(initialDimensions.second) * 1.1f));
     setLookAndFeel(&lookAndFeel);
 
 #endif
@@ -89,18 +96,21 @@ void VmpcEditor::resized()
     const float viewAspectRatio = view->getAspectRatio();
     const int parentWidth = getWidth();
     const int parentHeight = getHeight();
-    
+
     float targetWidth = static_cast<float>(parentWidth);
     float targetHeight = targetWidth / viewAspectRatio;
-    
+
     if (targetHeight > static_cast<float>(parentHeight))
     {
         targetHeight = static_cast<float>(parentHeight);
         targetWidth = targetHeight * viewAspectRatio;
     }
-    
-    const int viewOffsetX = static_cast<int>((static_cast<float>(parentWidth) - targetWidth) / 2.f);
-    const int viewOffsetY = static_cast<int>((static_cast<float>(parentHeight) - targetHeight) / 2.f);
-    
-    view->setBounds(viewOffsetX, viewOffsetY, static_cast<int>(targetWidth), static_cast<int>(targetHeight));
+
+    const int viewOffsetX =
+        static_cast<int>((static_cast<float>(parentWidth) - targetWidth) / 2.f);
+    const int viewOffsetY = static_cast<int>(
+        (static_cast<float>(parentHeight) - targetHeight) / 2.f);
+
+    view->setBounds(viewOffsetX, viewOffsetY, static_cast<int>(targetWidth),
+                    static_cast<int>(targetHeight));
 }

@@ -16,65 +16,75 @@
 uint32_t getInitialWindowHeightApple();
 #endif
 
-namespace vmpc_juce {
+namespace vmpc_juce
+{
 
-    class InitialWindowDimensions {
-        public:
-            static std::pair<int, int> get(const int baseLayoutWidth, const int baseLayoutHeight)
+    class InitialWindowDimensions
+    {
+    public:
+        static std::pair<int, int> get(const int baseLayoutWidth,
+                                       const int baseLayoutHeight)
+        {
+            int w, h;
+
+            h = static_cast<int>(getInitialWindowHeight());
+
+            if (h == 0)
             {
-                int w, h;
-
-                h = static_cast<int>(getInitialWindowHeight());
-
-                if (h == 0)
-                {
-                    w = baseLayoutWidth; h = baseLayoutHeight;
-                }
-                else
-                {
-                    w = static_cast<int>(static_cast<float>(h) * (static_cast<float>(baseLayoutWidth) / (float) baseLayoutHeight));
-                }
-
-                if (!juce::JUCEApplication::isStandaloneApp())
-                {
-                    w = static_cast<int>(0.9f * static_cast<float>(w));
-                    h = static_cast<int>(0.9f * static_cast<float>(h));
-                }
-
-                return { w, h };
+                w = baseLayoutWidth;
+                h = baseLayoutHeight;
+            }
+            else
+            {
+                w = static_cast<int>(static_cast<float>(h) *
+                                     (static_cast<float>(baseLayoutWidth) /
+                                      (float)baseLayoutHeight));
             }
 
-        private:
-            static uint32_t getInitialWindowHeight()
+            if (!juce::JUCEApplication::isStandaloneApp())
             {
+                w = static_cast<int>(0.9f * static_cast<float>(w));
+                h = static_cast<int>(0.9f * static_cast<float>(h));
+            }
+
+            return {w, h};
+        }
+
+    private:
+        static uint32_t getInitialWindowHeight()
+        {
 #ifdef __APPLE__
-                return getInitialWindowHeightApple();
+            return getInitialWindowHeightApple();
 #elif defined(_WIN32) || defined(_WIN64)
-                RECT workArea;
-                SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
+            RECT workArea;
+            SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
 
-                HDC screen = GetDC(nullptr);
-                int dpi = GetDeviceCaps(screen, LOGPIXELSY);
-                ReleaseDC(nullptr, screen);
+            HDC screen = GetDC(nullptr);
+            int dpi = GetDeviceCaps(screen, LOGPIXELSY);
+            ReleaseDC(nullptr, screen);
 
-                const double scaleFactor = dpi / 96.0;
-                const int totalHeight = workArea.bottom - workArea.top;
-                const int frameHeight = static_cast<int>((GetSystemMetrics(SM_CYCAPTION) + 2 * GetSystemMetrics(SM_CYFRAME)) * scaleFactor);
-                return static_cast<int>((totalHeight - frameHeight - 22) / scaleFactor);
+            const double scaleFactor = dpi / 96.0;
+            const int totalHeight = workArea.bottom - workArea.top;
+            const int frameHeight =
+                static_cast<int>((GetSystemMetrics(SM_CYCAPTION) +
+                                  2 * GetSystemMetrics(SM_CYFRAME)) *
+                                 scaleFactor);
+            return static_cast<int>((totalHeight - frameHeight - 22) /
+                                    scaleFactor);
 #elif defined(__linux__)
-                Display* display = XOpenDisplay(nullptr);
+            Display *display = XOpenDisplay(nullptr);
 
-                if (!display)
-                {
-                    return 0;
-                }
-
-                int32_t height = DisplayHeight(display, DefaultScreen(display));
-                XCloseDisplay(display);
-                return height;
-#else
+            if (!display)
+            {
                 return 0;
-#endif
             }
+
+            int32_t height = DisplayHeight(display, DefaultScreen(display));
+            XCloseDisplay(display);
+            return height;
+#else
+            return 0;
+#endif
+        }
     };
 } // namespace vmpc_juce

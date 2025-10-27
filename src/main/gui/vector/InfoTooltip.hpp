@@ -5,222 +5,274 @@
 #include <melatonin_blur/melatonin/shadows.h>
 #include <melatonin_blur/melatonin_blur.h>
 
-namespace vmpc_juce::gui::vector {
+namespace vmpc_juce::gui::vector
+{
 
-    class InfoTooltip : public juce::Component {
-        public:
-            InfoTooltip(
-                    const std::function<float()> &getScaleToUse,
-                    const std::function<juce::Font&()> &getMainFontScaledToUse,
+    class InfoTooltip : public juce::Component
+    {
+    public:
+        InfoTooltip(const std::function<float()> &getScaleToUse,
+                    const std::function<juce::Font &()> &getMainFontScaledToUse,
                     juce::Component *tooltipOverlayToUse)
-                : getScale(getScaleToUse),
-                getMainFontScaled(getMainFontScaledToUse),
-                tooltipOverlay(tooltipOverlayToUse)
+            : getScale(getScaleToUse),
+              getMainFontScaled(getMainFontScaledToUse),
+              tooltipOverlay(tooltipOverlayToUse)
         {
             shadow.setColor(juce::Colours::black.withAlpha(0.6f));
         }
 
-            void configure(
-                    const std::string tooltipTextToUse,
-                    const juce::Component *anchorToUse)
+        void configure(const std::string tooltipTextToUse,
+                       const juce::Component *anchorToUse)
+        {
+            tooltipText = tooltipTextToUse;
+            anchor = anchorToUse;
+            resized();
+            repaint();
+        }
+
+        const juce::Component *getAnchor()
+        {
+            return anchor;
+        }
+
+        void paint(juce::Graphics &g) override
+        {
+            const auto scale = getScale();
+            const auto radius = 1.f * scale;
+            const auto lineThickness = .5f * scale;
+
+            auto arrowHeight = getArrowHeightScaled();
+            auto rect = getLocalBounds().toFloat();
+
+            rect.reduce(static_cast<float>(shadowMargin),
+                        static_cast<float>(shadowMargin));
+
+            rect = rect.withTrimmedTop(arrowHeight);
+
+            rect.reduce(lineThickness, lineThickness);
+
+            const auto triangleWidth = arrowHeight;
+            const auto rectTopY = rect.getY();
+            const auto rectBottomY = rect.getBottom();
+            const auto rectLeftX = rect.getX();
+            const auto rectRightX = rect.getRight();
+            const auto arrowX = tooltipIsPositionedBelowAnchor
+                                    ? getUpArrowTipPosWithinSelf().x
+                                    : getDownArrowTipPosWithinSelf().x;
+
+            juce::Path path;
+
+            if (tooltipIsPositionedBelowAnchor)
             {
-                tooltipText = tooltipTextToUse;
-                anchor = anchorToUse;
-                resized();
-                repaint();
+                path.startNewSubPath(
+                    static_cast<float>(arrowX) - triangleWidth / 2, rectTopY);
+                path.lineTo(static_cast<float>(arrowX), rectTopY - arrowHeight);
+                path.lineTo(static_cast<float>(arrowX) + triangleWidth / 2,
+                            rectTopY);
+                path.lineTo(rectRightX - radius, rectTopY);
+                path.addArc(rectRightX - radius * 2, rectTopY, radius * 2,
+                            radius * 2, 0,
+                            juce::MathConstants<float>::pi * 0.5f);
+                path.lineTo(rectRightX, rectBottomY - radius);
+                path.addArc(rectRightX - radius * 2, rectBottomY - radius * 2,
+                            radius * 2, radius * 2,
+                            juce::MathConstants<float>::pi * 0.5f,
+                            juce::MathConstants<float>::pi);
+                path.lineTo(rectLeftX + radius, rectBottomY);
+                path.addArc(rectLeftX, rectBottomY - radius * 2, radius * 2,
+                            radius * 2, juce::MathConstants<float>::pi,
+                            juce::MathConstants<float>::pi * 1.5f);
+                path.lineTo(rectLeftX, rectTopY + radius);
+                path.addArc(rectLeftX, rectTopY, radius * 2, radius * 2,
+                            juce::MathConstants<float>::pi * 1.5f,
+                            juce::MathConstants<float>::twoPi);
+            }
+            else
+            {
+                path.startNewSubPath(static_cast<float>(arrowX) -
+                                         triangleWidth / 2,
+                                     rectBottomY);
+                path.lineTo(static_cast<float>(arrowX),
+                            rectBottomY + arrowHeight);
+                path.lineTo(static_cast<float>(arrowX) + triangleWidth / 2,
+                            rectBottomY);
+                path.lineTo(rectRightX - radius, rectBottomY);
+                path.addArc(rectRightX - radius * 2, rectBottomY - radius * 2,
+                            radius * 2, radius * 2,
+                            juce::MathConstants<float>::pi,
+                            juce::MathConstants<float>::pi * 0.5f);
+                path.lineTo(rectRightX, rectTopY + radius);
+                path.addArc(rectRightX - radius * 2, rectTopY, radius * 2,
+                            radius * 2, juce::MathConstants<float>::pi * 0.5f,
+                            0);
+                path.lineTo(rectLeftX + radius, rectTopY);
+                path.addArc(rectLeftX, rectTopY, radius * 2, radius * 2, 0,
+                            juce::MathConstants<float>::pi * -0.5f);
+                path.lineTo(rectLeftX, rectBottomY - radius);
+                path.addArc(rectLeftX, rectBottomY - radius * 2, radius * 2,
+                            radius * 2, juce::MathConstants<float>::pi * -0.5f,
+                            -juce::MathConstants<float>::pi);
             }
 
-            const juce::Component* getAnchor()
+            path.closeSubPath();
+
+            shadow.setOffset(2 * scale, 2 * scale);
+            shadow.setRadius(scale * 3);
+            shadow.setSpread(scale);
+            shadow.render(g, path);
+
+            g.setColour(juce::Colours::white);
+            g.fillPath(path);
+
+            g.setColour(juce::Colours::black);
+            g.strokePath(path, juce::PathStrokeType(lineThickness));
+            g.setFont(getFont());
+            g.drawText(tooltipText, rect, juce::Justification::centred);
+        }
+
+        void resized() override
+        {
+            const auto scale = getScale();
+            const auto textWidth = getTextWidth();
+            const auto textHeight = getFont().getHeight();
+            const auto margin = 3.f * scale;
+            const auto textWidthWithMargin = textWidth + (margin * 2);
+            const auto textHeightWithMargin = textHeight + (margin * 2);
+            const auto tooltipHeight =
+                textHeightWithMargin + getArrowHeightScaled();
+
+            const auto tooltipOverlayBounds = tooltipOverlay->getBounds();
+
+            auto arrowTipPos = getUpArrowTipPosWithinTooltipOverlay();
+            auto tooltipX = (static_cast<float>(arrowTipPos.x) -
+                             (textWidthWithMargin * 0.5f));
+            auto tooltipY = arrowTipPos.y;
+            auto rect =
+                juce::Rectangle<int>(static_cast<int>(tooltipX), tooltipY,
+                                     static_cast<int>(textWidthWithMargin),
+                                     static_cast<int>(tooltipHeight));
+
+            if (rect.getBottom() > tooltipOverlayBounds.getBottom())
             {
-                return anchor;
+                arrowTipPos = getDownArrowTipPosWithinTooltipOverlay();
+                tooltipX = (static_cast<float>(arrowTipPos.x) -
+                            (textWidthWithMargin * 0.5f));
+                tooltipY = arrowTipPos.y;
+                rect = juce::Rectangle<int>(
+                    static_cast<int>(tooltipX),
+                    static_cast<int>(static_cast<float>(tooltipY) -
+                                     tooltipHeight - (margin * 2)),
+                    static_cast<int>(textWidthWithMargin),
+                    static_cast<int>(tooltipHeight));
+                tooltipIsPositionedBelowAnchor = false;
+            }
+            else
+            {
+                tooltipIsPositionedBelowAnchor = true;
             }
 
-            void paint(juce::Graphics &g) override
+            if (static_cast<float>(rect.getRight()) + margin >
+                static_cast<float>(tooltipOverlayBounds.getRight()))
             {
-                const auto scale = getScale();
-                const auto radius = 1.f * scale;
-                const auto lineThickness = .5f * scale;
-
-                auto arrowHeight = getArrowHeightScaled();
-                auto rect = getLocalBounds().toFloat();
-
-                rect.reduce(static_cast<float>(shadowMargin), static_cast<float>(shadowMargin));
-
-                rect = rect.withTrimmedTop(arrowHeight);
-
-                rect.reduce(lineThickness, lineThickness);
-
-                const auto triangleWidth = arrowHeight;
-                const auto rectTopY = rect.getY();
-                const auto rectBottomY = rect.getBottom();
-                const auto rectLeftX = rect.getX();
-                const auto rectRightX = rect.getRight();
-                const auto arrowX = tooltipIsPositionedBelowAnchor ? getUpArrowTipPosWithinSelf().x : getDownArrowTipPosWithinSelf().x;
-
-                juce::Path path;
-
-                if (tooltipIsPositionedBelowAnchor)
-                {
-                    path.startNewSubPath(static_cast<float>(arrowX) - triangleWidth / 2, rectTopY);
-                    path.lineTo(static_cast<float>(arrowX), rectTopY - arrowHeight);
-                    path.lineTo(static_cast<float>(arrowX) + triangleWidth / 2, rectTopY);
-                    path.lineTo(rectRightX - radius, rectTopY);
-                    path.addArc(rectRightX - radius * 2, rectTopY, radius * 2, radius * 2, 0, juce::MathConstants<float>::pi * 0.5f);
-                    path.lineTo(rectRightX, rectBottomY - radius);
-                    path.addArc(rectRightX - radius * 2, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi * 0.5f, juce::MathConstants<float>::pi);
-                    path.lineTo(rectLeftX + radius, rectBottomY);
-                    path.addArc(rectLeftX, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi, juce::MathConstants<float>::pi * 1.5f);
-                    path.lineTo(rectLeftX, rectTopY + radius);
-                    path.addArc(rectLeftX, rectTopY, radius * 2, radius * 2, juce::MathConstants<float>::pi * 1.5f, juce::MathConstants<float>::twoPi);
-                }
-                else
-                {
-                    path.startNewSubPath(static_cast<float>(arrowX) - triangleWidth / 2, rectBottomY);
-                    path.lineTo(static_cast<float>(arrowX), rectBottomY + arrowHeight);
-                    path.lineTo(static_cast<float>(arrowX) + triangleWidth / 2, rectBottomY);
-                    path.lineTo(rectRightX - radius, rectBottomY);
-                    path.addArc(rectRightX - radius * 2, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi, juce::MathConstants<float>::pi * 0.5f);
-                    path.lineTo(rectRightX, rectTopY + radius);
-                    path.addArc(rectRightX - radius * 2, rectTopY, radius * 2, radius * 2, juce::MathConstants<float>::pi * 0.5f, 0);
-                    path.lineTo(rectLeftX + radius, rectTopY);
-                    path.addArc(rectLeftX, rectTopY, radius * 2, radius * 2, 0, juce::MathConstants<float>::pi * -0.5f);
-                    path.lineTo(rectLeftX, rectBottomY - radius);
-                    path.addArc(rectLeftX, rectBottomY - radius * 2, radius * 2, radius * 2, juce::MathConstants<float>::pi * -0.5f, -juce::MathConstants<float>::pi);
-                }
-
-                path.closeSubPath();
-
-                shadow.setOffset(2 * scale, 2 * scale);
-                shadow.setRadius(scale * 3);
-                shadow.setSpread(scale);
-                shadow.render(g, path);
-
-                g.setColour(juce::Colours::white);
-                g.fillPath(path);
-
-                g.setColour(juce::Colours::black);
-                g.strokePath(path, juce::PathStrokeType(lineThickness));
-                g.setFont(getFont());
-                g.drawText(tooltipText, rect, juce::Justification::centred);
+                rect.setX(static_cast<int>(
+                    static_cast<float>(tooltipOverlayBounds.getRight()) -
+                    (static_cast<float>(rect.getWidth()) + margin)));
+            }
+            else if (rect.getX() < tooltipOverlayBounds.getX())
+            {
+                rect.setX(tooltipOverlayBounds.getX());
             }
 
-            void resized() override
+            rect.expand(shadowMargin, shadowMargin);
+
+            setBounds(rect);
+        }
+
+    private:
+        juce::Point<int> getDownArrowTipPosWithinTooltipOverlay()
+        {
+            if (anchor == nullptr || tooltipOverlay == nullptr)
             {
-                const auto scale = getScale();
-                const auto textWidth = getTextWidth();
-                const auto textHeight = getFont().getHeight();
-                const auto margin = 3.f * scale;
-                const auto textWidthWithMargin = textWidth + (margin * 2);
-                const auto textHeightWithMargin = textHeight + (margin * 2);
-                const auto tooltipHeight = textHeightWithMargin + getArrowHeightScaled();
-
-                const auto tooltipOverlayBounds = tooltipOverlay->getBounds();
-
-                auto arrowTipPos = getUpArrowTipPosWithinTooltipOverlay();
-                auto tooltipX = (static_cast<float>(arrowTipPos.x) - (textWidthWithMargin * 0.5f));
-                auto tooltipY = arrowTipPos.y;
-                auto rect = juce::Rectangle<int>(static_cast<int>(tooltipX), tooltipY, static_cast<int>(textWidthWithMargin), static_cast<int>(tooltipHeight));
-
-                if (rect.getBottom() > tooltipOverlayBounds.getBottom())
-                {
-                    arrowTipPos = getDownArrowTipPosWithinTooltipOverlay();
-                    tooltipX = (static_cast<float>(arrowTipPos.x) - (textWidthWithMargin * 0.5f));
-                    tooltipY = arrowTipPos.y;
-                    rect = juce::Rectangle<int>(static_cast<int>(tooltipX), static_cast<int>(static_cast<float>(tooltipY) - tooltipHeight - (margin * 2)), static_cast<int>(textWidthWithMargin), static_cast<int>(tooltipHeight));
-                    tooltipIsPositionedBelowAnchor = false;
-                }
-                else
-                {
-                    tooltipIsPositionedBelowAnchor = true;
-                }
-
-                if (static_cast<float>(rect.getRight()) + margin > static_cast<float>(tooltipOverlayBounds.getRight()))
-                {
-                    rect.setX(static_cast<int>(static_cast<float>(tooltipOverlayBounds.getRight()) - (static_cast<float>(rect.getWidth()) + margin)));
-                }
-                else if (rect.getX() < tooltipOverlayBounds.getX())
-                {
-                    rect.setX(tooltipOverlayBounds.getX());
-                }
-
-                rect.expand(shadowMargin, shadowMargin);
-
-                setBounds(rect);
+                return {};
             }
 
-        private:
-            juce::Point<int> getDownArrowTipPosWithinTooltipOverlay()
-            {
-                if (anchor == nullptr || tooltipOverlay == nullptr)
-                {
-                    return {};
-                }
+            auto anchorTopCenter = anchor->getBounds().getTopLeft() +
+                                   juce::Point<int>(anchor->getWidth() / 2, 0);
+            return tooltipOverlay
+                ->getLocalPoint(anchor->getParentComponent(), anchorTopCenter)
+                .translated(0, static_cast<int>(2.f * getScale()));
+        }
 
-                auto anchorTopCenter = anchor->getBounds().getTopLeft() + juce::Point<int>(anchor->getWidth() / 2, 0);
-                return tooltipOverlay->getLocalPoint(anchor->getParentComponent(), anchorTopCenter).translated(0, static_cast<int>(2.f * getScale()));
+        juce::Point<int> getUpArrowTipPosWithinTooltipOverlay()
+        {
+            if (anchor == nullptr || tooltipOverlay == nullptr)
+            {
+                return {};
             }
 
-            juce::Point<int> getUpArrowTipPosWithinTooltipOverlay()
-            {
-                if (anchor == nullptr || tooltipOverlay == nullptr)
-                {
-                    return {};
-                }
+            auto anchorBottomCenter =
+                anchor->getBounds().getBottomLeft() +
+                juce::Point<int>(anchor->getWidth() / 2, 0);
+            return tooltipOverlay
+                ->getLocalPoint(anchor->getParentComponent(),
+                                anchorBottomCenter)
+                .translated(0, static_cast<int>(2.f * getScale()));
+        }
 
-                auto anchorBottomCenter = anchor->getBounds().getBottomLeft() + juce::Point<int>(anchor->getWidth() / 2, 0);
-                return tooltipOverlay->getLocalPoint(anchor->getParentComponent(), anchorBottomCenter).translated(0, static_cast<int>(2.f * getScale()));
+        juce::Point<int> getDownArrowTipPosWithinSelf()
+        {
+            if (anchor == nullptr)
+            {
+                return {};
             }
 
-            juce::Point<int> getDownArrowTipPosWithinSelf()
-            {
-                if (anchor == nullptr)
-                {
-                    return {};
-                }
+            auto anchorTopCenter = anchor->getBounds().getTopLeft() +
+                                   juce::Point<int>(anchor->getWidth() / 2, 0);
+            return getLocalPoint(anchor->getParentComponent(), anchorTopCenter);
+        }
 
-                auto anchorTopCenter = anchor->getBounds().getTopLeft() + juce::Point<int>(anchor->getWidth() / 2, 0);
-                return getLocalPoint(anchor->getParentComponent(), anchorTopCenter);
+        juce::Point<int> getUpArrowTipPosWithinSelf()
+        {
+            if (anchor == nullptr)
+            {
+                return {};
             }
 
-            juce::Point<int> getUpArrowTipPosWithinSelf()
-            {
-                if (anchor == nullptr)
-                {
-                    return {};
-                }
+            auto anchorBottomCenter =
+                anchor->getBounds().getBottomLeft() +
+                juce::Point<int>(anchor->getWidth() / 2, 0);
+            return getLocalPoint(anchor->getParentComponent(),
+                                 anchorBottomCenter);
+        }
 
-                auto anchorBottomCenter = anchor->getBounds().getBottomLeft() + juce::Point<int>(anchor->getWidth() / 2, 0);
-                return getLocalPoint(anchor->getParentComponent(), anchorBottomCenter);
-            }
+        float getTextWidth()
+        {
+            return static_cast<float>(getFont().getStringWidth(tooltipText));
+        }
 
-            float getTextWidth()
-            {
-                return static_cast<float>(getFont().getStringWidth(tooltipText));
-            }
+        juce::Font getFont()
+        {
+            auto result = getMainFontScaled();
+            return result.withHeight(result.getHeight() * 1.5f);
+        }
 
-            juce::Font getFont()
-            {
-                auto result = getMainFontScaled();
-                return result.withHeight(result.getHeight() * 1.5f);
-            }
+        float getArrowHeightScaled()
+        {
+            return arrowHeightAtScale1 * getScale();
+        }
 
-            float getArrowHeightScaled()
-            {
-                return arrowHeightAtScale1 * getScale();
-            }
+        const std::function<float()> &getScale;
+        const std::function<juce::Font &()> &getMainFontScaled;
+        std::string tooltipText;
+        const juce::Component *anchor = nullptr;
+        const juce::Component *tooltipOverlay;
 
-            const std::function<float()> &getScale;
-            const std::function<juce::Font&()> &getMainFontScaled;
-            std::string tooltipText;
-            const juce::Component *anchor = nullptr;
-            const juce::Component *tooltipOverlay;
+        const float arrowHeightAtScale1 = 2.5f;
 
-            const float arrowHeightAtScale1 = 2.5f;
+        const int shadowMargin = 40;
 
-            const int shadowMargin = 40;
+        melatonin::DropShadow shadow;
 
-            melatonin::DropShadow shadow;
-
-            bool tooltipIsPositionedBelowAnchor = true;
+        bool tooltipIsPositionedBelowAnchor = true;
     };
 } // namespace vmpc_juce::gui::vector

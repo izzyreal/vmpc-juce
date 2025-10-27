@@ -12,7 +12,8 @@
 using HostInputEvent = mpc::input::HostInputEvent;
 using GestureEvent = mpc::input::GestureEvent;
 
-static mpc::hardware::ComponentId getCursorComponentId(const juce::MouseEvent &e)
+static mpc::hardware::ComponentId
+getCursorComponentId(const juce::MouseEvent &e)
 {
     juce::Path left, top, bottom, right;
 
@@ -31,14 +32,16 @@ static mpc::hardware::ComponentId getCursorComponentId(const juce::MouseEvent &e
     top.closeSubPath();
 
     right = left;
-    right.applyTransform(juce::AffineTransform(-1.0f, 0.0f, 1.f, 0.0f, 1.0f, 0.0f));
+    right.applyTransform(
+        juce::AffineTransform(-1.0f, 0.0f, 1.f, 0.0f, 1.0f, 0.0f));
 
     bottom = top;
     bottom.applyTransform(juce::AffineTransform().verticalFlip(1.f));
 
     const auto compWidth = e.eventComponent->getWidth();
     const auto compHeight = e.eventComponent->getHeight();
-    juce::AffineTransform scaleTransform = juce::AffineTransform().scaled(static_cast<float>(compWidth), static_cast<float>(compHeight));
+    juce::AffineTransform scaleTransform = juce::AffineTransform().scaled(
+        static_cast<float>(compWidth), static_cast<float>(compHeight));
 
     left.applyTransform(scaleTransform);
     top.applyTransform(scaleTransform);
@@ -65,12 +68,10 @@ static mpc::hardware::ComponentId getCursorComponentId(const juce::MouseEvent &e
     return mpc::hardware::ComponentId::NONE;
 }
 
-
-inline std::optional<HostInputEvent> makeAbsoluteGestureFromMouse(
-    const juce::MouseEvent& e,
-    const std::string& label,
-    GestureEvent::Type type,
-    std::optional<float> customNormY)
+inline std::optional<HostInputEvent>
+makeAbsoluteGestureFromMouse(const juce::MouseEvent &e,
+                             const std::string &label, GestureEvent::Type type,
+                             std::optional<float> customNormY)
 {
     if (!mpc::hardware::componentLabelToId.count(label) && label != "cursor")
     {
@@ -88,26 +89,22 @@ inline std::optional<HostInputEvent> makeAbsoluteGestureFromMouse(
         componentId = mpc::hardware::componentLabelToId.at(label);
     }
 
-    const float normY = customNormY.has_value()
-        ? *customNormY
-        : juce::jlimit(0.0f, 1.0f, (float)e.position.getY() / (float)e.eventComponent->getHeight());
+    const float normY =
+        customNormY.has_value()
+            ? *customNormY
+            : juce::jlimit(0.0f, 1.0f,
+                           (float)e.position.getY() /
+                               (float)e.eventComponent->getHeight());
 
-    return HostInputEvent{
-        GestureEvent{
-            type,
-            GestureEvent::Movement::Absolute,
-            normY,
-            0.f,
-            e.getNumberOfClicks(),
-            componentId
-        }
-    };
+    return HostInputEvent{GestureEvent{type, GestureEvent::Movement::Absolute,
+                                       normY, 0.f, e.getNumberOfClicks(),
+                                       componentId}};
 }
 
-inline std::optional<mpc::input::HostInputEvent> makeRelativeGestureFromMouse(const juce::MouseEvent &e,
-    const std::string& label,
-    GestureEvent::Type type,
-    float continuousDelta)
+inline std::optional<mpc::input::HostInputEvent>
+makeRelativeGestureFromMouse(const juce::MouseEvent &e,
+                             const std::string &label, GestureEvent::Type type,
+                             float continuousDelta)
 {
     using namespace mpc::input;
 
@@ -115,17 +112,11 @@ inline std::optional<mpc::input::HostInputEvent> makeRelativeGestureFromMouse(co
     {
         return std::nullopt;
     }
-    const float normY = juce::jlimit(0.0f, 1.0f, (float)e.position.getY() / (float)e.eventComponent->getHeight());
+    const float normY = juce::jlimit(0.0f, 1.0f,
+                                     (float)e.position.getY() /
+                                         (float)e.eventComponent->getHeight());
 
-    return HostInputEvent{
-        GestureEvent{
-            type,
-            GestureEvent::Movement::Relative,
-            normY,
-            continuousDelta,
-            e.getNumberOfClicks(),
-            mpc::hardware::componentLabelToId.at(label)
-        }
-    };
+    return HostInputEvent{GestureEvent{
+        type, GestureEvent::Movement::Relative, normY, continuousDelta,
+        e.getNumberOfClicks(), mpc::hardware::componentLabelToId.at(label)}};
 }
-
