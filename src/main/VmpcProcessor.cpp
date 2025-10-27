@@ -4,6 +4,8 @@
 #include "JuceToMpcMidiEventConvertor.hpp"
 #include "controller/ClientEventController.hpp"
 
+#include "FloatUtil.hpp"
+
 #include <version.h>
 #include <AutoSave.hpp>
 
@@ -474,7 +476,7 @@ void VmpcProcessor::processTransport()
         const double tempo = positionInfo->getBpm().orFallback(120);
         const bool isPlaying = positionInfo->getIsPlaying();
 
-        if (tempo != m_Tempo || mpc.getSequencer()->getTempo() != tempo)
+        if (!nearlyEqual(tempo, m_Tempo) || !nearlyEqual(mpc.getSequencer()->getTempo(), tempo))
         {
             mpc.getSequencer()->setTempo(tempo);
             m_Tempo = tempo;
@@ -508,7 +510,7 @@ void VmpcProcessor::processTransport()
         }
         else if (!isPlaying && !mpc.getSequencer()->isPlaying())
         {
-            if (positionQuarterNotes != previousPositionQuarterNotes)
+            if (!nearlyEqual(positionQuarterNotes, previousPositionQuarterNotes))
             {
                 const bool inSongScreen = mpc.getLayeredScreen()->getCurrentScreenName() == "song";
                 
