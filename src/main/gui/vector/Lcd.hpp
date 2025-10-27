@@ -111,6 +111,7 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
 
         void timerCallback() override
         {
+            mpc.getLayeredScreen()->timerCallback();
             checkLsDirty();
         }
 
