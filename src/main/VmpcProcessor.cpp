@@ -734,57 +734,106 @@ juce::AudioProcessorEditor* VmpcProcessor::createEditor()
 
 void VmpcProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    auto editor = getActiveEditor();
-    auto root = std::make_shared<juce::XmlElement>("root");
+    // Build XML for UI layout
+    juce::XmlElement root("root");
+    juce::XmlElement* juce_ui = root.createNewChildElement("JUCE-UI");
 
-    auto juce_ui = new juce::XmlElement("JUCE-UI");
-    root->addChildElement(juce_ui);
-
-    if (editor != nullptr)
+    if (auto* editor = getActiveEditor())
     {
-        auto w = editor->getWidth();
-        auto h = editor->getHeight();
-        juce_ui->setAttribute("vector_ui_width", w);
-        juce_ui->setAttribute("vector_ui_height", h);
+        juce_ui->setAttribute("vector_ui_width", editor->getWidth());
+        juce_ui->setAttribute("vector_ui_height", editor->getHeight());
     }
 
+    // Standalone: only save window info
     if (juce::JUCEApplication::isStandaloneApp())
     {
-        copyXmlToBinary(*root.get(), destData);
+        copyXmlToBinary(root, destData);
         return;
     }
 
-    auto zipTarget = std::make_shared<ZipSaveTarget>();
-    mpc::AutoSave::storeAutoSavedStateWithTarget(mpc, zipTarget);
+    // Plugin: zip together UI XML + autosave
+    juce::ZipFile::Builder builder;
 
-    auto zipBlock = zipTarget->toZipMemoryBlock();
-    destData = *zipBlock;
+    // --- 1. Add XML (HEAP allocation!) ---
+    {
+        juce::MemoryOutputStream xmlOut;
+        root.writeTo(xmlOut, {});
+        auto* xmlIn = new juce::MemoryInputStream(xmlOut.getData(), xmlOut.getDataSize(), false);
+        builder.addEntry(xmlIn, 0, "ui.xml", juce::Time::getCurrentTime());
+    }
+
+    // --- 2. Add autosave payload (HEAP allocation!) ---
+    {
+        auto mpcTarget = std::make_shared<ZipSaveTarget>();
+        mpc::AutoSave::storeAutoSavedStateWithTarget(mpc, mpcTarget);
+        auto zipBlock = mpcTarget->toZipMemoryBlock();
+
+        auto* mpcIn = new juce::MemoryInputStream(zipBlock->getData(), zipBlock->getSize(), false);
+        builder.addEntry(mpcIn, 0, "autosave.zip", juce::Time::getCurrentTime());
+    }
+
+    // --- 3. Finalize the ZIP ---
+    juce::MemoryOutputStream combinedOut(destData, false);
+    builder.writeToStream(combinedOut, nullptr);
 }
 
 void VmpcProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    if (sizeInBytes <= 0 || data == nullptr)
-    {
-        return;
-    }
+    if (sizeInBytes <= 0 || !data) return;
 
-    std::shared_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
-
-    auto juce_ui = xmlState->getChildByName("JUCE-UI");
-
-    if (juce_ui != nullptr)
-    {
-        lastUIWidth = juce_ui->getIntAttribute("vector_ui_width", lastUIWidth);
-        lastUIHeight = juce_ui->getIntAttribute("vector_ui_height", lastUIHeight);
-    }
-
+    // Standalone: restore only UI layout
     if (juce::JUCEApplication::isStandaloneApp())
     {
+        std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+        if (auto* juce_ui = xmlState->getChildByName("JUCE-UI"))
+        {
+            lastUIWidth  = juce_ui->getIntAttribute("vector_ui_width", lastUIWidth);
+            lastUIHeight = juce_ui->getIntAttribute("vector_ui_height", lastUIHeight);
+        }
         return;
     }
 
-    auto zipTarget = std::make_shared<ZipSaveTarget>(data, (size_t)sizeInBytes);
-    mpc::AutoSave::restoreAutoSavedStateWithTarget(mpc, zipTarget);
+    // Plugin: unpack combined zip
+    juce::MemoryInputStream in(data, (size_t)sizeInBytes, false);
+    juce::ZipFile zip(in);
+
+    std::unique_ptr<juce::InputStream> uiStream, mpcStream;
+    for (int i = 0; i < zip.getNumEntries(); ++i)
+    {
+        auto* entry = zip.getEntry(i);
+        if (!entry) continue;
+
+        if (entry->filename == "ui.xml")
+            uiStream.reset(zip.createStreamForEntry(i));
+        else if (entry->filename == "autosave.zip")
+            mpcStream.reset(zip.createStreamForEntry(i));
+    }
+
+    // Restore UI dimensions
+    if (uiStream)
+    {
+        auto xmlText = uiStream->readEntireStreamAsString();
+        std::unique_ptr<juce::XmlElement> xmlState(juce::parseXML(xmlText));
+        if (xmlState)
+        {
+            if (auto* juce_ui = xmlState->getChildByName("JUCE-UI"))
+            {
+                lastUIWidth  = juce_ui->getIntAttribute("vector_ui_width", lastUIWidth);
+                lastUIHeight = juce_ui->getIntAttribute("vector_ui_height", lastUIHeight);
+            }
+        }
+    }
+
+    // Restore MPC autosave
+    if (mpcStream)
+    {
+        juce::MemoryOutputStream tempOut;
+        tempOut.writeFromInputStream(*mpcStream, -1);
+        auto block = tempOut.getMemoryBlock();
+
+        auto zipTarget = std::make_shared<ZipSaveTarget>(block.getData(), block.getSize());
+        mpc::AutoSave::restoreAutoSavedStateWithTarget(mpc, zipTarget);
+    }
 }
 
 void VmpcProcessor::logActualBusLayout()
