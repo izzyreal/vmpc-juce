@@ -9,6 +9,7 @@
 #include "lcdgui/screens/DrumScreen.hpp"
 
 #include <sequencer/Track.hpp>
+#include <sequencer/Bus.hpp>
 
 #include <sampler/Pad.hpp>
 #include <sampler/NoteParameters.hpp>
@@ -28,6 +29,7 @@ using namespace mpc::disk;
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens::window;
 using namespace mpc::lcdgui::screens::dialog2;
+using namespace mpc::sequencer;
 
 static int
 getDrumIndexForCurrentScreen(mpc::Mpc &mpc,
@@ -50,7 +52,7 @@ getProgramForCurrentScreen(mpc::Mpc &mpc)
     }
 
     auto sampler = mpc.getSampler();
-    return sampler->getProgram(mpc.getDrum(drumIndex).getProgram());
+    return sampler->getProgram(mpc.getSequencer()->getDrumBus(drumIndex)->getProgram());
 }
 
 Pad::Pad(juce::Component *commonParentWithShadowToUse,
@@ -185,16 +187,14 @@ void Pad::loadFile(const juce::String path, bool shouldBeConverted)
             "LOADING " + mpc::StrUtil::padRight(soundFileName, " ", 16) + ext,
             300);
 
-        auto drumIndex = mpc.getSequencer()->getActiveTrack()->getBus() - 1;
+        auto drumBus = mpc.getSequencer()->getBus<DrumBus>(mpc.getSequencer()->getActiveTrack()->getBus());
 
-        if (drumIndex == -1)
+        if (!drumBus)
         {
             return;
         }
 
-        auto &drum = mpc.getDrum(drumIndex);
-
-        auto programIndex = drum.getProgram();
+        auto programIndex = drumBus->getProgram();
         auto program = mpc.getSampler()->getProgram(programIndex);
         auto soundIndex = mpc.getSampler()->getSoundCount() - 1;
         const int bank =

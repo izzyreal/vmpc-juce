@@ -11,6 +11,7 @@
 
 #include <version.h>
 #include <AutoSave.hpp>
+#include <MpcSpecs.hpp>
 
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audiomidi/DiskRecorder.hpp>
@@ -1307,9 +1308,9 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
         }
     }
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < mpc::Mpc2000XlSpecs::DRUM_BUS_COUNT; ++i)
     {
-        for (auto &m : mpc.getDrum(i).getIndivFxMixerChannels())
+        for (auto &m : mpc.getSequencer()->getDrumBus(i)->getIndivFxMixerChannels())
         {
             if (m->getOutput() == 0)
             {
