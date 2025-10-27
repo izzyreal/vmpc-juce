@@ -60,7 +60,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor& vmpcProcessorToUse)
     const bool useCornerResizer = vmpcProcessor.wrapperType != juce::AudioProcessor::wrapperType_AudioUnitv3;
     setResizable(true, useCornerResizer);
     getConstrainer()->setFixedAspectRatio(viewAspectRatio);
-    getConstrainer()->setSizeLimits(initialDimensions.first / 2, initialDimensions.second / 2, initialDimensions.first * 1.1f, initialDimensions.second * 1.1f);
+    getConstrainer()->setSizeLimits(static_cast<int>(static_cast<float>(initialDimensions.first) / 2.f), static_cast<int>(static_cast<float>(initialDimensions.second) / 2.f), static_cast<int>(static_cast<float>(initialDimensions.first) * 1.1f), static_cast<int>(static_cast<float>(initialDimensions.second) * 1.1f));
     setLookAndFeel(&lookAndFeel);
 
 #endif
@@ -90,16 +90,17 @@ void VmpcEditor::resized()
     const int parentWidth = getWidth();
     const int parentHeight = getHeight();
     
-    float targetWidth = parentWidth;
+    float targetWidth = static_cast<float>(parentWidth);
     float targetHeight = targetWidth / viewAspectRatio;
     
-    if (targetHeight > parentHeight) {
-        targetHeight = parentHeight;
+    if (targetHeight > static_cast<float>(parentHeight))
+    {
+        targetHeight = static_cast<float>(parentHeight);
         targetWidth = targetHeight * viewAspectRatio;
     }
     
-    const int viewOffsetX = (parentWidth - targetWidth) / 2;
-    const int viewOffsetY = (parentHeight - targetHeight) / 2;
+    const int viewOffsetX = static_cast<int>((static_cast<float>(parentWidth) - targetWidth) / 2.f);
+    const int viewOffsetY = static_cast<int>((static_cast<float>(parentHeight) - targetHeight) / 2.f);
     
-    view->setBounds(viewOffsetX, viewOffsetY, targetWidth, targetHeight);
+    view->setBounds(viewOffsetX, viewOffsetY, static_cast<int>(targetWidth), static_cast<int>(targetHeight));
 }

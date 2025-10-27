@@ -26,7 +26,10 @@ namespace vmpc_juce::gui::vector {
     class Menu : public juce::Component, juce::ComponentListener, juce::FocusChangeListener {
 
         public:
-            Menu(mpc::Mpc &mpcToUse,
+            Menu(
+#if TARGET_OS_IPHONE
+                    mpc::Mpc &mpcToUse,
+#endif
                     const std::function<float()> &getScaleToUse,
                     const std::function<void()> &showAudioSettingsDialogToUse,
                     const std::function<void()> &resetWindowSizeToUse,
@@ -36,7 +39,10 @@ namespace vmpc_juce::gui::vector {
                     const std::function<juce::Font&()> &getMainFontScaledToUse,
                     const std::function<void()> &openAboutToUse,
                     juce::AudioProcessor::WrapperType wrapperTypeToUse)
-                : mpc(mpcToUse),
+                :
+#if TARGET_OS_IPHONE
+                mpc(mpcToUse),
+#endif
                 wrapperType(wrapperTypeToUse),
                 getScale(getScaleToUse),
                 showAudioSettingsDialog(showAudioSettingsDialogToUse),
@@ -532,7 +538,9 @@ namespace vmpc_juce::gui::vector {
                 return iconBounds;
             }
 
+#if TARGET_OS_IPHONE 
             mpc::Mpc &mpc;
+#endif
             juce::AudioProcessor::WrapperType wrapperType;
             const std::function<float()> &getScale;
             bool expanded = true;

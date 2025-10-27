@@ -17,10 +17,10 @@ namespace vmpc_juce::gui::vector {
             DataWheel(std::shared_ptr<mpc::hardware::DataWheel> dataWheelModelToUse, juce::Component *commonParentWithShadowToUse,
                       const float shadowSizeToUse,
                       const std::function<float()> &getScaleToUse)
-                : commonParentWithShadow(commonParentWithShadowToUse),
+                : dataWheelModel(dataWheelModelToUse),
+                commonParentWithShadow(commonParentWithShadowToUse),
                 shadowSize(shadowSizeToUse),
-                getScale(getScaleToUse),
-                dataWheelModel(dataWheelModelToUse)
+                getScale(getScaleToUse)
             {
                 backgroundSvg = new SvgComponent({"data_wheel_without_dimple_and_lines.svg"}, commonParentWithShadow, shadowSize, getScale);
                 addAndMakeVisible(backgroundSvg);
@@ -90,10 +90,10 @@ namespace vmpc_juce::gui::vector {
                 const auto width = drawableBounds.getWidth() * scale;
                 const auto height = drawableBounds.getHeight() * scale;
 
-                const auto centerX = getWidth() / 2.0f;
-                const auto centerY = getHeight() / 2.0f;
+                const auto centerX = static_cast<float>(getWidth()) / 2.0f;
+                const auto centerY = static_cast<float>(getHeight()) / 2.0f;
 
-                const auto radius = std::min(getWidth(), getHeight()) * 0.27f;
+                const auto radius = std::min(static_cast<float>(getWidth()), static_cast<float>(getHeight())) * 0.27f;
                 
                 const auto theta = newAngle * juce::MathConstants<float>::twoPi;
                 const auto xPos = centerX + std::sin(theta) * radius - width / 2.0f;
@@ -104,8 +104,5 @@ namespace vmpc_juce::gui::vector {
                 lines->setAngle(newAngle);
                 repaint();
             }
-
-
     };
-
 } // namespace vmpc_juce::gui::vector

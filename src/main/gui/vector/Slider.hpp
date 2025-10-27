@@ -27,8 +27,8 @@ class Slider: public juce::Component {
             const auto scale = getScale();
             const auto width = drawableBounds.getWidth() * scale;
             const auto height = drawableBounds.getHeight() * scale;
-            sliderCap->setSize(width, height);
-            sliderCap->setTopLeftPosition(getLocalBounds().getCentreX() - (width *0.5f), 50);
+            sliderCap->setSize(static_cast<int>(width), static_cast<int>(height));
+            sliderCap->setTopLeftPosition(static_cast<int>(getLocalBounds().toFloat().getCentreX() - (width *0.5f)), 50);
         }
 
         void paint(juce::Graphics &g) override

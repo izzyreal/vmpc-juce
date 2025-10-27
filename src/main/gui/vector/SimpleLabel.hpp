@@ -6,6 +6,8 @@
 #include "LabelComponent.hpp"
 #include "Constants.hpp"
 
+#include "FloatUtil.hpp"
+
 #include <string>
 #include <functional>
 
@@ -38,13 +40,13 @@ namespace vmpc_juce::gui::vector {
                 bool should_draw = false;
 
                 g.setColour(colour);
-                const auto yOffset = topMargin != -1.f ? topMargin : std::floor((getHeight() - getRequiredHeight()) / 2.f);
+                const auto yOffset = !nearlyEqual(topMargin, -1.f) ? topMargin : std::floor((static_cast<float>(getHeight()) - getRequiredHeight()) / 2.f);
 
                 for (auto c : text) 
                 {
                     if (c == '\n')
                     {
-                        g.drawText(buf, 0, std::round(yOffset + row * (Constants::BASE_FONT_SIZE + Constants::LINE_SIZE) * getScale()), getWidth(), getHeight(), juce::Justification::centredTop);
+                        g.drawText(buf, 0, static_cast<int>(std::round(yOffset + static_cast<float>(row) * (Constants::BASE_FONT_SIZE + Constants::LINE_SIZE) * getScale())), getWidth(), getHeight(), juce::Justification::centredTop);
                         row++;
                         should_draw = false;
                         buf.clear();
@@ -56,7 +58,7 @@ namespace vmpc_juce::gui::vector {
 
                 if (should_draw && !buf.empty())
                 {
-                    g.drawText(buf, 0, std::round(yOffset + row * (Constants::BASE_FONT_SIZE + Constants::LINE_SIZE) * getScale()), getWidth(), getHeight(), juce::Justification::centredTop);
+                    g.drawText(buf, 0, static_cast<int>(std::round(yOffset + static_cast<float>(row) * (Constants::BASE_FONT_SIZE + Constants::LINE_SIZE) * getScale())), getWidth(), getHeight(), juce::Justification::centredTop);
                 }
             }
 

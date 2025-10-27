@@ -42,7 +42,7 @@ namespace vmpc_juce::gui::vector {
                 const auto translateX = (unscaledOffsetFromAnchor.first - 2.5f) * scaleFactor;
                 const auto translateY = (unscaledOffsetFromAnchor.second + 1.5f) * scaleFactor;
 
-                auto targetBounds = positionAnchor->getLocalBounds()
+                auto targetBounds = positionAnchor->getLocalBounds().toFloat()
                     .translated(translateX, translateY);
                 auto targetCenter = positionAnchor->localPointToGlobal(targetBounds.getCentre());
 
@@ -58,10 +58,10 @@ namespace vmpc_juce::gui::vector {
 
                 const auto newWidth = 50.f * scaleFactor * tooltipTypeScaleFactor;
                 const auto newHeight = 21 * scaleFactor * tooltipTypeScaleFactor;
-                const int newX = targetCenter.x - int(newWidth / 2);
-                const int newY = targetCenter.y - int(newHeight / 2);
+                const int newX = static_cast<int>(targetCenter.x - newWidth / 2.f);
+                const int newY = static_cast<int>(targetCenter.y - newHeight / 2.f);
 
-                setBounds(newX, newY, newWidth, newHeight);
+                setBounds(newX, newY, static_cast<int>(newWidth), static_cast<int>(newHeight));
             }
 
             void paint(juce::Graphics &g) override
@@ -73,7 +73,7 @@ namespace vmpc_juce::gui::vector {
                 const auto shadowSize = 4.2f * scale;
                 const bool mimicPhysicalKeyRepresentationEnabled = shouldMimicPhysicalKeyRepresentation();
                 
-                auto fontHeight = (getHeight() * 1.2f - ((bidirectionalMarginBetweenTextAndBorder + lineThickness) * 2)) - (shadowSize * 2);
+                auto fontHeight = (static_cast<float>(getHeight()) * 1.2f - ((bidirectionalMarginBetweenTextAndBorder + lineThickness) * 2)) - (shadowSize * 2);
 
                 if (mimicPhysicalKeyRepresentationEnabled)
                 {
@@ -95,9 +95,9 @@ namespace vmpc_juce::gui::vector {
                 const auto totalHeight = (g.getCurrentFont().getHeight() * (mimicPhysicalKeyRepresentationEnabled ? 1.3f : 1.f)) +
                     (lineThickness + bidirectionalMarginBetweenTextAndBorder) * 2;
                 
-                if (totalWidthWithoutText + textWidth + (shadowSize * 2) > getWidth())
+                if (totalWidthWithoutText + textWidth + (shadowSize * 2) > static_cast<float>(getWidth()))
                 {
-                    textWidth = (getWidth() - totalWidthWithoutText) - (shadowSize * 2);
+                    textWidth = (static_cast<float>(getWidth()) - totalWidthWithoutText) - (shadowSize * 2);
                     textWidth -= 5.f;
                 }
 
@@ -108,8 +108,8 @@ namespace vmpc_juce::gui::vector {
                     totalWidth = totalHeight;
                 }
 
-                auto outer_rect = juce::Rectangle<float>((getWidth() - (textWidth + totalWidthWithoutText)) / 2, 
-                        (getHeight() - totalHeight) / 2, 
+                auto outer_rect = juce::Rectangle<float>((static_cast<float>(getWidth()) - (textWidth + totalWidthWithoutText)) / 2, 
+                        (static_cast<float>(getHeight()) - totalHeight) / 2, 
                         totalWidth,
                         totalHeight);
 

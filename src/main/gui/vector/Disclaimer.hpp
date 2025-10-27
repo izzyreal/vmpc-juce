@@ -33,12 +33,12 @@ namespace vmpc_juce::gui::vector {
                                          "not been authorized, sponsored or otherwise approved by inMusic.";
 
                 auto font = getMainFontScaled();
-                font.setHeight(font.getHeight() * 1.5);
+                font.setHeight(font.getHeight() * 1.5f);
                 g.setFont(font);
 
                 auto rect = getLocalBounds()/*.reduced(10)*/;
-                rect = rect.withTrimmedTop(((getHeight() - (font.getHeight() * 4)) / 2) - font.getHeight());
-                rect = rect.withTrimmedBottom(((getHeight() - (font.getHeight() * 4)) / 2) - font.getHeight());
+                rect = rect.withTrimmedTop(static_cast<int>(((static_cast<float>(getHeight()) - (font.getHeight() * 4)) / 2) - font.getHeight()));
+                rect = rect.withTrimmedBottom(static_cast<int>(((static_cast<float>(getHeight()) - (font.getHeight() * 4)) / 2) - font.getHeight()));
                 rect.reduce(2.f, 2.f);
 
                 juce::Path p;
@@ -56,7 +56,7 @@ namespace vmpc_juce::gui::vector {
                 g.setColour(juce::Colours::black);
                 g.drawRoundedRectangle(rect.toFloat(), 5, 2);
 
-                g.drawFittedText(text, getLocalBounds().reduced(font.getHeight()), juce::Justification::centred, 4);
+                g.drawFittedText(text, getLocalBounds().reduced(static_cast<int>(font.getHeight())), juce::Justification::centred, 4);
             }
 
         private:

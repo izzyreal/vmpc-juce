@@ -66,7 +66,7 @@ static mpc::hardware::ComponentId getCursorComponentId(const juce::MouseEvent &e
 }
 
 
-static std::optional<HostInputEvent> makeAbsoluteGestureFromMouse(
+inline std::optional<HostInputEvent> makeAbsoluteGestureFromMouse(
     const juce::MouseEvent& e,
     const std::string& label,
     GestureEvent::Type type,
@@ -104,7 +104,7 @@ static std::optional<HostInputEvent> makeAbsoluteGestureFromMouse(
     };
 }
 
-static std::optional<mpc::input::HostInputEvent> makeRelativeGestureFromMouse(const juce::MouseEvent &e,
+inline std::optional<mpc::input::HostInputEvent> makeRelativeGestureFromMouse(const juce::MouseEvent &e,
     const std::string& label,
     GestureEvent::Type type,
     float continuousDelta)

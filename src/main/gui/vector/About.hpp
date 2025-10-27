@@ -9,6 +9,8 @@
 #include "TextWithLinks.hpp"
 #include "VmpcJuceResourceUtil.hpp"
 
+#include "FloatUtil.hpp"
+
 namespace vmpc_juce::gui::vector {
 
     class OutsideAboutMouseClickListener : public juce::MouseListener {
@@ -77,7 +79,7 @@ namespace vmpc_juce::gui::vector {
                     return;
                 }
 
-                setScrollOffset(scrollOffset + scrollAmountForTimer * 7);
+                setScrollOffset(scrollOffset + static_cast<float>(scrollAmountForTimer * 7));
                 textWithLinks->updateSelectionEnd(textWithLinks->getMouseXYRelative());
             }
 
@@ -87,7 +89,7 @@ namespace vmpc_juce::gui::vector {
                 const auto lineThickness = scale;
                 const auto radius = scale * 3;
                 const auto margin = scale * marginAtScale1;
-                auto rect = getLocalBounds().toFloat().reduced(lineThickness * 0.5).withTrimmedLeft(radius).withTrimmedRight(radius);
+                auto rect = getLocalBounds().toFloat().reduced(lineThickness * 0.5f).withTrimmedLeft(radius).withTrimmedRight(radius);
                 rect = rect.withTrimmedBottom(margin);
                 rect = rect.withTrimmedTop(margin);
                 return rect;
@@ -102,14 +104,14 @@ namespace vmpc_juce::gui::vector {
 
                 const auto textBounds = getVisualTextBounds();
 
-                const bool increaseScrollOffset = e.getPosition().getY() > textBounds.getBottom();
-                const bool decreaseScrollOffset = e.getPosition().getY() < textBounds.getY();
+                const bool increaseScrollOffset = static_cast<float>(e.getPosition().getY()) > textBounds.getBottom();
+                const bool decreaseScrollOffset = static_cast<float>(e.getPosition().getY()) < textBounds.getY();
                 const int lengthOfAreaThatAffectsScrollSpeed = 100;
 
                 if (increaseScrollOffset)
                 {
-                    const int distanceBetweenMouseAndTextBoundsBottom = std::min<int>(e.getPosition().getY() - textBounds.getBottom(), lengthOfAreaThatAffectsScrollSpeed);
-                    const int interval = static_cast<int>((lengthOfAreaThatAffectsScrollSpeed - (distanceBetweenMouseAndTextBoundsBottom + 75)) * 6.f);
+                    const int distanceBetweenMouseAndTextBoundsBottom = std::min<int>(e.getPosition().getY() - static_cast<int>(textBounds.getBottom()), lengthOfAreaThatAffectsScrollSpeed);
+                    const int interval = static_cast<int>((lengthOfAreaThatAffectsScrollSpeed - (static_cast<float>(distanceBetweenMouseAndTextBoundsBottom) + 75.f)) * 6.f);
 
                     scrollAmountForTimer = 1;
 
@@ -128,8 +130,8 @@ namespace vmpc_juce::gui::vector {
 
                 if (decreaseScrollOffset)
                 {
-                    const int distanceBetweenMouseAndTextBoundsTop = std::min<int>(textBounds.getY() - e.getPosition().getY(), lengthOfAreaThatAffectsScrollSpeed);
-                    const int interval = static_cast<int>((lengthOfAreaThatAffectsScrollSpeed - (distanceBetweenMouseAndTextBoundsTop + 75)) * 6.f);
+                    const int distanceBetweenMouseAndTextBoundsTop = std::min<int>(static_cast<int>(textBounds.getY()) - e.getPosition().getY(), lengthOfAreaThatAffectsScrollSpeed);
+                    const int interval = static_cast<int>((lengthOfAreaThatAffectsScrollSpeed - (static_cast<float>(distanceBetweenMouseAndTextBoundsTop) + 75.f)) * 6.f);
 
                     scrollAmountForTimer = -1;
 
@@ -200,25 +202,25 @@ namespace vmpc_juce::gui::vector {
                 const auto closeAboutWidth = getWidth() * 0.06;
                 const auto closeAboutMargin = scale * 1.f;
 
-                const auto closeAboutRect = juce::Rectangle<float>(getWidth() - closeAboutWidth + scale, 0, closeAboutWidth, closeAboutWidth)
+                const auto closeAboutRect = juce::Rectangle<double>(getWidth() - closeAboutWidth + scale, 0, closeAboutWidth, closeAboutWidth)
                     .translated(-closeAboutMargin, closeAboutMargin * 2);
 
                 closeAbout->setBounds(closeAboutRect.toNearestInt());
 
                 const auto margin = marginAtScale1 * scale;
 
-                aboutScrollBar->setBounds(getWidth() - (scrollBarWidth + margin) + (scale * 2.f), closeAboutWidth, scrollBarWidth, getHeight() - ((margin * 0.5) + closeAboutWidth));
+                aboutScrollBar->setBounds(static_cast<int>(static_cast<float>(getWidth()) - (scrollBarWidth + margin) + (scale * 2.f)), static_cast<int>(closeAboutWidth), static_cast<int>(scrollBarWidth), static_cast<int>(getHeight() - ((margin * 0.5) + closeAboutWidth)));
 
                 if (textWithLinks->getWidth() == 0)
                 {
-                    textWithLinks->setBounds(margin, margin, getWidth() - std::ceil(margin * 2.f), 100000);
+                    textWithLinks->setBounds(static_cast<int>(margin), static_cast<int>(margin), static_cast<int>(static_cast<float>(getWidth()) - std::ceil(margin * 2.f)), 100000);
                 }
 
                 textWithLinks->updateFont();
                 const auto newTextHeight = textWithLinks->getTextLayoutHeight();
-                textWithLinks->setBounds(margin, margin, getWidth() - std::ceil(margin * 2.f), newTextHeight);
+                textWithLinks->setBounds(static_cast<int>(margin), static_cast<int>(margin), static_cast<int>(static_cast<float>(getWidth()) - std::ceil(margin * 2.f)), newTextHeight);
 
-                const auto newMaxScrollOffset = newTextHeight - (getHeight() - (margin * 2));
+                const auto newMaxScrollOffset = static_cast<float>(newTextHeight) - (static_cast<float>(getHeight()) - (margin * 2));
 
                 if (scrollOffset != 0.f)
                 {
@@ -246,7 +248,7 @@ namespace vmpc_juce::gui::vector {
 
                 scrollOffset = std::clamp<float>(newScrollOffset, 0, maxScrollOffset);
 
-                if (scrollOffset == oldScrollOffset && !force)
+                if (nearlyEqual(scrollOffset, oldScrollOffset) && !force)
                 {
                     return;
                 }
@@ -254,7 +256,7 @@ namespace vmpc_juce::gui::vector {
                 const auto scale = getScale();
                 const auto margin = marginAtScale1 * scale;
 
-                textWithLinks->setTopLeftPosition(margin, margin - scrollOffset);
+                textWithLinks->setTopLeftPosition(static_cast<int>(margin), static_cast<int>(margin - scrollOffset));
                 repaint();
             }
 

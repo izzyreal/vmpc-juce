@@ -31,8 +31,6 @@ class Shadow : public juce::Component {
             auto scale = getScale();
             auto radius = scale * shadowSize;
             juce::Point<float> offset = { 1.f * scale * shadowSize, 0.1f * scale * shadowSize };
-            auto spread = 0.f;
-
             auto path = getPath();
             juce::AffineTransform transform;
             const auto shadowDimensions = ViewUtil::getShadowDimensions(shadowSize, scale);

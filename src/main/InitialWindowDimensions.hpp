@@ -24,7 +24,7 @@ namespace vmpc_juce {
             {
                 int w, h;
 
-                h = getInitialWindowHeight();
+                h = static_cast<int>(getInitialWindowHeight());
 
                 if (h == 0)
                 {
@@ -32,13 +32,13 @@ namespace vmpc_juce {
                 }
                 else
                 {
-                    w = h * (baseLayoutWidth / (float) baseLayoutHeight);
+                    w = static_cast<int>(static_cast<float>(h) * (static_cast<float>(baseLayoutWidth) / (float) baseLayoutHeight));
                 }
 
                 if (!juce::JUCEApplication::isStandaloneApp())
                 {
-                    w = static_cast<int>(0.9f * w);
-                    h = static_cast<int>(0.9f * h);
+                    w = static_cast<int>(0.9f * static_cast<float>(w));
+                    h = static_cast<int>(0.9f * static_cast<float>(h));
                 }
 
                 return { w, h };

@@ -33,10 +33,10 @@ namespace vmpc_juce::gui::vector {
 
                 if (selectionStart != -1 && selectionEnd != -1)
                 {
-                    int start = std::min(selectionStart, selectionEnd);
-                    int end = std::max(selectionStart, selectionEnd);
+                    auto start = static_cast<size_t>(std::min(selectionStart, selectionEnd));
+                    auto end = static_cast<size_t>(std::max(selectionStart, selectionEnd));
 
-                    for (int i = start; i <= end; ++i)
+                    for (size_t i = start; i <= end; ++i)
                     {
                         if (i < characterBounds.size())
                         {
@@ -46,21 +46,21 @@ namespace vmpc_juce::gui::vector {
                 }
 
                 VmpcTextLayout layout;
-                layout.createLayout(parsedText, getWidth());
+                layout.createLayout(parsedText, static_cast<float>(getWidth()));
                 layout.draw(g, getLocalBounds().toFloat());
             }
 
             int getTextLayoutHeight()
             {
                 VmpcTextLayout layout;
-                layout.createLayout(parsedText, getWidth());
+                layout.createLayout(parsedText, static_cast<float>(getWidth()));
                 return (int)std::ceil(layout.getHeight());
             }
 
             void resized() override
             {
                 VmpcTextLayout layout;
-                layout.createLayout(parsedText, getWidth());
+                layout.createLayout(parsedText, static_cast<float>(getWidth()));
                 updateLinkBounds(layout);
                 updateCharacterBounds(layout);
             }
@@ -97,7 +97,7 @@ namespace vmpc_juce::gui::vector {
 
                 if (linkIndex != -1)
                 {
-                    updateLinkColor(linkIndex, juce::Colours::blue), juce::URL(links[linkIndex].url).launchInDefaultBrowser();
+                    updateLinkColor(linkIndex, juce::Colours::blue), juce::URL(links[static_cast<size_t>(linkIndex)].url).launchInDefaultBrowser();
                 }
 
                 if (e.mods.isShiftDown() && selectionStart != -1)
@@ -207,13 +207,13 @@ namespace vmpc_juce::gui::vector {
 
             int getLinkIndexAtPosition(juce::Point<int> p)
             {
-                for (int i = 0; i < links.size(); ++i)
+                for (size_t i = 0; i < links.size(); ++i)
                 {
                     for (auto &b : links[i].bounds)
                     {
                         if (b.toNearestIntEdges().contains(p))
                         {
-                            return i;
+                            return static_cast<int>(i);
                         }
                     }
                 }
@@ -253,19 +253,19 @@ namespace vmpc_juce::gui::vector {
                 if (p.getY() < 0) return 0;
                 else if (p.getY() > getHeight()) return parsedText.getText().length() - 1;
 
-                for (int i = 0; i < characterBounds.size(); ++i)
+                for (size_t i = 0; i < characterBounds.size(); ++i)
                 {
                     if (characterBounds[i].contains(p.toFloat()))
                     {
-                        return i;
+                        return static_cast<int>(i);
                     }
                 }
 
                 const auto lineIndex = getLineIndexAtPosition(p);
 
-                const auto thisLineBounds = lineBounds[lineIndex];
+                const auto thisLineBounds = lineBounds[static_cast<size_t>(lineIndex)];
 
-                const auto lineIndexToUse = p.getX() < thisLineBounds.getX() ? lineIndex - 1 : lineIndex;
+                const auto lineIndexToUse = static_cast<float>(p.getX()) < thisLineBounds.getX() ? lineIndex - 1 : lineIndex;
 
                 if (lineIndexToUse < 0)
                 {
@@ -349,13 +349,13 @@ namespace vmpc_juce::gui::vector {
                         const auto y = line.getLineBounds().getY();
                         const auto height = line.getLineBounds().getHeight();
 
-                        links[linkIndex].bounds.emplace_back(juce::Rectangle<float>(xRange.getStart(), y, xRange.getLength(), height));
+                        links[static_cast<size_t>(linkIndex)].bounds.emplace_back(juce::Rectangle<float>(xRange.getStart(), y, xRange.getLength(), height));
 
                         const auto partialLinkText = parsedText.getText().substring(run->stringRange.getStart(), run->stringRange.getEnd());
 
-                        currentLinkText.append(partialLinkText, partialLinkText.length());
+                        currentLinkText.append(partialLinkText, static_cast<size_t>(partialLinkText.length()));
 
-                        if (currentLinkText == links[linkIndex].displayText)
+                        if (currentLinkText == links[static_cast<size_t>(linkIndex)].displayText)
                         {
                             ++linkIndex;
                             currentLinkText.clear();
@@ -373,7 +373,7 @@ namespace vmpc_juce::gui::vector {
 
                 for (const auto& line : layout)
                 {
-                    lineBounds.push_back(line.getLineBounds().withWidth(getWidth()));
+                    lineBounds.push_back(line.getLineBounds().withWidth(static_cast<float>(getWidth())));
                     lineBoundsY = line.getLineBoundsY();
 
                     for (const auto& run : line.runs)
@@ -412,11 +412,11 @@ namespace vmpc_juce::gui::vector {
 
             int getLineIndexAtPosition(const juce::Point<int> &p)
             {
-                for (int i = 0; i < lineBounds.size(); i++)
+                for (size_t i = 0; i < lineBounds.size(); i++)
                 {
                     if (lineBounds[i].expanded(5000, 1).toNearestInt().contains(p))
                     {
-                        return i;
+                        return static_cast<int>(i);
                     }
                 }
                 return -1;

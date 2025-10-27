@@ -25,7 +25,8 @@ namespace vmpc_juce::gui::vector {
             {
                 const float currentValue = model->getValue();
 
-                if (lastValue != currentValue)
+                if (std::fabs(currentValue - lastValue) >
+                    std::numeric_limits<float>::epsilon() * std::max(1.0f, std::fabs(currentValue)))
                 {
                     handleAngleChanged(currentValue);
                     lastValue = currentValue;

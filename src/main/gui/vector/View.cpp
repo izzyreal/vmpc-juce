@@ -30,6 +30,10 @@
 
 #include <tuple>
 
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+#endif
+
 using namespace vmpc_juce::gui::vector;
 
 template<class ComponentClass>
@@ -212,7 +216,19 @@ View::View(mpc::Mpc &mpcToUse,
         getParentComponent()->setSize(initialRootWindowDimensions.first, initialRootWindowDimensions.second);
     };
 
-    menu = new Menu(mpc, getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen, setKeyboardShortcutTooltipsVisibility, tooltipOverlay, getMainFontScaled, openAbout, wrapperType);
+    menu = new Menu(
+#if TARGET_OS_IPHONE
+            mpc,
+#endif
+            getScale,
+            showAudioSettingsDialog,
+            resetWindowSize,
+            openKeyboardScreen,
+            setKeyboardShortcutTooltipsVisibility,
+            tooltipOverlay,
+            getMainFontScaled,
+            openAbout,
+            wrapperType);
 
     addAndMakeVisible(menu);
     addAndMakeVisible(tooltipOverlay);

@@ -59,7 +59,7 @@ class SvgComponent : public juce::Component
                 class ParentSizeAndPositionListener : public juce::ComponentListener {
                     public:
                         SvgComponent *svgComponent = nullptr;
-                        void componentMovedOrResized (Component &component, bool wasMoved, bool wasResized) {
+                        void componentMovedOrResized (Component &/*component*/, bool /*wasMoved*/, bool /*wasResized*/) {
                             svgComponent->syncShadowSiblingSizeAndPosition();
                         }
                 };

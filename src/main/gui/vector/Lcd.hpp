@@ -141,7 +141,7 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
                     const auto x_x2 = x * 2;
                     const auto y_x2 = y * 2;
 
-                    if ((*pixels)[x][y])
+                    if ((*pixels)[static_cast<size_t>(x)][static_cast<size_t>(y)])
                     {
                         c = halfOn;
                         img.setPixelAt(x_x2, y_x2, on);
@@ -206,8 +206,8 @@ class Lcd : public juce::Component, juce::Timer, public mpc::Observer {
             const auto w = float(getWidth()) * magicMultiplier;
             const auto h = w * asp_ratio;
             const auto img_scale = w / (248 * 2);
-            const auto unused_h_px = getWidth() - w;
-            const auto unused_v_px = getHeight() - h;
+            const auto unused_h_px = static_cast<float>(getWidth()) - w;
+            const auto unused_v_px = static_cast<float>(getHeight()) - h;
             const auto x_offset = unused_h_px * 0.5f;
             const auto y_offset = unused_v_px * 0.5f;
 

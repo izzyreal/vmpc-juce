@@ -4,6 +4,8 @@
 
 #include "SimpleLabel.hpp"
 
+#include "FloatUtil.hpp"
+
 namespace vmpc_juce::gui::vector {
     class RectangleLabel : public LabelComponent {
         public:
@@ -38,7 +40,7 @@ namespace vmpc_juce::gui::vector {
             {
                 const auto requiredWidthOfText =
                     getFont().getStringWidth(textToCalculateWidth);
-                return requiredWidthOfText + backgroundHorizontalMargin;
+                return static_cast<float>(requiredWidthOfText) + backgroundHorizontalMargin;
             }
 
             float getRequiredHeight() override
@@ -63,15 +65,15 @@ namespace vmpc_juce::gui::vector {
 
                 const auto requiredWidth = getFont().getStringWidth(textToCalculateWidth);
 
-                const auto amountToDeductFromWidth = ((float) (getWidth()) - (requiredWidth + backgroundHorizontalMargin)) / 2.f;
+                const auto amountToDeductFromWidth = ((float) (getWidth()) - (static_cast<float>(requiredWidth) + backgroundHorizontalMargin)) / 2.f;
                 const auto amountToDeductFromHeight = ((float) (getHeight()) - requiredHeight) / 2.f;
 
-                backgroundRect.reduce(amountToDeductFromWidth, amountToDeductFromHeight);
+                backgroundRect.reduce(static_cast<int>(amountToDeductFromWidth), static_cast<int>(amountToDeductFromHeight));
 
-                if (topMargin != -1)
+                if (!nearlyEqual(topMargin, -1.f))
                 {
-                    backgroundRect.translate(0, (backgroundRect.getHeight() - getLocalBounds().getHeight()) / 2.f);
-                    backgroundRect.translate(0, topMargin * scale * 0.7f); 
+                    backgroundRect.translate(0, static_cast<int>((static_cast<float>(backgroundRect.getHeight()) - getLocalBounds().toFloat().getHeight()) / 2.f));
+                    backgroundRect.translate(0, static_cast<int>(topMargin * scale * 0.7f)); 
                 }
 
                 g.fillRoundedRectangle(backgroundRect.toFloat(), radiusWithScale);
