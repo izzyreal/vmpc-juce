@@ -287,7 +287,9 @@ void Pad::sharedTimerCallback()
         using PadPressSource = mpc::sampler::Program::PadPressSource;
 
         const auto pressCountWithinActiveBank = program->isPadPressedBySource(
-            padIndexWithBank, PadPressSource::NON_PHYSICAL);
+            padIndexWithBank, PadPressSource::MIDI) + program->isPadPressedBySource(
+            padIndexWithBank, PadPressSource::GENERATED) + program->isPadPressedBySource(
+            padIndexWithBank, PadPressSource::SEQUENCED); ;
 
         if (pressCountWithinActiveBank > 0)
         {
@@ -331,7 +333,9 @@ void Pad::sharedTimerCallback()
             }
 
             const int programPressCount =
-                program->isPadPressedBySource(i, PadPressSource::NON_PHYSICAL);
+                program->isPadPressedBySource(i, PadPressSource::MIDI) +
+                program->isPadPressedBySource(i, PadPressSource::GENERATED) +
+                program->isPadPressedBySource(i, PadPressSource::SEQUENCED);
 
             if (programPressCount > 0)
             {
