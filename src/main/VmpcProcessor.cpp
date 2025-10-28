@@ -12,6 +12,7 @@
 #include <version.h>
 #include <AutoSave.hpp>
 #include <MpcSpecs.hpp>
+#include <Logger.hpp>
 
 #include <audiomidi/AudioMidiServices.hpp>
 #include <audiomidi/DiskRecorder.hpp>
