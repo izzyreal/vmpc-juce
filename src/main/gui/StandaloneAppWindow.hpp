@@ -5,6 +5,7 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_audio_utils/juce_audio_utils.h>
 
+#include "ThreadContext.hpp"
 #include "VmpcProcessor.hpp"
 #include "AudioMidiSettingsComponent.hpp"
 
@@ -650,7 +651,7 @@ namespace vmpc_juce
                 void
                 changeListenerCallback(ChangeBroadcaster * /*source*/) override
                 {
-                    mpc.panic();
+                    mpc.panic(mpc::ThreadContext::GUI);
                 }
             };
 

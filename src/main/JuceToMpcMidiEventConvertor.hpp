@@ -3,6 +3,7 @@
 #include <juce_audio_utils/juce_audio_utils.h>
 
 #include <client/event/ClientMidiEvent.hpp>
+#include <ThreadContext.hpp>
 
 namespace vmpc_juce
 {
@@ -12,7 +13,7 @@ namespace vmpc_juce
         static mpc::client::event::ClientMidiEvent
         convert(const juce::MidiMessage &m)
         {
-            mpc::client::event::ClientMidiEvent mpcMidiEvent;
+            mpc::client::event::ClientMidiEvent mpcMidiEvent(mpc::ThreadContext::Audio);
             mpcMidiEvent.setChannel(m.getChannel() - 1);
             mpcMidiEvent.setBufferOffset(m.getTimeStamp());
 

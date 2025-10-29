@@ -173,7 +173,7 @@ void VmpcProcessor::changeProgramName(int /* index */,
 
 void VmpcProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    mpc.panic();
+    mpc.panic(mpc::ThreadContext::GUI);
     auto seq = mpc.getSequencer();
     bool seqWasPlaying = seq->isPlaying();
     bool seqWasOverdubbing = seq->isOverdubbing();
