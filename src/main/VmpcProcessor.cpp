@@ -1311,7 +1311,8 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
 
     for (int i = 0; i < mpc::Mpc2000XlSpecs::DRUM_BUS_COUNT; ++i)
     {
-        for (auto &m : mpc.getSequencer()->getDrumBus(i)->getIndivFxMixerChannels())
+        for (auto &m :
+             mpc.getSequencer()->getDrumBus(i)->getIndivFxMixerChannels())
         {
             if (m->getOutput() == 0)
             {

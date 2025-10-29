@@ -52,7 +52,8 @@ getProgramForCurrentScreen(mpc::Mpc &mpc)
     }
 
     auto sampler = mpc.getSampler();
-    return sampler->getProgram(mpc.getSequencer()->getDrumBus(drumIndex)->getProgram());
+    return sampler->getProgram(
+        mpc.getSequencer()->getDrumBus(drumIndex)->getProgram());
 }
 
 Pad::Pad(juce::Component *commonParentWithShadowToUse,
@@ -187,7 +188,8 @@ void Pad::loadFile(const juce::String path, bool shouldBeConverted)
             "LOADING " + mpc::StrUtil::padRight(soundFileName, " ", 16) + ext,
             300);
 
-        auto drumBus = mpc.getSequencer()->getBus<DrumBus>(mpc.getSequencer()->getActiveTrack()->getBus());
+        auto drumBus = mpc.getSequencer()->getBus<DrumBus>(
+            mpc.getSequencer()->getActiveTrack()->getBus());
 
         if (!drumBus)
         {
@@ -230,176 +232,178 @@ void Pad::filesDropped(const juce::StringArray &files, int, int)
 
 void Pad::sharedTimerCallback()
 {
-    static float decay = 0.05f;
-    static auto applyDecay = [&](float &f)
-    {
-        f -= decay;
-    };
-    static float decayThreshold = 0.f;
-    const int bank =
-        static_cast<int>(mpc.clientEventController->getActiveBank());
-    const int padIndexWithBank = mpcPad->getIndex() + (bank * 16);
-
-    if (mpcPad->isPressed())
-    {
-        bool hasPrimaryPress = false;
-
-        for (auto &p : primaryPresses)
-        {
-            if (p.alpha == 1.f)
-            {
-                hasPrimaryPress = true;
-                break;
-            }
-        }
-
-        if (!hasPrimaryPress)
-        {
-            primaryPresses.push_back({padIndexWithBank, 1.f, true});
-        }
-    }
-    else
-    {
-        for (auto it = primaryPresses.begin(); it != primaryPresses.end();)
-        {
-            if (it->alpha <= decayThreshold)
-            {
-                primaryPresses.erase(it);
-            }
-            else
-            {
-                // it->alpha -= decay;
-                applyDecay(it->alpha);
-                ++it;
-            }
-        }
-    }
-
-    float primaryPressAlpha = 0.f;
-    for (auto &p : primaryPresses)
-    {
-        primaryPressAlpha += p.alpha;
-    }
-    glowSvg->setAlpha(std::clamp(primaryPressAlpha, 0.f, 1.f));
-
-    if (const auto program = getProgramForCurrentScreen(mpc); program)
-    {
-        using PadPressSource = mpc::sampler::Program::PadPressSource;
-
-        const auto pressCountWithinActiveBank = program->isPadPressedBySource(
-            padIndexWithBank, PadPressSource::MIDI) + program->isPadPressedBySource(
-            padIndexWithBank, PadPressSource::GENERATED) + program->isPadPressedBySource(
-            padIndexWithBank, PadPressSource::SEQUENCED); ;
-
-        if (pressCountWithinActiveBank > 0)
-        {
-            bool hasSecondaryPress = false;
-
-            for (auto &p : secondaryPresses)
-            {
-                if (p.alpha == 1.f && p.padIndexWithBank == padIndexWithBank)
-                {
-                    hasSecondaryPress = true;
-                    break;
-                }
-            }
-
-            if (!hasSecondaryPress)
-            {
-                secondaryPresses.push_back({padIndexWithBank, 1.f, false});
-            }
-        }
-        else
-        {
-            for (auto it = secondaryPresses.begin();
-                 it != secondaryPresses.end();)
-            {
-                if (it->alpha <= decayThreshold)
-                {
-                    secondaryPresses.erase(it);
-                    continue;
-                }
-
-                applyDecay(it->alpha);
-                ++it;
-            }
-        }
-
-        for (int i = mpcPad->getIndex(); i < 64; i += 16)
-        {
-            if (i == padIndexWithBank)
-            {
-                continue;
-            }
-
-            const int programPressCount =
-                program->isPadPressedBySource(i, PadPressSource::MIDI) +
-                program->isPadPressedBySource(i, PadPressSource::GENERATED) +
-                program->isPadPressedBySource(i, PadPressSource::SEQUENCED);
-
-            if (programPressCount > 0)
-            {
-                bool hasTertiaryPress = false;
-
-                for (auto &p : tertiaryPresses)
-                {
-                    if (p.alpha == 1.f && p.padIndexWithBank == i)
-                    {
-                        hasTertiaryPress = true;
-                        break;
-                    }
-                }
-
-                if (!hasTertiaryPress)
-                {
-                    tertiaryPresses.push_back({i, 1.f, false});
-                }
-            }
-            else
-            {
-                for (auto it = tertiaryPresses.begin();
-                     it != tertiaryPresses.end();)
-                {
-                    if (it->alpha <= decayThreshold)
-                    {
-                        tertiaryPresses.erase(it);
-                        continue;
-                    }
-                    applyDecay(it->alpha);
-                    ++it;
-                }
-            }
-        }
-    }
-
-    bool bankHasChanged = false;
-
-    if (bank != lastBank)
-    {
-        bankHasChanged = true;
-        lastBank = bank;
-    }
-
-    if (bankHasChanged)
-    {
-        for (auto &p : secondaryPresses)
-        {
-            if (p.alpha == 1.f)
-            {
-                p.alpha -= decay;
-            }
-        }
-
-        for (auto &p : tertiaryPresses)
-        {
-            if (p.alpha == 1.f)
-            {
-                p.alpha -= decay;
-            }
-        }
-    }
-
-    repaint();
+    // static float decay = 0.05f;
+    // static auto applyDecay = [&](float &f)
+    // {
+    //     f -= decay;
+    // };
+    // static float decayThreshold = 0.f;
+    // const int bank =
+    //     static_cast<int>(mpc.clientEventController->getActiveBank());
+    // const int padIndexWithBank = mpcPad->getIndex() + (bank * 16);
+    //
+    // if (mpcPad->isPressed())
+    // {
+    //     bool hasPrimaryPress = false;
+    //
+    //     for (auto &p : primaryPresses)
+    //     {
+    //         if (p.alpha == 1.f)
+    //         {
+    //             hasPrimaryPress = true;
+    //             break;
+    //         }
+    //     }
+    //
+    //     if (!hasPrimaryPress)
+    //     {
+    //         primaryPresses.push_back({padIndexWithBank, 1.f, true});
+    //     }
+    // }
+    // else
+    // {
+    //     for (auto it = primaryPresses.begin(); it != primaryPresses.end();)
+    //     {
+    //         if (it->alpha <= decayThreshold)
+    //         {
+    //             primaryPresses.erase(it);
+    //         }
+    //         else
+    //         {
+    //             // it->alpha -= decay;
+    //             applyDecay(it->alpha);
+    //             ++it;
+    //         }
+    //     }
+    // }
+    //
+    // float primaryPressAlpha = 0.f;
+    // for (auto &p : primaryPresses)
+    // {
+    //     primaryPressAlpha += p.alpha;
+    // }
+    // glowSvg->setAlpha(std::clamp(primaryPressAlpha, 0.f, 1.f));
+    //
+    // if (const auto program = getProgramForCurrentScreen(mpc); program)
+    // {
+    //     using PadPressSource = mpc::sampler::Program::PadPressSource;
+    //
+    //     const auto pressCountWithinActiveBank =
+    //     program->isPadPressedBySource(
+    //         padIndexWithBank, PadPressSource::MIDI) +
+    //         program->isPadPressedBySource( padIndexWithBank,
+    //         PadPressSource::GENERATED) + program->isPadPressedBySource(
+    //         padIndexWithBank, PadPressSource::SEQUENCED); ;
+    //
+    //     if (pressCountWithinActiveBank > 0)
+    //     {
+    //         bool hasSecondaryPress = false;
+    //
+    //         for (auto &p : secondaryPresses)
+    //         {
+    //             if (p.alpha == 1.f && p.padIndexWithBank == padIndexWithBank)
+    //             {
+    //                 hasSecondaryPress = true;
+    //                 break;
+    //             }
+    //         }
+    //
+    //         if (!hasSecondaryPress)
+    //         {
+    //             secondaryPresses.push_back({padIndexWithBank, 1.f, false});
+    //         }
+    //     }
+    //     else
+    //     {
+    //         for (auto it = secondaryPresses.begin();
+    //              it != secondaryPresses.end();)
+    //         {
+    //             if (it->alpha <= decayThreshold)
+    //             {
+    //                 secondaryPresses.erase(it);
+    //                 continue;
+    //             }
+    //
+    //             applyDecay(it->alpha);
+    //             ++it;
+    //         }
+    //     }
+    //
+    //     for (int i = mpcPad->getIndex(); i < 64; i += 16)
+    //     {
+    //         if (i == padIndexWithBank)
+    //         {
+    //             continue;
+    //         }
+    //
+    //         const int programPressCount =
+    //             program->isPadPressedBySource(i, PadPressSource::MIDI) +
+    //             program->isPadPressedBySource(i, PadPressSource::GENERATED) +
+    //             program->isPadPressedBySource(i, PadPressSource::SEQUENCED);
+    //
+    //         if (programPressCount > 0)
+    //         {
+    //             bool hasTertiaryPress = false;
+    //
+    //             for (auto &p : tertiaryPresses)
+    //             {
+    //                 if (p.alpha == 1.f && p.padIndexWithBank == i)
+    //                 {
+    //                     hasTertiaryPress = true;
+    //                     break;
+    //                 }
+    //             }
+    //
+    //             if (!hasTertiaryPress)
+    //             {
+    //                 tertiaryPresses.push_back({i, 1.f, false});
+    //             }
+    //         }
+    //         else
+    //         {
+    //             for (auto it = tertiaryPresses.begin();
+    //                  it != tertiaryPresses.end();)
+    //             {
+    //                 if (it->alpha <= decayThreshold)
+    //                 {
+    //                     tertiaryPresses.erase(it);
+    //                     continue;
+    //                 }
+    //                 applyDecay(it->alpha);
+    //                 ++it;
+    //             }
+    //         }
+    //     }
+    // }
+    //
+    // bool bankHasChanged = false;
+    //
+    // if (bank != lastBank)
+    // {
+    //     bankHasChanged = true;
+    //     lastBank = bank;
+    // }
+    //
+    // if (bankHasChanged)
+    // {
+    //     for (auto &p : secondaryPresses)
+    //     {
+    //         if (p.alpha == 1.f)
+    //         {
+    //             p.alpha -= decay;
+    //         }
+    //     }
+    //
+    //     for (auto &p : tertiaryPresses)
+    //     {
+    //         if (p.alpha == 1.f)
+    //         {
+    //             p.alpha -= decay;
+    //         }
+    //     }
+    // }
+    //
+    // repaint();
 }
 
 int Pad::getVelo(int veloY)
