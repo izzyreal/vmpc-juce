@@ -22,7 +22,6 @@
 #include <lcdgui/ScreenGroups.hpp>
 
 #include <StrUtil.hpp>
-
 #include <Logger.hpp>
 
 using namespace vmpc_juce::gui::vector;
@@ -48,9 +47,7 @@ getProgramForCurrentScreen(mpc::Mpc &mpc)
     const auto currentScreen = mpc.getLayeredScreen()->getCurrentScreen();
     const int drumIndex = getDrumIndexForCurrentScreen(mpc, currentScreen);
     if (drumIndex < 0)
-    {
         return nullptr;
-    }
 
     auto sampler = mpc.getSampler();
     return sampler->getProgram(
@@ -59,11 +56,14 @@ getProgramForCurrentScreen(mpc::Mpc &mpc)
 
 Pad::Pad(juce::Component *commonParentWithShadowToUse,
          const float shadowSizeToUse,
-         const std::function<float()> &getScaleToUse, mpc::Mpc &mpcToUse,
+         const std::function<float()> &getScaleToUse,
+         mpc::Mpc &mpcToUse,
          std::shared_ptr<mpc::hardware::Pad> mpcPadToUse)
     : SvgComponent({"pad.svg", "pressed_pad.svg"}, commonParentWithShadowToUse,
                    shadowSizeToUse, getScaleToUse),
-      mpc(mpcToUse), mpcPad(mpcPadToUse), getScale(getScaleToUse)
+      mpc(mpcToUse),
+      mpcPad(std::move(mpcPadToUse)),
+      getScale(getScaleToUse)
 {
     glowSvg = new SvgComponent({"pad_glow.svg"}, commonParentWithShadowToUse,
                                0.f, getScaleToUse);
@@ -74,16 +74,13 @@ Pad::Pad(juce::Component *commonParentWithShadowToUse,
 bool Pad::isInterestedInFileDrag(const juce::StringArray &files)
 {
     if (files.size() != 1)
-    {
         return false;
-    }
 
     for (auto &s : files)
     {
-        if (mpc::StrUtil::hasEnding(mpc::StrUtil::toLower(s.toStdString()),
-                                    ".snd") ||
-            mpc::StrUtil::hasEnding(mpc::StrUtil::toLower(s.toStdString()),
-                                    ".wav"))
+        const auto lower = mpc::StrUtil::toLower(s.toStdString());
+        if (mpc::StrUtil::hasEnding(lower, ".snd") ||
+            mpc::StrUtil::hasEnding(lower, ".wav"))
         {
             if (glowSvg->getAlpha() == 0.f)
             {
@@ -98,154 +95,111 @@ bool Pad::isInterestedInFileDrag(const juce::StringArray &files)
 
 void Pad::loadFile(const juce::String path, bool shouldBeConverted)
 {
-    if (mpc::StrUtil::hasEnding(mpc::StrUtil::toLower(path.toStdString()),
-                                ".snd") ||
-        mpc::StrUtil::hasEnding(mpc::StrUtil::toLower(path.toStdString()),
-                                ".wav"))
+    const auto lower = mpc::StrUtil::toLower(path.toStdString());
+    if (!mpc::StrUtil::hasEnding(lower, ".snd") &&
+        !mpc::StrUtil::hasEnding(lower, ".wav"))
+        return;
+
+    auto sampler = mpc.getSampler();
+
+    SoundLoader soundLoader(mpc, false);
+    soundLoader.setPreview(false);
+
+    auto compatiblePath =
+        mpc::StrUtil::replaceAll(path.toStdString(), '\\', std::string("\\"));
+    auto file = std::make_shared<mpc::disk::MpcFile>(fs::path(compatiblePath));
+    auto layeredScreen = mpc.getLayeredScreen();
+
+    SoundLoaderResult result;
+    auto sound = mpc.getSampler()->addSound();
+    if (!sound)
+        return;
+
+    soundLoader.loadSound(file, result, sound, shouldBeConverted);
+
+    if (!result.success)
     {
-        auto sampler = mpc.getSampler();
+        sampler->deleteSound(sound);
 
-        SoundLoader soundLoader(mpc, false);
-        soundLoader.setPreview(false);
-
-        auto compatiblePath = mpc::StrUtil::replaceAll(path.toStdString(), '\\',
-                                                       std::string("\\"));
-
-        auto file =
-            std::make_shared<mpc::disk::MpcFile>(fs::path(compatiblePath));
-
-        auto layeredScreen = mpc.getLayeredScreen();
-
-        SoundLoaderResult result;
-        auto sound = mpc.getSampler()->addSound();
-
-        if (sound == nullptr)
+        if (result.canBeConverted)
         {
-            return;
-        }
-
-        soundLoader.loadSound(file, result, sound, shouldBeConverted);
-
-        if (!result.success)
-        {
-            sampler->deleteSound(sound);
-
-            if (result.canBeConverted)
+            auto loadRoutine = [&, path, layeredScreen]()
             {
-                auto loadRoutine = [&, path, layeredScreen]()
-                {
-                    const bool shouldBeConverted2 = true;
-                    loadFile(path, shouldBeConverted2);
-                };
-
-                auto convertAndLoadWavScreen =
-                    mpc.screens->get<VmpcConvertAndLoadWavScreen>();
-                convertAndLoadWavScreen->setLoadRoutine(loadRoutine);
-                layeredScreen->openScreen("vmpc-convert-and-load-wav");
-            }
-            return;
+                const bool shouldBeConverted2 = true;
+                loadFile(path, shouldBeConverted2);
+            };
+            auto convertAndLoadWavScreen =
+                mpc.screens->get<VmpcConvertAndLoadWavScreen>();
+            convertAndLoadWavScreen->setLoadRoutine(loadRoutine);
+            layeredScreen->openScreen("vmpc-convert-and-load-wav");
         }
+        return;
+    }
 
-        std::string soundFileName;
+    std::string soundFileName;
+    for (auto &c : mpc::StrUtil::toUpper(file->getNameWithoutExtension()))
+    {
+        if (c == ' ')
+            soundFileName.push_back('_');
+        else if (mpc::file::AkaiName::isValidChar(c))
+            soundFileName.push_back(c);
+    }
 
-        for (auto &c : mpc::StrUtil::toUpper(file->getNameWithoutExtension()))
-        {
-            if (c == ' ')
-            {
-                soundFileName.push_back('_');
-                continue;
-            }
-            if (mpc::file::AkaiName::isValidChar(c))
-            {
-                soundFileName.push_back(c);
-            }
-        }
+    if (soundFileName.empty())
+        return;
 
-        if (soundFileName.empty())
-        {
-            return;
-        }
+    if (soundFileName.length() >= 16)
+        soundFileName = soundFileName.substr(0, 16);
 
-        if (soundFileName.length() >= 16)
-        {
-            soundFileName = soundFileName.substr(0, 16);
-        }
+    soundFileName = sampler->addOrIncreaseNumber(soundFileName);
+    sound->setName(soundFileName);
 
-        /**
-         * TODO Pad::loadFile should use the exact same logic as LoadScreen does
-         * when loading SND or WAV
-         * files. For now we preemptively bump the sound counter to make sure
-         * we don't get duplicate sound names. But if we follow LoadScreen
-         * logic, we will get a chance to CANCEL or RENAME in case a sound
-         * already exists. With the current logic, loading a file named
-         * "FULL1.SND" into an empty VMPC2000XL results in a sound named FULL2.
-         */
-        soundFileName = sampler->addOrIncreaseNumber(soundFileName);
-        sound->setName(soundFileName);
+    auto ext = file->getExtension();
 
-        auto ext = file->getExtension();
+    mpc.getLayeredScreen()->showPopupForMs(
+        "LOADING " + mpc::StrUtil::padRight(soundFileName, " ", 16) + ext, 300);
 
-        mpc.getLayeredScreen()->showPopupForMs(
-            "LOADING " + mpc::StrUtil::padRight(soundFileName, " ", 16) + ext,
-            300);
+    auto drumBus = mpc.getSequencer()->getBus<DrumBus>(
+        mpc.getSequencer()->getActiveTrack()->getBus());
+    if (!drumBus)
+        return;
 
-        auto drumBus = mpc.getSequencer()->getBus<DrumBus>(
-            mpc.getSequencer()->getActiveTrack()->getBus());
+    auto programIndex = drumBus->getProgram();
+    auto program = mpc.getSampler()->getProgram(programIndex);
+    auto soundIndex = mpc.getSampler()->getSoundCount() - 1;
+    const int bank = static_cast<int>(mpc.clientEventController->getActiveBank());
+    auto padIndex = mpcPad->getIndex() + (bank * 16);
+    auto programPad = program->getPad(padIndex);
+    auto padNote = programPad->getNote();
 
-        if (!drumBus)
-        {
-            return;
-        }
-
-        auto programIndex = drumBus->getProgram();
-        auto program = mpc.getSampler()->getProgram(programIndex);
-        auto soundIndex = mpc.getSampler()->getSoundCount() - 1;
-        const int bank =
-            static_cast<int>(mpc.clientEventController->getActiveBank());
-        auto padIndex = mpcPad->getIndex() + (bank * 16);
-        auto programPad = program->getPad(padIndex);
-        auto padNote = programPad->getNote();
-
-        auto noteParameters = dynamic_cast<mpc::sampler::NoteParameters *>(
-            program->getNoteParameters(padNote));
-
-        if (noteParameters != nullptr)
-        {
-            noteParameters->setSoundIndex(soundIndex);
-        }
+    if (auto noteParams =
+            dynamic_cast<mpc::sampler::NoteParameters *>(
+                program->getNoteParameters(padNote)))
+    {
+        noteParams->setSoundIndex(soundIndex);
     }
 }
 
 void Pad::filesDropped(const juce::StringArray &files, int, int)
 {
     if (files.size() != 1)
-    {
         return;
-    }
 
     const bool shouldBeConverted = false;
-
-    for (auto &f : files)
-    {
-        loadFile(f, shouldBeConverted);
-    }
+    loadFile(files[0], shouldBeConverted);
 }
 
 int Pad::getVelo(int veloY)
 {
-    return (float)veloY / getHeight();
+    return static_cast<float>(veloY) / getHeight();
 }
 
 void Pad::mouseDrag(const juce::MouseEvent &event)
 {
     if (!mpcPad->isPressed())
-    {
         return;
-    }
 
-    auto newVelo = getVelo(event.y);
-
-    mpcPad->aftertouch(static_cast<unsigned char>(newVelo));
+    mpcPad->aftertouch(static_cast<unsigned char>(getVelo(event.y)));
 }
 
 void Pad::resized()
@@ -264,28 +218,17 @@ void Pad::sharedTimerCallback()
     static constexpr float decay = 0.03f;
     static constexpr float decayThreshold = 0.f;
 
-    auto applyDecay = [&](auto &presses) -> bool
+    auto decayPress = [&](std::optional<Press> &press) -> bool
     {
-        bool mutated = false;
-        for (auto it = presses.begin(); it != presses.end();)
+        if (!press)
+            return false;
+        press->alpha -= decay;
+        if (press->alpha <= decayThreshold)
         {
-            if (it->alpha <= decayThreshold)
-            {
-                it = presses.erase(it);
-                mutated = true;
-            }
-            else
-            {
-                float oldAlpha = it->alpha;
-                it->alpha -= decay;
-                if (it->alpha != oldAlpha)
-                {
-                    mutated = true;
-                }
-                ++it;
-            }
+            press.reset();
+            return true;
         }
-        return mutated;
+        return true;
     };
 
     const int bank =
@@ -294,112 +237,111 @@ void Pad::sharedTimerCallback()
 
     bool mutated = false;
 
+    // PRIMARY PRESS
     if (mpcPad->isPressed())
     {
-        bool hasPrimaryPress =
-            std::any_of(primaryPresses.begin(), primaryPresses.end(),
-                        [](auto &p)
-                        {
-                            return p.alpha == 1.f;
-                        });
-        if (!hasPrimaryPress)
+        if (!primaryPress || primaryPress->alpha < 1.f)
         {
-            primaryPresses.push_back({padIndexWithBank, 1.f});
+            primaryPress = Press{padIndexWithBank, 1.f};
             mutated = true;
         }
     }
-    else
+    else if (primaryPress)
     {
-        mutated |= applyDecay(primaryPresses);
+        mutated |= decayPress(primaryPress);
     }
 
-    float primaryPressAlpha = 0.f;
-    for (auto &p : primaryPresses)
-    {
-        primaryPressAlpha += p.alpha;
-    }
-
-    float newAlpha = std::clamp(primaryPressAlpha, 0.f, 1.f);
+    float newAlpha = primaryPress ? std::clamp(primaryPress->alpha, 0.f, 1.f) : 0.f;
     if (glowSvg->getAlpha() != newAlpha)
     {
         glowSvg->setAlpha(newAlpha);
         mutated = true;
     }
 
+    // SECONDARY / TERTIARY PRESS VISUALS
     const auto snapshot = mpc.eventRegistry->getSnapshot();
-    static const std::vector<mpc::eventregistry::Source> sourcesToExclude{
+    static const std::vector<mpc::eventregistry::Source> exclude{
         mpc::eventregistry::Source::VirtualMpcHardware};
 
     if (auto program = getProgramForCurrentScreen(mpc))
     {
-        const bool pressedVisible = snapshot.isProgramPadPressed(
-            static_cast<uint8_t>(padIndexWithBank), sourcesToExclude);
+        const bool pressedVisible =
+            snapshot.isProgramPadPressed(static_cast<uint8_t>(padIndexWithBank),
+                                         exclude);
         if (pressedVisible)
         {
-            bool hasSecondaryPress =
-                std::any_of(secondaryPresses.begin(), secondaryPresses.end(),
-                            [&](auto &p)
-                            {
-                                return p.alpha == 1.f &&
-                                       p.padIndexWithBank == padIndexWithBank;
-                            });
-            if (!hasSecondaryPress)
+            if (!secondaryPress)
             {
-                secondaryPresses.push_back({padIndexWithBank, 1.f});
+                secondaryPress = Press{padIndexWithBank, 1.f};
+                mutated = true;
+            }
+            else if (secondaryPress->padIndexWithBank == padIndexWithBank &&
+                     secondaryPress->alpha < 1.f)
+            {
+                secondaryPress->alpha = 1.f;
+                mutated = true;
+            }
+            else if (secondaryPress->padIndexWithBank != padIndexWithBank)
+            {
+                secondaryPress = Press{padIndexWithBank, 1.f};
                 mutated = true;
             }
         }
-        else
+        else if (secondaryPress)
         {
-            mutated |= applyDecay(secondaryPresses);
+            mutated |= decayPress(secondaryPress);
         }
 
+        int otherBanked = -1;
         for (int i = mpcPad->getIndex(); i < 64; i += 16)
         {
             if (i == padIndexWithBank)
-            {
                 continue;
+            if (snapshot.isProgramPadPressed(static_cast<uint8_t>(i), exclude))
+            {
+                otherBanked = i;
+                break;
             }
-            const bool pressedInvisible = snapshot.isProgramPadPressed(
-                static_cast<uint8_t>(i), sourcesToExclude);
+        }
 
-            if (pressedInvisible)
+        if (otherBanked != -1)
+        {
+            if (!tertiaryPress)
             {
-                bool hasTertiaryPress = std::any_of(
-                    tertiaryPresses.begin(), tertiaryPresses.end(),
-                    [&](auto &p)
-                    {
-                        return p.alpha == 1.f && p.padIndexWithBank == i;
-                    });
-                if (!hasTertiaryPress)
-                {
-                    tertiaryPresses.push_back({i, 1.f});
-                    mutated = true;
-                }
+                tertiaryPress = Press{otherBanked, 1.f};
+                mutated = true;
             }
-            else
+            else if (tertiaryPress->padIndexWithBank == otherBanked &&
+                     tertiaryPress->alpha < 1.f)
             {
-                mutated |= applyDecay(tertiaryPresses);
+                tertiaryPress->alpha = 1.f;
+                mutated = true;
             }
+            else if (tertiaryPress->padIndexWithBank != otherBanked)
+            {
+                tertiaryPress = Press{otherBanked, 1.f};
+                mutated = true;
+            }
+        }
+        else if (tertiaryPress)
+        {
+            mutated |= decayPress(tertiaryPress);
         }
     }
 
     if (bank != lastBank)
     {
         lastBank = bank;
-        auto fadeAll = [&](auto &presses)
+        auto fadePress = [&](std::optional<Press> &press)
         {
-            for (auto &p : presses)
+            if (press && press->alpha == 1.f)
             {
-                if (p.alpha == 1.f)
-                {
-                    p.alpha -= decay;
-                    mutated = true;
-                }
+                press->alpha -= decay;
+                mutated = true;
             }
         };
-        fadeAll(secondaryPresses);
-        fadeAll(tertiaryPresses);
+        fadePress(secondaryPress);
+        fadePress(tertiaryPress);
     }
 
     if (mutated)
@@ -430,24 +372,19 @@ void Pad::sharedTimerCallback()
 void Pad::paint(juce::Graphics &g)
 {
     SvgComponent::paint(g);
-
     const float scale = getScale();
 
-    auto drawOutline = [&](const std::vector<Press> &presses,
+    auto drawOutline = [&](const std::optional<Press> &press,
                            juce::Colour baseColour, int inset,
                            float baseThickness, float baseCornerRadius,
                            bool addInwardGlow = true)
     {
-        float alpha = 0.f;
-        for (auto &p : presses)
-        {
-            alpha += p.alpha;
-        }
-        alpha = std::clamp(alpha, 0.f, 1.f);
-        if (alpha <= 0.f)
-        {
+        if (!press)
             return;
-        }
+
+        const float alpha = std::clamp(press->alpha, 0.f, 1.f);
+        if (alpha <= 0.f)
+            return;
 
         const float thickness = baseThickness * scale;
         const float cornerRadius = baseCornerRadius * scale;
@@ -456,17 +393,14 @@ void Pad::paint(juce::Graphics &g)
 
         if (addInwardGlow)
         {
-            // Create a radial gradient that’s bright at the edges, fading
-            // inward.
             juce::Colour inner = baseColour.withAlpha(baseAlpha * 0.05f);
             juce::Colour outer = baseColour.withAlpha(baseAlpha * 0.5f);
 
-            juce::ColourGradient grad(
-                inner, bounds.getCentreX(), bounds.getCentreY(), outer,
-                bounds.getCentreX(),
-                bounds.getCentreY() -
-                    bounds.getHeight() * 1.2f, // reduced radius
-                true);
+            juce::ColourGradient grad(inner, bounds.getCentreX(),
+                                      bounds.getCentreY(), outer,
+                                      bounds.getCentreX(),
+                                      bounds.getCentreY() - bounds.getHeight() * 1.2f,
+                                      true);
 
             grad.addColour(0.6, baseColour.withAlpha(baseAlpha * 0.55f));
             grad.addColour(1.0, outer);
@@ -475,17 +409,14 @@ void Pad::paint(juce::Graphics &g)
             g.fillRoundedRectangle(bounds, cornerRadius);
         }
 
-        // Outline on top for crisp definition
-        g.setColour(
-            baseColour.withAlpha(baseAlpha * baseColour.getFloatAlpha()));
+        g.setColour(baseColour.withAlpha(baseAlpha));
         g.drawRoundedRectangle(bounds, cornerRadius, thickness);
     };
 
-    static const auto secondaryColor = juce::Colour::fromFloatRGBA(
-        0.95f, 0.65f, 0.25f, 1.f); // warm ochre-orange
-    static const auto tertiaryColor = juce::Colour::fromFloatRGBA(
-        0.3f, 0.5f, 0.95f, 0.6f); // cooler blue-purplish tone
+    static const auto secondaryColor = juce::Colour::fromFloatRGBA(0.95f, 0.65f, 0.25f, 1.f);
+    static const auto tertiaryColor = juce::Colour::fromFloatRGBA(0.3f, 0.5f, 0.95f, 0.6f);
 
-    drawOutline(secondaryPresses, secondaryColor, 3, 3.0f, 1.0f, true);
-    drawOutline(tertiaryPresses, tertiaryColor, 3, 3.0f, 1.0f, true);
+    drawOutline(secondaryPress, secondaryColor, 3, 3.0f, 1.0f, true);
+    drawOutline(tertiaryPress, tertiaryColor, 3, 3.0f, 1.0f, true);
 }
+

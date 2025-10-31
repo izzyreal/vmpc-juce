@@ -3,7 +3,7 @@
 #include "SvgComponent.hpp"
 
 #include <memory>
-#include <unordered_map>
+#include <optional>
 
 namespace mpc
 {
@@ -20,7 +20,6 @@ namespace vmpc_juce::gui::vector
 
     class Pad : public SvgComponent, public juce::FileDragAndDropTarget
     {
-
     private:
         struct Press
         {
@@ -28,15 +27,14 @@ namespace vmpc_juce::gui::vector
             float alpha;
         };
 
-        std::vector<Press> primaryPresses;
-        std::vector<Press> secondaryPresses;
-        std::vector<Press> tertiaryPresses;
+        std::optional<Press> primaryPress;
+        std::optional<Press> secondaryPress;
+        std::optional<Press> tertiaryPress;
 
         int lastBank = -1;
 
         mpc::Mpc &mpc;
         std::shared_ptr<mpc::hardware::Pad> mpcPad;
-        juce::Rectangle<int> rect;
         SvgComponent *glowSvg = nullptr;
         std::optional<int> pressedBank = std::nullopt;
 
@@ -52,16 +50,17 @@ namespace vmpc_juce::gui::vector
         void mouseDrag(const juce::MouseEvent &event) override;
         void sharedTimerCallback();
         bool isInterestedInFileDrag(const juce::StringArray &files) override;
-        void filesDropped(const juce::StringArray &files, int x,
-                          int y) override;
+        void filesDropped(const juce::StringArray &files, int x, int y) override;
         void paint(juce::Graphics &g) override;
 
         Pad(juce::Component *commonParentWithShadowToUse,
-            const float shadowSizeToUse,
-            const std::function<float()> &getScaleToUse, mpc::Mpc &,
+            float shadowSizeToUse,
+            const std::function<float()> &getScaleToUse,
+            mpc::Mpc &,
             std::shared_ptr<mpc::hardware::Pad>);
 
         ~Pad() override;
     };
 
 } // namespace vmpc_juce::gui::vector
+
