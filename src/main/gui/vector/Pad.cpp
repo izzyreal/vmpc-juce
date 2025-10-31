@@ -1,6 +1,7 @@
 #include "Pad.hpp"
 
 #include "controller/ClientEventController.hpp"
+#include "eventregistry/EventRegistry.hpp"
 #include "hardware/Component.hpp"
 
 #include <Mpc.hpp>
@@ -62,7 +63,7 @@ Pad::Pad(juce::Component *commonParentWithShadowToUse,
          std::shared_ptr<mpc::hardware::Pad> mpcPadToUse)
     : SvgComponent({"pad.svg", "pressed_pad.svg"}, commonParentWithShadowToUse,
                    shadowSizeToUse, getScaleToUse),
-      mpc(mpcToUse), mpcPad(mpcPadToUse)
+      mpc(mpcToUse), mpcPad(mpcPadToUse), getScale(getScaleToUse)
 {
     glowSvg = new SvgComponent({"pad_glow.svg"}, commonParentWithShadowToUse,
                                0.f, getScaleToUse);
@@ -86,7 +87,6 @@ bool Pad::isInterestedInFileDrag(const juce::StringArray &files)
         {
             if (glowSvg->getAlpha() == 0.f)
             {
-                // fading = true;
                 glowSvg->setAlpha(1.f);
                 repaint();
             }
@@ -171,14 +171,15 @@ void Pad::loadFile(const juce::String path, bool shouldBeConverted)
             soundFileName = soundFileName.substr(0, 16);
         }
 
-        // TODO Pad::loadFile should use the exact same logic as LoadScreen does
-        // when loading SND or WAV
-        //  files. For now we preemptively bump the sound counter to make sure
-        //  we don't get duplicate sound names. But if we follow LoadScreen
-        //  logic, we will get a chance to CANCEL or RENAME in case a sound
-        //  already exists. With the current logic, loading a file named
-        //  "FULL1.SND" into an empty VMPC2000XL results in a sound named FULL2.
-
+        /**
+         * TODO Pad::loadFile should use the exact same logic as LoadScreen does
+         * when loading SND or WAV
+         * files. For now we preemptively bump the sound counter to make sure
+         * we don't get duplicate sound names. But if we follow LoadScreen
+         * logic, we will get a chance to CANCEL or RENAME in case a sound
+         * already exists. With the current logic, loading a file named
+         * "FULL1.SND" into an empty VMPC2000XL results in a sound named FULL2.
+         */
         soundFileName = sampler->addOrIncreaseNumber(soundFileName);
         sound->setName(soundFileName);
 
@@ -230,182 +231,6 @@ void Pad::filesDropped(const juce::StringArray &files, int, int)
     }
 }
 
-void Pad::sharedTimerCallback()
-{
-    // static float decay = 0.05f;
-    // static auto applyDecay = [&](float &f)
-    // {
-    //     f -= decay;
-    // };
-    // static float decayThreshold = 0.f;
-    // const int bank =
-    //     static_cast<int>(mpc.clientEventController->getActiveBank());
-    // const int padIndexWithBank = mpcPad->getIndex() + (bank * 16);
-    //
-    // if (mpcPad->isPressed())
-    // {
-    //     bool hasPrimaryPress = false;
-    //
-    //     for (auto &p : primaryPresses)
-    //     {
-    //         if (p.alpha == 1.f)
-    //         {
-    //             hasPrimaryPress = true;
-    //             break;
-    //         }
-    //     }
-    //
-    //     if (!hasPrimaryPress)
-    //     {
-    //         primaryPresses.push_back({padIndexWithBank, 1.f, true});
-    //     }
-    // }
-    // else
-    // {
-    //     for (auto it = primaryPresses.begin(); it != primaryPresses.end();)
-    //     {
-    //         if (it->alpha <= decayThreshold)
-    //         {
-    //             primaryPresses.erase(it);
-    //         }
-    //         else
-    //         {
-    //             // it->alpha -= decay;
-    //             applyDecay(it->alpha);
-    //             ++it;
-    //         }
-    //     }
-    // }
-    //
-    // float primaryPressAlpha = 0.f;
-    // for (auto &p : primaryPresses)
-    // {
-    //     primaryPressAlpha += p.alpha;
-    // }
-    // glowSvg->setAlpha(std::clamp(primaryPressAlpha, 0.f, 1.f));
-    //
-    // if (const auto program = getProgramForCurrentScreen(mpc); program)
-    // {
-    //     using PadPressSource = mpc::sampler::Program::PadPressSource;
-    //
-    //     const auto pressCountWithinActiveBank =
-    //     program->isPadPressedBySource(
-    //         padIndexWithBank, PadPressSource::MIDI) +
-    //         program->isPadPressedBySource( padIndexWithBank,
-    //         PadPressSource::GENERATED) + program->isPadPressedBySource(
-    //         padIndexWithBank, PadPressSource::SEQUENCED); ;
-    //
-    //     if (pressCountWithinActiveBank > 0)
-    //     {
-    //         bool hasSecondaryPress = false;
-    //
-    //         for (auto &p : secondaryPresses)
-    //         {
-    //             if (p.alpha == 1.f && p.padIndexWithBank == padIndexWithBank)
-    //             {
-    //                 hasSecondaryPress = true;
-    //                 break;
-    //             }
-    //         }
-    //
-    //         if (!hasSecondaryPress)
-    //         {
-    //             secondaryPresses.push_back({padIndexWithBank, 1.f, false});
-    //         }
-    //     }
-    //     else
-    //     {
-    //         for (auto it = secondaryPresses.begin();
-    //              it != secondaryPresses.end();)
-    //         {
-    //             if (it->alpha <= decayThreshold)
-    //             {
-    //                 secondaryPresses.erase(it);
-    //                 continue;
-    //             }
-    //
-    //             applyDecay(it->alpha);
-    //             ++it;
-    //         }
-    //     }
-    //
-    //     for (int i = mpcPad->getIndex(); i < 64; i += 16)
-    //     {
-    //         if (i == padIndexWithBank)
-    //         {
-    //             continue;
-    //         }
-    //
-    //         const int programPressCount =
-    //             program->isPadPressedBySource(i, PadPressSource::MIDI) +
-    //             program->isPadPressedBySource(i, PadPressSource::GENERATED) +
-    //             program->isPadPressedBySource(i, PadPressSource::SEQUENCED);
-    //
-    //         if (programPressCount > 0)
-    //         {
-    //             bool hasTertiaryPress = false;
-    //
-    //             for (auto &p : tertiaryPresses)
-    //             {
-    //                 if (p.alpha == 1.f && p.padIndexWithBank == i)
-    //                 {
-    //                     hasTertiaryPress = true;
-    //                     break;
-    //                 }
-    //             }
-    //
-    //             if (!hasTertiaryPress)
-    //             {
-    //                 tertiaryPresses.push_back({i, 1.f, false});
-    //             }
-    //         }
-    //         else
-    //         {
-    //             for (auto it = tertiaryPresses.begin();
-    //                  it != tertiaryPresses.end();)
-    //             {
-    //                 if (it->alpha <= decayThreshold)
-    //                 {
-    //                     tertiaryPresses.erase(it);
-    //                     continue;
-    //                 }
-    //                 applyDecay(it->alpha);
-    //                 ++it;
-    //             }
-    //         }
-    //     }
-    // }
-    //
-    // bool bankHasChanged = false;
-    //
-    // if (bank != lastBank)
-    // {
-    //     bankHasChanged = true;
-    //     lastBank = bank;
-    // }
-    //
-    // if (bankHasChanged)
-    // {
-    //     for (auto &p : secondaryPresses)
-    //     {
-    //         if (p.alpha == 1.f)
-    //         {
-    //             p.alpha -= decay;
-    //         }
-    //     }
-    //
-    //     for (auto &p : tertiaryPresses)
-    //     {
-    //         if (p.alpha == 1.f)
-    //         {
-    //             p.alpha -= decay;
-    //         }
-    //     }
-    // }
-    //
-    // repaint();
-}
-
 int Pad::getVelo(int veloY)
 {
     return (float)veloY / getHeight();
@@ -434,43 +259,233 @@ Pad::~Pad()
     delete glowSvg;
 }
 
+void Pad::sharedTimerCallback()
+{
+    static constexpr float decay = 0.03f;
+    static constexpr float decayThreshold = 0.f;
+
+    auto applyDecay = [&](auto &presses) -> bool
+    {
+        bool mutated = false;
+        for (auto it = presses.begin(); it != presses.end();)
+        {
+            if (it->alpha <= decayThreshold)
+            {
+                it = presses.erase(it);
+                mutated = true;
+            }
+            else
+            {
+                float oldAlpha = it->alpha;
+                it->alpha -= decay;
+                if (it->alpha != oldAlpha)
+                {
+                    mutated = true;
+                }
+                ++it;
+            }
+        }
+        return mutated;
+    };
+
+    const int bank =
+        static_cast<int>(mpc.clientEventController->getActiveBank());
+    const int padIndexWithBank = mpcPad->getIndex() + (bank * 16);
+
+    bool mutated = false;
+
+    if (mpcPad->isPressed())
+    {
+        bool hasPrimaryPress =
+            std::any_of(primaryPresses.begin(), primaryPresses.end(),
+                        [](auto &p)
+                        {
+                            return p.alpha == 1.f;
+                        });
+        if (!hasPrimaryPress)
+        {
+            primaryPresses.push_back({padIndexWithBank, 1.f});
+            mutated = true;
+        }
+    }
+    else
+    {
+        mutated |= applyDecay(primaryPresses);
+    }
+
+    float primaryPressAlpha = 0.f;
+    for (auto &p : primaryPresses)
+    {
+        primaryPressAlpha += p.alpha;
+    }
+
+    float newAlpha = std::clamp(primaryPressAlpha, 0.f, 1.f);
+    if (glowSvg->getAlpha() != newAlpha)
+    {
+        glowSvg->setAlpha(newAlpha);
+        mutated = true;
+    }
+
+    const auto snapshot = mpc.eventRegistry->getSnapshot();
+    static const std::vector<mpc::eventregistry::Source> sourcesToExclude{
+        mpc::eventregistry::Source::VirtualMpcHardware};
+
+    if (auto program = getProgramForCurrentScreen(mpc))
+    {
+        const bool pressedVisible = snapshot.isProgramPadPressed(
+            static_cast<uint8_t>(padIndexWithBank), sourcesToExclude);
+        if (pressedVisible)
+        {
+            bool hasSecondaryPress =
+                std::any_of(secondaryPresses.begin(), secondaryPresses.end(),
+                            [&](auto &p)
+                            {
+                                return p.alpha == 1.f &&
+                                       p.padIndexWithBank == padIndexWithBank;
+                            });
+            if (!hasSecondaryPress)
+            {
+                secondaryPresses.push_back({padIndexWithBank, 1.f});
+                mutated = true;
+            }
+        }
+        else
+        {
+            mutated |= applyDecay(secondaryPresses);
+        }
+
+        for (int i = mpcPad->getIndex(); i < 64; i += 16)
+        {
+            if (i == padIndexWithBank)
+            {
+                continue;
+            }
+            const bool pressedInvisible = snapshot.isProgramPadPressed(
+                static_cast<uint8_t>(i), sourcesToExclude);
+
+            if (pressedInvisible)
+            {
+                bool hasTertiaryPress = std::any_of(
+                    tertiaryPresses.begin(), tertiaryPresses.end(),
+                    [&](auto &p)
+                    {
+                        return p.alpha == 1.f && p.padIndexWithBank == i;
+                    });
+                if (!hasTertiaryPress)
+                {
+                    tertiaryPresses.push_back({i, 1.f});
+                    mutated = true;
+                }
+            }
+            else
+            {
+                mutated |= applyDecay(tertiaryPresses);
+            }
+        }
+    }
+
+    if (bank != lastBank)
+    {
+        lastBank = bank;
+        auto fadeAll = [&](auto &presses)
+        {
+            for (auto &p : presses)
+            {
+                if (p.alpha == 1.f)
+                {
+                    p.alpha -= decay;
+                    mutated = true;
+                }
+            }
+        };
+        fadeAll(secondaryPresses);
+        fadeAll(tertiaryPresses);
+    }
+
+    if (mutated)
+    {
+        mutatedSinceLastPaint = true;
+        fadeFrameCounter = 0;
+    }
+
+    if (mutatedSinceLastPaint)
+    {
+        if (mutated)
+        {
+            repaint();
+            mutatedSinceLastPaint = false;
+        }
+        else
+        {
+            if (++fadeFrameCounter >= fadeRepaintInterval)
+            {
+                repaint();
+                fadeFrameCounter = 0;
+                mutatedSinceLastPaint = false;
+            }
+        }
+    }
+}
+
 void Pad::paint(juce::Graphics &g)
 {
     SvgComponent::paint(g);
 
-    float secondaryPressAlpha = 0.f;
+    const float scale = getScale();
 
-    for (auto &p : secondaryPresses)
+    auto drawOutline = [&](const std::vector<Press> &presses,
+                           juce::Colour baseColour, int inset,
+                           float baseThickness, float baseCornerRadius,
+                           bool addInwardGlow = true)
     {
-        if (p.isPhysical)
+        float alpha = 0.f;
+        for (auto &p : presses)
         {
-            continue;
+            alpha += p.alpha;
         }
-        secondaryPressAlpha += p.alpha;
-    }
-
-    secondaryPressAlpha = std::clamp(secondaryPressAlpha, 0.f, 1.f);
-
-    auto colour = juce::Colours::blue.withAlpha(0.5f * secondaryPressAlpha);
-
-    g.setColour(colour);
-    g.fillRoundedRectangle(getLocalBounds().reduced(20, 20).toFloat(), 4.0f);
-
-    float tertiaryPressAlpha = 0.f;
-
-    for (auto &p : tertiaryPresses)
-    {
-        if (p.isPhysical)
+        alpha = std::clamp(alpha, 0.f, 1.f);
+        if (alpha <= 0.f)
         {
-            continue;
+            return;
         }
-        tertiaryPressAlpha += p.alpha;
-    }
 
-    tertiaryPressAlpha = std::clamp(tertiaryPressAlpha, 0.f, 1.f);
+        const float thickness = baseThickness * scale;
+        const float cornerRadius = baseCornerRadius * scale;
+        const auto bounds = getLocalBounds().reduced(inset * scale).toFloat();
+        const float baseAlpha = alpha * baseColour.getFloatAlpha();
 
-    colour = juce::Colours::crimson.withAlpha(0.5f * tertiaryPressAlpha);
+        if (addInwardGlow)
+        {
+            // Create a radial gradient that’s bright at the edges, fading
+            // inward.
+            juce::Colour inner = baseColour.withAlpha(baseAlpha * 0.05f);
+            juce::Colour outer = baseColour.withAlpha(baseAlpha * 0.5f);
 
-    g.setColour(colour);
-    g.fillRoundedRectangle(getLocalBounds().reduced(10, 10).toFloat(), 4.0f);
+            juce::ColourGradient grad(
+                inner, bounds.getCentreX(), bounds.getCentreY(), outer,
+                bounds.getCentreX(),
+                bounds.getCentreY() -
+                    bounds.getHeight() * 1.2f, // reduced radius
+                true);
+
+            grad.addColour(0.6, baseColour.withAlpha(baseAlpha * 0.55f));
+            grad.addColour(1.0, outer);
+
+            g.setGradientFill(grad);
+            g.fillRoundedRectangle(bounds, cornerRadius);
+        }
+
+        // Outline on top for crisp definition
+        g.setColour(
+            baseColour.withAlpha(baseAlpha * baseColour.getFloatAlpha()));
+        g.drawRoundedRectangle(bounds, cornerRadius, thickness);
+    };
+
+    static const auto secondaryColor = juce::Colour::fromFloatRGBA(
+        0.95f, 0.65f, 0.25f, 1.f); // warm ochre-orange
+    static const auto tertiaryColor = juce::Colour::fromFloatRGBA(
+        0.3f, 0.5f, 0.95f, 0.6f); // cooler blue-purplish tone
+
+    drawOutline(secondaryPresses, secondaryColor, 3, 3.0f, 1.0f, true);
+    drawOutline(tertiaryPresses, tertiaryColor, 3, 3.0f, 1.0f, true);
 }

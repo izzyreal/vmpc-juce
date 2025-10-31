@@ -26,7 +26,6 @@ namespace vmpc_juce::gui::vector
         {
             int padIndexWithBank;
             float alpha;
-            bool isPhysical;
         };
 
         std::vector<Press> primaryPresses;
@@ -39,11 +38,14 @@ namespace vmpc_juce::gui::vector
         std::shared_ptr<mpc::hardware::Pad> mpcPad;
         juce::Rectangle<int> rect;
         SvgComponent *glowSvg = nullptr;
-        int16_t timerDivisionCounter = 0;
         std::optional<int> pressedBank = std::nullopt;
 
         int getVelo(int veloY);
         void loadFile(const juce::String path, bool shouldBeConverted);
+        std::function<float()> getScale;
+        bool mutatedSinceLastPaint = false;
+        int fadeFrameCounter = 0;
+        const int fadeRepaintInterval = 3;
 
     public:
         void resized() override;
