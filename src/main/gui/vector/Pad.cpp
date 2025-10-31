@@ -217,22 +217,24 @@ void Pad::sharedTimerCallback()
 {
     static constexpr float decay = 0.03f;
     static constexpr float immediateDecay = 0.03f;
-    static constexpr float immediateFadeFactor = 0.6f;
+    static constexpr float immediateFadeFactorPrimary = 0.8f;
+    static constexpr float immediateFadeFactorNonPrimary = 0.6f;
     static constexpr float decayThreshold = 0.f;
 
-    auto decayPress = [&](std::optional<Press> &press) -> bool
+    auto decayPress = [&](std::optional<Press> &press, bool isPrimary) -> bool
     {
         if (!press)
             return false;
 
         bool mutated = false;
+        const float immediateFadeFactorToUse = (isPrimary ? immediateFadeFactorPrimary : immediateFadeFactorNonPrimary);
         switch (press->phase)
         {
             case Press::Phase::Immediate:
                 press->alpha -= immediateDecay;
-                if (press->alpha <= immediateFadeFactor)
+                if (press->alpha <= immediateFadeFactorToUse)
                 {
-                    press->alpha = immediateFadeFactor;
+                    press->alpha = immediateFadeFactorToUse;
                     press->phase = Press::Phase::Sustained;
                 }
                 mutated = true;
@@ -262,20 +264,31 @@ void Pad::sharedTimerCallback()
 
     if (mpcPad->isPressed())
     {
+        auto veloOrPressure = mpcPad->getPressure().value_or(mpcPad->getVelocity().value());
+
         if (!primaryPress || primaryPress->phase == Press::Phase::Releasing)
         {
-            primaryPress = Press{padIndexWithBank, 1.f, Press::Phase::Immediate};
+            primaryPress = Press{padIndexWithBank, 1.f, veloOrPressure, Press::Phase::Immediate };
             mutated = true;
         }
-
-        if (primaryPress->phase == Press::Phase::Immediate)
-            mutated |= decayPress(primaryPress);
+        else
+        {
+            if (primaryPress->phase == Press::Phase::Immediate)
+            {
+                if (primaryPress->veloOrPressure != veloOrPressure)
+                {
+                    primaryPress->veloOrPressure = veloOrPressure;
+                    mutated = true;
+                }
+                mutated |= decayPress(primaryPress, true);
+            }
+        }
     }
     else if (primaryPress)
     {
         if (primaryPress->phase != Press::Phase::Releasing)
             primaryPress->phase = Press::Phase::Releasing;
-        mutated |= decayPress(primaryPress);
+        mutated |= decayPress(primaryPress, true);
     }
 
     const auto snapshot = mpc.eventRegistry->getSnapshot();
@@ -287,23 +300,31 @@ void Pad::sharedTimerCallback()
         const bool pressedVisible =
             snapshot.isProgramPadPressed(static_cast<uint8_t>(padIndexWithBank),
                                          exclude);
+
         if (pressedVisible)
         {
+            auto veloOrPressure = snapshot.getPressedProgramPadAfterTouchOrVelocity(static_cast<uint8_t>(padIndexWithBank));
+
             if (!secondaryPress || secondaryPress->phase == Press::Phase::Releasing)
             {
-                secondaryPress = Press{padIndexWithBank, 1.f, Press::Phase::Immediate};
+                secondaryPress = Press{padIndexWithBank, 1.f, veloOrPressure, Press::Phase::Immediate};
                 mutated = true;
             }
             else
             {
-                mutated |= decayPress(secondaryPress);
+                if (secondaryPress->veloOrPressure != veloOrPressure)
+                {
+                    secondaryPress->veloOrPressure = veloOrPressure;
+                    mutated = true;
+                }
+                mutated |= decayPress(secondaryPress, false);
             }
         }
         else if (secondaryPress)
         {
             if (secondaryPress->phase != Press::Phase::Releasing)
                 secondaryPress->phase = Press::Phase::Releasing;
-            mutated |= decayPress(secondaryPress);
+            mutated |= decayPress(secondaryPress, false);
         }
 
         int otherBanked = -1;
@@ -320,21 +341,29 @@ void Pad::sharedTimerCallback()
 
         if (otherBanked != -1)
         {
+            auto veloOrPressure = snapshot.getPressedProgramPadAfterTouchOrVelocity(static_cast<uint8_t>(otherBanked));
+
             if (!tertiaryPress || tertiaryPress->phase == Press::Phase::Releasing)
             {
-                tertiaryPress = Press{otherBanked, 1.f, Press::Phase::Immediate};
+                tertiaryPress = Press{otherBanked, 1.f, veloOrPressure, Press::Phase::Immediate};
                 mutated = true;
             }
             else
             {
-                mutated |= decayPress(tertiaryPress);
+                if (tertiaryPress->veloOrPressure != veloOrPressure)
+                {
+                    tertiaryPress->veloOrPressure = veloOrPressure;
+                    mutated = true;
+                }
+
+                mutated |= decayPress(tertiaryPress, false);
             }
         }
         else if (tertiaryPress)
         {
             if (tertiaryPress->phase != Press::Phase::Releasing)
                 tertiaryPress->phase = Press::Phase::Releasing;
-            mutated |= decayPress(tertiaryPress);
+            mutated |= decayPress(tertiaryPress, false);
         }
     }
 
@@ -395,7 +424,7 @@ void Pad::paint(juce::Graphics &g)
         {                                            
             printf("phase is releasing\n");
         }                   
-        glowSvg->setAlpha(std::clamp(primaryPress->alpha, 0.f, 1.f));
+        glowSvg->setAlpha(std::clamp(primaryPress->getAlphaWithVeloApplied(), 0.f, 1.f));
     }                       
     else                    
     {                       
@@ -411,11 +440,16 @@ void Pad::paint(juce::Graphics &g)
                            bool addInwardGlow = true)
     {
         if (!press)
+        {
             return;
+        }
 
-        const float alpha = std::clamp(press->alpha, 0.f, 1.f);
+        const float alpha = std::clamp(press->getAlphaWithVeloApplied(), 0.f, 1.f);
+
         if (alpha <= 0.f)
+        {
             return;
+        }
 
         const float thickness = baseThickness * scale;
         const float cornerRadius = baseCornerRadius * scale;
