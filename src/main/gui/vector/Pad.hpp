@@ -28,6 +28,7 @@ namespace vmpc_juce::gui::vector
             int veloOrPressure;
             float getAlphaWithVeloApplied() const { return alpha * (static_cast<float>(std::clamp(veloOrPressure, 30, 127)) / 127.f); }
             enum class Phase { Immediate, Sustained, Releasing } phase = Phase::Immediate;
+            bool wasPaintedWithInitialAlpha = false;
         };
 
         std::optional<Press> primaryPress;

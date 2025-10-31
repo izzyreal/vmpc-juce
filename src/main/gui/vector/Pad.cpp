@@ -224,7 +224,14 @@ void Pad::sharedTimerCallback()
     auto decayPress = [&](std::optional<Press> &press, bool isPrimary) -> bool
     {
         if (!press)
+        {
             return false;
+        }
+
+        if (press->alpha == 1.f && !press->wasPaintedWithInitialAlpha)
+        {
+            return false;
+        }
 
         bool mutated = false;
         const float immediateFadeFactorToUse = (isPrimary ? immediateFadeFactorPrimary : immediateFadeFactorNonPrimary);
@@ -411,20 +418,12 @@ void Pad::paint(juce::Graphics &g)
 {
     if (primaryPress)
     {   
-        printf("primary press alpha: %f\n", primaryPress->alpha);
-        if (primaryPress->phase == Press::Phase::Immediate)
-        {                                       
-            printf("phase is immediate\n");
-        }   
-        else if (primaryPress->phase == Press::Phase::Sustained)
-        {                                            
-            printf("phase is sustained\n");
-        }                   
-        else if (primaryPress->phase == Press::Phase::Releasing)
-        {                                            
-            printf("phase is releasing\n");
-        }                   
         glowSvg->setAlpha(std::clamp(primaryPress->getAlphaWithVeloApplied(), 0.f, 1.f));
+
+        if (primaryPress->alpha == 1.f && !primaryPress->wasPaintedWithInitialAlpha)
+        {
+            primaryPress->wasPaintedWithInitialAlpha = true;
+        }
     }                       
     else                    
     {                       
@@ -434,7 +433,7 @@ void Pad::paint(juce::Graphics &g)
     SvgComponent::paint(g);
     const float scale = getScale();
 
-    auto drawOutline = [&](const std::optional<Press> &press,
+    auto drawOutline = [&](std::optional<Press> &press,
                            juce::Colour baseColour, float inset,
                            float baseThickness, float baseCornerRadius,
                            bool addInwardGlow = true)
@@ -442,6 +441,11 @@ void Pad::paint(juce::Graphics &g)
         if (!press)
         {
             return;
+        }
+
+        if (press->alpha == 1.f && !press->wasPaintedWithInitialAlpha)
+        {
+            press->wasPaintedWithInitialAlpha = true;
         }
 
         const float alpha = std::clamp(press->getAlphaWithVeloApplied(), 0.f, 1.f);
