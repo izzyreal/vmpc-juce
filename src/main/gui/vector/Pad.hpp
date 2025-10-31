@@ -25,6 +25,7 @@ namespace vmpc_juce::gui::vector
         {
             int padIndexWithBank;
             float alpha;
+            enum class Phase { Immediate, Sustained, Releasing } phase = Phase::Immediate;
         };
 
         std::optional<Press> primaryPress;

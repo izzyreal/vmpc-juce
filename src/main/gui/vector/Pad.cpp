@@ -216,19 +216,42 @@ Pad::~Pad()
 void Pad::sharedTimerCallback()
 {
     static constexpr float decay = 0.03f;
+    static constexpr float immediateDecay = 0.03f;
+    static constexpr float immediateFadeFactor = 0.6f;
     static constexpr float decayThreshold = 0.f;
 
     auto decayPress = [&](std::optional<Press> &press) -> bool
     {
         if (!press)
             return false;
-        press->alpha -= decay;
-        if (press->alpha <= decayThreshold)
+
+        bool mutated = false;
+        switch (press->phase)
         {
-            press.reset();
-            return true;
+            case Press::Phase::Immediate:
+                press->alpha -= immediateDecay;
+                if (press->alpha <= immediateFadeFactor)
+                {
+                    press->alpha = immediateFadeFactor;
+                    press->phase = Press::Phase::Sustained;
+                }
+                mutated = true;
+                break;
+
+            case Press::Phase::Sustained:
+                break;
+
+            case Press::Phase::Releasing:
+                press->alpha -= decay;
+                if (press->alpha <= decayThreshold)
+                {
+                    press.reset();
+                    return true;
+                }
+                mutated = true;
+                break;
         }
-        return true;
+        return mutated;
     };
 
     const int bank =
@@ -237,28 +260,24 @@ void Pad::sharedTimerCallback()
 
     bool mutated = false;
 
-    // PRIMARY PRESS
     if (mpcPad->isPressed())
     {
-        if (!primaryPress || primaryPress->alpha < 1.f)
+        if (!primaryPress || primaryPress->phase == Press::Phase::Releasing)
         {
-            primaryPress = Press{padIndexWithBank, 1.f};
+            primaryPress = Press{padIndexWithBank, 1.f, Press::Phase::Immediate};
             mutated = true;
         }
+
+        if (primaryPress->phase == Press::Phase::Immediate)
+            mutated |= decayPress(primaryPress);
     }
     else if (primaryPress)
     {
+        if (primaryPress->phase != Press::Phase::Releasing)
+            primaryPress->phase = Press::Phase::Releasing;
         mutated |= decayPress(primaryPress);
     }
 
-    float newAlpha = primaryPress ? std::clamp(primaryPress->alpha, 0.f, 1.f) : 0.f;
-    if (glowSvg->getAlpha() != newAlpha)
-    {
-        glowSvg->setAlpha(newAlpha);
-        mutated = true;
-    }
-
-    // SECONDARY / TERTIARY PRESS VISUALS
     const auto snapshot = mpc.eventRegistry->getSnapshot();
     static const std::vector<mpc::eventregistry::Source> exclude{
         mpc::eventregistry::Source::VirtualMpcHardware};
@@ -270,25 +289,20 @@ void Pad::sharedTimerCallback()
                                          exclude);
         if (pressedVisible)
         {
-            if (!secondaryPress)
+            if (!secondaryPress || secondaryPress->phase == Press::Phase::Releasing)
             {
-                secondaryPress = Press{padIndexWithBank, 1.f};
+                secondaryPress = Press{padIndexWithBank, 1.f, Press::Phase::Immediate};
                 mutated = true;
             }
-            else if (secondaryPress->padIndexWithBank == padIndexWithBank &&
-                     secondaryPress->alpha < 1.f)
+            else
             {
-                secondaryPress->alpha = 1.f;
-                mutated = true;
-            }
-            else if (secondaryPress->padIndexWithBank != padIndexWithBank)
-            {
-                secondaryPress = Press{padIndexWithBank, 1.f};
-                mutated = true;
+                mutated |= decayPress(secondaryPress);
             }
         }
         else if (secondaryPress)
         {
+            if (secondaryPress->phase != Press::Phase::Releasing)
+                secondaryPress->phase = Press::Phase::Releasing;
             mutated |= decayPress(secondaryPress);
         }
 
@@ -306,25 +320,20 @@ void Pad::sharedTimerCallback()
 
         if (otherBanked != -1)
         {
-            if (!tertiaryPress)
+            if (!tertiaryPress || tertiaryPress->phase == Press::Phase::Releasing)
             {
-                tertiaryPress = Press{otherBanked, 1.f};
+                tertiaryPress = Press{otherBanked, 1.f, Press::Phase::Immediate};
                 mutated = true;
             }
-            else if (tertiaryPress->padIndexWithBank == otherBanked &&
-                     tertiaryPress->alpha < 1.f)
+            else
             {
-                tertiaryPress->alpha = 1.f;
-                mutated = true;
-            }
-            else if (tertiaryPress->padIndexWithBank != otherBanked)
-            {
-                tertiaryPress = Press{otherBanked, 1.f};
-                mutated = true;
+                mutated |= decayPress(tertiaryPress);
             }
         }
         else if (tertiaryPress)
         {
+            if (tertiaryPress->phase != Press::Phase::Releasing)
+                tertiaryPress->phase = Press::Phase::Releasing;
             mutated |= decayPress(tertiaryPress);
         }
     }
@@ -371,6 +380,28 @@ void Pad::sharedTimerCallback()
 
 void Pad::paint(juce::Graphics &g)
 {
+    if (primaryPress)
+    {   
+        printf("primary press alpha: %f\n", primaryPress->alpha);
+        if (primaryPress->phase == Press::Phase::Immediate)
+        {                                       
+            printf("phase is immediate\n");
+        }   
+        else if (primaryPress->phase == Press::Phase::Sustained)
+        {                                            
+            printf("phase is sustained\n");
+        }                   
+        else if (primaryPress->phase == Press::Phase::Releasing)
+        {                                            
+            printf("phase is releasing\n");
+        }                   
+        glowSvg->setAlpha(std::clamp(primaryPress->alpha, 0.f, 1.f));
+    }                       
+    else                    
+    {                       
+        glowSvg->setAlpha(0.f);
+    }     
+
     SvgComponent::paint(g);
     const float scale = getScale();
 
@@ -419,4 +450,5 @@ void Pad::paint(juce::Graphics &g)
     drawOutline(secondaryPress, secondaryColor, 3, 3.0f, 1.0f, true);
     drawOutline(tertiaryPress, tertiaryColor, 3, 3.0f, 1.0f, true);
 }
+
 
