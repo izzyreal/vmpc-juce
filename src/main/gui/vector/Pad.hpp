@@ -26,9 +26,12 @@ namespace vmpc_juce::gui::vector
             int padIndexWithBank;
             float alpha;
             int veloOrPressure;
-            float getAlphaWithVeloApplied() const { return alpha * (static_cast<float>(std::clamp(veloOrPressure, 30, 127)) / 127.f); }
             enum class Phase { Immediate, Sustained, Releasing } phase = Phase::Immediate;
             bool wasPaintedWithInitialAlpha = false;
+            float getAlphaWithVeloApplied() const
+            {
+                return alpha * (static_cast<float>(std::clamp(veloOrPressure, 50, 127)) / 127.f);
+            }
         };
 
         std::optional<Press> primaryPress;

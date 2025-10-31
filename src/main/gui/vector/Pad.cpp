@@ -282,12 +282,13 @@ void Pad::sharedTimerCallback()
         {
             if (primaryPress->phase == Press::Phase::Immediate)
             {
-                if (primaryPress->veloOrPressure != veloOrPressure)
-                {
-                    primaryPress->veloOrPressure = veloOrPressure;
-                    mutated = true;
-                }
                 mutated |= decayPress(primaryPress, true);
+            }
+
+            if (primaryPress->veloOrPressure != veloOrPressure)
+            {
+                primaryPress->veloOrPressure = veloOrPressure;
+                mutated = true;
             }
         }
     }
@@ -319,12 +320,13 @@ void Pad::sharedTimerCallback()
             }
             else
             {
-                if (secondaryPress->veloOrPressure != veloOrPressure)
-                {
-                    secondaryPress->veloOrPressure = veloOrPressure;
-                    mutated = true;
-                }
                 mutated |= decayPress(secondaryPress, false);
+            }
+
+            if (secondaryPress->veloOrPressure != veloOrPressure)
+            {
+                secondaryPress->veloOrPressure = veloOrPressure;
+                mutated = true;
             }
         }
         else if (secondaryPress)
@@ -357,13 +359,13 @@ void Pad::sharedTimerCallback()
             }
             else
             {
-                if (tertiaryPress->veloOrPressure != veloOrPressure)
-                {
-                    tertiaryPress->veloOrPressure = veloOrPressure;
-                    mutated = true;
-                }
-
                 mutated |= decayPress(tertiaryPress, false);
+            }
+
+            if (tertiaryPress->veloOrPressure != veloOrPressure)
+            {
+                tertiaryPress->veloOrPressure = veloOrPressure;
+                mutated = true;
             }
         }
         else if (tertiaryPress)
