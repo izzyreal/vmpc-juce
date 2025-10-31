@@ -435,7 +435,7 @@ void Pad::paint(juce::Graphics &g)
     const float scale = getScale();
 
     auto drawOutline = [&](const std::optional<Press> &press,
-                           juce::Colour baseColour, int inset,
+                           juce::Colour baseColour, float inset,
                            float baseThickness, float baseCornerRadius,
                            bool addInwardGlow = true)
     {
@@ -453,7 +453,7 @@ void Pad::paint(juce::Graphics &g)
 
         const float thickness = baseThickness * scale;
         const float cornerRadius = baseCornerRadius * scale;
-        const auto bounds = getLocalBounds().reduced(inset * scale).toFloat();
+        const auto bounds = getLocalBounds().reduced(static_cast<int>(inset * scale)).toFloat();
         const float baseAlpha = alpha * baseColour.getFloatAlpha();
 
         if (addInwardGlow)
@@ -479,10 +479,10 @@ void Pad::paint(juce::Graphics &g)
     };
 
     static const auto secondaryColor = juce::Colour::fromFloatRGBA(0.95f, 0.65f, 0.25f, 1.f);
-    static const auto tertiaryColor = juce::Colour::fromFloatRGBA(0.3f, 0.5f, 0.95f, 0.6f);
+    static const auto tertiaryColor = juce::Colour::fromFloatRGBA(0.35f, 0.55f, 1.f, 1.f);
 
-    drawOutline(secondaryPress, secondaryColor, 3, 3.0f, 1.0f, true);
-    drawOutline(tertiaryPress, tertiaryColor, 3, 3.0f, 1.0f, true);
+    drawOutline(secondaryPress, secondaryColor, 2.65f, 1.5f, .4f, true);
+    drawOutline(tertiaryPress, tertiaryColor, 2.65f, 1.5f, .4f, true);
 }
 
 
