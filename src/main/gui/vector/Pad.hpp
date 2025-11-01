@@ -27,6 +27,7 @@ namespace vmpc_juce::gui::vector
             float alpha;
             int veloOrPressure;
             enum class Phase { Immediate, Sustained, Releasing } phase = Phase::Immediate;
+            std::chrono::steady_clock::time_point pressTime;
             bool wasPaintedWithInitialAlpha = false;
             float getAlphaWithVeloApplied() const
             {

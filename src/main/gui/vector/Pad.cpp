@@ -30,7 +30,9 @@ using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens::window;
 using namespace mpc::lcdgui::screens::dialog2;
 using namespace mpc::sequencer;
+using namespace mpc::eventregistry;
 
+/*
 static int
 getDrumIndexForCurrentScreen(mpc::Mpc &mpc,
                              const std::shared_ptr<ScreenComponent> screen)
@@ -53,6 +55,7 @@ getProgramForCurrentScreen(mpc::Mpc &mpc)
     return sampler->getProgram(
         mpc.getSequencer()->getDrumBus(drumIndex)->getProgram());
 }
+*/
 
 Pad::Pad(juce::Component *commonParentWithShadowToUse,
          const float shadowSizeToUse,
@@ -191,13 +194,15 @@ void Pad::filesDropped(const juce::StringArray &files, int, int)
 
 int Pad::getVelo(int veloY)
 {
-    return static_cast<float>(veloY) / getHeight();
+    return static_cast<int>(static_cast<float>(veloY) / static_cast<float>(getHeight()));
 }
 
 void Pad::mouseDrag(const juce::MouseEvent &event)
 {
     if (!mpcPad->isPressed())
+    {
         return;
+    }
 
     mpcPad->aftertouch(static_cast<unsigned char>(getVelo(event.y)));
 }
@@ -303,77 +308,86 @@ void Pad::sharedTimerCallback()
     static const std::vector<mpc::eventregistry::Source> exclude{
         mpc::eventregistry::Source::VirtualMpcHardware};
 
-    if (auto program = getProgramForCurrentScreen(mpc))
+    const ProgramPadPressEventPtr mostRecentPress =
+        snapshot.getMostRecentProgramPadPress(static_cast<uint8_t>(padIndexWithBank),
+                                     exclude);
+
+    if (mostRecentPress)
     {
-        const bool pressedVisible =
-            snapshot.isProgramPadPressed(static_cast<uint8_t>(padIndexWithBank),
-                                         exclude);
+        auto veloOrPressure = snapshot.getPressedProgramPadAfterTouchOrVelocity(static_cast<uint8_t>(padIndexWithBank));
 
-        if (pressedVisible)
+        if (!secondaryPress ||
+                secondaryPress->phase == Press::Phase::Releasing ||
+                secondaryPress->pressTime != mostRecentPress->pressTime)
         {
-            auto veloOrPressure = snapshot.getPressedProgramPadAfterTouchOrVelocity(static_cast<uint8_t>(padIndexWithBank));
-
-            if (!secondaryPress || secondaryPress->phase == Press::Phase::Releasing)
-            {
-                secondaryPress = Press{padIndexWithBank, 1.f, veloOrPressure, Press::Phase::Immediate};
-                mutated = true;
-            }
-            else
-            {
-                mutated |= decayPress(secondaryPress, false);
-            }
-
-            if (secondaryPress->veloOrPressure != veloOrPressure)
-            {
-                secondaryPress->veloOrPressure = veloOrPressure;
-                mutated = true;
-            }
+            secondaryPress = Press{padIndexWithBank, 1.f, veloOrPressure, Press::Phase::Immediate, mostRecentPress->pressTime};
+            mutated = true;
         }
-        else if (secondaryPress)
+        else
         {
-            if (secondaryPress->phase != Press::Phase::Releasing)
-                secondaryPress->phase = Press::Phase::Releasing;
             mutated |= decayPress(secondaryPress, false);
         }
 
-        int otherBanked = -1;
-        for (int i = mpcPad->getIndex(); i < 64; i += 16)
+        if (secondaryPress->veloOrPressure != veloOrPressure)
         {
-            if (i == padIndexWithBank)
-                continue;
-            if (snapshot.isProgramPadPressed(static_cast<uint8_t>(i), exclude))
-            {
-                otherBanked = i;
-                break;
-            }
+            secondaryPress->veloOrPressure = veloOrPressure;
+            mutated = true;
         }
+    }
+    else if (secondaryPress)
+    {
+        if (secondaryPress->phase != Press::Phase::Releasing)
+            secondaryPress->phase = Press::Phase::Releasing;
+        mutated |= decayPress(secondaryPress, false);
+    }
 
-        if (otherBanked != -1)
+    int otherBanked = -1;
+
+    ProgramPadPressEventPtr otherBankedPressPtr;
+
+    for (int i = mpcPad->getIndex(); i < 64; i += 16)
+    {
+        if (i == padIndexWithBank)
         {
-            auto veloOrPressure = snapshot.getPressedProgramPadAfterTouchOrVelocity(static_cast<uint8_t>(otherBanked));
-
-            if (!tertiaryPress || tertiaryPress->phase == Press::Phase::Releasing)
-            {
-                tertiaryPress = Press{otherBanked, 1.f, veloOrPressure, Press::Phase::Immediate};
-                mutated = true;
-            }
-            else
-            {
-                mutated |= decayPress(tertiaryPress, false);
-            }
-
-            if (tertiaryPress->veloOrPressure != veloOrPressure)
-            {
-                tertiaryPress->veloOrPressure = veloOrPressure;
-                mutated = true;
-            }
+            continue;
         }
-        else if (tertiaryPress)
+    
+        if (auto mostRecentOtherBankedPress = snapshot.getMostRecentProgramPadPress(static_cast<uint8_t>(i), exclude);
+                mostRecentOtherBankedPress)
         {
-            if (tertiaryPress->phase != Press::Phase::Releasing)
-                tertiaryPress->phase = Press::Phase::Releasing;
+            otherBanked = i;
+            otherBankedPressPtr = mostRecentOtherBankedPress;
+            break;
+        }
+    }
+
+    if (otherBanked != -1)
+    {
+        auto veloOrPressure = snapshot.getPressedProgramPadAfterTouchOrVelocity(static_cast<uint8_t>(otherBanked));
+
+        if (!tertiaryPress ||
+                tertiaryPress->phase == Press::Phase::Releasing ||
+                tertiaryPress->pressTime != otherBankedPressPtr->pressTime)
+        {
+            tertiaryPress = Press{otherBanked, 1.f, veloOrPressure, Press::Phase::Immediate, otherBankedPressPtr->pressTime};
+            mutated = true;
+        }
+        else
+        {
             mutated |= decayPress(tertiaryPress, false);
         }
+
+        if (tertiaryPress->veloOrPressure != veloOrPressure)
+        {
+            tertiaryPress->veloOrPressure = veloOrPressure;
+            mutated = true;
+        }
+    }
+    else if (tertiaryPress)
+    {
+        if (tertiaryPress->phase != Press::Phase::Releasing)
+            tertiaryPress->phase = Press::Phase::Releasing;
+        mutated |= decayPress(tertiaryPress, false);
     }
 
     if (bank != lastBank)
