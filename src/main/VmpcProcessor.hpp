@@ -8,11 +8,6 @@
 #include <vector>
 #include <unordered_set>
 
-namespace mpc::engine::midi
-{
-    class ShortMessage;
-}
-
 namespace vmpc_juce
 {
 
@@ -75,11 +70,6 @@ namespace vmpc_juce
         int framesProcessed = 0;
         double previousPositionQuarterNotes =
             std::numeric_limits<double>::lowest();
-
-        std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>>
-            midiOutputBuffer =
-                std::vector<std::shared_ptr<mpc::engine::midi::ShortMessage>>(
-                    100);
 
         static BusesProperties getBusesProperties();
 

@@ -445,6 +445,7 @@ void VmpcProcessor::processMidiIn(juce::MidiBuffer &midiMessages)
     }
 }
 
+/*
 static void processMidiOutMsg(juce::MidiBuffer &midiMessages,
                               std::shared_ptr<ShortMessage> &msg)
 {
@@ -489,22 +490,22 @@ static void processMidiOutMsg(juce::MidiBuffer &midiMessages,
         midiMessages.addEvent(juceMsg, msg->bufferPos);
     }
 }
-
+*/
 void VmpcProcessor::processMidiOut(juce::MidiBuffer &midiMessages, bool discard)
 {
     midiMessages.clear();
 
-    const auto outputAEventCount =
-        mpc.getMidiOutput()->dequeueOutputA(midiOutputBuffer);
+    //const auto outputAEventCount =
+       // mpc.getMidiOutput()->dequeueOutputA(midiOutputBuffer);
 
     if (discard)
     {
         return;
     }
 
-    for (unsigned int i = 0; i < outputAEventCount; i++)
+    //for (unsigned int i = 0; i < outputAEventCount; i++)
     {
-        processMidiOutMsg(midiMessages, midiOutputBuffer[i]);
+        //processMidiOutMsg(midiMessages, midiOutputBuffer[i]);
     }
 
     // In JUCE we only have 1 set of 16 MIDI channels as far as I know.
