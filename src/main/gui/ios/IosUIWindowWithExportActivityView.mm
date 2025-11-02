@@ -118,7 +118,7 @@
 }
 
 - (NSMutableArray<NSString *> *)getSelectedFileOrDirectory:(mpc::Mpc *)mpc {
-    const auto selectedFile = mpc->screens->get<mpc::lcdgui::screens::LoadScreen>("load")->getSelectedFile();
+    const auto selectedFile = mpc->screens->get<mpc::lcdgui::screens::LoadScreen>()->getSelectedFile();
     const bool isDirectory = selectedFile->isDirectory();
     const auto selectedFilePath = selectedFile->getPath();
     const auto currentDirectory = mpc->getDisk()->getAbsolutePath();
@@ -148,7 +148,7 @@
 }
 
 -(UIAlertAction *)createShareSelectedAction:(mpc::Mpc*)mpc filePathsArray:(NSMutableArray<NSString *> *)filePathsArray {
-    const auto selectedFile = mpc->screens->get<mpc::lcdgui::screens::LoadScreen>("load")->getSelectedFile();
+    const auto selectedFile = mpc->screens->get<mpc::lcdgui::screens::LoadScreen>()->getSelectedFile();
     bool isDirectory = selectedFile->isDirectory();
     std::string name = selectedFile->getName();
 
@@ -224,7 +224,7 @@
     UIAlertAction *shareApsSndsAllAction = [self createShareApsSndsAllAction:mpc filePathsArray:filePathsArray];
     [alertController addAction:shareApsSndsAllAction];
 
-    const auto selectedFile = mpc->screens->get<mpc::lcdgui::screens::LoadScreen>("load")->getSelectedFile();
+    const auto selectedFile = mpc->screens->get<mpc::lcdgui::screens::LoadScreen>()->getSelectedFile();
     
     if (selectedFile) {
         UIAlertAction *shareSelectedAction = [self createShareSelectedAction:mpc filePathsArray:filePathsArray];
