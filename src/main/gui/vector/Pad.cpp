@@ -132,7 +132,7 @@ void Pad::loadFile(const juce::String path, bool shouldBeConverted)
                 loadFile(path, shouldBeConverted2);
             };
             auto convertAndLoadWavScreen =
-                mpc.screens->get<VmpcConvertAndLoadWavScreen>();
+                mpc.screens->get<mpc::lcdgui::ScreenId::VmpcConvertAndLoadWavScreen>();
             convertAndLoadWavScreen->setLoadRoutine(loadRoutine);
             layeredScreen->openScreen("vmpc-convert-and-load-wav");
         }

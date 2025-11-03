@@ -86,7 +86,7 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
     }
     else
     {
-        auto syncScreen = mpc.screens->get<SyncScreen>();
+        auto syncScreen = mpc.screens->get<ScreenId::SyncScreen>();
         syncScreen->modeIn = 1;
         mpc.setPluginModeEnabled(true);
     }
@@ -529,7 +529,7 @@ void VmpcProcessor::processTransport()
         return;
     }
 
-    auto syncScreen = mpc.screens->get<SyncScreen>();
+    auto syncScreen = mpc.screens->get<ScreenId::SyncScreen>();
 
     bool syncEnabled = syncScreen->getModeIn() == 1;
 
