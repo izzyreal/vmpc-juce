@@ -44,14 +44,14 @@ namespace vmpc_juce::gui::vector
             drawPixelsToImg();
             startTimer(25);
             auto othersScreen =
-                mpc.screens->get<mpc::lcdgui::screens::OthersScreen>();
+                mpc.screens->get<mpc::lcdgui::ScreenId::OthersScreen>();
             othersScreen->addObserver(this);
         }
 
         ~Lcd() override
         {
             auto othersScreen =
-                mpc.screens->get<mpc::lcdgui::screens::OthersScreen>();
+                mpc.screens->get<mpc::lcdgui::ScreenId::OthersScreen>();
             othersScreen->deleteObserver(this);
             delete auxWindow;
         }
@@ -145,7 +145,7 @@ namespace vmpc_juce::gui::vector
             const auto pixels = layeredScreen->getPixels();
 
             auto othersScreen =
-                mpc.screens->get<mpc::lcdgui::screens::OthersScreen>();
+                mpc.screens->get<mpc::lcdgui::ScreenId::OthersScreen>();
             auto contrast = othersScreen->getContrast();
 
             juce::Colour c;
