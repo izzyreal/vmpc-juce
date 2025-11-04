@@ -8,6 +8,8 @@
 
 #include "ZipSaveTarget.hpp"
 #include "DirectorySaveTarget.hpp"
+#include "sampler/Sampler.hpp"
+#include "sequencer/Bus.hpp"
 
 #include <version.h>
 #include <AutoSave.hpp>
