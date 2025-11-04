@@ -8,6 +8,8 @@
 #include "file/AkaiName.hpp"
 #include <juce_graphics/juce_graphics.h>
 #include "lcdgui/screens/DrumScreen.hpp"
+#include "sampler/Sampler.hpp"
+#include "sequencer/Sequencer.hpp"
 
 #include <sequencer/Track.hpp>
 #include <sequencer/Bus.hpp>
