@@ -51,8 +51,6 @@ using namespace mpc::file::sndwriter;
 using namespace mpc::file::sndreader;
 using namespace mpc::disk;
 
-using namespace mpc::engine::midi;
-
 using namespace vmpc_juce;
 
 VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
@@ -191,8 +189,6 @@ void VmpcProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     auto server = ams->getAudioServer();
     server->setSampleRate(static_cast<int>(sampleRate));
     server->resizeBuffers(samplesPerBlock);
-    ams->getFrameSequencer()->setSampleRate(
-        static_cast<unsigned int>(sampleRate));
 
     seq->setCountEnabled(false);
 
