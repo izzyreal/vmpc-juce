@@ -26,12 +26,19 @@ namespace vmpc_juce::gui::vector
             int padIndexWithBank;
             float alpha;
             int veloOrPressure;
-            enum class Phase { Immediate, Sustained, Releasing } phase = Phase::Immediate;
+            enum class Phase
+            {
+                Immediate,
+                Sustained,
+                Releasing
+            } phase = Phase::Immediate;
             std::chrono::steady_clock::time_point pressTime;
             bool wasPaintedWithInitialAlpha = false;
             float getAlphaWithVeloApplied() const
             {
-                return alpha * (static_cast<float>(std::clamp(veloOrPressure, 50, 127)) / 127.f);
+                return alpha * (static_cast<float>(
+                                    std::clamp(veloOrPressure, 50, 127)) /
+                                127.f);
             }
         };
 
@@ -58,17 +65,15 @@ namespace vmpc_juce::gui::vector
         void mouseDrag(const juce::MouseEvent &event) override;
         void sharedTimerCallback();
         bool isInterestedInFileDrag(const juce::StringArray &files) override;
-        void filesDropped(const juce::StringArray &files, int x, int y) override;
+        void filesDropped(const juce::StringArray &files, int x,
+                          int y) override;
         void paint(juce::Graphics &g) override;
 
-        Pad(juce::Component *commonParentWithShadowToUse,
-            float shadowSizeToUse,
-            const std::function<float()> &getScaleToUse,
-            mpc::Mpc &,
+        Pad(juce::Component *commonParentWithShadowToUse, float shadowSizeToUse,
+            const std::function<float()> &getScaleToUse, mpc::Mpc &,
             std::shared_ptr<mpc::hardware::Pad>);
 
         ~Pad() override;
     };
 
 } // namespace vmpc_juce::gui::vector
-

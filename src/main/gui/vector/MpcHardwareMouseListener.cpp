@@ -64,6 +64,7 @@ void MpcHardwareMouseListener::mouseExit(const juce::MouseEvent &)
 void MpcHardwareMouseListener::mouseWheelMove(
     const juce::MouseEvent &event, const juce::MouseWheelDetails &wheel)
 {
+    hideKeyTooltipUntilAfterMouseExit = true;
     setKeyTooltipVisibility(event.eventComponent, false);
 
     float sensitivity = 10.0f;
@@ -125,19 +126,21 @@ void MpcHardwareMouseListener::mouseDoubleClick(const juce::MouseEvent &)
 
 void MpcHardwareMouseListener::mouseUp(const juce::MouseEvent &e)
 {
-    
     if (auto hostInputEvent = makeAbsoluteGestureFromMouse(
             e, label, mpc::input::GestureEvent::Type::END, std::nullopt);
         hostInputEvent)
     {
         mpc.dispatchHostInput(*hostInputEvent);
     }
-    
+
     previousDragY.erase(e.source.getIndex());
 }
 
 void MpcHardwareMouseListener::mouseDrag(const juce::MouseEvent &e)
 {
+    hideKeyTooltipUntilAfterMouseExit = true;
+    setKeyTooltipVisibility(e.eventComponent, false);
+
     if (label == "slider")
     {
         // The slider handles drag events itself

@@ -96,10 +96,16 @@ makeAbsoluteGestureFromMouse(const juce::MouseEvent &e,
                            (float)e.position.getY() /
                                (float)e.eventComponent->getHeight());
 
-    return HostInputEvent{GestureEvent{type, GestureEvent::Movement::Absolute,
-                                       normY, 0.f, e.getNumberOfClicks(),
-                                       e.source.getIndex(),
-                                       componentId}};
+    const GestureEvent::InputDeviceType deviceType =
+        e.source.isPen()     ? GestureEvent::InputDeviceType::Pen
+        : e.source.isTouch() ? GestureEvent::InputDeviceType::Touch
+                             : GestureEvent::InputDeviceType::Mouse;
+
+    return HostInputEvent{
+        GestureEvent{type, GestureEvent::Movement::Absolute, normY, 0.f,
+                     e.getNumberOfClicks(), e.source.getIndex(), componentId,
+                     e.mods.isShiftDown(), e.mods.isCtrlDown(),
+                     e.mods.isAltDown(), deviceType}};
 }
 
 inline std::optional<mpc::input::HostInputEvent>
@@ -117,7 +123,14 @@ makeRelativeGestureFromMouse(const juce::MouseEvent &e,
                                      (float)e.position.getY() /
                                          (float)e.eventComponent->getHeight());
 
+    const GestureEvent::InputDeviceType deviceType =
+        e.source.isPen()     ? GestureEvent::InputDeviceType::Pen
+        : e.source.isTouch() ? GestureEvent::InputDeviceType::Touch
+                             : GestureEvent::InputDeviceType::Mouse;
+
     return HostInputEvent{GestureEvent{
         type, GestureEvent::Movement::Relative, normY, continuousDelta,
-        e.getNumberOfClicks(), e.source.getIndex(), mpc::hardware::componentLabelToId.at(label)}};
+        e.getNumberOfClicks(), e.source.getIndex(),
+        mpc::hardware::componentLabelToId.at(label), e.mods.isShiftDown(),
+        e.mods.isCtrlDown(), e.mods.isAltDown(), deviceType}};
 }
