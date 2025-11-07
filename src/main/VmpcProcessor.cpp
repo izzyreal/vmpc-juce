@@ -82,7 +82,8 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
         const auto autosaveDir = mpc.paths->autoSavePath();
         auto saveTarget =
             std::make_shared<mpc::DirectorySaveTarget>(autosaveDir);
-        mpc::AutoSave::restoreAutoSavedStateWithTarget(mpc, saveTarget);
+        const bool headless = !hasEditor();
+        mpc::AutoSave::restoreAutoSavedStateWithTarget(mpc, saveTarget, headless);
     }
     else
     {
@@ -931,7 +932,8 @@ void VmpcProcessor::setStateInformation(const void *data, int sizeInBytes)
 
         auto zipTarget =
             std::make_shared<ZipSaveTarget>(block.getData(), block.getSize());
-        mpc::AutoSave::restoreAutoSavedStateWithTarget(mpc, zipTarget);
+        const bool headless = !hasEditor();
+        mpc::AutoSave::restoreAutoSavedStateWithTarget(mpc, zipTarget, headless);
     }
 }
 
