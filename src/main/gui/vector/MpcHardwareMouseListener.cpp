@@ -100,7 +100,7 @@ void MpcHardwareMouseListener::mouseDown(const juce::MouseEvent &e)
     setKeyTooltipVisibility(e.eventComponent, false);
     hideKeyTooltipUntilAfterMouseExit = true;
 
-    previousDragY = e.position.getY();
+    previousDragY[e.source.getIndex()] = e.position.getY();
 
     const auto gestureType = e.getNumberOfClicks() >= 2
                                  ? GestureEvent::Type::REPEAT
@@ -125,12 +125,15 @@ void MpcHardwareMouseListener::mouseDoubleClick(const juce::MouseEvent &)
 
 void MpcHardwareMouseListener::mouseUp(const juce::MouseEvent &e)
 {
+    
     if (auto hostInputEvent = makeAbsoluteGestureFromMouse(
             e, label, mpc::input::GestureEvent::Type::END, std::nullopt);
         hostInputEvent)
     {
         mpc.dispatchHostInput(*hostInputEvent);
     }
+    
+    previousDragY.erase(e.source.getIndex());
 }
 
 void MpcHardwareMouseListener::mouseDrag(const juce::MouseEvent &e)
@@ -141,8 +144,8 @@ void MpcHardwareMouseListener::mouseDrag(const juce::MouseEvent &e)
         return;
     }
 
-    const float deltaY = previousDragY - e.position.getY();
-    previousDragY = e.position.getY();
+    const float deltaY = previousDragY[e.source.getIndex()] - e.position.getY();
+    previousDragY[e.source.getIndex()] = e.position.getY();
 
     if (deltaY != 0.0f)
     {

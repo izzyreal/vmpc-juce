@@ -98,6 +98,7 @@ makeAbsoluteGestureFromMouse(const juce::MouseEvent &e,
 
     return HostInputEvent{GestureEvent{type, GestureEvent::Movement::Absolute,
                                        normY, 0.f, e.getNumberOfClicks(),
+                                       e.source.getIndex(),
                                        componentId}};
 }
 
@@ -118,5 +119,5 @@ makeRelativeGestureFromMouse(const juce::MouseEvent &e,
 
     return HostInputEvent{GestureEvent{
         type, GestureEvent::Movement::Relative, normY, continuousDelta,
-        e.getNumberOfClicks(), mpc::hardware::componentLabelToId.at(label)}};
+        e.getNumberOfClicks(), e.source.getIndex(), mpc::hardware::componentLabelToId.at(label)}};
 }

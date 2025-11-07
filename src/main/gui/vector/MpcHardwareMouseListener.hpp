@@ -59,7 +59,9 @@ namespace vmpc_juce::gui::vector
         juce::Component *lastEventComponent = nullptr;
         bool hideKeyTooltipUntilAfterMouseExit = false;
 
-        float previousDragY = 0.f;
+        using MouseSourceIndex = int;
+        
+        std::unordered_map<MouseSourceIndex, float> previousDragY;
     };
 
 } // namespace vmpc_juce::gui::vector
