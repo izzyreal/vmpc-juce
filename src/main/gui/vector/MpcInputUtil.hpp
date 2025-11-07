@@ -48,19 +48,19 @@ getCursorComponentId(const juce::MouseEvent &e)
     right.applyTransform(scaleTransform);
     bottom.applyTransform(scaleTransform);
 
-    if (left.contains(e.position))
+    if (left.contains(e.mouseDownPosition))
     {
         return mpc::hardware::ComponentId::CURSOR_LEFT_OR_DIGIT;
     }
-    else if (top.contains(e.position))
+    else if (top.contains(e.mouseDownPosition))
     {
         return mpc::hardware::ComponentId::CURSOR_UP;
     }
-    else if (right.contains(e.position))
+    else if (right.contains(e.mouseDownPosition))
     {
         return mpc::hardware::ComponentId::CURSOR_RIGHT_OR_DIGIT;
     }
-    else if (bottom.contains(e.position))
+    else if (bottom.contains(e.mouseDownPosition))
     {
         return mpc::hardware::ComponentId::CURSOR_DOWN;
     }
