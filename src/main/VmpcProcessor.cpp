@@ -83,7 +83,8 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
         auto saveTarget =
             std::make_shared<mpc::DirectorySaveTarget>(autosaveDir);
         const bool headless = !hasEditor();
-        mpc::AutoSave::restoreAutoSavedStateWithTarget(mpc, saveTarget, headless);
+        mpc::AutoSave::restoreAutoSavedStateWithTarget(mpc, saveTarget,
+                                                       headless);
     }
     else
     {
@@ -91,8 +92,6 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
         syncScreen->modeIn = 1;
         mpc.setPluginModeEnabled(true);
     }
-
-    mpc.startMidiDeviceDetector();
 }
 
 VmpcProcessor::~VmpcProcessor()
@@ -933,7 +932,8 @@ void VmpcProcessor::setStateInformation(const void *data, int sizeInBytes)
         auto zipTarget =
             std::make_shared<ZipSaveTarget>(block.getData(), block.getSize());
         const bool headless = !hasEditor();
-        mpc::AutoSave::restoreAutoSavedStateWithTarget(mpc, zipTarget, headless);
+        mpc::AutoSave::restoreAutoSavedStateWithTarget(mpc, zipTarget,
+                                                       headless);
     }
 }
 
