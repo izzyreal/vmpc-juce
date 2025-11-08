@@ -303,7 +303,7 @@ void Pad::sharedTimerCallback()
         if (!primaryPress || primaryPress->phase == Press::Phase::Releasing)
         {
             primaryPress = Press{padIndexWithBank, 1.f, veloOrPressure,
-                                 Press::Phase::Immediate};
+                                 Press::Phase::Immediate, std::chrono::steady_clock::time_point()};
             mutated = true;
         }
         else
