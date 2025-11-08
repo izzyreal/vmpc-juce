@@ -83,8 +83,7 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
         auto saveTarget =
             std::make_shared<mpc::DirectorySaveTarget>(autosaveDir);
         const bool headless = !hasEditor();
-        mpc::AutoSave::restoreAutoSavedStateWithTarget(mpc, saveTarget,
-                                                       headless);
+        mpc::AutoSave::restoreAutoSavedState(mpc, saveTarget, headless);
     }
     else
     {
@@ -101,7 +100,7 @@ VmpcProcessor::~VmpcProcessor()
         const auto autosaveDir = mpc.paths->autoSavePath();
         auto saveTarget =
             std::make_shared<mpc::DirectorySaveTarget>(autosaveDir);
-        mpc::AutoSave::storeAutoSavedStateWithTarget(mpc, saveTarget);
+        mpc::AutoSave::storeAutoSavedState(mpc, saveTarget);
     }
 }
 
@@ -846,7 +845,7 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
     // --- 2. Add autosave payload (HEAP allocation!) ---
     {
         auto mpcTarget = std::make_shared<ZipSaveTarget>();
-        mpc::AutoSave::storeAutoSavedStateWithTarget(mpc, mpcTarget);
+        mpc::AutoSave::storeAutoSavedState(mpc, mpcTarget);
         auto zipBlock = mpcTarget->toZipMemoryBlock();
 
         auto *mpcIn = new juce::MemoryInputStream(zipBlock->getData(),
@@ -932,8 +931,7 @@ void VmpcProcessor::setStateInformation(const void *data, int sizeInBytes)
         auto zipTarget =
             std::make_shared<ZipSaveTarget>(block.getData(), block.getSize());
         const bool headless = !hasEditor();
-        mpc::AutoSave::restoreAutoSavedStateWithTarget(mpc, zipTarget,
-                                                       headless);
+        mpc::AutoSave::restoreAutoSavedState(mpc, zipTarget, headless);
     }
 }
 
