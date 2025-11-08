@@ -1,9 +1,9 @@
 VMPC2000XL, an Akai MPC2000XL emulator by Izmar.
 Project website: <link>https://www.izmar.nl</link>
 Source code: <link>https://github.com/izzyreal/vmpc-juce</link>
-Version: <version>
+Version: <build_version>
 Format: <format>
-Build: <build>
+Built: <build_timestamp>
 
 License: GPL3,
 <link>https://github.com/izzyreal/vmpc-juce/blob/master/LICENSE.txt</link>

@@ -1,5 +1,7 @@
 #include "VmpcProcessor.hpp"
 
+#include "build_info/VmpcJuceBuildInfo.hpp"
+
 #include "VmpcEditor.hpp"
 #include "JuceToMpcMidiEventConvertor.hpp"
 #include "controller/ClientEventController.hpp"
@@ -11,7 +13,6 @@
 #include "sampler/Sampler.hpp"
 #include "sequencer/Bus.hpp"
 
-#include <version.h>
 #include <AutoSave.hpp>
 #include <MpcSpecs.hpp>
 #include <Logger.hpp>
@@ -61,14 +62,22 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
     possiblyActiveMpcMonoOutChannels.reserve(10);
 
     time_t currentTime = time(nullptr);
-    struct tm *currentLocalTime = localtime(&currentTime);
+    struct tm* currentLocalTime = localtime(&currentTime);
     auto timeString = std::string(asctime(currentLocalTime));
+    timeString.pop_back(); // remove trailing '\n'
+
+    const auto versionString = std::string(vmpc_juce::build_info::getVersionString());
+    const auto buildTimeString = std::string(vmpc_juce::build_info::getTimeStampString());
 
     mpc::Logger::l.setPath(mpc.paths->logFilePath().string());
-    mpc::Logger::l.log("\n\n-= VMPC2000XL v" + std::string(version::get()) +
-                       " " + timeString.substr(0, timeString.length() - 1) +
-                       " =-\n");
-
+    mpc::Logger::l.log(
+        "\n\n"
+        "------------------------------------------------------------\n"
+        "   VMPC2000XL v" + versionString + "\n"
+        "   Built:   " + buildTimeString + "\n"
+        "   Started: " + timeString + "\n"
+        "------------------------------------------------------------\n"
+    );
     mpc.init();
 
     if (juce::PluginHostType::jucePlugInClientCurrentWrapperType !=

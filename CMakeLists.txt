@@ -46,8 +46,12 @@ if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
 endif()
 
-string(TIMESTAMP CONFIGURE_TIMESTAMP "%a %d %b %H:%M:%S %Z")
-file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/src/main/version.h "#pragma once\nnamespace version { static char const* get(){ return \"${VMPC_VERSION}\"; } static char const* getTimeStamp(){ return \"${CONFIGURE_TIMESTAMP}\"; }}")
+string(TIMESTAMP CONFIGURE_TIMESTAMP "%a, %d %b %Y %H:%M:%S")
+
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/src/main/build_info/VmpcJuceBuildInfo.hpp "#pragma once\nnamespace vmpc_juce::build_info { inline const char *getVersionString(){ return \"${VMPC_VERSION}\"; } inline const char *getTimeStampString(){ return \"${CONFIGURE_TIMESTAMP}\"; }}")
+
+# The version.txt file can be picked up by the CI/CD, so it can inject version info
+# into binaries, installers, GitHub releases, etc.
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)

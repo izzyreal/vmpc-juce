@@ -4,7 +4,7 @@
 
 #include "VmpcTextLayout.hpp"
 
-#include "version.h"
+#include "build_info/VmpcJuceBuildInfo.hpp"
 
 namespace vmpc_juce::gui::vector
 {
@@ -323,9 +323,9 @@ namespace vmpc_juce::gui::vector
 
             juce::String remainingText = rawText;
 
-            remainingText = remainingText.replace("<version>", version::get());
+            remainingText = remainingText.replace("<build_version>", vmpc_juce::build_info::getVersionString());
             remainingText =
-                remainingText.replace("<build>", version::getTimeStamp());
+                remainingText.replace("<build_timestamp>", vmpc_juce::build_info::getTimeStampString());
 
             while (!remainingText.isEmpty())
             {
