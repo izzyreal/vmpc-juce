@@ -329,7 +329,7 @@ void Pad::sharedTimerCallback()
         mutated |= decayPress(primaryPress, true);
     }
 
-    const auto snapshot = mpc.eventRegistry->getSnapshot();
+    const auto snapshot = mpc.eventRegistry->getStateView();
     static const std::vector<mpc::eventregistry::Source> exclude{
         mpc::eventregistry::Source::VirtualMpcHardware};
 
