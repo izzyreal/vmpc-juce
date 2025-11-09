@@ -105,7 +105,6 @@ namespace vmpc_juce
         {
             processor = createPluginFilterOfType(
                 AudioProcessor::wrapperType_Standalone);
-            // processor->disableNonMainBuses();
             processor->setRateAndBufferSizeDetails(44100, 512);
         }
 
@@ -612,118 +611,6 @@ namespace vmpc_juce
                 settingsToUse, takeOwnershipOfSettings,
                 preferredDefaultDeviceName, preferredSetupOptions,
                 constrainToConfiguration, autoOpenMidiDevices));
-
-            class MidiOutputBackgroundThreadStarter
-                : public juce::ChangeListener
-            {
-            private:
-                MidiOutput *midiOutput = nullptr;
-
-            public:
-                void changeListenerCallback(ChangeBroadcaster *source) override
-                {
-                    auto deviceManager = (AudioDeviceManager *)source;
-                    auto newMidiOutput = deviceManager->getDefaultMidiOutput();
-                    if (midiOutput != newMidiOutput)
-                    {
-                        midiOutput = newMidiOutput;
-
-                        if (midiOutput != nullptr)
-                        {
-                            midiOutput->startBackgroundThread();
-                        }
-                    }
-                }
-            };
-
-            class MidiPanicUponAudioDeviceChangeListener
-                : public juce::ChangeListener
-            {
-            private:
-                mpc::Mpc &mpc;
-
-            public:
-                MidiPanicUponAudioDeviceChangeListener(mpc::Mpc &mpcToUse)
-                    : mpc(mpcToUse)
-                {
-                }
-                void
-                changeListenerCallback(ChangeBroadcaster * /*source*/) override
-                {
-                    mpc.panic();
-                }
-            };
-
-            pluginHolder->deviceManager.addChangeListener(
-                new MidiOutputBackgroundThreadStarter());
-            pluginHolder->deviceManager.sendSynchronousChangeMessage();
-
-            auto &mpc =
-                dynamic_cast<VmpcProcessor *>(pluginHolder->processor.get())
-                    ->mpc;
-            pluginHolder->deviceManager.addChangeListener(
-                new MidiPanicUponAudioDeviceChangeListener(mpc));
-
-            class BusesLayoutToAudioDeviceSynchronizer
-                : public juce::ChangeListener
-            {
-            public:
-                BusesLayoutToAudioDeviceSynchronizer(
-                    juce::AudioProcessor *processorToUse)
-                    : processor(processorToUse)
-                {
-                }
-
-                void
-                changeListenerCallback(juce::ChangeBroadcaster *source) override
-                {
-                    for (int i = 0; i < processor->getBusCount(true); i++)
-                    {
-                        processor->getBus(true, i)->enable(false);
-                    }
-                    for (int i = 0; i < processor->getBusCount(false); i++)
-                    {
-                        processor->getBus(false, i)->enable(false);
-                    }
-
-                    const auto deviceManager =
-                        dynamic_cast<juce::AudioDeviceManager *>(source);
-                    const auto setup = deviceManager->getAudioDeviceSetup();
-
-                    juce::BigInteger activeInputChannels = setup.inputChannels;
-                    juce::BigInteger activeOutputChannels =
-                        setup.outputChannels;
-
-                    for (int i = 0; i < activeInputChannels.getHighestBit() + 1;
-                         ++i)
-                    {
-                        if (activeInputChannels[i] &&
-                            i < processor->getBusCount(true) * 2)
-                        {
-                            processor->getBus(true, std::floor(i / 2.f))
-                                ->enable(true);
-                        }
-                    }
-
-                    for (int i = 0;
-                         i < activeOutputChannels.getHighestBit() + 1; ++i)
-                    {
-                        if (activeOutputChannels[i] &&
-                            i < processor->getBusCount(false) * 2)
-                        {
-                            processor->getBus(false, std::floor(i / 2.f))
-                                ->enable(true);
-                        }
-                    }
-                }
-
-            private:
-                juce::AudioProcessor *const processor;
-            };
-
-            pluginHolder->deviceManager.addChangeListener(
-                new BusesLayoutToAudioDeviceSynchronizer(
-                    pluginHolder->processor.get()));
 
 #if JUCE_IOS || JUCE_ANDROID
             setFullScreen(true);

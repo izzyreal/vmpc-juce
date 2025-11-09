@@ -73,8 +73,6 @@ namespace vmpc_juce
 
         static BusesProperties getBusesProperties();
 
-        bool layoutChanged = false;
-
         std::unordered_set<int8_t> possiblyActiveMpcMonoOutChannels;
 
         void computePossiblyActiveMpcMonoOutChannels();
