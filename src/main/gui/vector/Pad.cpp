@@ -34,31 +34,6 @@ using namespace mpc::lcdgui::screens::dialog2;
 using namespace mpc::sequencer;
 using namespace mpc::eventregistry;
 
-/*
-static int
-getDrumIndexForCurrentScreen(mpc::Mpc &mpc,
-                             const std::shared_ptr<ScreenComponent> screen)
-{
-    const bool isSamplerScreen = screengroups::isSamplerScreen(screen);
-    return isSamplerScreen
-               ? mpc.screens->get<mpc::lcdgui::screens::DrumScreen>()->getDrum()
-               : mpc.getSequencer()->getActiveTrack()->getBus() - 1;
-}
-
-static std::shared_ptr<mpc::sampler::Program>
-getProgramForCurrentScreen(mpc::Mpc &mpc)
-{
-    const auto currentScreen = mpc.getLayeredScreen()->getCurrentScreen();
-    const int drumIndex = getDrumIndexForCurrentScreen(mpc, currentScreen);
-    if (drumIndex < 0)
-        return nullptr;
-
-    auto sampler = mpc.getSampler();
-    return sampler->getProgram(
-        mpc.getSequencer()->getDrumBus(drumIndex)->getProgram());
-}
-*/
-
 Pad::Pad(juce::Component *commonParentWithShadowToUse,
          const float shadowSizeToUse,
          const std::function<float()> &getScaleToUse, mpc::Mpc &mpcToUse,
@@ -329,7 +304,7 @@ void Pad::sharedTimerCallback()
         mutated |= decayPress(primaryPress, true);
     }
 
-    const auto snapshot = mpc.eventRegistry->getStateView();
+    const auto snapshot = mpc.eventRegistry->getSnapshot();
     static const std::vector<mpc::eventregistry::Source> exclude{
         mpc::eventregistry::Source::VirtualMpcHardware};
 
