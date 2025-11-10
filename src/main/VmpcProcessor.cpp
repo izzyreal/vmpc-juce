@@ -31,6 +31,7 @@
 #include <disk/AbstractDisk.hpp>
 
 #include <sequencer/Sequencer.hpp>
+#include <sequencer/Transport.hpp>
 #include <sequencer/Clock.hpp>
 #include <lcdgui/screens/SyncScreen.hpp>
 #include <lcdgui/screens/window/DirectoryScreen.hpp>
@@ -181,16 +182,16 @@ void VmpcProcessor::changeProgramName(int /* index */,
 
 void VmpcProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    mpc.panic();
     auto seq = mpc.getSequencer();
-    bool seqWasPlaying = seq->isPlaying();
-    bool seqWasOverdubbing = seq->isOverdubbing();
-    bool seqWasRecording = seq->isRecording();
-    bool countWasEnabled = seq->isCountEnabled();
+    auto transport = seq->getTransport();
+    bool seqWasPlaying = transport->isPlaying();
+    bool seqWasOverdubbing = transport->isOverdubbing();
+    bool seqWasRecording = transport->isRecording();
+    bool countWasEnabled = transport->isCountEnabled();
 
     if (seqWasPlaying)
     {
-        seq->stop();
+        transport->stop();
     }
 
     auto ams = mpc.getAudioMidiServices();
@@ -198,24 +199,24 @@ void VmpcProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
     server->setSampleRate(static_cast<int>(sampleRate));
     server->resizeBuffers(samplesPerBlock);
 
-    seq->setCountEnabled(false);
+    transport->setCountEnabled(false);
 
     if (seqWasOverdubbing)
     {
-        seq->overdub();
+        transport->overdub();
     }
     else if (seqWasRecording)
     {
-        seq->rec();
+        transport->rec();
     }
     else if (seqWasPlaying)
     {
-        seq->play();
+        transport->play();
     }
 
     if (countWasEnabled)
     {
-        seq->setCountEnabled(true);
+        transport->setCountEnabled(true);
     }
 
     computeHostToMpcChannelMappings();
@@ -539,6 +540,8 @@ void VmpcProcessor::processTransport()
 
     bool syncEnabled = syncScreen->getModeIn() == 1;
 
+    auto mpcTransport = mpc.getSequencer()->getTransport();
+
     if (const auto positionInfo = getPlayHead()->getPosition();
         positionInfo.hasValue() && syncEnabled)
     {
@@ -546,9 +549,9 @@ void VmpcProcessor::processTransport()
         const bool isPlaying = positionInfo->getIsPlaying();
 
         if (!nearlyEqual(tempo, m_Tempo) ||
-            !nearlyEqual(mpc.getSequencer()->getTempo(), tempo))
+            !nearlyEqual(mpcTransport->getTempo(), tempo))
         {
-            mpc.getSequencer()->setTempo(tempo);
+            mpcTransport->setTempo(tempo);
             m_Tempo = tempo;
         }
 
@@ -567,22 +570,22 @@ void VmpcProcessor::processTransport()
 
             if (inSongScreen)
             {
-                mpc.getSequencer()->moveWithinSong(positionQuarterNotes);
+                mpcTransport->setPositionWithinSong(positionQuarterNotes);
             }
             else
             {
-                mpc.getSequencer()->move(positionQuarterNotes);
+                mpcTransport->setPosition(positionQuarterNotes);
             }
 
-            mpc.getSequencer()->play();
+            mpcTransport->play();
         }
-        else if (wasPlaying && !isPlaying && mpc.getSequencer()->isPlaying())
+        else if (wasPlaying && !isPlaying && mpcTransport->isPlaying())
         {
-            mpc.getSequencer()->stop();
+            mpcTransport->stop();
             previousPositionQuarterNotes =
                 std::numeric_limits<double>::lowest();
         }
-        else if (!isPlaying && !mpc.getSequencer()->isPlaying())
+        else if (!isPlaying && !mpcTransport->isPlaying())
         {
             if (!nearlyEqual(positionQuarterNotes,
                              previousPositionQuarterNotes))
@@ -592,11 +595,11 @@ void VmpcProcessor::processTransport()
 
                 if (inSongScreen)
                 {
-                    mpc.getSequencer()->moveWithinSong(positionQuarterNotes);
+                    mpcTransport->setPositionWithinSong(positionQuarterNotes);
                 }
                 else
                 {
-                    mpc.getSequencer()->move(positionQuarterNotes);
+                    mpcTransport->setPosition(positionQuarterNotes);
                 }
 
                 previousPositionQuarterNotes = positionQuarterNotes;
@@ -701,16 +704,17 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
     processMidiIn(midiMessages);
 
     auto mpcClock = mpc.getClock();
+    auto mpcTransport = mpc.getSequencer()->getTransport();
 
     if (juce::JUCEApplication::isStandaloneApp())
     {
-        if (mpc.getSequencer()->isPlaying())
+        if (mpcTransport->isPlaying())
         {
             mpcClock->generateTransportInfo(
-                static_cast<float>(mpc.getSequencer()->getTempo()),
+                static_cast<float>(mpcTransport->getTempo()),
                 static_cast<uint32_t>(getSampleRate()),
                 static_cast<uint16_t>(buffer.getNumSamples()),
-                mpc.getSequencer()->getPlayStartPositionQuarterNotes());
+                mpcTransport->getPlayStartPositionQuarterNotes());
         }
     }
     else
@@ -721,15 +725,15 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
                                playHead->getPosition().hasValue() &&
                                playHead->getPosition()->getIsPlaying();
 
-        if (!isPlaying && mpc.getSequencer()->isPlaying())
+        if (!isPlaying && mpcTransport->isPlaying())
         {
             mpcClock->generateTransportInfo(
-                static_cast<float>(mpc.getSequencer()->getTempo()),
+                static_cast<float>(mpcTransport->getTempo()),
                 static_cast<uint32_t>(getSampleRate()),
                 static_cast<uint16_t>(buffer.getNumSamples()),
-                mpc.getSequencer()->getPlayStartPositionQuarterNotes());
+                mpcTransport->getPlayStartPositionQuarterNotes());
         }
-        else if (isPlaying && mpc.getSequencer()->isPlaying())
+        else if (isPlaying && mpcTransport->isPlaying())
         {
             propagateTransportInfo(
                 *mpcClock, playHead, static_cast<uint32_t>(getSampleRate()),
@@ -742,13 +746,11 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
 
             if (inSongScreen)
             {
-                mpc.getSequencer()->setPositionWithinSong(
-                    mpcClock->getLastProcessedHostPositionQuarterNotes());
+                mpcTransport->setPositionWithinSong(mpcClock->getLastProcessedHostPositionQuarterNotes(), false, false);
             }
             else
             {
-                mpc.getSequencer()->setPosition(
-                    mpcClock->getLastProcessedHostPositionQuarterNotes());
+                mpcTransport->setPosition(mpcClock->getLastProcessedHostPositionQuarterNotes(), false, false);
             }
         }
     }
