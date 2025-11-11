@@ -17,17 +17,14 @@
 #include <MpcSpecs.hpp>
 #include <Logger.hpp>
 
-#include <audiomidi/AudioMidiServices.hpp>
+#include <engine/EngineHost.hpp>
 #include <audiomidi/DiskRecorder.hpp>
 #include <audiomidi/MidiOutput.hpp>
-#include <audiomidi/SoundRecorder.hpp>
 
 #include <file/aps/ApsParser.hpp>
 #include <file/all/AllParser.hpp>
 #include <file/sndwriter/SndWriter.hpp>
 #include <file/sndreader/SndReader.hpp>
-#include <disk/ApsLoader.hpp>
-#include <disk/AllLoader.hpp>
 #include <disk/AbstractDisk.hpp>
 
 #include <sequencer/Sequencer.hpp>
@@ -35,7 +32,6 @@
 #include <sequencer/Clock.hpp>
 #include <lcdgui/screens/SyncScreen.hpp>
 #include <lcdgui/screens/window/DirectoryScreen.hpp>
-#include <lcdgui/screens/VmpcSettingsScreen.hpp>
 #include <engine/audio/server/NonRealTimeAudioServer.hpp>
 #include <input/HostInputEvent.hpp>
 
@@ -62,13 +58,13 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
     previousHostOutputChannelIndicesToRender.reserve(18);
     possiblyActiveMpcMonoOutChannels.reserve(10);
 
-    time_t currentTime = time(nullptr);
-    struct tm* currentLocalTime = localtime(&currentTime);
+    const time_t currentTime = time(nullptr);
+    const tm * currentLocalTime = localtime(&currentTime);
     auto timeString = std::string(asctime(currentLocalTime));
-    timeString.pop_back(); // remove trailing '\n'
+    timeString.pop_back();
 
-    const auto versionString = std::string(vmpc_juce::build_info::getVersionString());
-    const auto buildTimeString = std::string(vmpc_juce::build_info::getTimeStampString());
+    const auto versionString = std::string(build_info::getVersionString());
+    const auto buildTimeString = std::string(build_info::getTimeStampString());
 
     mpc::Logger::l.setPath(mpc.paths->logFilePath().string());
     mpc::Logger::l.log(
@@ -82,7 +78,7 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
     mpc.init();
 
     if (juce::PluginHostType::jucePlugInClientCurrentWrapperType !=
-        juce::AudioProcessor::wrapperType_LV2)
+        wrapperType_LV2)
     {
         mpc.getDisk()->initFiles();
     }
@@ -90,14 +86,14 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
     if (juce::JUCEApplication::isStandaloneApp())
     {
         const auto autosaveDir = mpc.paths->autoSavePath();
-        auto saveTarget =
+        const auto saveTarget =
             std::make_shared<mpc::DirectorySaveTarget>(autosaveDir);
-        const bool headless = !hasEditor();
+        const bool headless = !VmpcProcessor::hasEditor();
         mpc::AutoSave::restoreAutoSavedState(mpc, saveTarget, headless);
     }
     else
     {
-        auto syncScreen = mpc.screens->get<ScreenId::SyncScreen>();
+        const auto syncScreen = mpc.screens->get<ScreenId::SyncScreen>();
         syncScreen->modeIn = 1;
         mpc.setPluginModeEnabled(true);
     }
@@ -108,7 +104,7 @@ VmpcProcessor::~VmpcProcessor()
     if (juce::JUCEApplication::isStandaloneApp())
     {
         const auto autosaveDir = mpc.paths->autoSavePath();
-        auto saveTarget =
+        const auto saveTarget =
             std::make_shared<mpc::DirectorySaveTarget>(autosaveDir);
         mpc::AutoSave::storeAutoSavedState(mpc, saveTarget);
     }
@@ -180,22 +176,23 @@ void VmpcProcessor::changeProgramName(int /* index */,
 {
 }
 
-void VmpcProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
+void VmpcProcessor::prepareToPlay(const double sampleRate,
+                                  const int samplesPerBlock)
 {
-    auto seq = mpc.getSequencer();
-    auto transport = seq->getTransport();
-    bool seqWasPlaying = transport->isPlaying();
-    bool seqWasOverdubbing = transport->isOverdubbing();
-    bool seqWasRecording = transport->isRecording();
-    bool countWasEnabled = transport->isCountEnabled();
+    const auto seq = mpc.getSequencer();
+    const auto transport = seq->getTransport();
+    const bool seqWasPlaying = transport->isPlaying();
+    const bool seqWasOverdubbing = transport->isOverdubbing();
+    const bool seqWasRecording = transport->isRecording();
+    const bool countWasEnabled = transport->isCountEnabled();
 
     if (seqWasPlaying)
     {
         transport->stop();
     }
 
-    auto ams = mpc.getAudioMidiServices();
-    auto server = ams->getAudioServer();
+    const auto engineHost = mpc.getEngineHost();
+    const auto server = engineHost->getAudioServer();
     server->setSampleRate(static_cast<int>(sampleRate));
     server->resizeBuffers(samplesPerBlock);
 
@@ -233,7 +230,6 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
     // Hosttypes don't seem to work at this point, but we may need to verify
     // that. First, let's make all decisions based on wrapper type, and then we
     // can further refine if necessary.
-    typedef juce::AudioProcessor::WrapperType W;
     typedef juce::AudioChannelSet C;
 
     const auto wrapper =
@@ -242,14 +238,14 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
 
     if (isStandalone)
     {
-        juce::AudioProcessor::BusesProperties result;
+        BusesProperties result;
         result.addBus(false, "OUTPUT", C::discreteChannels(10));
         result.addBus(true, "RECORD", C::discreteChannels(2));
         return result;
     }
 
-    const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
-    const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
+    const bool isAUv2 = wrapper == wrapperType_AudioUnit;
+    const bool isAUv3 = wrapper == wrapperType_AudioUnitv3;
 
     int monoInCount;
     int stereoInCount;
@@ -271,7 +267,7 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
         stereoOutCount = 5;
     }
 
-    juce::AudioProcessor::BusesProperties result;
+    BusesProperties result;
 
     for (int i = 0; i < stereoInCount; i++)
     {
@@ -281,8 +277,8 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
     for (int i = 0; i < stereoOutCount; i++)
     {
         const auto name = i == 0 ? "STEREO OUT L/R"
-                                 : ("MIX OUT " + std::to_string((i * 2) - 1) +
-                                    "/" + std::to_string(i * 2));
+                                 : "MIX OUT " + std::to_string(i * 2 - 1) +
+                                       "/" + std::to_string(i * 2);
         const bool enabledByDefault =
             i == 0 || isStandalone || isAUv2 || isAUv3;
         result = result.withOutput(name, C::stereo(), enabledByDefault);
@@ -291,7 +287,7 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
     for (int i = 0; i < monoInCount; i++)
     {
         result = result.withInput("RECORD IN " +
-                                      std::string((i % 2 == 0) ? "L" : "R"),
+                                      std::string(i % 2 == 0 ? "L" : "R"),
                                   C::mono(), true);
     }
 
@@ -365,7 +361,7 @@ bool VmpcProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
         }
     }
 
-    const std::function<int(const bool isInput)> getTotalChannelCountForBus =
+    const std::function getTotalChannelCountForBus =
         [&](const bool isInput)
     {
         int result = 0;
@@ -376,7 +372,7 @@ bool VmpcProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
         return result;
     };
 
-    const std::function<std::vector<int>(const bool isInput)> getChannelCounts =
+    const std::function getChannelCounts =
         [&](const bool isInput)
     {
         std::vector<int> result;
@@ -387,7 +383,7 @@ bool VmpcProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
         return result;
     };
 
-    const std::function<int(const bool isInput, const int numChannels)>
+    const std::function
         getBusCountForNumChannels =
             [&](const bool isInput, const int numChannels)
     {
@@ -402,15 +398,13 @@ bool VmpcProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
         return result;
     };
 
-    typedef juce::AudioProcessor::WrapperType W;
-
     const auto wrapper =
         juce::PluginHostType::jucePlugInClientCurrentWrapperType;
     const bool isStandalone = juce::JUCEApplication::isStandaloneApp();
-    const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
-    const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
-    const bool isVST3 = wrapper == W::wrapperType_VST3;
-    const bool isLV2 = wrapper == W::wrapperType_LV2;
+    const bool isAUv2 = wrapper == wrapperType_AudioUnit;
+    const bool isAUv3 = wrapper == wrapperType_AudioUnitv3;
+    const bool isVST3 = wrapper == wrapperType_VST3;
+    const bool isLV2 = wrapper == wrapperType_LV2;
 
     const int monoInputCount = getBusCountForNumChannels(true, 1);
     const int monoOutputCount = getBusCountForNumChannels(false, 1);
@@ -440,14 +434,14 @@ bool VmpcProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
     return result;
 }
 
-void VmpcProcessor::processMidiIn(juce::MidiBuffer &midiMessages)
+void VmpcProcessor::processMidiIn(const juce::MidiBuffer &midiMessages) const
 {
     for (const auto &meta : midiMessages)
     {
         const auto &m = meta.getMessage();
 
-        mpc::client::event::ClientMidiEvent mpcMidiEvent =
-            vmpc_juce::JuceToMpcMidiEventConvertor::convert(m);
+        const mpc::client::event::ClientMidiEvent mpcMidiEvent =
+            JuceToMpcMidiEventConvertor::convert(m);
         mpc.dispatchHostInput(mpc::input::HostInputEvent(mpcMidiEvent));
     }
 }
@@ -498,7 +492,8 @@ static void processMidiOutMsg(juce::MidiBuffer &midiMessages,
     }
 }
 */
-void VmpcProcessor::processMidiOut(juce::MidiBuffer &midiMessages, bool discard)
+void VmpcProcessor::processMidiOut(juce::MidiBuffer &midiMessages,
+                                   const bool discard) const
 {
     midiMessages.clear();
 
@@ -536,11 +531,11 @@ void VmpcProcessor::processTransport()
         return;
     }
 
-    auto syncScreen = mpc.screens->get<ScreenId::SyncScreen>();
+    const auto syncScreen = mpc.screens->get<ScreenId::SyncScreen>();
 
-    bool syncEnabled = syncScreen->getModeIn() == 1;
+    const bool syncEnabled = syncScreen->getModeIn() == 1;
 
-    auto mpcTransport = mpc.getSequencer()->getTransport();
+    const auto mpcTransport = mpc.getSequencer()->getTransport();
 
     if (const auto positionInfo = getPlayHead()->getPosition();
         positionInfo.hasValue() && syncEnabled)
@@ -629,15 +624,15 @@ void VmpcProcessor::computeMpcAndHostOutputChannelIndicesToRender()
         }
     }
 
-    for (auto &i : mpcMonoOutputChannelIndicesToRender)
+    for (const auto &i : mpcMonoOutputChannelIndicesToRender)
     {
         assert(i >= 0);
     }
-    for (auto &i : hostOutputChannelIndicesToRender)
+    for (const auto &i : hostOutputChannelIndicesToRender)
     {
         assert(i >= 0);
     }
-    for (auto &i : previousHostOutputChannelIndicesToRender)
+    for (const auto &i : previousHostOutputChannelIndicesToRender)
     {
         assert(i >= 0);
     }
@@ -655,9 +650,9 @@ static void propagateTransportInfo(mpc::sequencer::Clock &clock,
     const auto positionInfo = playHead->getPosition();
     const auto hostPositionQuarterNotes = positionInfo->getPpqPosition();
     const auto tempo = positionInfo->getBpm();
-    const auto timeInSamples = positionInfo->getTimeInSamples();
 
-    if (hostPositionQuarterNotes.hasValue() && tempo.hasValue() &&
+    if (const auto timeInSamples = positionInfo->getTimeInSamples();
+        hostPositionQuarterNotes.hasValue() && tempo.hasValue() &&
         timeInSamples.hasValue())
     {
         clock.processBufferExternal(*hostPositionQuarterNotes, numSamples,
@@ -673,8 +668,8 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
 
     const int totalNumInputChannels = getTotalNumInputChannels();
     const int totalNumOutputChannels = getTotalNumOutputChannels();
-    auto audioMidiServices = mpc.getAudioMidiServices();
-    auto server = audioMidiServices->getAudioServer();
+    const auto engineHost = mpc.getEngineHost();
+    const auto server = engineHost->getAudioServer();
 
     if (!server->isRunning())
     {
@@ -686,9 +681,9 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
         return;
     }
 
-    audioMidiServices->changeBounceStateIfRequired();
-    audioMidiServices->changeSoundRecorderStateIfRequired();
-    audioMidiServices->switchMidiControlMappingIfRequired();
+    engineHost->changeBounceStateIfRequired();
+    engineHost->changeSoundRecorderStateIfRequired();
+    engineHost->switchMidiControlMappingIfRequired();
 
     if (!server->isRealTime())
     {
@@ -703,8 +698,8 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
     processTransport();
     processMidiIn(midiMessages);
 
-    auto mpcClock = mpc.getClock();
-    auto mpcTransport = mpc.getSequencer()->getTransport();
+    const auto mpcClock = mpc.getClock();
+    const auto mpcTransport = mpc.getSequencer()->getTransport();
 
     if (juce::JUCEApplication::isStandaloneApp())
     {
@@ -755,8 +750,8 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
         }
     }
 
-    auto chDataIn = buffer.getArrayOfReadPointers();
-    auto chDataOut = buffer.getArrayOfWritePointers();
+    const auto chDataIn = buffer.getArrayOfReadPointers();
+    const auto chDataOut = buffer.getArrayOfWritePointers();
 
     computeMpcAndHostOutputChannelIndicesToRender();
 
@@ -766,8 +761,8 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
                  hostOutputChannelIndicesToRender);
 
     const bool shouldClearSomeHostChannels =
-        !(previousHostOutputChannelIndicesToRender ==
-          hostOutputChannelIndicesToRender);
+        previousHostOutputChannelIndicesToRender !=
+        hostOutputChannelIndicesToRender;
 
     if (shouldClearSomeHostChannels)
     {
@@ -828,7 +823,7 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
     juce::XmlElement root("root");
     juce::XmlElement *juce_ui = root.createNewChildElement("JUCE-UI");
 
-    if (auto *editor = getActiveEditor())
+    if (const auto *editor = getActiveEditor())
     {
         juce_ui->setAttribute("vector_ui_width", editor->getWidth());
         juce_ui->setAttribute("vector_ui_height", editor->getHeight());
@@ -855,9 +850,9 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
 
     // --- 2. Add autosave payload (HEAP allocation!) ---
     {
-        auto mpcTarget = std::make_shared<ZipSaveTarget>();
+        const auto mpcTarget = std::make_shared<ZipSaveTarget>();
         mpc::AutoSave::storeAutoSavedState(mpc, mpcTarget);
-        auto zipBlock = mpcTarget->toZipMemoryBlock();
+        const auto zipBlock = mpcTarget->toZipMemoryBlock();
 
         auto *mpcIn = new juce::MemoryInputStream(zipBlock->getData(),
                                                   zipBlock->getSize(), false);
@@ -870,7 +865,7 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
     builder.writeToStream(combinedOut, nullptr);
 }
 
-void VmpcProcessor::setStateInformation(const void *data, int sizeInBytes)
+void VmpcProcessor::setStateInformation(const void *data, const int sizeInBytes)
 {
     if (sizeInBytes <= 0 || !data)
     {
@@ -880,9 +875,9 @@ void VmpcProcessor::setStateInformation(const void *data, int sizeInBytes)
     // Standalone: restore only UI layout
     if (juce::JUCEApplication::isStandaloneApp())
     {
-        std::unique_ptr<juce::XmlElement> xmlState(
+        const std::unique_ptr xmlState(
             getXmlFromBinary(data, sizeInBytes));
-        if (auto *juce_ui = xmlState->getChildByName("JUCE-UI"))
+        if (const auto *juce_ui = xmlState->getChildByName("JUCE-UI"))
         {
             lastUIWidth =
                 juce_ui->getIntAttribute("vector_ui_width", lastUIWidth);
@@ -893,7 +888,7 @@ void VmpcProcessor::setStateInformation(const void *data, int sizeInBytes)
     }
 
     // Plugin: unpack combined zip
-    juce::MemoryInputStream in(data, (size_t)sizeInBytes, false);
+    juce::MemoryInputStream in(data, static_cast<size_t>(sizeInBytes), false);
     juce::ZipFile zip(in);
 
     std::unique_ptr<juce::InputStream> uiStream, mpcStream;
@@ -918,11 +913,10 @@ void VmpcProcessor::setStateInformation(const void *data, int sizeInBytes)
     // Restore UI dimensions
     if (uiStream)
     {
-        auto xmlText = uiStream->readEntireStreamAsString();
-        std::unique_ptr<juce::XmlElement> xmlState(juce::parseXML(xmlText));
-        if (xmlState)
+        const auto xmlText = uiStream->readEntireStreamAsString();
+        if (const std::unique_ptr xmlState(juce::parseXML(xmlText)); xmlState)
         {
-            if (auto *juce_ui = xmlState->getChildByName("JUCE-UI"))
+            if (const auto *juce_ui = xmlState->getChildByName("JUCE-UI"))
             {
                 lastUIWidth =
                     juce_ui->getIntAttribute("vector_ui_width", lastUIWidth);
@@ -939,7 +933,7 @@ void VmpcProcessor::setStateInformation(const void *data, int sizeInBytes)
         tempOut.writeFromInputStream(*mpcStream, -1);
         auto block = tempOut.getMemoryBlock();
 
-        auto zipTarget =
+        const auto zipTarget =
             std::make_shared<ZipSaveTarget>(block.getData(), block.getSize());
         const bool headless = !hasEditor();
         mpc::AutoSave::restoreAutoSavedState(mpc, zipTarget, headless);
@@ -1304,7 +1298,7 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
         {
             continue;
         }
-        for (auto &n : p.lock()->getNotesParameters())
+        for (const auto &n : p.lock()->getNotesParameters())
         {
             const auto output = n->getIndivFxMixerChannel()->getOutput();
             if (output == 0)
@@ -1321,7 +1315,7 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
 
     for (int i = 0; i < mpc::Mpc2000XlSpecs::DRUM_BUS_COUNT; ++i)
     {
-        for (auto &m :
+        for (const auto &m :
              mpc.getSequencer()->getDrumBus(i)->getIndivFxMixerChannels())
         {
             if (m->getOutput() == 0)

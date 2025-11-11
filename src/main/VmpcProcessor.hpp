@@ -49,8 +49,8 @@ namespace vmpc_juce
         int lastUIWidth = 0, lastUIHeight = 0;
 
     private:
-        void processMidiIn(juce::MidiBuffer &midiMessages);
-        void processMidiOut(juce::MidiBuffer &midiMessages, bool discard);
+        void processMidiIn(const juce::MidiBuffer &midiMessages) const;
+        void processMidiOut(juce::MidiBuffer &midiMessages, bool discard) const;
         void processTransport();
         void computeHostToMpcChannelMappings();
 
