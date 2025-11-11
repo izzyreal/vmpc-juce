@@ -17,7 +17,7 @@
 #include <MpcSpecs.hpp>
 #include <Logger.hpp>
 
-#include <audiomidi/AudioMidiServices.hpp>
+#include <engine/EngineHost.hpp>
 #include <audiomidi/DiskRecorder.hpp>
 #include <audiomidi/MidiOutput.hpp>
 #include <audiomidi/SoundRecorder.hpp>
@@ -67,8 +67,8 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
     auto timeString = std::string(asctime(currentLocalTime));
     timeString.pop_back(); // remove trailing '\n'
 
-    const auto versionString = std::string(vmpc_juce::build_info::getVersionString());
-    const auto buildTimeString = std::string(vmpc_juce::build_info::getTimeStampString());
+    const auto versionString = std::string(build_info::getVersionString());
+    const auto buildTimeString = std::string(build_info::getTimeStampString());
 
     mpc::Logger::l.setPath(mpc.paths->logFilePath().string());
     mpc::Logger::l.log(
@@ -82,7 +82,7 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
     mpc.init();
 
     if (juce::PluginHostType::jucePlugInClientCurrentWrapperType !=
-        juce::AudioProcessor::wrapperType_LV2)
+        wrapperType_LV2)
     {
         mpc.getDisk()->initFiles();
     }
@@ -194,7 +194,7 @@ void VmpcProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
         transport->stop();
     }
 
-    auto ams = mpc.getAudioMidiServices();
+    auto ams = mpc.getEngineHost();
     auto server = ams->getAudioServer();
     server->setSampleRate(static_cast<int>(sampleRate));
     server->resizeBuffers(samplesPerBlock);
@@ -233,7 +233,7 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
     // Hosttypes don't seem to work at this point, but we may need to verify
     // that. First, let's make all decisions based on wrapper type, and then we
     // can further refine if necessary.
-    typedef juce::AudioProcessor::WrapperType W;
+    typedef WrapperType W;
     typedef juce::AudioChannelSet C;
 
     const auto wrapper =
@@ -242,14 +242,14 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
 
     if (isStandalone)
     {
-        juce::AudioProcessor::BusesProperties result;
+        BusesProperties result;
         result.addBus(false, "OUTPUT", C::discreteChannels(10));
         result.addBus(true, "RECORD", C::discreteChannels(2));
         return result;
     }
 
-    const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
-    const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
+    const bool isAUv2 = wrapper == wrapperType_AudioUnit;
+    const bool isAUv3 = wrapper == wrapperType_AudioUnitv3;
 
     int monoInCount;
     int stereoInCount;
@@ -271,7 +271,7 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
         stereoOutCount = 5;
     }
 
-    juce::AudioProcessor::BusesProperties result;
+    BusesProperties result;
 
     for (int i = 0; i < stereoInCount; i++)
     {
@@ -402,15 +402,15 @@ bool VmpcProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
         return result;
     };
 
-    typedef juce::AudioProcessor::WrapperType W;
+    typedef WrapperType W;
 
     const auto wrapper =
         juce::PluginHostType::jucePlugInClientCurrentWrapperType;
     const bool isStandalone = juce::JUCEApplication::isStandaloneApp();
-    const bool isAUv2 = wrapper == W::wrapperType_AudioUnit;
-    const bool isAUv3 = wrapper == W::wrapperType_AudioUnitv3;
-    const bool isVST3 = wrapper == W::wrapperType_VST3;
-    const bool isLV2 = wrapper == W::wrapperType_LV2;
+    const bool isAUv2 = wrapper == wrapperType_AudioUnit;
+    const bool isAUv3 = wrapper == wrapperType_AudioUnitv3;
+    const bool isVST3 = wrapper == wrapperType_VST3;
+    const bool isLV2 = wrapper == wrapperType_LV2;
 
     const int monoInputCount = getBusCountForNumChannels(true, 1);
     const int monoOutputCount = getBusCountForNumChannels(false, 1);
@@ -447,7 +447,7 @@ void VmpcProcessor::processMidiIn(juce::MidiBuffer &midiMessages)
         const auto &m = meta.getMessage();
 
         mpc::client::event::ClientMidiEvent mpcMidiEvent =
-            vmpc_juce::JuceToMpcMidiEventConvertor::convert(m);
+            JuceToMpcMidiEventConvertor::convert(m);
         mpc.dispatchHostInput(mpc::input::HostInputEvent(mpcMidiEvent));
     }
 }
@@ -673,7 +673,7 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
 
     const int totalNumInputChannels = getTotalNumInputChannels();
     const int totalNumOutputChannels = getTotalNumOutputChannels();
-    auto audioMidiServices = mpc.getAudioMidiServices();
+    auto audioMidiServices = mpc.getEngineHost();
     auto server = audioMidiServices->getAudioServer();
 
     if (!server->isRunning())
