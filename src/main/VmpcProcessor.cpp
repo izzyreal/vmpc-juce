@@ -191,8 +191,8 @@ void VmpcProcessor::prepareToPlay(const double sampleRate,
         transport->stop();
     }
 
-    const auto ams = mpc.getEngineHost();
-    const auto server = ams->getAudioServer();
+    const auto engineHost = mpc.getEngineHost();
+    const auto server = engineHost->getAudioServer();
     server->setSampleRate(static_cast<int>(sampleRate));
     server->resizeBuffers(samplesPerBlock);
 
