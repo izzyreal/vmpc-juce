@@ -555,15 +555,7 @@ void VmpcProcessor::processTransport()
 
         if (!wasPlaying && isPlaying)
         {
-            const bool shouldEnableSongMode =
-                mpc.getLayeredScreen()->getCurrentScreenName() == "song";
-
-            mpc.getSequencer()->setSongModeEnabled(shouldEnableSongMode);
-
-            const bool inSongScreen =
-                mpc.getLayeredScreen()->getCurrentScreenName() == "song";
-
-            if (inSongScreen)
+            if (mpc.getSequencer()->isSongModeEnabled())
             {
                 mpcTransport->setPositionWithinSong(positionQuarterNotes);
             }
@@ -585,10 +577,7 @@ void VmpcProcessor::processTransport()
             if (!nearlyEqual(positionQuarterNotes,
                              previousPositionQuarterNotes))
             {
-                const bool inSongScreen =
-                    mpc.getLayeredScreen()->getCurrentScreenName() == "song";
-
-                if (inSongScreen)
+                if (mpc.getSequencer()->isSongModeEnabled())
                 {
                     mpcTransport->setPositionWithinSong(positionQuarterNotes);
                 }
@@ -740,10 +729,7 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
         }
         else if (isPlaying)
         {
-            const bool inSongScreen =
-                mpc.getLayeredScreen()->getCurrentScreenName() == "song";
-
-            if (inSongScreen)
+            if (mpc.getSequencer()->isSongModeEnabled())
             {
                 mpcTransport->setPositionWithinSong(mpcClock->getLastProcessedHostPositionQuarterNotes(), false, false);
             }
