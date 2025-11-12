@@ -685,8 +685,6 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
     }
 
     engineHost->changeBounceStateIfRequired();
-    engineHost->changeSoundRecorderStateIfRequired();
-    engineHost->switchMidiControlMappingIfRequired();
 
     if (!server->isRealTime())
     {
@@ -697,6 +695,9 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
 
         return;
     }
+
+    engineHost->changeSoundRecorderStateIfRequired();
+    engineHost->switchMidiControlMappingIfRequired();
 
     processTransport();
     processMidiIn(midiMessages);
