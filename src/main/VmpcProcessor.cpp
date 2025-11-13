@@ -22,7 +22,6 @@
 #include <audiomidi/MidiOutput.hpp>
 
 #include <file/aps/ApsParser.hpp>
-#include <file/all/AllParser.hpp>
 #include <file/sndwriter/SndWriter.hpp>
 #include <file/sndreader/SndReader.hpp>
 #include <disk/AbstractDisk.hpp>
@@ -1298,15 +1297,15 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
             // output is 1 for MIX 1 bus, 2 for MIX 2 bus, etc. So we subtract 1
             // to get 0-based index, and then we add 2 to get the bus index in
             // the plugin, because the first stereo bus (for STEREO L/R, the
-            // main output) comes before the MIX busses.
+            // main output) comes before the MIX buses.
             insertValue(static_cast<int8_t>(output + 1));
         }
     }
 
-    for (int i = 0; i < mpc::Mpc2000XlSpecs::DRUM_BUS_COUNT; ++i)
+    for (int8_t drumBusIndex = 0; drumBusIndex < mpc::Mpc2000XlSpecs::DRUM_BUS_COUNT; ++drumBusIndex)
     {
         for (const auto &m :
-             mpc.getSequencer()->getDrumBus(i)->getIndivFxMixerChannels())
+             mpc.getSequencer()->getDrumBus(drumBusIndex)->getIndivFxMixerChannels())
         {
             if (m->getOutput() == 0)
             {
