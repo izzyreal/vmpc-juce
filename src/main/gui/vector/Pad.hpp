@@ -2,6 +2,8 @@
 
 #include "SvgComponent.hpp"
 
+#include <IntTypes.hpp>
+
 #include <memory>
 #include <optional>
 
@@ -20,7 +22,6 @@ namespace vmpc_juce::gui::vector
 
     class Pad : public SvgComponent, public juce::FileDragAndDropTarget
     {
-    private:
         struct Press
         {
             int padIndexWithBank;
@@ -32,7 +33,7 @@ namespace vmpc_juce::gui::vector
                 Sustained,
                 Releasing
             } phase = Phase::Immediate;
-            std::chrono::steady_clock::time_point pressTime;
+            mpc::TimeInMilliseconds pressTime;
             bool wasPaintedWithInitialAlpha = false;
             float getAlphaWithVeloApplied() const
             {
