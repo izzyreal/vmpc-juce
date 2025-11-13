@@ -7,9 +7,9 @@
 #include <Mpc.hpp>
 #include "file/AkaiName.hpp"
 #include <juce_graphics/juce_graphics.h>
-#include "lcdgui/screens/DrumScreen.hpp"
 #include "sampler/Sampler.hpp"
 #include "sequencer/Sequencer.hpp"
+#include "utils/TimeUtils.hpp"
 
 #include <sequencer/Track.hpp>
 #include <sequencer/Bus.hpp>
@@ -21,10 +21,8 @@
 #include <disk/MpcFile.hpp>
 
 #include <lcdgui/screens/window/VmpcConvertAndLoadWavScreen.hpp>
-#include <lcdgui/ScreenGroups.hpp>
 
 #include <StrUtil.hpp>
-#include <Logger.hpp>
 
 using namespace vmpc_juce::gui::vector;
 using namespace mpc::disk;
@@ -34,7 +32,7 @@ using namespace mpc::lcdgui::screens::dialog2;
 using namespace mpc::sequencer;
 using namespace mpc::eventregistry;
 
-Pad::Pad(juce::Component *commonParentWithShadowToUse,
+Pad::Pad(Component *commonParentWithShadowToUse,
          const float shadowSizeToUse,
          const std::function<float()> &getScaleToUse, mpc::Mpc &mpcToUse,
          std::shared_ptr<mpc::hardware::Pad> mpcPadToUse)
@@ -88,7 +86,7 @@ void Pad::loadFile(const juce::String path, bool shouldBeConverted)
 
     auto compatiblePath =
         mpc::StrUtil::replaceAll(path.toStdString(), '\\', std::string("\\"));
-    auto file = std::make_shared<mpc::disk::MpcFile>(fs::path(compatiblePath));
+    auto file = std::make_shared<MpcFile>(fs::path(compatiblePath));
     auto layeredScreen = mpc.getLayeredScreen();
 
     SoundLoaderResult result;
@@ -113,7 +111,7 @@ void Pad::loadFile(const juce::String path, bool shouldBeConverted)
             };
             auto convertAndLoadWavScreen =
                 mpc.screens
-                    ->get<mpc::lcdgui::ScreenId::VmpcConvertAndLoadWavScreen>();
+                    ->get<ScreenId::VmpcConvertAndLoadWavScreen>();
             convertAndLoadWavScreen->setLoadRoutine(loadRoutine);
             layeredScreen->openScreen("vmpc-convert-and-load-wav");
         }
@@ -167,8 +165,7 @@ void Pad::loadFile(const juce::String path, bool shouldBeConverted)
     auto programPad = program->getPad(padIndex);
     auto padNote = programPad->getNote();
 
-    if (auto noteParams = dynamic_cast<mpc::sampler::NoteParameters *>(
-            program->getNoteParameters(padNote)))
+    if (auto noteParams = program->getNoteParameters(padNote))
     {
         noteParams->setSoundIndex(soundIndex);
     }
@@ -278,7 +275,7 @@ void Pad::sharedTimerCallback()
         if (!primaryPress || primaryPress->phase == Press::Phase::Releasing)
         {
             primaryPress = Press{padIndexWithBank, 1.f, veloOrPressure,
-                                 Press::Phase::Immediate, std::chrono::steady_clock::time_point()};
+                                 Press::Phase::Immediate, mpc::utils::nowInMilliseconds()};
             mutated = true;
         }
         else
@@ -305,10 +302,10 @@ void Pad::sharedTimerCallback()
     }
 
     const auto snapshot = mpc.eventRegistry->getSnapshot();
-    static const std::vector<mpc::eventregistry::Source> exclude{
-        mpc::eventregistry::Source::VirtualMpcHardware};
+    static const std::vector exclude{
+        Source::VirtualMpcHardware};
 
-    const ProgramPadPressEventPtr mostRecentPress =
+    const auto mostRecentPress =
         snapshot.getMostRecentProgramPadPress(
             static_cast<uint8_t>(padIndexWithBank), exclude);
 
@@ -319,11 +316,11 @@ void Pad::sharedTimerCallback()
 
         if (!secondaryPress ||
             secondaryPress->phase == Press::Phase::Releasing ||
-            secondaryPress->pressTime != mostRecentPress->pressTime)
+            secondaryPress->pressTime != mostRecentPress->pressTimeMs)
         {
             secondaryPress =
                 Press{padIndexWithBank, 1.f, veloOrPressure,
-                      Press::Phase::Immediate, mostRecentPress->pressTime};
+                      Press::Phase::Immediate, mostRecentPress->pressTimeMs};
             mutated = true;
         }
         else
@@ -348,7 +345,7 @@ void Pad::sharedTimerCallback()
 
     int otherBanked = -1;
 
-    ProgramPadPressEventPtr otherBankedPressPtr;
+    std::optional<ProgramPadPressEvent> otherBankedPress;
 
     for (int i = mpcPad->getIndex(); i < 64; i += 16)
     {
@@ -363,22 +360,22 @@ void Pad::sharedTimerCallback()
             mostRecentOtherBankedPress)
         {
             otherBanked = i;
-            otherBankedPressPtr = mostRecentOtherBankedPress;
+            otherBankedPress = mostRecentOtherBankedPress;
             break;
         }
     }
 
-    if (otherBanked != -1)
+    if (otherBanked != -1 && otherBankedPress)
     {
         auto veloOrPressure = snapshot.getPressedProgramPadAfterTouchOrVelocity(
             static_cast<uint8_t>(otherBanked));
 
         if (!tertiaryPress || tertiaryPress->phase == Press::Phase::Releasing ||
-            tertiaryPress->pressTime != otherBankedPressPtr->pressTime)
+            tertiaryPress->pressTime != otherBankedPress->pressTimeMs)
         {
             tertiaryPress =
                 Press{otherBanked, 1.f, veloOrPressure, Press::Phase::Immediate,
-                      otherBankedPressPtr->pressTime};
+                      otherBankedPress->pressTimeMs};
             mutated = true;
         }
         else
