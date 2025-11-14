@@ -32,8 +32,7 @@ using namespace mpc::lcdgui::screens::dialog2;
 using namespace mpc::sequencer;
 using namespace mpc::eventregistry;
 
-Pad::Pad(Component *commonParentWithShadowToUse,
-         const float shadowSizeToUse,
+Pad::Pad(Component *commonParentWithShadowToUse, const float shadowSizeToUse,
          const std::function<float()> &getScaleToUse, mpc::Mpc &mpcToUse,
          std::shared_ptr<mpc::hardware::Pad> mpcPadToUse)
     : SvgComponent({"pad.svg", "pressed_pad.svg"}, commonParentWithShadowToUse,
@@ -55,8 +54,8 @@ bool Pad::isInterestedInFileDrag(const juce::StringArray &files)
 
     for (auto &s : files)
     {
-        const auto lower = mpc::StrUtil::toLower(s.toStdString());
-        if (mpc::StrUtil::hasEnding(lower, ".snd") ||
+        if (const auto lower = mpc::StrUtil::toLower(s.toStdString());
+            mpc::StrUtil::hasEnding(lower, ".snd") ||
             mpc::StrUtil::hasEnding(lower, ".wav"))
         {
             if (glowSvg->getAlpha() == 0.f)
@@ -70,10 +69,10 @@ bool Pad::isInterestedInFileDrag(const juce::StringArray &files)
     return false;
 }
 
-void Pad::loadFile(const juce::String path, bool shouldBeConverted)
+void Pad::loadFile(const juce::String &path, bool shouldBeConverted)
 {
-    const auto lower = mpc::StrUtil::toLower(path.toStdString());
-    if (!mpc::StrUtil::hasEnding(lower, ".snd") &&
+    if (const auto lower = mpc::StrUtil::toLower(path.toStdString());
+        !mpc::StrUtil::hasEnding(lower, ".snd") &&
         !mpc::StrUtil::hasEnding(lower, ".wav"))
     {
         return;
@@ -104,14 +103,13 @@ void Pad::loadFile(const juce::String path, bool shouldBeConverted)
 
         if (result.canBeConverted)
         {
-            auto loadRoutine = [&, path, layeredScreen]()
+            auto loadRoutine = [&, path]
             {
-                const bool shouldBeConverted2 = true;
+                constexpr bool shouldBeConverted2 = true;
                 loadFile(path, shouldBeConverted2);
             };
             auto convertAndLoadWavScreen =
-                mpc.screens
-                    ->get<ScreenId::VmpcConvertAndLoadWavScreen>();
+                mpc.screens->get<ScreenId::VmpcConvertAndLoadWavScreen>();
             convertAndLoadWavScreen->setLoadRoutine(loadRoutine);
             layeredScreen->openScreen("vmpc-convert-and-load-wav");
         }
@@ -159,10 +157,10 @@ void Pad::loadFile(const juce::String path, bool shouldBeConverted)
     auto programIndex = drumBus->getProgram();
     auto program = mpc.getSampler()->getProgram(programIndex);
     auto soundIndex = mpc.getSampler()->getSoundCount() - 1;
-    const int bank =
-        static_cast<int>(mpc.clientEventController->getActiveBank());
-    auto padIndex = mpcPad->getIndex() + (bank * 16);
-    auto programPad = program->getPad(padIndex);
+    const auto bank = mpc.clientEventController->getActiveBank();
+    auto programPadIndex = mpc::controller::physicalPadAndBankToProgramPadIndex(
+        mpcPad->getIndex(), bank);
+    auto programPad = program->getPad(programPadIndex);
     auto padNote = programPad->getNote();
 
     if (auto noteParams = program->getNoteParameters(padNote))
@@ -178,11 +176,11 @@ void Pad::filesDropped(const juce::StringArray &files, int, int)
         return;
     }
 
-    const bool shouldBeConverted = false;
+    constexpr bool shouldBeConverted = false;
     loadFile(files[0], shouldBeConverted);
 }
 
-int Pad::getVelo(int veloY)
+int Pad::getVelo(const int veloY) const
 {
     return static_cast<int>(static_cast<float>(veloY) /
                             static_cast<float>(getHeight()));
@@ -217,7 +215,8 @@ void Pad::sharedTimerCallback()
     static constexpr float immediateFadeFactorNonPrimary = 0.6f;
     static constexpr float decayThreshold = 0.f;
 
-    auto decayPress = [&](std::optional<Press> &press, bool isPrimary) -> bool
+    auto decayPress = [&](std::optional<Press> &press,
+                          const bool isPrimary) -> bool
     {
         if (!press)
         {
@@ -231,8 +230,8 @@ void Pad::sharedTimerCallback()
 
         bool mutated = false;
         const float immediateFadeFactorToUse =
-            (isPrimary ? immediateFadeFactorPrimary
-                       : immediateFadeFactorNonPrimary);
+            isPrimary ? immediateFadeFactorPrimary
+                      : immediateFadeFactorNonPrimary;
         switch (press->phase)
         {
             case Press::Phase::Immediate:
@@ -261,21 +260,24 @@ void Pad::sharedTimerCallback()
         return mutated;
     };
 
-    const int bank =
-        static_cast<int>(mpc.clientEventController->getActiveBank());
-    const int padIndexWithBank = mpcPad->getIndex() + (bank * 16);
+    const auto bank = mpc.clientEventController->getActiveBank();
+
+    const mpc::ProgramPadIndex programPadIndex =
+        mpc::controller::physicalPadAndBankToProgramPadIndex(mpcPad->getIndex(),
+                                                             bank);
 
     bool mutated = false;
 
     if (mpcPad->isPressed())
     {
-        auto veloOrPressure =
+        const auto veloOrPressure =
             mpcPad->getPressure().value_or(mpcPad->getVelocity().value());
 
         if (!primaryPress || primaryPress->phase == Press::Phase::Releasing)
         {
-            primaryPress = Press{padIndexWithBank, 1.f, veloOrPressure,
-                                 Press::Phase::Immediate, mpc::utils::nowInMilliseconds()};
+            primaryPress =
+                Press{programPadIndex, 1.f, veloOrPressure,
+                      Press::Phase::Immediate, mpc::utils::nowInMilliseconds()};
             mutated = true;
         }
         else
@@ -302,24 +304,23 @@ void Pad::sharedTimerCallback()
     }
 
     const auto snapshot = mpc.eventRegistry->getSnapshot();
-    static const std::vector exclude{
-        Source::VirtualMpcHardware};
+    static const std::vector exclude{Source::VirtualMpcHardware};
 
-    const auto mostRecentPress =
-        snapshot.getMostRecentProgramPadPress(
-            static_cast<uint8_t>(padIndexWithBank), exclude);
+    const auto mostRecentPress = snapshot.getMostRecentProgramPadPress(
+        mpc::ProgramPadIndex(programPadIndex), exclude);
 
     if (mostRecentPress)
     {
-        auto veloOrPressure = snapshot.getPressedProgramPadAfterTouchOrVelocity(
-            static_cast<uint8_t>(padIndexWithBank));
+        const auto veloOrPressure =
+            snapshot.getPressedProgramPadAfterTouchOrVelocity(
+                mpc::ProgramPadIndex(programPadIndex));
 
         if (!secondaryPress ||
             secondaryPress->phase == Press::Phase::Releasing ||
             secondaryPress->pressTime != mostRecentPress->pressTimeMs)
         {
             secondaryPress =
-                Press{padIndexWithBank, 1.f, veloOrPressure,
+                Press{programPadIndex, 1.f, veloOrPressure,
                       Press::Phase::Immediate, mostRecentPress->pressTimeMs};
             mutated = true;
         }
@@ -343,19 +344,21 @@ void Pad::sharedTimerCallback()
         mutated |= decayPress(secondaryPress, false);
     }
 
-    int otherBanked = -1;
+    int8_t otherBanked = -1;
 
     std::optional<ProgramPadPressEvent> otherBankedPress;
 
-    for (int i = mpcPad->getIndex(); i < 64; i += 16)
+    for (int8_t i = static_cast<int8_t>(mpcPad->getIndex());
+         i < mpc::MaxProgramPadIndex;
+         i += mpc::Mpc2000XlSpecs::PADS_PER_BANK_COUNT)
     {
-        if (i == padIndexWithBank)
+        if (i == programPadIndex)
         {
             continue;
         }
 
-        if (auto mostRecentOtherBankedPress =
-                snapshot.getMostRecentProgramPadPress(static_cast<uint8_t>(i),
+        if (const auto mostRecentOtherBankedPress =
+                snapshot.getMostRecentProgramPadPress(mpc::ProgramPadIndex(i),
                                                       exclude);
             mostRecentOtherBankedPress)
         {
@@ -367,8 +370,9 @@ void Pad::sharedTimerCallback()
 
     if (otherBanked != -1 && otherBankedPress)
     {
-        auto veloOrPressure = snapshot.getPressedProgramPadAfterTouchOrVelocity(
-            static_cast<uint8_t>(otherBanked));
+        const auto veloOrPressure =
+            snapshot.getPressedProgramPadAfterTouchOrVelocity(
+                mpc::ProgramPadIndex(otherBanked));
 
         if (!tertiaryPress || tertiaryPress->phase == Press::Phase::Releasing ||
             tertiaryPress->pressTime != otherBankedPress->pressTimeMs)
@@ -398,9 +402,9 @@ void Pad::sharedTimerCallback()
         mutated |= decayPress(tertiaryPress, false);
     }
 
-    if (bank != lastBank)
+    if (static_cast<int>(bank) != lastBank)
     {
-        lastBank = bank;
+        lastBank = static_cast<int>(bank);
         auto fadePress = [&](std::optional<Press> &press)
         {
             if (press && press->alpha == 1.f)
@@ -459,9 +463,10 @@ void Pad::paint(juce::Graphics &g)
     SvgComponent::paint(g);
     const float scale = getScale();
 
-    auto drawOutline = [&](std::optional<Press> &press, juce::Colour baseColour,
-                           float inset, float baseThickness,
-                           float baseCornerRadius, bool addInwardGlow = true)
+    auto drawOutline =
+        [&](std::optional<Press> &press, const juce::Colour baseColour,
+            const float inset, const float baseThickness,
+            const float baseCornerRadius, const bool addInwardGlow = true)
     {
         if (!press)
         {
@@ -489,8 +494,8 @@ void Pad::paint(juce::Graphics &g)
 
         if (addInwardGlow)
         {
-            juce::Colour inner = baseColour.withAlpha(baseAlpha * 0.05f);
-            juce::Colour outer = baseColour.withAlpha(baseAlpha * 0.5f);
+            const juce::Colour inner = baseColour.withAlpha(baseAlpha * 0.05f);
+            const juce::Colour outer = baseColour.withAlpha(baseAlpha * 0.5f);
 
             juce::ColourGradient grad(
                 inner, bounds.getCentreX(), bounds.getCentreY(), outer,

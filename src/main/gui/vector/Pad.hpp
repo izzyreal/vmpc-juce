@@ -54,8 +54,8 @@ namespace vmpc_juce::gui::vector
         SvgComponent *glowSvg = nullptr;
         std::optional<int> pressedBank = std::nullopt;
 
-        int getVelo(int veloY);
-        void loadFile(const juce::String path, bool shouldBeConverted);
+        int getVelo(int veloY) const;
+        void loadFile(const juce::String &path, bool shouldBeConverted);
         std::function<float()> getScale;
         bool mutatedSinceLastPaint = false;
         int fadeFrameCounter = 0;
