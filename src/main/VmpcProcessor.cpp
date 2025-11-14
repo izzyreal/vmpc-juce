@@ -58,7 +58,7 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
     possiblyActiveMpcMonoOutChannels.reserve(10);
 
     const time_t currentTime = time(nullptr);
-    const tm * currentLocalTime = localtime(&currentTime);
+    const tm *currentLocalTime = localtime(&currentTime);
     auto timeString = std::string(asctime(currentLocalTime));
     timeString.pop_back();
 
@@ -69,11 +69,16 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
     mpc::Logger::l.log(
         "\n\n"
         "------------------------------------------------------------\n"
-        "   VMPC2000XL v" + versionString + "\n"
-        "   Built:   " + buildTimeString + "\n"
-        "   Started: " + timeString + "\n"
-        "------------------------------------------------------------\n"
-    );
+        "   VMPC2000XL v" +
+        versionString +
+        "\n"
+        "   Built:   " +
+        buildTimeString +
+        "\n"
+        "   Started: " +
+        timeString +
+        "\n"
+        "------------------------------------------------------------\n");
     mpc.init();
 
     if (juce::PluginHostType::jucePlugInClientCurrentWrapperType !=
@@ -285,9 +290,9 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
 
     for (int i = 0; i < monoInCount; i++)
     {
-        result = result.withInput("RECORD IN " +
-                                      std::string(i % 2 == 0 ? "L" : "R"),
-                                  C::mono(), true);
+        result =
+            result.withInput("RECORD IN " + std::string(i % 2 == 0 ? "L" : "R"),
+                             C::mono(), true);
     }
 
     for (int i = 0; i < monoOutCount; i++)
@@ -360,8 +365,7 @@ bool VmpcProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
         }
     }
 
-    const std::function getTotalChannelCountForBus =
-        [&](const bool isInput)
+    const std::function getTotalChannelCountForBus = [&](const bool isInput)
     {
         int result = 0;
         for (int i = 0; i < layouts.getBuses(isInput).size(); i++)
@@ -371,8 +375,7 @@ bool VmpcProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
         return result;
     };
 
-    const std::function getChannelCounts =
-        [&](const bool isInput)
+    const std::function getChannelCounts = [&](const bool isInput)
     {
         std::vector<int> result;
         for (int i = 0; i < layouts.getBuses(isInput).size(); i++)
@@ -382,9 +385,8 @@ bool VmpcProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
         return result;
     };
 
-    const std::function
-        getBusCountForNumChannels =
-            [&](const bool isInput, const int numChannels)
+    const std::function getBusCountForNumChannels =
+        [&](const bool isInput, const int numChannels)
     {
         int result = 0;
         for (int i = 0; i < layouts.getBuses(isInput).size(); i++)
@@ -730,11 +732,15 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
         {
             if (mpc.getSequencer()->isSongModeEnabled())
             {
-                mpcTransport->setPositionWithinSong(mpcClock->getLastProcessedHostPositionQuarterNotes(), false, false);
+                mpcTransport->setPositionWithinSong(
+                    mpcClock->getLastProcessedHostPositionQuarterNotes(), false,
+                    false);
             }
             else
             {
-                mpcTransport->setPosition(mpcClock->getLastProcessedHostPositionQuarterNotes(), false, false);
+                mpcTransport->setPosition(
+                    mpcClock->getLastProcessedHostPositionQuarterNotes(), false,
+                    false);
             }
         }
     }
@@ -864,8 +870,7 @@ void VmpcProcessor::setStateInformation(const void *data, const int sizeInBytes)
     // Standalone: restore only UI layout
     if (juce::JUCEApplication::isStandaloneApp())
     {
-        const std::unique_ptr xmlState(
-            getXmlFromBinary(data, sizeInBytes));
+        const std::unique_ptr xmlState(getXmlFromBinary(data, sizeInBytes));
         if (const auto *juce_ui = xmlState->getChildByName("JUCE-UI"))
         {
             lastUIWidth =
@@ -1302,10 +1307,12 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
         }
     }
 
-    for (int8_t drumBusIndex = 0; drumBusIndex < mpc::Mpc2000XlSpecs::DRUM_BUS_COUNT; ++drumBusIndex)
+    for (int8_t drumBusIndex = 0;
+         drumBusIndex < mpc::Mpc2000XlSpecs::DRUM_BUS_COUNT; ++drumBusIndex)
     {
-        for (const auto &m :
-             mpc.getSequencer()->getDrumBus(drumBusIndex)->getIndivFxMixerChannels())
+        for (const auto &m : mpc.getSequencer()
+                                 ->getDrumBus(mpc::DrumBusIndex(drumBusIndex))
+                                 ->getIndivFxMixerChannels())
         {
             if (m->getOutput() == 0)
             {
