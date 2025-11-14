@@ -660,8 +660,6 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
     const int totalNumOutputChannels = getTotalNumOutputChannels();
     const auto engineHost = mpc.getEngineHost();
 
-    engineHost->applyPendingStateChanges();
-
     const auto server = engineHost->getAudioServer();
 
     if (!server->isRunning())
@@ -674,6 +672,7 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
         return;
     }
 
+    engineHost->applyPendingStateChanges();
     engineHost->changeBounceStateIfRequired();
 
     if (!server->isRealTime())
