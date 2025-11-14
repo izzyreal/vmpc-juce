@@ -148,7 +148,7 @@ void Pad::loadFile(const juce::String &path, bool shouldBeConverted)
         "LOADING " + mpc::StrUtil::padRight(soundFileName, " ", 16) + ext, 300);
 
     auto drumBus = mpc.getSequencer()->getBus<DrumBus>(
-        mpc.getSequencer()->getActiveTrack()->getBusType());
+        mpc.getSequencer()->getSelectedTrack()->getBusType());
     if (!drumBus)
     {
         return;
