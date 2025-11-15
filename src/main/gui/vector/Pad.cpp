@@ -1,7 +1,7 @@
 #include "Pad.hpp"
 
 #include "controller/ClientEventController.hpp"
-#include "eventregistry/EventRegistry.hpp"
+#include "eventregistry/PerformanceManager.hpp"
 #include "hardware/Component.hpp"
 
 #include <Mpc.hpp>
@@ -303,7 +303,7 @@ void Pad::sharedTimerCallback()
         mutated |= decayPress(primaryPress, true);
     }
 
-    const auto snapshot = mpc.eventRegistry->getSnapshot();
+    const auto snapshot = mpc.performanceManager->getSnapshot();
     static const std::vector exclude{Source::VirtualMpcHardware};
 
     const auto mostRecentPress = snapshot.getMostRecentProgramPadPress(
