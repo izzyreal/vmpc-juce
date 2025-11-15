@@ -304,7 +304,7 @@ void Pad::sharedTimerCallback()
     }
 
     const auto snapshot = mpc.performanceManager->getSnapshot();
-    static const std::vector exclude{Source::VirtualMpcHardware};
+    static const std::vector exclude{PerformanceEventSource::VirtualMpcHardware};
 
     const auto mostRecentPress = snapshot.getMostRecentProgramPadPress(
         mpc::ProgramPadIndex(programPadIndex), exclude);
