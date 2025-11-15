@@ -1,7 +1,7 @@
 #include "Pad.hpp"
 
 #include "controller/ClientEventController.hpp"
-#include "eventregistry/PerformanceManager.hpp"
+#include "performance/PerformanceManager.hpp"
 #include "hardware/Component.hpp"
 
 #include <Mpc.hpp>
