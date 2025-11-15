@@ -153,7 +153,7 @@ void Pad::loadFile(const juce::String &path, bool shouldBeConverted)
         return;
     }
 
-    auto programIndex = drumBus->getProgram();
+    auto programIndex = drumBus->getProgramIndex();
     auto program = mpc.getSampler()->getProgram(programIndex);
     auto soundIndex = mpc.getSampler()->getSoundCount() - 1;
     const auto bank = mpc.clientEventController->getActiveBank();
