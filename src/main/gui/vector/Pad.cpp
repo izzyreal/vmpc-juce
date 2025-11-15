@@ -30,7 +30,7 @@ using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens::window;
 using namespace mpc::lcdgui::screens::dialog2;
 using namespace mpc::sequencer;
-using namespace mpc::eventregistry;
+using namespace mpc::performance;
 
 Pad::Pad(Component *commonParentWithShadowToUse, const float shadowSizeToUse,
          const std::function<float()> &getScaleToUse, mpc::Mpc &mpcToUse,
