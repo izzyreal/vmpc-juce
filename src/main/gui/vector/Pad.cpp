@@ -1,7 +1,7 @@
 #include "Pad.hpp"
 
 #include "controller/ClientEventController.hpp"
-#include "eventregistry/EventRegistry.hpp"
+#include "performance/PerformanceManager.hpp"
 #include "hardware/Component.hpp"
 
 #include <Mpc.hpp>
@@ -30,7 +30,7 @@ using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens::window;
 using namespace mpc::lcdgui::screens::dialog2;
 using namespace mpc::sequencer;
-using namespace mpc::eventregistry;
+using namespace mpc::performance;
 
 Pad::Pad(Component *commonParentWithShadowToUse, const float shadowSizeToUse,
          const std::function<float()> &getScaleToUse, mpc::Mpc &mpcToUse,
@@ -303,8 +303,8 @@ void Pad::sharedTimerCallback()
         mutated |= decayPress(primaryPress, true);
     }
 
-    const auto snapshot = mpc.eventRegistry->getSnapshot();
-    static const std::vector exclude{Source::VirtualMpcHardware};
+    const auto snapshot = mpc.performanceManager->getSnapshot();
+    static const std::vector exclude{PerformanceEventSource::VirtualMpcHardware};
 
     const auto mostRecentPress = snapshot.getMostRecentProgramPadPress(
         mpc::ProgramPadIndex(programPadIndex), exclude);
