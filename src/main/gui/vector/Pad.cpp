@@ -30,7 +30,6 @@ using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens::window;
 using namespace mpc::lcdgui::screens::dialog2;
 using namespace mpc::sequencer;
-using namespace mpc::performance;
 
 Pad::Pad(Component *commonParentWithShadowToUse, const float shadowSizeToUse,
          const std::function<float()> &getScaleToUse, mpc::Mpc &mpcToUse,
@@ -305,7 +304,7 @@ void Pad::sharedTimerCallback()
 
     const auto snapshot = mpc.performanceManager->getSnapshot();
     static const std::vector exclude{
-        PerformanceEventSource::VirtualMpcHardware};
+        mpc::performance::PerformanceEventSource::VirtualMpcHardware};
 
     const auto mostRecentPress = snapshot.getMostRecentProgramPadPress(
         mpc::ProgramPadIndex(programPadIndex), exclude);
@@ -347,7 +346,7 @@ void Pad::sharedTimerCallback()
 
     int8_t otherBanked = -1;
 
-    std::optional<ProgramPadPressEvent> otherBankedPress;
+    std::optional<mpc::performance::ProgramPadPressEvent> otherBankedPress;
 
     for (int8_t i = static_cast<int8_t>(mpcPad->getIndex());
          i < mpc::MaxProgramPadIndex;
