@@ -39,6 +39,8 @@
 #include <juce_core/system/juce_PlatformDefs.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "engine/IndivFxMixer.hpp"
+
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 using namespace mpc::lcdgui::screens::window;
@@ -1293,7 +1295,7 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
         }
         for (const auto &n : p.lock()->getNotesParameters())
         {
-            const auto output = n->getIndivFxMixerChannel()->getOutput();
+            const auto output = n->getIndivFxMixer()->getOutput();
             if (output == 0)
             {
                 continue;
