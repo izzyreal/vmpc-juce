@@ -26,6 +26,8 @@
 #include "hardware/ComponentId.hpp"
 #include "hardware/Hardware.hpp"
 #include "input/KeyCodeHelper.hpp"
+#include "sequencer/Sequencer.hpp"
+#include "sequencer/Transport.hpp"
 
 using namespace vmpc_juce::gui::vector;
 
@@ -214,7 +216,12 @@ void ViewUtil::createComponent(
     {
         auto mpcLed = mpc.getHardware()->getLed(
             mpc::hardware::componentLabelToId.at(n.hardware_label));
-        auto led = new Led(mpcLed, mpc.clientEventController,
+
+        auto getTransport = [sequencer = mpc.getSequencer()] {
+            return sequencer->getTransport();
+        };
+
+        auto led = new Led(mpcLed, getTransport, mpc.clientEventController,
                            n.node_type == "red_led" ? Led::LedColor::RED
                                                     : Led::LedColor::GREEN,
                            getScale);
