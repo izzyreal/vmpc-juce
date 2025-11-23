@@ -302,7 +302,7 @@ void Pad::sharedTimerCallback()
         mutated |= decayPress(primaryPress, true);
     }
 
-    const auto snapshot = mpc.performanceManager->getSnapshot();
+    const auto snapshot = mpc.getPerformanceManager().lock()->getSnapshot();
     static const std::vector exclude{
         mpc::performance::PerformanceEventSource::VirtualMpcHardware};
 
