@@ -571,7 +571,6 @@ void VmpcProcessor::processTransport()
             }
 
             mpcTransport->setPosition(wrappedPosition);
-            mpcTransport->setPlayStartPosition(wrappedPosition);
             mpcTransport->play();
         }
         else if (wasPlaying && !isPlaying && mpcTransport->isPlaying())
@@ -598,7 +597,6 @@ void VmpcProcessor::processTransport()
                 }
 
                 mpcTransport->setPosition(wrappedPosition);
-                mpcTransport->setPlayStartPosition(wrappedPosition);
 
                 previousPositionQuarterNotes = positionQuarterNotes;
             }
@@ -715,7 +713,7 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
                 static_cast<float>(mpcTransport->getTempo()),
                 static_cast<uint32_t>(getSampleRate()),
                 static_cast<uint16_t>(buffer.getNumSamples()),
-                mpcTransport->getPlayStartPositionQuarterNotes());
+                mpcTransport->getPositionQuarterNotes());
         }
     }
     else
@@ -732,7 +730,7 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
                 static_cast<float>(mpcTransport->getTempo()),
                 static_cast<uint32_t>(getSampleRate()),
                 static_cast<uint16_t>(buffer.getNumSamples()),
-                mpcTransport->getPlayStartPositionQuarterNotes());
+                mpcTransport->getPositionQuarterNotes());
         }
         else if (isPlaying && mpcTransport->isPlaying())
         {
@@ -756,7 +754,6 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
             }
 
             mpcTransport->setPosition(wrappedPosition);
-            mpcTransport->setPlayStartPosition(wrappedPosition);
         }
     }
 
