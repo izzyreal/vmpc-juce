@@ -9,7 +9,7 @@
 
 namespace vmpc_juce::gui::vector
 {
-    class Led : public SvgComponent
+    class Led final : public SvgComponent
     {
     public:
         enum LedColor
@@ -19,7 +19,8 @@ namespace vmpc_juce::gui::vector
         };
 
         Led(const std::shared_ptr<mpc::hardware::Led> &mpcLedToUse,
-            const std::function<std::shared_ptr<mpc::sequencer::Transport>()> &getTransportToUse,
+            const std::function<std::shared_ptr<mpc::sequencer::Transport>()>
+                &getTransportToUse,
             const std::shared_ptr<mpc::controller::ClientEventController>
                 &clientEventControllerToUse,
             const LedColor ledColorToUse,
@@ -27,8 +28,9 @@ namespace vmpc_juce::gui::vector
             : SvgComponent({"led_off.svg", ledColorToUse == RED
                                                ? "led_on_red.svg"
                                                : "led_on_green.svg"},
-                           nullptr, 0, getScaleToUse), ledColor(ledColorToUse),
-              getTransport(getTransportToUse), mpcLed(mpcLedToUse),
+                           nullptr, 0, getScaleToUse),
+              ledColor(ledColorToUse), getTransport(getTransportToUse),
+              mpcLed(mpcLedToUse),
               clientEventController(clientEventControllerToUse)
         {
             setLedOnEnabled(true);
@@ -41,9 +43,9 @@ namespace vmpc_juce::gui::vector
             if (mpcLed->getId() == REC_LED)
             {
                 setLedOnEnabled(
-                    mpcLed->isEnabled() || getTransport()->isRecording() ||
+                    getTransport()->isRecording() ||
                     clientEventController->clientHardwareEventController
-                        ->buttonLockTracker.isLocked(REC));
+                        ->isRecLockedOrPressed());
                 return;
             }
             if (mpcLed->getId() == OVERDUB_LED)
@@ -51,12 +53,12 @@ namespace vmpc_juce::gui::vector
                 setLedOnEnabled(
                     mpcLed->isEnabled() || getTransport()->isOverdubbing() ||
                     clientEventController->clientHardwareEventController
-                        ->buttonLockTracker.isLocked(OVERDUB));
+                        ->isOverdubLockedOrPressed());
                 return;
             }
-            if (mpcLed->getId() == PLAY_LED) {
-                setLedOnEnabled(
-                    mpcLed->isEnabled() || getTransport()->isPlaying());
+            if (mpcLed->getId() == PLAY_LED)
+            {
+                setLedOnEnabled(getTransport()->isPlaying());
                 return;
             }
 
@@ -90,7 +92,8 @@ namespace vmpc_juce::gui::vector
     private:
         const LedColor ledColor;
         bool ledOnEnabled = false;
-        std::function<std::shared_ptr<mpc::sequencer::Transport>()> getTransport;
+        std::function<std::shared_ptr<mpc::sequencer::Transport>()>
+            getTransport;
         const std::shared_ptr<mpc::hardware::Led> mpcLed;
         const std::shared_ptr<mpc::controller::ClientEventController>
             clientEventController;
