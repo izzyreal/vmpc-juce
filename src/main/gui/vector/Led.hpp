@@ -58,7 +58,8 @@ namespace vmpc_juce::gui::vector
             }
             if (mpcLed->getId() == PLAY_LED)
             {
-                setLedOnEnabled(getTransport()->isPlaying());
+                setLedOnEnabled(getTransport()->isPlaying() &&
+                                !getTransport()->isMetronomeOnlyEnabled());
                 return;
             }
 
