@@ -4,6 +4,7 @@
 
 #include "VmpcEditor.hpp"
 #include "JuceToMpcMidiEventConvertor.hpp"
+#include "MpcToJuceMidiEventConvertor.hpp"
 #include "controller/ClientEventController.hpp"
 
 #include "FloatUtil.hpp"
@@ -54,6 +55,8 @@ using namespace vmpc_juce;
 
 VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
 {
+    midiOutputBuffer.resize(100);
+
     mpcMonoOutputChannelIndicesToRender.reserve(18);
     hostOutputChannelIndicesToRender.reserve(18);
     previousHostOutputChannelIndicesToRender.reserve(18);
@@ -240,9 +243,8 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
 
     const auto wrapper =
         juce::PluginHostType::jucePlugInClientCurrentWrapperType;
-    const bool isStandalone = juce::JUCEApplication::isStandaloneApp();
 
-    if (isStandalone)
+    if (juce::JUCEApplication::isStandaloneApp())
     {
         BusesProperties result;
         result.addBus(false, "OUTPUT", C::discreteChannels(10));
@@ -285,8 +287,7 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
         const auto name = i == 0 ? "STEREO OUT L/R"
                                  : "MIX OUT " + std::to_string(i * 2 - 1) +
                                        "/" + std::to_string(i * 2);
-        const bool enabledByDefault =
-            i == 0 || isStandalone || isAUv2 || isAUv3;
+        const bool enabledByDefault = i == 0 || isAUv2 || isAUv3;
         result = result.withOutput(name, C::stereo(), enabledByDefault);
     }
 
@@ -300,7 +301,7 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
     for (int i = 0; i < monoOutCount; i++)
     {
         const auto name = "MIX OUT " + std::to_string(i + 1);
-        const bool enabledByDefault = isStandalone || isAUv2 || isAUv3;
+        const bool enabledByDefault = isAUv2 || isAUv3;
         result = result.withOutput(name, C::mono(), enabledByDefault);
     }
 
@@ -449,82 +450,28 @@ void VmpcProcessor::processMidiIn(const juce::MidiBuffer &midiMessages) const
     }
 }
 
-/*
-static void processMidiOutMsg(juce::MidiBuffer &midiMessages,
-                              std::shared_ptr<ShortMessage> &msg)
-{
-    juce::MidiMessage juceMsg;
-    bool compatibleMsg = false;
-
-    if (msg->getCommand() == ShortMessage::NOTE_ON ||
-        msg->getCommand() == ShortMessage::NOTE_OFF)
-    {
-        juce::uint8 velo = (juce::uint8)msg->getData2();
-
-        juceMsg = velo == 0 ? juce::MidiMessage::noteOff(msg->getChannel() + 1,
-                                                         msg->getData1())
-                            : juce::MidiMessage::noteOn(msg->getChannel() + 1,
-                                                        msg->getData1(),
-                                                        juce::uint8(velo));
-        compatibleMsg = true;
-    }
-    else if (msg->getStatus() == ShortMessage::TIMING_CLOCK)
-    {
-        juceMsg = juce::MidiMessage::midiClock();
-        compatibleMsg = true;
-    }
-    else if (msg->getStatus() == ShortMessage::START)
-    {
-        juceMsg = juce::MidiMessage::midiStart();
-        compatibleMsg = true;
-    }
-    else if (msg->getStatus() == ShortMessage::STOP)
-    {
-        juceMsg = juce::MidiMessage::midiStop();
-        compatibleMsg = true;
-    }
-    else if (msg->getStatus() == ShortMessage::CONTINUE)
-    {
-        juceMsg = juce::MidiMessage::midiContinue();
-        compatibleMsg = true;
-    }
-
-    if (compatibleMsg)
-    {
-        midiMessages.addEvent(juceMsg, msg->bufferPos);
-    }
-}
-*/
 void VmpcProcessor::processMidiOut(juce::MidiBuffer &midiMessages,
-                                   const bool discard) const
+                                   const bool discard)
 {
     midiMessages.clear();
 
-    // const auto outputAEventCount =
-    //  mpc.getMidiOutput()->dequeueOutputA(midiOutputBuffer);
+    const auto eventCount =
+        static_cast<size_t>(mpc.getMidiOutput()->dequeue(midiOutputBuffer));
 
     if (discard)
     {
         return;
     }
 
-    // for (unsigned int i = 0; i < outputAEventCount; i++)
+    for (size_t i = 0; i < eventCount; ++i)
     {
-        // processMidiOutMsg(midiMessages, midiOutputBuffer[i]);
+        if (const auto juceMsgAndSampleNumber =
+                MpcToJuceMidiEventConvertor::convert(midiOutputBuffer[i]))
+        {
+            midiMessages.addEvent(juceMsgAndSampleNumber->first,
+                                  juceMsgAndSampleNumber->second);
+        }
     }
-
-    // In JUCE we only have 1 set of 16 MIDI channels as far as I know.
-    // The MPC2000XL has 2 of those -- MIDI OUT A and MIDI OUT B. The below
-    // shows some example processing, but it's commented out, to restrict MIDI
-    // out processing to just MIDI OUT A.
-
-    //    const auto outputBEventCount =
-    //    mpc.getMidiOutput()->dequeueOutputB(midiOutputBuffer);
-    //
-    //    for (int i = 0; i < outputBEventCount; i++)
-    //    {
-    //        processMsg(midiOutputBuffer[i]);
-    //    }
 }
 
 void VmpcProcessor::processTransport()
@@ -562,12 +509,15 @@ void VmpcProcessor::processTransport()
 
             if (mpc.getSequencer()->isSongModeEnabled())
             {
-                wrappedPosition = mpcTransport->getWrappedPositionInSong(positionQuarterNotes);
-                mpcTransport->moveSongToStepThatContainsPosition(wrappedPosition);
+                wrappedPosition = mpcTransport->getWrappedPositionInSong(
+                    positionQuarterNotes);
+                mpcTransport->moveSongToStepThatContainsPosition(
+                    wrappedPosition);
             }
             else
             {
-                wrappedPosition = mpcTransport->getWrappedPositionInSequence(positionQuarterNotes);
+                wrappedPosition = mpcTransport->getWrappedPositionInSequence(
+                    positionQuarterNotes);
             }
 
             mpcTransport->setPosition(wrappedPosition);
@@ -588,12 +538,16 @@ void VmpcProcessor::processTransport()
 
                 if (mpc.getSequencer()->isSongModeEnabled())
                 {
-                    wrappedPosition = mpcTransport->getWrappedPositionInSong(positionQuarterNotes);
-                    mpcTransport->moveSongToStepThatContainsPosition(wrappedPosition);
+                    wrappedPosition = mpcTransport->getWrappedPositionInSong(
+                        positionQuarterNotes);
+                    mpcTransport->moveSongToStepThatContainsPosition(
+                        wrappedPosition);
                 }
                 else
                 {
-                    wrappedPosition = mpcTransport->getWrappedPositionInSequence(positionQuarterNotes);
+                    wrappedPosition =
+                        mpcTransport->getWrappedPositionInSequence(
+                            positionQuarterNotes);
                 }
 
                 mpcTransport->setPosition(wrappedPosition);
@@ -740,17 +694,21 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
         }
         else if (isPlaying)
         {
-            const auto unwrappedPosition = mpcClock->getLastProcessedHostPositionQuarterNotes();
+            const auto unwrappedPosition =
+                mpcClock->getLastProcessedHostPositionQuarterNotes();
             mpc::PositionQuarterNotes wrappedPosition;
 
             if (mpc.getSequencer()->isSongModeEnabled())
             {
-                wrappedPosition = mpcTransport->getWrappedPositionInSong(unwrappedPosition);
-                mpcTransport->moveSongToStepThatContainsPosition(wrappedPosition);
+                wrappedPosition =
+                    mpcTransport->getWrappedPositionInSong(unwrappedPosition);
+                mpcTransport->moveSongToStepThatContainsPosition(
+                    wrappedPosition);
             }
             else
             {
-                wrappedPosition = mpcTransport->getWrappedPositionInSequence(unwrappedPosition);
+                wrappedPosition = mpcTransport->getWrappedPositionInSequence(
+                    unwrappedPosition);
             }
 
             mpcTransport->setPosition(wrappedPosition);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "client/event/ClientMidiEvent.hpp"
+
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include <Mpc.hpp>
@@ -10,10 +12,8 @@
 
 namespace vmpc_juce
 {
-
-    class VmpcProcessor : public juce::AudioProcessor
+    class VmpcProcessor final : public juce::AudioProcessor
     {
-
     public:
         VmpcProcessor();
         ~VmpcProcessor() override;
@@ -50,7 +50,7 @@ namespace vmpc_juce
 
     private:
         void processMidiIn(const juce::MidiBuffer &midiMessages) const;
-        void processMidiOut(juce::MidiBuffer &midiMessages, bool discard) const;
+        void processMidiOut(juce::MidiBuffer &midiMessages, bool discard);
         void processTransport();
         void computeHostToMpcChannelMappings();
 
@@ -78,6 +78,8 @@ namespace vmpc_juce
         void computePossiblyActiveMpcMonoOutChannels();
 
         void logActualBusLayout();
+
+        std::vector<mpc::client::event::ClientMidiEvent> midiOutputBuffer;
 
     public:
         bool shouldShowDisclaimer = true;
