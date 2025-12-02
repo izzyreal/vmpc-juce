@@ -858,7 +858,6 @@ namespace vmpc_juce
             //==============================================================================
             StandaloneAppWindow &owner;
             std::unique_ptr<AudioProcessorEditor> editor;
-            bool shouldShowNotification = false;
             bool preventResizingEditor = false;
 
             JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
