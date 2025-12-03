@@ -4,6 +4,7 @@
 
 #include "VmpcEditor.hpp"
 #include "JuceToMpcMidiEventConvertor.hpp"
+#include "MpcToJuceMidiEventConvertor.hpp"
 #include "controller/ClientEventController.hpp"
 
 #include "FloatUtil.hpp"
@@ -449,70 +450,27 @@ void VmpcProcessor::processMidiIn(const juce::MidiBuffer &midiMessages) const
     }
 }
 
-static void processMidiOutMsg(juce::MidiBuffer &midiMessages,
-                              const mpc::client::event::ClientMidiEvent &e)
-{
-    using MpcEvent = mpc::client::event::ClientMidiEvent;
-
-    juce::MidiMessage juceMsg;
-    bool compatibleMsg = false;
-
-    const auto channel = e.getChannel() + 1;
-    const auto mpcType = e.getMessageType();
-
-    if (mpcType == MpcEvent::NOTE_ON || mpcType == MpcEvent::NOTE_OFF)
-    {
-        const auto velocity = static_cast<juce::uint8>(e.getVelocity());
-
-        juceMsg = velocity == 0
-                      ? juce::MidiMessage::noteOff(channel, e.getNoteNumber())
-                      : juce::MidiMessage::noteOn(channel, e.getNoteNumber(),
-                                                  velocity);
-        compatibleMsg = true;
-    }
-    else if (mpcType == MpcEvent::MIDI_CLOCK)
-    {
-        juceMsg = juce::MidiMessage::midiClock();
-        compatibleMsg = true;
-    }
-    else if (mpcType == MpcEvent::MIDI_START)
-    {
-        juceMsg = juce::MidiMessage::midiStart();
-        compatibleMsg = true;
-    }
-    else if (mpcType == MpcEvent::MIDI_STOP)
-    {
-        juceMsg = juce::MidiMessage::midiStop();
-        compatibleMsg = true;
-    }
-    else if (mpcType == MpcEvent::MIDI_CONTINUE)
-    {
-        juceMsg = juce::MidiMessage::midiContinue();
-        compatibleMsg = true;
-    }
-
-    if (compatibleMsg)
-    {
-        midiMessages.addEvent(juceMsg, static_cast<int>(e.getBufferOffset()));
-    }
-}
-
 void VmpcProcessor::processMidiOut(juce::MidiBuffer &midiMessages,
                                    const bool discard)
 {
     midiMessages.clear();
 
-    const auto eventCount = mpc.getMidiOutput()->dequeue(midiOutputBuffer);
+    const auto eventCount =
+        static_cast<size_t>(mpc.getMidiOutput()->dequeue(midiOutputBuffer));
 
     if (discard)
     {
         return;
     }
 
-    for (int i = 0; i < eventCount; ++i)
+    for (size_t i = 0; i < eventCount; ++i)
     {
-        processMidiOutMsg(midiMessages,
-                          midiOutputBuffer[static_cast<size_t>(i)]);
+        if (const auto juceMsgAndSampleNumber =
+                MpcToJuceMidiEventConvertor::convert(midiOutputBuffer[i]))
+        {
+            midiMessages.addEvent(juceMsgAndSampleNumber->first,
+                                  juceMsgAndSampleNumber->second);
+        }
     }
 }
 
