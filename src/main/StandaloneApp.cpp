@@ -29,7 +29,7 @@ StandaloneAppWindow *StandaloneApp::createWindow()
         appProperties.getUserSettings(), false, {}, nullptr,
         juce::Array<StandalonePluginHolder::PluginInOuts>(
             channels, juce::numElementsInArray(channels)),
-        true);
+        false);
 }
 
 void StandaloneApp::initialise(const juce::String &)
