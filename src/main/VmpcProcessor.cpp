@@ -637,7 +637,7 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
         return;
     }
 
-    engineHost->applyPendingStateChanges();
+    engineHost->prepareProcessBlock(buffer.getNumSamples());
     engineHost->changeBounceStateIfRequired();
 
     if (!server->isRealTime())
