@@ -473,22 +473,6 @@ void VmpcProcessor::processTransport()
 
         if (!wasPlaying && isPlaying)
         {
-            mpc::PositionQuarterNotes wrappedPosition;
-
-            if (mpc.getSequencer()->isSongModeEnabled())
-            {
-                wrappedPosition = mpcTransport->getWrappedPositionInSong(
-                    positionQuarterNotes);
-                mpcTransport->moveSongToStepThatContainsPosition(
-                    wrappedPosition);
-            }
-            else
-            {
-                wrappedPosition = mpcTransport->getWrappedPositionInSequence(
-                    positionQuarterNotes);
-            }
-
-            mpcTransport->setPosition(wrappedPosition);
             mpcTransport->play();
         }
         else if (wasPlaying && !isPlaying && mpcTransport->isPlaying())
@@ -659,27 +643,6 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
             propagateTransportInfo(
                 *mpcClock, playHead, static_cast<uint32_t>(getSampleRate()),
                 static_cast<uint16_t>(buffer.getNumSamples()));
-        }
-        else if (isPlaying)
-        {
-            const auto unwrappedPosition =
-                mpcClock->getLastProcessedHostPositionQuarterNotes();
-            mpc::PositionQuarterNotes wrappedPosition;
-
-            if (mpc.getSequencer()->isSongModeEnabled())
-            {
-                wrappedPosition =
-                    mpcTransport->getWrappedPositionInSong(unwrappedPosition);
-                mpcTransport->moveSongToStepThatContainsPosition(
-                    wrappedPosition);
-            }
-            else
-            {
-                wrappedPosition = mpcTransport->getWrappedPositionInSequence(
-                    unwrappedPosition);
-            }
-
-            mpcTransport->setPosition(wrappedPosition);
         }
     }
 
