@@ -473,7 +473,7 @@ void VmpcProcessor::processTransport()
 
         if (!wasPlaying && isPlaying)
         {
-            mpcTransport->play();
+            mpcTransport->playImmediately();
         }
         else if (wasPlaying && !isPlaying && mpcTransport->isPlaying())
         {
