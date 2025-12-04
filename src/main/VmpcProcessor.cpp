@@ -188,42 +188,10 @@ void VmpcProcessor::changeProgramName(int /* index */,
 void VmpcProcessor::prepareToPlay(const double sampleRate,
                                   const int samplesPerBlock)
 {
-    const auto seq = mpc.getSequencer();
-    const auto transport = seq->getTransport();
-    const bool seqWasPlaying = transport->isPlaying();
-    const bool seqWasOverdubbing = transport->isOverdubbing();
-    const bool seqWasRecording = transport->isRecording();
-    const bool countWasEnabled = transport->isCountEnabled();
-
-    if (seqWasPlaying)
-    {
-        transport->stop();
-    }
-
     const auto engineHost = mpc.getEngineHost();
     const auto server = engineHost->getAudioServer();
     server->setSampleRate(static_cast<int>(sampleRate));
     server->resizeBuffers(samplesPerBlock);
-
-    transport->setCountEnabled(false);
-
-    if (seqWasOverdubbing)
-    {
-        transport->overdub();
-    }
-    else if (seqWasRecording)
-    {
-        transport->rec();
-    }
-    else if (seqWasPlaying)
-    {
-        transport->play();
-    }
-
-    if (countWasEnabled)
-    {
-        transport->setCountEnabled(true);
-    }
 
     computeHostToMpcChannelMappings();
 
@@ -1273,7 +1241,7 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
             // to get 0-based index, and then we add 2 to get the bus index in
             // the plugin, because the first stereo bus (for STEREO L/R, the
             // main output) comes before the MIX buses.
-            insertValue(static_cast<int8_t>(output + 1));
+            insertValue(output + 1);
         }
     }
 
@@ -1288,7 +1256,7 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
             {
                 continue;
             }
-            insertValue(static_cast<int8_t>(m->getOutput() + 1));
+            insertValue(m->getOutput() + 1);
         }
     }
 }
