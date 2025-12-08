@@ -41,6 +41,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "engine/IndivFxMixer.hpp"
+#include "sequencer/SequencerStateManager.hpp"
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
@@ -486,23 +487,29 @@ void VmpcProcessor::processTransport()
             if (!nearlyEqual(positionQuarterNotes,
                              previousPositionQuarterNotes))
             {
-                mpc::PositionQuarterNotes wrappedPosition;
-
                 if (mpc.getSequencer()->isSongModeEnabled())
                 {
-                    wrappedPosition = mpcTransport->getWrappedPositionInSong(
-                        positionQuarterNotes);
-                    mpcTransport->moveSongToStepThatContainsPosition(
-                        wrappedPosition);
+                    const auto wrappedPosition =
+                        mpcTransport->getWrappedPositionInSong(
+                            positionQuarterNotes);
+
+                    mpc.getSequencer()->setSelectedSongStepIndex(
+                        wrappedPosition.stepIndex);
+
+                    mpcTransport->setPosition(wrappedPosition.position);
+
+                    mpc.getSequencer()->getStateManager()->enqueue(
+                        mpc::sequencer::SetPlayedSongStepRepetitionCount{
+                            wrappedPosition.playedRepetitionCount});
                 }
                 else
                 {
-                    wrappedPosition =
+                    const auto wrappedPosition =
                         mpcTransport->getWrappedPositionInSequence(
                             positionQuarterNotes);
-                }
 
-                mpcTransport->setPosition(wrappedPosition);
+                    mpcTransport->setPosition(wrappedPosition);
+                }
 
                 previousPositionQuarterNotes = positionQuarterNotes;
             }
