@@ -4,7 +4,6 @@
 
 namespace vmpc_juce::gui::vector
 {
-
     class Constants
     {
     public:
@@ -24,5 +23,4 @@ namespace vmpc_juce::gui::vector
         static float lineThickness1;
         static float lineThickness2;
     };
-
 } // namespace vmpc_juce::gui::vector

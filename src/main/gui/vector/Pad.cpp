@@ -1,28 +1,28 @@
 #include "Pad.hpp"
 
-#include "controller/ClientEventController.hpp"
-#include "performance/PerformanceManager.hpp"
-#include "hardware/Component.hpp"
-
 #include <Mpc.hpp>
-#include "file/AkaiName.hpp"
-#include <juce_graphics/juce_graphics.h>
-#include "sampler/Sampler.hpp"
-#include "sequencer/Sequencer.hpp"
-#include "utils/TimeUtils.hpp"
+#include <StrUtil.hpp>
 
-#include <sequencer/Track.hpp>
-#include <sequencer/Bus.hpp>
+#include <file/AkaiName.hpp>
+#include <utils/TimeUtils.hpp>
+#include <controller/ClientEventController.hpp>
+#include <performance/PerformanceManager.hpp>
+#include <hardware/Component.hpp>
 
+#include <sampler/Sampler.hpp>
 #include <sampler/Pad.hpp>
 #include <sampler/NoteParameters.hpp>
+
+#include <sequencer/Sequencer.hpp>
+#include <sequencer/Track.hpp>
+#include <sequencer/Bus.hpp>
 
 #include <disk/SoundLoader.hpp>
 #include <disk/MpcFile.hpp>
 
 #include <lcdgui/screens/window/VmpcConvertAndLoadWavScreen.hpp>
 
-#include <StrUtil.hpp>
+#include <juce_graphics/juce_graphics.h>
 
 using namespace vmpc_juce::gui::vector;
 using namespace mpc::disk;
@@ -348,8 +348,7 @@ void Pad::sharedTimerCallback()
 
     std::optional<mpc::performance::ProgramPadPressEvent> otherBankedPress;
 
-    for (int8_t i = static_cast<int8_t>(mpcPad->getIndex());
-         i < mpc::MaxProgramPadIndex;
+    for (int8_t i = mpcPad->getIndex(); i < mpc::MaxProgramPadIndex;
          i += mpc::Mpc2000XlSpecs::PADS_PER_BANK_COUNT)
     {
         if (i == programPadIndex)

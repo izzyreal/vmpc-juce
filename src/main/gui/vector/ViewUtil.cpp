@@ -217,7 +217,8 @@ void ViewUtil::createComponent(
         auto mpcLed = mpc.getHardware()->getLed(
             mpc::hardware::componentLabelToId.at(n.hardware_label));
 
-        auto getTransport = [sequencer = mpc.getSequencer()] {
+        auto getTransport = [sequencer = mpc.getSequencer()]
+        {
             return sequencer->getTransport();
         };
 

@@ -9,7 +9,8 @@ namespace vmpc_juce
     class MpcToJuceMidiEventConvertor
     {
     public:
-        using JuceMidiMessageAndSampleNumber = std::pair<juce::MidiMessage, int>;
+        using JuceMidiMessageAndSampleNumber =
+            std::pair<juce::MidiMessage, int>;
 
         static std::optional<JuceMidiMessageAndSampleNumber>
         convert(const mpc::client::event::ClientMidiEvent &e)
@@ -26,10 +27,11 @@ namespace vmpc_juce
             {
                 const auto velocity = static_cast<juce::uint8>(e.getVelocity());
 
-                juceMsg = velocity == 0
-                              ? juce::MidiMessage::noteOff(channel, e.getNoteNumber())
-                              : juce::MidiMessage::noteOn(channel, e.getNoteNumber(),
-                                                          velocity);
+                juceMsg =
+                    velocity == 0
+                        ? juce::MidiMessage::noteOff(channel, e.getNoteNumber())
+                        : juce::MidiMessage::noteOn(channel, e.getNoteNumber(),
+                                                    velocity);
                 compatibleMsg = true;
             }
             else if (mpcType == MpcEvent::MIDI_CLOCK)
@@ -55,7 +57,8 @@ namespace vmpc_juce
 
             if (compatibleMsg)
             {
-                return std::pair{juceMsg, static_cast<int>(e.getBufferOffset())};
+                return std::pair{juceMsg,
+                                 static_cast<int>(e.getBufferOffset())};
             }
 
             return std::nullopt;
