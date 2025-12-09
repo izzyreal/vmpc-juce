@@ -318,7 +318,7 @@ View::View(mpc::Mpc &mpcToUse,
         shouldShowDisclaimer = false;
     }
 
-    startTimer(10);
+    startTimer(WithSharedTimerCallback::baseIntervalMs);
 }
 
 float View::getAspectRatio() const
@@ -425,7 +425,7 @@ void View::timerCallback()
 {
     for (const auto &c : timerCallbackComponents)
     {
-        c->sharedTimerCallback();
+        c->timerCallback();
     }
 }
 
