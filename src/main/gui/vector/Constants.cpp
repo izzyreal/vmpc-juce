@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Constants.hpp"
 
 using namespace vmpc_juce::gui::vector;
