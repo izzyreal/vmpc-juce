@@ -4,10 +4,10 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <functional>
 
-class AuxLCD : public juce::Component
+class AuxLcd : public juce::Component
 {
 public:
-    explicit AuxLCD(const std::function<juce::Image &()> &getLcdImage);
+    explicit AuxLcd(const std::function<juce::Image &()> &getLcdImage);
 
 private:
     const std::function<juce::Image &()> getLcdImage;

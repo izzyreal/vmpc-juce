@@ -2,15 +2,15 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "gui/AuxLCD.hpp"
+#include "gui/AuxLcd.hpp"
 #include "gui/VmpcAuxLcdLookAndFeel.hpp"
 
 namespace vmpc_juce::gui
 {
-    class AuxLCDWindowMaximizeButton final : public juce::Button
+    class AuxLcdWindowMaximizeButton final : public juce::Button
     {
     public:
-        AuxLCDWindowMaximizeButton() : Button("MaximizeButton") {}
+        AuxLcdWindowMaximizeButton() : Button("MaximizeButton") {}
         void paint(juce::Graphics &g) override;
         void mouseDown(const juce::MouseEvent &e) override;
         void mouseEnter(const juce::MouseEvent &e) override;
@@ -21,10 +21,10 @@ namespace vmpc_juce::gui
                          bool /*shouldDrawButtonAsDown*/) override;
     };
 
-    class AuxLCDWindow final : public juce::TopLevelWindow, public juce::Timer
+    class AuxLcdWindow final : public juce::TopLevelWindow, public juce::Timer
     {
     public:
-        explicit AuxLCDWindow(
+        explicit AuxLcdWindow(
             const std::function<void()> &resetAuxWindowToUse,
             const std::function<juce::Image &()> &getLcdImage,
             const std::function<void()> &resetKeyboardAuxParentToUse,
@@ -38,7 +38,7 @@ namespace vmpc_juce::gui
 
         void resized() override;
 
-        ~AuxLCDWindow() override;
+        ~AuxLcdWindow() override;
 
         void mouseMove(const juce::MouseEvent &) override;
 
@@ -60,8 +60,8 @@ namespace vmpc_juce::gui
         static constexpr char MARGIN = 6;
         static constexpr unsigned char LCD_W = 248;
         static constexpr char LCD_H = 60;
-        AuxLCD *auxLcd = nullptr;
-        AuxLCDWindowMaximizeButton maximizeButton;
+        AuxLcd *auxLcd = nullptr;
+        AuxLcdWindowMaximizeButton maximizeButton;
         Component maximizeButtonMouseInterceptor;
         int buttonsHaveBeenShownForMs = 0;
         const std::function<void()> resetKeyboardAuxParent;
@@ -92,11 +92,11 @@ namespace vmpc_juce::gui
         }
         void mouseEnter(const juce::MouseEvent &) override
         {
-            dynamic_cast<AuxLCDWindow *>(getParentComponent())->showButtons();
+            dynamic_cast<AuxLcdWindow *>(getParentComponent())->showButtons();
         }
         void mouseDown(const juce::MouseEvent &e) override
         {
-            dynamic_cast<AuxLCDWindow *>(getParentComponent())->showButtons();
+            dynamic_cast<AuxLcdWindow *>(getParentComponent())->showButtons();
             ResizableCornerComponent::mouseDown(e);
         }
     };

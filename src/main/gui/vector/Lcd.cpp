@@ -2,7 +2,7 @@
 
 #include "gui/vector/Constants.hpp"
 #include "gui/vector/View.hpp"
-#include "gui/AuxLCDWindow.hpp"
+#include "gui/AuxLcdWindow.hpp"
 #include "gui/focus/FocusHelper.hpp"
 
 #include <Mpc.hpp>
@@ -181,7 +181,7 @@ void Lcd::mouseDoubleClick(const juce::MouseEvent &)
 
     if (auxWindow == nullptr)
     {
-        auxWindow = new AuxLCDWindow(resetAuxWindowF, getLcdImage,
+        auxWindow = new AuxLcdWindow(resetAuxWindowF, getLcdImage,
                                      resetKeyboardAuxParent, Constants::lcdOff);
         auxWindow->setVisible(true);
         view->getFocusHelper()->setAuxComponent(auxWindow);

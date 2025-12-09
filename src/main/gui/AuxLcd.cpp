@@ -1,13 +1,13 @@
-#include "AuxLCD.hpp"
+#include "AuxLcd.hpp"
 
-AuxLCD::AuxLCD(const std::function<juce::Image &()> &getLcdImageToUse)
+AuxLcd::AuxLcd(const std::function<juce::Image &()> &getLcdImageToUse)
     : Component("auxlcd"), getLcdImage(getLcdImageToUse)
 {
     setWantsKeyboardFocus(false);
     setInterceptsMouseClicks(false, false);
 }
 
-void AuxLCD::paint(juce::Graphics &g)
+void AuxLcd::paint(juce::Graphics &g)
 {
     g.setImageResamplingQuality(g.lowResamplingQuality);
     g.drawImage(getLcdImage(), getLocalBounds().toFloat());

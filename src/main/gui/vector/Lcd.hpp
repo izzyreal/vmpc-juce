@@ -10,7 +10,7 @@
 
 namespace vmpc_juce::gui
 {
-    class AuxLCDWindow;
+    class AuxLcdWindow;
 }
 
 namespace mpc
@@ -51,7 +51,7 @@ namespace vmpc_juce::gui::vector
 
     private:
         mpc::Mpc &mpc;
-        AuxLCDWindow *auxWindow = nullptr;
+        AuxLcdWindow *auxWindow = nullptr;
         juce::Rectangle<int> dirtyRect;
         juce::Image img =
             juce::Image(juce::Image::PixelFormat::RGB, 248 * 2, 60 * 2, false);

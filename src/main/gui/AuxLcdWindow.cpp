@@ -1,8 +1,8 @@
-#include "AuxLCDWindow.hpp"
+#include "AuxLcdWindow.hpp"
 
 using namespace vmpc_juce::gui;
 
-void AuxLCDWindowMaximizeButton::paint(juce::Graphics &g)
+void AuxLcdWindowMaximizeButton::paint(juce::Graphics &g)
 {
     constexpr int rows = 5;
     const int xOffset =
@@ -21,23 +21,23 @@ void AuxLCDWindowMaximizeButton::paint(juce::Graphics &g)
     }
 }
 
-void AuxLCDWindowMaximizeButton::mouseDown(const juce::MouseEvent &)
+void AuxLcdWindowMaximizeButton::mouseDown(const juce::MouseEvent &)
 {
-    dynamic_cast<AuxLCDWindow *>(getParentComponent())->showButtons();
+    dynamic_cast<AuxLcdWindow *>(getParentComponent())->showButtons();
 }
 
-void AuxLCDWindowMaximizeButton::mouseEnter(const juce::MouseEvent &)
+void AuxLcdWindowMaximizeButton::mouseEnter(const juce::MouseEvent &)
 {
-    dynamic_cast<AuxLCDWindow *>(getParentComponent())->showButtons();
+    dynamic_cast<AuxLcdWindow *>(getParentComponent())->showButtons();
 }
 
-void AuxLCDWindowMaximizeButton::paintButton(
+void AuxLcdWindowMaximizeButton::paintButton(
     juce::Graphics &, bool /*shouldDrawButtonAsHighlighted*/,
     bool /*shouldDrawButtonAsDown*/)
 {
 }
 
-AuxLCDWindow::AuxLCDWindow(
+AuxLcdWindow::AuxLcdWindow(
     const std::function<void()> &resetAuxWindowToUse,
     const std::function<juce::Image &()> &getLcdImage,
     const std::function<void()> &resetKeyboardAuxParentToUse,
@@ -55,7 +55,7 @@ AuxLCDWindow::AuxLCDWindow(
     constexpr int maxWidth = minWidth * 16;
     constexpr int maxHeight = minHeight * 16;
 
-    auxLcd = new AuxLCD(getLcdImage);
+    auxLcd = new AuxLcd(getLcdImage);
     addAndMakeVisible(auxLcd);
     resizableCorner =
         std::make_unique<MyResizableCornerComponent>(this, &constrainer);
@@ -94,7 +94,7 @@ AuxLCDWindow::AuxLCDWindow(
     startTimer(100);
 }
 
-void AuxLCDWindow::showButtons()
+void AuxLcdWindow::showButtons()
 {
     if (areButtonsShowing())
     {
@@ -108,7 +108,7 @@ void AuxLCDWindow::showButtons()
     resizableCorner->setAlpha(1);
 }
 
-void AuxLCDWindow::hideButtons()
+void AuxLcdWindow::hideButtons()
 {
     buttonsHaveBeenShownForMs = -1;
     maximizeButton.setAlpha(0);
@@ -116,17 +116,17 @@ void AuxLCDWindow::hideButtons()
     resizableCorner->setAlpha(0);
 }
 
-bool AuxLCDWindow::areButtonsShowing() const
+bool AuxLcdWindow::areButtonsShowing() const
 {
     return buttonsHaveBeenShownForMs >= 0;
 }
 
-void AuxLCDWindow::resetButtonShowTimer()
+void AuxLcdWindow::resetButtonShowTimer()
 {
     buttonsHaveBeenShownForMs = 0;
 }
 
-void AuxLCDWindow::timerCallback()
+void AuxLcdWindow::timerCallback()
 {
     if (isMouseButtonDown() || resizableCorner->isMouseButtonDown())
     {
@@ -147,7 +147,7 @@ void AuxLCDWindow::timerCallback()
     buttonsHaveBeenShownForMs += getTimerInterval();
 }
 
-bool AuxLCDWindow::keyPressed(const juce::KeyPress &k)
+bool AuxLcdWindow::keyPressed(const juce::KeyPress &k)
 {
     const auto desc = k.getTextDescription().toStdString();
 
@@ -159,12 +159,12 @@ bool AuxLCDWindow::keyPressed(const juce::KeyPress &k)
     return true;
 }
 
-void AuxLCDWindow::paint(juce::Graphics &g)
+void AuxLcdWindow::paint(juce::Graphics &g)
 {
     g.fillAll(backgroundColour);
 }
 
-void AuxLCDWindow::resized()
+void AuxLcdWindow::resized()
 {
     constexpr auto hRatio = static_cast<float>(LCD_W) / (LCD_W + MARGIN);
     constexpr auto vRatio = static_cast<float>(LCD_H) / (LCD_H + MARGIN);
@@ -185,17 +185,17 @@ void AuxLCDWindow::resized()
                              widgetSize);
 }
 
-void AuxLCDWindow::mouseMove(const juce::MouseEvent &)
+void AuxLcdWindow::mouseMove(const juce::MouseEvent &)
 {
     showButtons();
 }
 
-void AuxLCDWindow::mouseEnter(const juce::MouseEvent &)
+void AuxLcdWindow::mouseEnter(const juce::MouseEvent &)
 {
     showButtons();
 }
 
-void AuxLCDWindow::mouseDown(const juce::MouseEvent &e)
+void AuxLcdWindow::mouseDown(const juce::MouseEvent &e)
 {
     dragStarted = true;
     dragger.startDraggingComponent(this, e);
@@ -203,13 +203,13 @@ void AuxLCDWindow::mouseDown(const juce::MouseEvent &e)
     showButtons();
 }
 
-void AuxLCDWindow::mouseUp(const juce::MouseEvent &)
+void AuxLcdWindow::mouseUp(const juce::MouseEvent &)
 {
     dragStarted = false;
     showButtons();
 }
 
-void AuxLCDWindow::mouseDrag(const juce::MouseEvent &e)
+void AuxLcdWindow::mouseDrag(const juce::MouseEvent &e)
 {
     if (dragStarted)
     {
@@ -219,19 +219,19 @@ void AuxLCDWindow::mouseDrag(const juce::MouseEvent &e)
     showButtons();
 }
 
-void AuxLCDWindow::mouseDoubleClick(const juce::MouseEvent &)
+void AuxLcdWindow::mouseDoubleClick(const juce::MouseEvent &)
 {
     resetKeyboardAuxParent();
     resetAuxWindow();
 }
 
-AuxLCDWindow::~AuxLCDWindow()
+AuxLcdWindow::~AuxLcdWindow()
 {
     setLookAndFeel(nullptr);
     delete auxLcd;
 }
 
-void AuxLCDWindow::repaintAuxLcdLocalBounds(
+void AuxLcdWindow::repaintAuxLcdLocalBounds(
     const juce::Rectangle<int> dirtyArea) const
 {
     const auto auxBounds = auxLcd->getLocalBounds().toFloat();
