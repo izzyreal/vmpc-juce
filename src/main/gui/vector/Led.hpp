@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SvgComponent.hpp"
+#include "gui/WithSharedTimerCallback.hpp"
 
 #include "controller/ClientEventController.hpp"
 #include "controller/ClientHardwareEventController.hpp"
@@ -9,7 +10,7 @@
 
 namespace vmpc_juce::gui::vector
 {
-    class Led final : public SvgComponent
+    class Led final : public SvgComponent, public WithSharedTimerCallback
     {
     public:
         enum LedColor
@@ -36,7 +37,7 @@ namespace vmpc_juce::gui::vector
             setLedOnEnabled(true);
         }
 
-        void sharedTimerCallback()
+        void sharedTimerCallback() override
         {
             using namespace mpc::hardware;
 

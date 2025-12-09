@@ -1,12 +1,13 @@
 #pragma once
 
 #include "SvgComponent.hpp"
+#include "gui/WithSharedTimerCallback.hpp"
 #include "hardware/Component.hpp"
 #include <limits>
 
 namespace vmpc_juce::gui::vector
 {
-    class Pot : public SvgComponent
+    class Pot : public SvgComponent, public WithSharedTimerCallback
     {
     public:
         enum PotType
@@ -26,7 +27,7 @@ namespace vmpc_juce::gui::vector
         {
         }
 
-        void sharedTimerCallback()
+        void sharedTimerCallback() override
         {
             const float currentValue = model->getValue();
 

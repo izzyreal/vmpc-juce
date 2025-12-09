@@ -7,13 +7,14 @@
 
 #include "SvgComponent.hpp"
 #include "DataWheelLines.hpp"
+#include "gui/WithSharedTimerCallback.hpp"
 
 #include "hardware/Component.hpp"
 
 namespace vmpc_juce::gui::vector
 {
 
-    class DataWheel : public juce::Component
+    class DataWheel : public juce::Component, public WithSharedTimerCallback
     {
     public:
         DataWheel(std::shared_ptr<mpc::hardware::DataWheel> dataWheelModelToUse,
@@ -41,7 +42,7 @@ namespace vmpc_juce::gui::vector
             dimpleSvg->setInterceptsMouseClicks(false, false);
         }
 
-        void sharedTimerCallback()
+        void sharedTimerCallback() override
         {
             const float targetAngle =
                 dataWheelModel->getAngle(); // unwrapped, may be >> 1 or << -1

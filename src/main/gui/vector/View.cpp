@@ -8,13 +8,7 @@
 #include "gui/vector/TooltipOverlay.hpp"
 #include "gui/vector/Menu.hpp"
 #include "gui/vector/Disclaimer.hpp"
-#include "gui/vector/Led.hpp"
 #include "gui/vector/About.hpp"
-#include "gui/vector/Pad.hpp"
-#include "gui/vector/Pot.hpp"
-#include "gui/vector/Slider.hpp"
-#include "gui/vector/DataWheel.hpp"
-#include "gui/vector/Lcd.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "InitialWindowDimensions.hpp"
@@ -23,6 +17,7 @@
 #include <Mpc.hpp>
 #include <input/KeyCodeHelper.hpp>
 #include <input/HostInputEvent.hpp>
+#include <controller/ClientEventController.hpp>
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
@@ -221,23 +216,7 @@ View::View(mpc::Mpc &mpcToUse,
         getMpc2000xlFaceplateGlyphsScaled, getKeyTooltipFontScaled,
         mouseListeners, tooltipOverlay);
 
-    pads = getChildComponentsOfClass<Pad>(this);
-    leds = getChildComponentsOfClass<Led>(this);
-    dataWheel = getChildComponentsOfClass<DataWheel>(this).front();
-    sliderCap = getChildComponentsOfClass<SliderCap>(this).front();
-    lcd = getChildComponentsOfClass<Lcd>(this).front();
-
-    for (const auto &pot : getChildComponentsOfClass<Pot>(this))
-    {
-        if (pot->potType == Pot::PotType::MAIN_VOLUME)
-        {
-            volPot = pot;
-        }
-        else if (pot->potType == Pot::PotType::REC_GAIN)
-        {
-            recPot = pot;
-        }
-    }
+    timerCallbackComponents = getChildComponentsOfClass<WithSharedTimerCallback>(this);
 
     const auto openKeyboardScreen = [&]
     {
@@ -444,19 +423,13 @@ void View::onKeyUp(const int keyCode, const bool ctrlDown, const bool altDown,
 
 void View::timerCallback()
 {
-    for (const auto &p : pads)
+    for (const auto &c : timerCallbackComponents)
     {
-        p->sharedTimerCallback();
+        c->sharedTimerCallback();
     }
+}
 
-    for (const auto &l : leds)
-    {
-        l->sharedTimerCallback();
-    }
-
-    dataWheel->sharedTimerCallback();
-    recPot->sharedTimerCallback();
-    volPot->sharedTimerCallback();
-    sliderCap->sharedTimerCallback();
-    lcd->sharedTimerCallback();
+vmpc_juce::gui::focus::FocusHelper *View::getFocusHelper() const
+{
+    return focusHelper;
 }

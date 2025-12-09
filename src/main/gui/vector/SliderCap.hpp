@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gui/WithSharedTimerCallback.hpp"
 #include "DraggableSvgComponent.hpp"
 #include "hardware/Component.hpp"
 #include "input/HostInputEvent.hpp"
@@ -10,8 +11,8 @@
 
 namespace vmpc_juce::gui::vector
 {
-
-    class SliderCap : public DraggableSvgComponent
+    class SliderCap : public DraggableSvgComponent,
+                      public WithSharedTimerCallback
     {
     public:
         SliderCap(mpc::Mpc &mpcToUse,
@@ -26,7 +27,7 @@ namespace vmpc_juce::gui::vector
         {
         }
 
-        void sharedTimerCallback()
+        void sharedTimerCallback() override
         {
             if (isDragging)
             {

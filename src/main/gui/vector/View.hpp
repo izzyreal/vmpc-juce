@@ -1,5 +1,7 @@
 #pragma once
 
+#include "gui/WithSharedTimerCallback.hpp"
+
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/vector/Node.hpp"
@@ -22,17 +24,10 @@ class Keyboard;
 
 namespace vmpc_juce::gui::vector
 {
-
-    class Lcd;
     class TooltipOverlay;
     class Menu;
     class Disclaimer;
     class About;
-    class Pad;
-    class Led;
-    class DataWheel;
-    class Pot;
-    class SliderCap;
 
     class View final : public juce::Component, public juce::Timer
     {
@@ -52,6 +47,8 @@ namespace vmpc_juce::gui::vector
         float getAspectRatio() const;
 
         void timerCallback() override;
+
+        focus::FocusHelper *getFocusHelper() const;
 
     private:
         void onKeyUp(int, bool ctrlDown, bool altDown, bool shiftDown) const;
@@ -88,16 +85,7 @@ namespace vmpc_juce::gui::vector
         std::vector<char> keyTooltipFontData;
         juce::Font keyTooltipFont;
 
-        std::vector<Pad *> pads;
-        std::vector<Led *> leds;
-        DataWheel *dataWheel;
-        Pot *recPot;
-        Pot *volPot;
-        SliderCap *sliderCap;
-
-        Lcd *lcd;
-
-        friend class Lcd;
+        std::vector<WithSharedTimerCallback *> timerCallbackComponents;
     };
 
 } // namespace vmpc_juce::gui::vector
