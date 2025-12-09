@@ -19,7 +19,7 @@ namespace vmpc_juce::gui::vector
 {
     class View;
 
-    class Lcd final : public juce::Component, juce::Timer, public mpc::Observer
+    class Lcd final : public juce::Component, public mpc::Observer
     {
     public:
         explicit Lcd(mpc::Mpc &);
@@ -27,7 +27,7 @@ namespace vmpc_juce::gui::vector
 
         void update(mpc::Observable *, mpc::Message) override;
         void paint(juce::Graphics &g) override;
-        void timerCallback() override;
+        void sharedTimerCallback();
         void mouseDoubleClick(const juce::MouseEvent &) override;
         void mouseDown(const juce::MouseEvent &e) override;
         void mouseDrag(const juce::MouseEvent &e) override;

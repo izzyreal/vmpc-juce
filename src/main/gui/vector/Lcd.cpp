@@ -30,7 +30,6 @@ Lcd::Lcd(mpc::Mpc &mpcToUse) : mpc(mpcToUse)
         return img;
     };
     drawPixelsToImg();
-    startTimer(25);
     const auto othersScreen = mpc.screens->get<ScreenId::OthersScreen>();
     othersScreen->addObserver(this);
 }
@@ -106,7 +105,7 @@ void Lcd::checkLsDirty()
     }
 }
 
-void Lcd::timerCallback()
+void Lcd::sharedTimerCallback()
 {
     mpc.getLayeredScreen()->timerCallback();
     checkLsDirty();

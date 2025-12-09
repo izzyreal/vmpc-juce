@@ -1,6 +1,9 @@
-#include "Node.hpp"
+#pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
+
+#include "gui/vector/Node.hpp"
+
 #include <juce_audio_utils/juce_audio_utils.h>
 
 #include <functional>
@@ -31,41 +34,40 @@ namespace vmpc_juce::gui::vector
     class Pot;
     class SliderCap;
 
-    class View : public juce::Component, public juce::Timer
+    class View final : public juce::Component, public juce::Timer
     {
-
     public:
-        View(mpc::Mpc &mpc,
+        View(mpc::Mpc &mpcToUse,
              const std::function<void()> &showAudioSettingsDialog,
-             const juce::AudioProcessor::WrapperType wrapperType,
-             const std::function<bool()> isInstrument,
+             juce::AudioProcessor::WrapperType wrapperType,
+             const std::function<bool()> &isInstrument,
              bool &shouldShowDisclaimer);
 
         ~View() override;
 
         void resized() override;
 
-        const std::pair<int, int> getInitialRootWindowDimensions();
+        std::pair<int, int> getInitialRootWindowDimensions();
 
-        const float getAspectRatio();
+        float getAspectRatio() const;
 
         void timerCallback() override;
 
     private:
-        void onKeyUp(int, bool ctrlDown, bool altDown, bool shiftDown);
-        void onKeyDown(int, bool ctrlDown, bool altDown, bool shiftDown);
+        void onKeyUp(int, bool ctrlDown, bool altDown, bool shiftDown) const;
+        void onKeyDown(int, bool ctrlDown, bool altDown, bool shiftDown) const;
         mpc::Mpc &mpc;
         void deleteDisclaimer();
-        std::string name = "default_compact";
-        std::vector<juce::Component *> components;
-        std::vector<juce::MouseListener *> mouseListeners;
+        std::string layoutName = "default_compact";
+        std::vector<Component *> components;
+        std::vector<MouseListener *> mouseListeners;
         node view_root;
         std::function<float()> getScale;
         const std::function<juce::Font &()> getMainFontScaled;
         const std::function<juce::Font &()> getMpc2000xlFaceplateGlyphsScaled;
         const std::function<juce::Font &()> getKeyTooltipFontScaled;
 
-        vmpc_juce::gui::focus::FocusHelper *focusHelper = nullptr;
+        focus::FocusHelper *focusHelper = nullptr;
         Keyboard *keyboard = nullptr;
 
         TooltipOverlay *tooltipOverlay = nullptr;

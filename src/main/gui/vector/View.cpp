@@ -1,32 +1,32 @@
-#include "View.hpp"
+#include "gui/vector/View.hpp"
 
-#include "GridWrapper.hpp"
-#include "FlexBoxWrapper.hpp"
-#include "ViewUtil.hpp"
-#include "Led.hpp"
-#include "TooltipOverlay.hpp"
-#include "Menu.hpp"
-#include "Disclaimer.hpp"
-#include "About.hpp"
-#include "Pad.hpp"
-#include "Pot.hpp"
-#include "Slider.hpp"
+#include "gui/vector/GridWrapper.hpp"
+#include "gui/vector/FlexBoxWrapper.hpp"
+#include "gui/vector/ViewUtil.hpp"
+#include "gui/vector/Constants.hpp"
+#include "gui/focus/FocusHelper.hpp"
+#include "gui/vector/TooltipOverlay.hpp"
+#include "gui/vector/Menu.hpp"
+#include "gui/vector/Disclaimer.hpp"
+#include "gui/vector/Led.hpp"
+#include "gui/vector/About.hpp"
+#include "gui/vector/Pad.hpp"
+#include "gui/vector/Pot.hpp"
+#include "gui/vector/Slider.hpp"
+#include "gui/vector/DataWheel.hpp"
+#include "gui/vector/Lcd.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "InitialWindowDimensions.hpp"
+#include "vf_freetype/vf_FreeTypeFaces.h"
 
-#include "Mpc.hpp"
-#include "input/KeyCodeHelper.hpp"
+#include <Mpc.hpp>
+#include <input/KeyCodeHelper.hpp>
+#include <input/HostInputEvent.hpp>
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
-#include "gui/focus/FocusHelper.hpp"
 
 #include <nlohmann/json.hpp>
-#include "gui/vector/Constants.hpp"
-
-#include "gui/vector/DataWheel.hpp"
-#include "input/HostInputEvent.hpp"
-#include "vf_freetype/vf_FreeTypeFaces.h"
 
 #include <tuple>
 
@@ -62,11 +62,13 @@ getChildComponentsOfClass(juce::Component *parent)
 View::View(mpc::Mpc &mpcToUse,
            const std::function<void()> &showAudioSettingsDialog,
            const juce::AudioProcessor::WrapperType wrapperType,
-           const std::function<bool()> isInstrument, bool &shouldShowDisclaimer)
+           const std::function<bool()> &isInstrument,
+           bool &shouldShowDisclaimer)
     : mpc(mpcToUse), getScale(
                          [this]
                          {
-                             return (float)getHeight() / (float)base_height;
+                             return static_cast<float>(getHeight()) /
+                                    static_cast<float>(base_height);
                          }),
 
       getMainFontScaled(
@@ -129,7 +131,7 @@ View::View(mpc::Mpc &mpcToUse,
             focusHelperKeyboard->allKeysUp();
 
             using FocusEvent = mpc::input::FocusEvent;
-            mpc::input::HostInputEvent hostInputEvent(
+            const mpc::input::HostInputEvent hostInputEvent(
                 FocusEvent{FocusEvent::Type::Lost});
             clientEventController->dispatchHostInput(hostInputEvent);
         });
@@ -141,38 +143,41 @@ View::View(mpc::Mpc &mpcToUse,
         return helper->hasFocus();
     };
 
-    auto getKeyboardMods = [&]() -> std::tuple<bool, bool, bool>
+    const auto getKeyboardMods = [&]() -> std::tuple<bool, bool, bool>
     {
         using namespace mpc::input;
 
-        bool shiftDown =
-            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(
-                VmpcKeyCode::VMPC_KEY_Shift)) ||
-            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(
-                VmpcKeyCode::VMPC_KEY_LeftShift)) ||
-            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(
-                VmpcKeyCode::VMPC_KEY_RightShift));
+        const static auto isVmpcKeyDown =
+            [&](const std::initializer_list<VmpcKeyCode> keyCodes)
+        {
+            for (auto &k : keyCodes)
+            {
+                if (keyboard->isKeyDown(
+                        KeyCodeHelper::getPlatformFromVmpcKeyCode(k)))
+                {
+                    return true;
+                }
+            }
+            return false;
+        };
 
-        bool altDown =
-            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(
-                VmpcKeyCode::VMPC_KEY_OptionOrAlt)) ||
-            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(
-                VmpcKeyCode::VMPC_KEY_LeftOptionOrAlt)) ||
-            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(
-                VmpcKeyCode::VMPC_KEY_RightOptionOrAlt));
+        const bool shiftDown = isVmpcKeyDown(
+            {VmpcKeyCode::VMPC_KEY_Shift, VmpcKeyCode::VMPC_KEY_LeftShift,
+             VmpcKeyCode::VMPC_KEY_RightShift});
 
-        bool ctrlDown =
-            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(
-                VmpcKeyCode::VMPC_KEY_Control)) ||
-            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(
-                VmpcKeyCode::VMPC_KEY_LeftControl)) ||
-            keyboard->isKeyDown(KeyCodeHelper::getPlatformFromVmpcKeyCode(
-                VmpcKeyCode::VMPC_KEY_RightControl));
+        const bool altDown =
+            isVmpcKeyDown({VmpcKeyCode::VMPC_KEY_OptionOrAlt,
+                           VmpcKeyCode::VMPC_KEY_LeftOptionOrAlt,
+                           VmpcKeyCode::VMPC_KEY_RightOptionOrAlt});
+
+        const bool ctrlDown = isVmpcKeyDown(
+            {VmpcKeyCode::VMPC_KEY_Control, VmpcKeyCode::VMPC_KEY_LeftControl,
+             VmpcKeyCode::VMPC_KEY_RightControl});
 
         return {shiftDown, altDown, ctrlDown};
     };
 
-    keyboard->onKeyDownFn = [&, keyMods = getKeyboardMods](int i)
+    keyboard->onKeyDownFn = [&, keyMods = getKeyboardMods](const int i)
     {
         if (!focusHelper->hasFocus() || about != nullptr)
         {
@@ -182,7 +187,7 @@ View::View(mpc::Mpc &mpcToUse,
         onKeyDown(i, ctrlDown, altDown, shiftDown);
     };
 
-    keyboard->onKeyUpFn = [&, keyMods = getKeyboardMods](int i)
+    keyboard->onKeyUpFn = [&, keyMods = getKeyboardMods](const int i)
     {
         if (!focusHelper->hasFocus() || about != nullptr)
         {
@@ -195,17 +200,18 @@ View::View(mpc::Mpc &mpcToUse,
     setWantsKeyboardFocus(true);
 
     const auto jsonFileData =
-        VmpcJuceResourceUtil::getResourceData("json/" + name + ".json");
-    nlohmann::json data = nlohmann::json::parse(jsonFileData);
+        VmpcJuceResourceUtil::getResourceData("json/" + layoutName + ".json");
+    const nlohmann::json data = nlohmann::json::parse(jsonFileData);
 
-    view_root = data.template get<node>();
+    view_root = data.get<node>();
 
     base_width = view_root.base_width;
     base_height = view_root.base_height;
 
     getScale = [this]
     {
-        return (float)getHeight() / (float)base_height;
+        return static_cast<float>(getHeight()) /
+               static_cast<float>(base_height);
     };
 
     tooltipOverlay = new TooltipOverlay();
@@ -219,8 +225,9 @@ View::View(mpc::Mpc &mpcToUse,
     leds = getChildComponentsOfClass<Led>(this);
     dataWheel = getChildComponentsOfClass<DataWheel>(this).front();
     sliderCap = getChildComponentsOfClass<SliderCap>(this).front();
+    lcd = getChildComponentsOfClass<Lcd>(this).front();
 
-    for (auto &pot : getChildComponentsOfClass<Pot>(this))
+    for (const auto &pot : getChildComponentsOfClass<Pot>(this))
     {
         if (pot->potType == Pot::PotType::MAIN_VOLUME)
         {
@@ -323,7 +330,7 @@ View::View(mpc::Mpc &mpcToUse,
 
     if (shouldShowDisclaimer)
     {
-        const std::function<void()> deleteDisclaimerF = [this]
+        const std::function deleteDisclaimerF = [this]
         {
             deleteDisclaimer();
         };
@@ -335,12 +342,12 @@ View::View(mpc::Mpc &mpcToUse,
     startTimer(10);
 }
 
-const float View::getAspectRatio()
+float View::getAspectRatio() const
 {
-    return (float)base_width / base_height;
+    return static_cast<float>(base_width) / static_cast<float>(base_height);
 }
 
-const std::pair<int, int> View::getInitialRootWindowDimensions()
+std::pair<int, int> View::getInitialRootWindowDimensions()
 {
     return initialRootWindowDimensions;
 }
@@ -349,12 +356,12 @@ View::~View()
 {
     delete focusHelper;
 
-    for (auto &c : components)
+    for (const auto &c : components)
     {
         delete c;
     }
 
-    for (auto &m : mouseListeners)
+    for (const auto &m : mouseListeners)
     {
         delete m;
     }
@@ -381,7 +388,7 @@ void View::resized()
         return;
     }
 
-    auto rootComponent = components.front();
+    const auto rootComponent = components.front();
 
     assert(dynamic_cast<GridWrapper *>(rootComponent) != nullptr ||
            dynamic_cast<FlexBoxWrapper *>(rootComponent) != nullptr);
@@ -390,7 +397,7 @@ void View::resized()
     tooltipOverlay->setSize(getWidth(), getHeight());
 
     const auto scale = getScale();
-    const auto menuMargin = 2.f;
+    constexpr auto menuMargin = 2.f;
     const auto menuWidth = Menu::widthAtScale1 * scale;
     const auto menuHeight = Menu::heightAtScale1 * scale;
     const auto menuWidthWithMargin = (Menu::widthAtScale1 + menuMargin) * scale;
@@ -402,7 +409,7 @@ void View::resized()
     menu->setBounds(static_cast<int>(menuX), static_cast<int>(menuY),
                     static_cast<int>(menuWidth), static_cast<int>(menuHeight));
 
-    auto rect = getLocalBounds().reduced(
+    const auto rect = getLocalBounds().reduced(
         static_cast<int>(static_cast<float>(getWidth()) * 0.25f),
         static_cast<int>(static_cast<float>(getHeight()) * 0.25f));
 
@@ -417,30 +424,32 @@ void View::resized()
     }
 }
 
-void View::onKeyDown(int keyCode, bool ctrlDown, bool altDown, bool shiftDown)
+void View::onKeyDown(const int keyCode, const bool ctrlDown, const bool altDown,
+                     const bool shiftDown) const
 {
     using namespace mpc::input;
-    HostInputEvent hostInputEvent(
+    const HostInputEvent hostInputEvent(
         KeyEvent{true, keyCode, shiftDown, ctrlDown, altDown});
     mpc.dispatchHostInput(hostInputEvent);
 }
 
-void View::onKeyUp(int keyCode, bool ctrlDown, bool altDown, bool shiftDown)
+void View::onKeyUp(const int keyCode, const bool ctrlDown, const bool altDown,
+                   const bool shiftDown) const
 {
     using namespace mpc::input;
-    HostInputEvent hostInputEvent(
+    const HostInputEvent hostInputEvent(
         KeyEvent{false, keyCode, shiftDown, ctrlDown, altDown});
     mpc.dispatchHostInput(hostInputEvent);
 }
 
 void View::timerCallback()
 {
-    for (auto &p : pads)
+    for (const auto &p : pads)
     {
         p->sharedTimerCallback();
     }
 
-    for (auto &l : leds)
+    for (const auto &l : leds)
     {
         l->sharedTimerCallback();
     }
@@ -449,4 +458,5 @@ void View::timerCallback()
     recPot->sharedTimerCallback();
     volPot->sharedTimerCallback();
     sliderCap->sharedTimerCallback();
+    lcd->sharedTimerCallback();
 }
