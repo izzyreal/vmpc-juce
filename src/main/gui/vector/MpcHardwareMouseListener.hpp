@@ -2,7 +2,10 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "Mpc.hpp"
+namespace mpc
+{
+    class Mpc;
+}
 
 namespace vmpc_juce::gui::vector
 {
@@ -10,7 +13,7 @@ namespace vmpc_juce::gui::vector
                                            juce::Timer
     {
     public:
-        MpcHardwareMouseListener(mpc::Mpc &mpcToUse,
+        MpcHardwareMouseListener(mpc::Mpc &,
                                  const std::string &labelToUse);
         void timerCallback() override;
         void mouseMove(const juce::MouseEvent &) override;

@@ -4,6 +4,8 @@
 #include "gui/vector/TooltipOverlay.hpp"
 #include "utils/ComponentUtils.hpp"
 
+#include <Mpc.hpp>
+
 #include <hardware/ComponentId.hpp>
 #include <input/HostInputEvent.hpp>
 
