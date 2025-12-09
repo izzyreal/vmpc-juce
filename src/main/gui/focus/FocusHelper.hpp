@@ -3,6 +3,8 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_utils/juce_audio_utils.h>
 
+#include "gui/WithSharedTimerCallback.hpp"
+
 #include <optional>
 
 #if __APPLE__
@@ -22,11 +24,11 @@ extern "C" bool isEditorKeyWindow(void *componentPeerNativeHandle);
 
 namespace vmpc_juce::gui::focus
 {
-    class FocusHelper : public juce::Component, juce::Timer
+    class FocusHelper final : public juce::Component,
+                              public WithSharedTimerCallback
     {
-    private:
         const std::function<void()> onFocusLost;
-        juce::Component *auxComponent = nullptr;
+        Component *auxComponent = nullptr;
 
         bool focus = false;
 
@@ -38,16 +40,14 @@ namespace vmpc_juce::gui::focus
         std::optional<bool> wasEditorFrontmost;
 
     public:
-        FocusHelper(const std::function<void()> onFocusLostToUse)
+        explicit FocusHelper(const std::function<void()> &onFocusLostToUse)
             : onFocusLost(onFocusLostToUse)
         {
-            startTimer(50);
+            setIntervalMs(50);
         }
 
         ~FocusHelper() override
         {
-            stopTimer();
-
             if (focus)
             {
                 onFocusLost();
@@ -60,12 +60,12 @@ namespace vmpc_juce::gui::focus
             return focus;
         }
 
-        void setAuxComponent(juce::Component *comp)
+        void setAuxComponent(Component *comp)
         {
             auxComponent = comp;
         }
 
-        void timerCallback() override
+        void sharedTimerCallback() override
         {
             const bool isForegroundProcess =
                 juce::Process::isForegroundProcess();
@@ -81,10 +81,9 @@ namespace vmpc_juce::gui::focus
             bool peerHandleIsValid = false;
             bool isEditorFrontmost = false;
 
-            void *primaryHandle = nullptr;
-
             if (primaryPeer)
             {
+                void *primaryHandle = nullptr;
                 primaryHandle = primaryPeer->getNativeHandle();
                 peerHandleIsValid = primaryHandle != nullptr;
                 if (peerHandleIsValid)
@@ -96,10 +95,8 @@ namespace vmpc_juce::gui::focus
             if ((!peerIsValid || !peerHandleIsValid || !isEditorFrontmost) &&
                 auxComponent)
             {
-                const juce::ComponentPeer *auxPeer = auxComponent->getPeer();
-                const bool auxPeerValid = auxPeer != nullptr;
-
-                if (auxPeerValid)
+                if (const juce::ComponentPeer *auxPeer =
+                        auxComponent->getPeer())
                 {
                     void *auxHandle = auxPeer->getNativeHandle();
                     const bool auxHandleValid = auxHandle != nullptr;
@@ -111,7 +108,6 @@ namespace vmpc_juce::gui::focus
                         peerHandleIsValid = true;
                         isEditorFrontmost = true;
 
-                        // optional: mark so logs can show fallback was used
                         MLOG("FocusHelper: using auxComponent as focus peer");
                     }
                 }

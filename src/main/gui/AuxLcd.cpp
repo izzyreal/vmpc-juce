@@ -3,7 +3,6 @@
 AuxLcd::AuxLcd(const std::function<juce::Image &()> &getLcdImageToUse)
     : Component("auxlcd"), getLcdImage(getLcdImageToUse)
 {
-    setWantsKeyboardFocus(false);
     setInterceptsMouseClicks(false, false);
 }
 

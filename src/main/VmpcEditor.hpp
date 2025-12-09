@@ -21,13 +21,11 @@ namespace vmpc_juce
 
     class VmpcProcessor;
 
-    class VmpcEditor : public juce::AudioProcessorEditor, juce::Timer
+    class VmpcEditor : public juce::AudioProcessorEditor
     {
     public:
         explicit VmpcEditor(VmpcProcessor &);
         ~VmpcEditor() override;
-
-        void timerCallback() override;
 
         bool keyPressed(const juce::KeyPress &k) override
         {

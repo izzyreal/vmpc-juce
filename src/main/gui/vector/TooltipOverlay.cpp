@@ -6,7 +6,6 @@ using namespace vmpc_juce::gui::vector;
 
 TooltipOverlay::TooltipOverlay()
 {
-    setWantsKeyboardFocus(false);
     setInterceptsMouseClicks(false, false);
 }
 

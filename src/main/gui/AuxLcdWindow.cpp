@@ -71,7 +71,6 @@ AuxLcdWindow::AuxLcdWindow(
                                     defaultHeight);
 
     setAlwaysOnTop(true);
-    setWantsKeyboardFocus(true);
 
     resizableCorner->setAlwaysOnTop(true);
 

@@ -20,7 +20,6 @@ namespace vmpc_juce::gui::vector
             setOpaque(true);
             parse();
             setInterceptsMouseClicks(false, false);
-            setWantsKeyboardFocus(true);
         }
 
         void updateFont()

@@ -10,8 +10,6 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
     : AudioProcessorEditor(vmpcProcessorToUse),
       vmpcProcessor(vmpcProcessorToUse)
 {
-    setWantsKeyboardFocus(true);
-
     std::function<bool()> isInstrument = [&]
     {
         const std::string auComponentType = vmpcProcessor.auComponentType();
@@ -73,8 +71,6 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
 #endif
 
     addAndMakeVisible(view);
-
-    startTimer(100);
 }
 
 VmpcEditor::~VmpcEditor()
@@ -83,12 +79,6 @@ VmpcEditor::~VmpcEditor()
     vmpcProcessor.lastUIHeight = getHeight();
     setLookAndFeel(nullptr);
     delete view;
-}
-
-void VmpcEditor::timerCallback()
-{
-    grabKeyboardFocus();
-    stopTimer();
 }
 
 void VmpcEditor::resized()

@@ -119,8 +119,6 @@ namespace vmpc_juce::gui::vector
             keyboardIcon->setInterceptsMouseClicks(false, false);
             addAndMakeVisible(keyboardIcon);
 
-            setWantsKeyboardFocus(false);
-
             infoTooltip =
                 new InfoTooltip(getScale, getMainFontScaled, tooltipOverlay);
             tooltipOverlay->addChildComponent(infoTooltip);
