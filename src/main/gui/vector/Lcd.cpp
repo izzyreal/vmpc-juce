@@ -34,7 +34,7 @@ Lcd::Lcd(mpc::Mpc &mpcToUse) : mpc(mpcToUse)
     const auto othersScreen = mpc.screens->get<mpc::lcdgui::ScreenId::OthersScreen>();
     othersScreen->addObserver(this);
 
-    setIntervalMs(1000);
+    setIntervalMs(30);
 }
 
 Lcd::~Lcd()
