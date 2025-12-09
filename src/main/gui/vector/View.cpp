@@ -13,6 +13,7 @@
 #include "VmpcJuceResourceUtil.hpp"
 #include "InitialWindowDimensions.hpp"
 #include "vf_freetype/vf_FreeTypeFaces.h"
+#include "utils/ComponentUtils.hpp"
 
 #include <Mpc.hpp>
 #include <input/KeyCodeHelper.hpp>
@@ -30,29 +31,6 @@
 #endif
 
 using namespace vmpc_juce::gui::vector;
-
-template <class ComponentClass>
-static std::vector<ComponentClass *>
-getChildComponentsOfClass(juce::Component *parent)
-{
-    std::vector<ComponentClass *> matches;
-
-    for (int i = 0; i < parent->getNumChildComponents(); ++i)
-    {
-        auto *childComp = parent->getChildComponent(i);
-
-        if (auto *c = dynamic_cast<ComponentClass *>(childComp))
-        {
-            matches.push_back(c);
-        }
-
-        auto childMatches =
-            getChildComponentsOfClass<ComponentClass>(childComp);
-        matches.insert(matches.end(), childMatches.begin(), childMatches.end());
-    }
-
-    return matches;
-}
 
 View::View(mpc::Mpc &mpcToUse,
            const std::function<void()> &showAudioSettingsDialog,
@@ -216,7 +194,8 @@ View::View(mpc::Mpc &mpcToUse,
         getMpc2000xlFaceplateGlyphsScaled, getKeyTooltipFontScaled,
         mouseListeners, tooltipOverlay);
 
-    timerCallbackComponents = getChildComponentsOfClass<WithSharedTimerCallback>(this);
+    timerCallbackComponents =
+        utils::findChildComponentsOfClass<WithSharedTimerCallback>(this);
 
     const auto openKeyboardScreen = [&]
     {

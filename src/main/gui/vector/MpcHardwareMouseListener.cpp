@@ -1,10 +1,11 @@
 #include "MpcHardwareMouseListener.hpp"
 
-#include "MpcInputUtil.hpp"
-#include "TooltipOverlay.hpp"
+#include "gui/vector/MpcInputUtil.hpp"
+#include "gui/vector/TooltipOverlay.hpp"
+#include "utils/ComponentUtils.hpp"
 
-#include "hardware/ComponentId.hpp"
-#include "input/HostInputEvent.hpp"
+#include <hardware/ComponentId.hpp>
+#include <input/HostInputEvent.hpp>
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
@@ -13,8 +14,8 @@ using namespace mpc::hardware;
 
 bool MpcHardwareMouseListener::showKeyTooltipUponNextClick = false;
 
-MpcHardwareMouseListener::MpcHardwareMouseListener(mpc::Mpc &mpcToUse,
-                                                   const std::string labelToUse)
+MpcHardwareMouseListener::MpcHardwareMouseListener(
+    mpc::Mpc &mpcToUse, const std::string &labelToUse)
     : mpc(mpcToUse), label(labelToUse)
 {
 }
@@ -81,7 +82,7 @@ void MpcHardwareMouseListener::mouseWheelMove(
 
     const float continuousDelta = -wheel.deltaY * sensitivity;
 
-    if (auto hostInputEvent = makeRelativeGestureFromMouse(
+    if (const auto hostInputEvent = makeRelativeGestureFromMouse(
             event, label, GestureEvent::Type::UPDATE, continuousDelta);
         hostInputEvent)
     {
@@ -107,7 +108,7 @@ void MpcHardwareMouseListener::mouseDown(const juce::MouseEvent &e)
                                  ? GestureEvent::Type::REPEAT
                                  : GestureEvent::Type::BEGIN;
 
-    if (auto hostInputEvent =
+    if (const auto hostInputEvent =
             makeAbsoluteGestureFromMouse(e, label, gestureType, std::nullopt);
         hostInputEvent)
     {
@@ -118,7 +119,7 @@ void MpcHardwareMouseListener::mouseDown(const juce::MouseEvent &e)
 void MpcHardwareMouseListener::mouseDoubleClick(const juce::MouseEvent &)
 {
     if (label.length() >= 5 &&
-        label.substr(0, 5) == componentIdToLabel.at(ComponentId::SHIFT))
+        label.substr(0, 5) == componentIdToLabel.at(SHIFT))
     {
         showKeyTooltipUponNextClick = true;
     }
@@ -126,7 +127,7 @@ void MpcHardwareMouseListener::mouseDoubleClick(const juce::MouseEvent &)
 
 void MpcHardwareMouseListener::mouseUp(const juce::MouseEvent &e)
 {
-    if (auto hostInputEvent = makeAbsoluteGestureFromMouse(
+    if (const auto hostInputEvent = makeAbsoluteGestureFromMouse(
             e, label, mpc::input::GestureEvent::Type::END, std::nullopt);
         hostInputEvent)
     {
@@ -152,7 +153,7 @@ void MpcHardwareMouseListener::mouseDrag(const juce::MouseEvent &e)
 
     if (deltaY != 0.0f)
     {
-        if (auto hostInputEvent = makeRelativeGestureFromMouse(
+        if (const auto hostInputEvent = makeRelativeGestureFromMouse(
                 e, label, mpc::input::GestureEvent::Type::UPDATE, deltaY);
             hostInputEvent)
         {
@@ -162,11 +163,14 @@ void MpcHardwareMouseListener::mouseDrag(const juce::MouseEvent &e)
 }
 
 void MpcHardwareMouseListener::setKeyTooltipVisibility(
-    juce::Component *c, const bool visibleEnabled)
+    const juce::Component *c, const bool visibleEnabled) const
 {
     const auto editor =
         c->findParentComponentOfClass<juce::AudioProcessorEditor>();
-    auto tooltipOverlay = getChildComponentOfClass<TooltipOverlay>(editor);
+
+    const auto tooltipOverlay =
+        vmpc_juce::utils::findFirstChildComponentOfClass<TooltipOverlay>(
+            editor);
 
     if (tooltipOverlay == nullptr)
     {
@@ -176,7 +180,7 @@ void MpcHardwareMouseListener::setKeyTooltipVisibility(
     tooltipOverlay->setKeyTooltipVisibility(label, visibleEnabled);
 }
 
-bool MpcHardwareMouseListener::isPad()
+bool MpcHardwareMouseListener::isPad() const
 {
     return label.length() >= 4 && label.substr(0, 4) == "pad-";
 }
