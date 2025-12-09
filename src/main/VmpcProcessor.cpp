@@ -32,6 +32,7 @@
 #include <sequencer/Clock.hpp>
 #include <lcdgui/screens/SyncScreen.hpp>
 #include <lcdgui/screens/window/DirectoryScreen.hpp>
+#include <lcdgui/screens/MixerSetupScreen.hpp>
 #include <engine/audio/server/NonRealTimeAudioServer.hpp>
 #include <input/HostInputEvent.hpp>
 
@@ -41,6 +42,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "engine/IndivFxMixer.hpp"
+#include "performance/PerformanceManager.hpp"
 #include "sequencer/SequencerStateManager.hpp"
 
 using namespace mpc::lcdgui;
@@ -1194,39 +1196,38 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
     insertValue(0);
     insertValue(1);
 
-    for (auto &p : mpc.getSampler()->getPrograms())
-    {
-        if (!p.lock())
-        {
-            continue;
-        }
-        for (const auto &n : p.lock()->getNotesParameters())
-        {
-            const auto output = n->getIndivFxMixer()->getOutput();
-            if (output == 0)
-            {
-                continue;
-            }
-            // output is 1 for MIX 1 bus, 2 for MIX 2 bus, etc. So we subtract 1
-            // to get 0-based index, and then we add 2 to get the bus index in
-            // the plugin, because the first stereo bus (for STEREO L/R, the
-            // main output) comes before the MIX buses.
-            insertValue(output + 1);
-        }
-    }
+    const auto snapshot = mpc.getPerformanceManager().lock()->getSnapshot();
+    const auto mixerSetupScreen = mpc.screens->get<ScreenId::MixerSetupScreen>();
+    const auto stereoMixSourceIsDrum = mixerSetupScreen->isStereoMixSourceDrum();
 
-    for (int8_t drumBusIndex = 0;
-         drumBusIndex < mpc::Mpc2000XlSpecs::DRUM_BUS_COUNT; ++drumBusIndex)
+    for (int i = 0; i < 4; ++i)
     {
-        for (const auto &m : mpc.getSequencer()
-                                 ->getDrumBus(mpc::DrumBusIndex(drumBusIndex))
-                                 ->getIndivFxMixerChannels())
+        if (stereoMixSourceIsDrum)
         {
-            if (m->getOutput() == 0)
+            const auto drum = snapshot.getDrum(mpc::DrumBusIndex(i));
+            for (auto &m : drum.indivFxMixers)
             {
-                continue;
+                const auto output = m.individualOutput;
+
+                if (output > 0)
+                {
+                    insertValue(output + 1);
+                }
             }
-            insertValue(m->getOutput() + 1);
+        }
+        else
+        {
+            const auto program = snapshot.getProg(snapshot.getDrum(mpc::DrumBusIndex(i)).programIndex);
+
+            for (const auto &n : program.noteParameters)
+            {
+                const auto output = n.indivFxMixer.individualOutput;
+
+                if (output > 0)
+                {
+                    insertValue(output + 1);
+                }
+            }
         }
     }
 }
