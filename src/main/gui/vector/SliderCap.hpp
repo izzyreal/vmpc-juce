@@ -11,20 +11,21 @@
 
 namespace vmpc_juce::gui::vector
 {
-    class SliderCap : public DraggableSvgComponent,
+    class SliderCap final : public DraggableSvgComponent,
                       public WithSharedTimerCallback
     {
     public:
         SliderCap(mpc::Mpc &mpcToUse,
-                  std::shared_ptr<mpc::hardware::Slider> modelToUse,
+                  const std::shared_ptr<mpc::hardware::Slider> &modelToUse,
                   const std::vector<std::string> &svgPaths,
-                  juce::Component *commonParentWithShadowToUse,
-                  float shadowSizeToUse,
+                  Component *commonParentWithShadowToUse,
+                  const float shadowSizeToUse,
                   const std::function<float()> &getScaleToUse)
             : DraggableSvgComponent(svgPaths, commonParentWithShadowToUse,
                                     shadowSizeToUse, getScaleToUse),
               mpc(mpcToUse), model(modelToUse)
         {
+            setIntervalMs(20);
         }
 
         void sharedTimerCallback() override

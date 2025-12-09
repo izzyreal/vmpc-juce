@@ -7,18 +7,20 @@
 
 #include "SvgComponent.hpp"
 #include "DataWheelLines.hpp"
+#include "FloatUtil.hpp"
 #include "gui/WithSharedTimerCallback.hpp"
 
 #include "hardware/Component.hpp"
 
 namespace vmpc_juce::gui::vector
 {
-
-    class DataWheel : public juce::Component, public WithSharedTimerCallback
+    class DataWheel final : public juce::Component,
+                            public WithSharedTimerCallback
     {
     public:
-        DataWheel(std::shared_ptr<mpc::hardware::DataWheel> dataWheelModelToUse,
-                  juce::Component *commonParentWithShadowToUse,
+        DataWheel(const std::shared_ptr<mpc::hardware::DataWheel>
+                      &dataWheelModelToUse,
+                  Component *commonParentWithShadowToUse,
                   const float shadowSizeToUse,
                   const std::function<float()> &getScaleToUse)
             : dataWheelModel(dataWheelModelToUse),
@@ -40,6 +42,7 @@ namespace vmpc_juce::gui::vector
             backgroundSvg->setInterceptsMouseClicks(false, false);
             lines->setInterceptsMouseClicks(false, false);
             dimpleSvg->setInterceptsMouseClicks(false, false);
+            setIntervalMs(20);
         }
 
         void sharedTimerCallback() override
@@ -66,7 +69,7 @@ namespace vmpc_juce::gui::vector
             delete dimpleSvg;
         }
 
-        juce::Rectangle<float> getDrawableBounds()
+        juce::Rectangle<float> getDrawableBounds() const
         {
             return backgroundSvg->getDrawableBounds();
         }
@@ -82,18 +85,24 @@ namespace vmpc_juce::gui::vector
 
     private:
         std::shared_ptr<mpc::hardware::DataWheel> dataWheelModel;
-        float lastAngle = std::numeric_limits<float>::max();
         SvgComponent *dimpleSvg = nullptr;
         DataWheelLines *lines = nullptr;
-        juce::Component *commonParentWithShadow;
+        Component *commonParentWithShadow;
         const float shadowSize;
         const std::function<float()> &getScale;
 
         float displayAngle = 0.0f;    // the angle currently being *drawn*
         float animationSpeed = 20.0f; // larger = faster interpolation
 
+        float lastDrawnAngle = std::numeric_limits<float>::max();
+
         void handleAngleChanged(const float newAngle)
         {
+            if (nearlyEqual(newAngle, lastDrawnAngle))
+            {
+                return;
+            }
+
             const auto drawableBounds = dimpleSvg->getDrawableBounds();
             const auto scale = getScale();
             const auto width = drawableBounds.getWidth() * scale;
@@ -117,6 +126,7 @@ namespace vmpc_juce::gui::vector
 
             lines->setAngle(newAngle);
             repaint();
+            lastDrawnAngle = newAngle;
         }
     };
 } // namespace vmpc_juce::gui::vector

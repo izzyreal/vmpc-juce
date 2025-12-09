@@ -7,7 +7,7 @@
 
 namespace vmpc_juce::gui::vector
 {
-    class Pot : public SvgComponent, public WithSharedTimerCallback
+    class Pot final : public SvgComponent, public WithSharedTimerCallback
     {
     public:
         enum PotType
@@ -16,15 +16,15 @@ namespace vmpc_juce::gui::vector
             MAIN_VOLUME
         };
 
-        Pot(std::shared_ptr<mpc::hardware::Pot> modelToUse,
-            const PotType potTypeToUse,
-            juce::Component *commonParentWithShadowToUse,
+        Pot(const std::shared_ptr<mpc::hardware::Pot> &modelToUse,
+            const PotType potTypeToUse, Component *commonParentWithShadowToUse,
             const std::function<float()> &getScaleToUse)
             : SvgComponent({potTypeToUse == REC_GAIN ? "rec_gain.svg"
                                                      : "main_volume.svg"},
                            commonParentWithShadowToUse, 5.f, getScaleToUse),
               potType(potTypeToUse), model(modelToUse)
         {
+            setIntervalMs(20);
         }
 
         void sharedTimerCallback() override

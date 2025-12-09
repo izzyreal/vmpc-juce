@@ -43,7 +43,7 @@ namespace vmpc_juce::gui::focus
         explicit FocusHelper(const std::function<void()> &onFocusLostToUse)
             : onFocusLost(onFocusLostToUse)
         {
-            setIntervalMs(50);
+            setIntervalMs(200);
         }
 
         ~FocusHelper() override

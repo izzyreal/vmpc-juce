@@ -42,6 +42,7 @@ Pad::Pad(Component *commonParentWithShadowToUse, const float shadowSizeToUse,
                                0.f, getScaleToUse);
     glowSvg->setAlpha(0.f);
     addAndMakeVisible(glowSvg);
+    setIntervalMs(20);
 }
 
 bool Pad::isInterestedInFileDrag(const juce::StringArray &files)

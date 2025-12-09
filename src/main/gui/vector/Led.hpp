@@ -35,6 +35,7 @@ namespace vmpc_juce::gui::vector
               clientEventController(clientEventControllerToUse)
         {
             setLedOnEnabled(true);
+            setIntervalMs(20);
         }
 
         void sharedTimerCallback() override
