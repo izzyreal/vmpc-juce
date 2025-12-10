@@ -63,7 +63,6 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
     mpcMonoOutputChannelIndicesToRender.reserve(18);
     hostOutputChannelIndicesToRender.reserve(18);
     previousHostOutputChannelIndicesToRender.reserve(18);
-    possiblyActiveMpcMonoOutChannels.reserve(10);
 
     const time_t currentTime = time(nullptr);
     const tm *currentLocalTime = localtime(&currentTime);
@@ -530,8 +529,8 @@ void VmpcProcessor::computeMpcAndHostOutputChannelIndicesToRender()
 
     for (size_t i = 0; i < mpcMonoOutputChannelIndices.size(); i++)
     {
-        if (possiblyActiveMpcMonoOutChannels.count(
-                mpcMonoOutputChannelIndices[i]) > 0)
+        if (possiblyActiveMpcMonoOutChannels[
+                static_cast<size_t>(mpcMonoOutputChannelIndices[i])])
         {
             mpcMonoOutputChannelIndicesToRender.push_back(
                 mpcMonoOutputChannelIndices[i]);
@@ -549,10 +548,6 @@ void VmpcProcessor::computeMpcAndHostOutputChannelIndicesToRender()
         assert(i >= 0);
     }
     for (const auto &i : previousHostOutputChannelIndicesToRender)
-    {
-        assert(i >= 0);
-    }
-    for (auto &i : possiblyActiveMpcMonoOutChannels)
     {
         assert(i >= 0);
     }
@@ -1157,11 +1152,11 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
 
 void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
 {
-    possiblyActiveMpcMonoOutChannels.clear();
+    possiblyActiveMpcMonoOutChannels.reset();
 
     auto insertValue = [&](const int8_t value)
     {
-        possiblyActiveMpcMonoOutChannels.insert(value);
+        possiblyActiveMpcMonoOutChannels.set(static_cast<size_t>(value));
 
         // It's not trivial to figure out if an MPC mixer strip is mono or
         // stereo, because it it depends on whether the strip is associated with
@@ -1184,11 +1179,11 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
         // vice versa.
         if (value % 2 == 0)
         {
-            possiblyActiveMpcMonoOutChannels.insert(value + 1);
+            possiblyActiveMpcMonoOutChannels.set(static_cast<size_t>(value + 1));
         }
         else
         {
-            possiblyActiveMpcMonoOutChannels.insert(value - 1);
+            possiblyActiveMpcMonoOutChannels.set(static_cast<size_t>(value - 1));
         }
     };
 

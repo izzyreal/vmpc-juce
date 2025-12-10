@@ -8,7 +8,7 @@
 
 #include <limits>
 #include <vector>
-#include <unordered_set>
+#include <bitset>
 
 namespace vmpc_juce
 {
@@ -73,7 +73,7 @@ namespace vmpc_juce
 
         static BusesProperties getBusesProperties();
 
-        std::unordered_set<int8_t> possiblyActiveMpcMonoOutChannels;
+        std::bitset<10> possiblyActiveMpcMonoOutChannels;
 
         void computePossiblyActiveMpcMonoOutChannels();
 
