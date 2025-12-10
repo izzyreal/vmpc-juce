@@ -1,7 +1,6 @@
 #pragma once
 
 #include "SvgComponent.hpp"
-#include "gui/WithSharedTimerCallback.hpp"
 
 #include <IntTypes.hpp>
 
@@ -20,11 +19,10 @@ namespace mpc::hardware
 
 namespace vmpc_juce::gui::vector
 {
-
-    class Pad : public SvgComponent,
-                public juce::FileDragAndDropTarget,
-                public WithSharedTimerCallback
+    class Pad final : public SvgComponent,
+                public juce::FileDragAndDropTarget
     {
+        int repaintCounter = 0;
         struct Press
         {
             int padIndexWithBank;
@@ -62,12 +60,12 @@ namespace vmpc_juce::gui::vector
         std::function<float()> getScale;
         bool mutatedSinceLastPaint = false;
         int fadeFrameCounter = 0;
-        const int fadeRepaintInterval = 3;
+        const int fadeRepaintInterval = 50;
 
     public:
         void resized() override;
         void mouseDrag(const juce::MouseEvent &event) override;
-        void sharedTimerCallback() override;
+        void padTimerCallback();
         bool isInterestedInFileDrag(const juce::StringArray &files) override;
         void filesDropped(const juce::StringArray &files, int x,
                           int y) override;

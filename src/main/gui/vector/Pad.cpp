@@ -1,5 +1,7 @@
 #include "Pad.hpp"
 
+#include "FloatUtil.hpp"
+
 #include <Mpc.hpp>
 #include <StrUtil.hpp>
 
@@ -42,7 +44,6 @@ Pad::Pad(Component *commonParentWithShadowToUse, const float shadowSizeToUse,
                                0.f, getScaleToUse);
     glowSvg->setAlpha(0.f);
     addAndMakeVisible(glowSvg);
-    setIntervalMs(20);
 }
 
 bool Pad::isInterestedInFileDrag(const juce::StringArray &files)
@@ -207,41 +208,39 @@ Pad::~Pad()
     delete glowSvg;
 }
 
-void Pad::sharedTimerCallback()
+void Pad::padTimerCallback()
 {
-    static constexpr float decay = 0.03f;
-    static constexpr float immediateDecay = 0.03f;
+    static constexpr float decay = 0.003f;
+    static constexpr float immediateDecay = 0.005f;
     static constexpr float immediateFadeFactorPrimary = 0.8f;
     static constexpr float immediateFadeFactorNonPrimary = 0.6f;
     static constexpr float decayThreshold = 0.f;
 
-    auto decayPress = [&](std::optional<Press> &press,
-                          const bool isPrimary) -> bool
+    bool hardMutated = false;
+    bool softMutated = false;
+
+    auto decayPress = [&](std::optional<Press>& press, bool isPrimary) -> bool
     {
         if (!press)
-        {
             return false;
-        }
 
         if (press->alpha == 1.f && !press->wasPaintedWithInitialAlpha)
-        {
             return false;
-        }
 
-        bool mutated = false;
-        const float immediateFadeFactorToUse =
-            isPrimary ? immediateFadeFactorPrimary
-                      : immediateFadeFactorNonPrimary;
+        bool faded = false;
+        const float fadeFactor =
+            isPrimary ? immediateFadeFactorPrimary : immediateFadeFactorNonPrimary;
+
         switch (press->phase)
         {
             case Press::Phase::Immediate:
                 press->alpha -= immediateDecay;
-                if (press->alpha <= immediateFadeFactorToUse)
+                if (press->alpha <= fadeFactor)
                 {
-                    press->alpha = immediateFadeFactorToUse;
+                    press->alpha = fadeFactor;
                     press->phase = Press::Phase::Sustained;
                 }
-                mutated = true;
+                faded = true;
                 break;
 
             case Press::Phase::Sustained:
@@ -254,44 +253,40 @@ void Pad::sharedTimerCallback()
                     press.reset();
                     return true;
                 }
-                mutated = true;
+                faded = true;
                 break;
         }
-        return mutated;
+
+        return faded;
     };
 
     const auto bank = mpc.clientEventController->getActiveBank();
-
-    const mpc::ProgramPadIndex programPadIndex =
-        mpc::controller::physicalPadAndBankToProgramPadIndex(mpcPad->getIndex(),
-                                                             bank);
-
-    bool mutated = false;
+    const auto programPadIndex =
+        mpc::controller::physicalPadAndBankToProgramPadIndex(mpcPad->getIndex(), bank);
 
     if (mpcPad->isPressed())
     {
-        const auto veloOrPressure =
-            mpcPad->getPressure().value_or(mpcPad->getVelocity().value());
+        const auto v = mpcPad->getPressure().value_or(mpcPad->getVelocity().value());
 
         if (!primaryPress || primaryPress->phase == Press::Phase::Releasing)
         {
-            primaryPress =
-                Press{programPadIndex, 1.f, veloOrPressure,
-                      Press::Phase::Immediate, mpc::utils::nowInMilliseconds()};
-            mutated = true;
+            primaryPress = Press{
+                programPadIndex, 1.f, v,
+                Press::Phase::Immediate, mpc::utils::nowInMilliseconds()
+            };
+
+            hardMutated = true;
         }
         else
         {
-            if (primaryPress->phase == Press::Phase::Immediate)
+            if (primaryPress->veloOrPressure != v)
             {
-                mutated |= decayPress(primaryPress, true);
+                primaryPress->veloOrPressure = v;
+                hardMutated = true;
             }
 
-            if (primaryPress->veloOrPressure != veloOrPressure)
-            {
-                primaryPress->veloOrPressure = veloOrPressure;
-                mutated = true;
-            }
+            if (decayPress(primaryPress, true))
+                softMutated = true;
         }
     }
     else if (primaryPress)
@@ -299,41 +294,46 @@ void Pad::sharedTimerCallback()
         if (primaryPress->phase != Press::Phase::Releasing)
         {
             primaryPress->phase = Press::Phase::Releasing;
+            hardMutated = true;
         }
-        mutated |= decayPress(primaryPress, true);
+
+        if (decayPress(primaryPress, true))
+            softMutated = true;
     }
 
     const auto snapshot = mpc.getPerformanceManager().lock()->getSnapshot();
     static const std::vector exclude{
-        mpc::performance::PerformanceEventSource::VirtualMpcHardware};
+        mpc::performance::PerformanceEventSource::VirtualMpcHardware
+    };
 
-    const auto mostRecentPress = snapshot.getMostRecentProgramPadPress(
-        mpc::ProgramPadIndex(programPadIndex), exclude);
+    const auto recent =
+        snapshot.getMostRecentProgramPadPress(mpc::ProgramPadIndex(programPadIndex), exclude);
 
-    if (mostRecentPress)
+    if (recent)
     {
-        const auto veloOrPressure =
-            snapshot.getPressedProgramPadAfterTouchOrVelocity(
-                mpc::ProgramPadIndex(programPadIndex));
+        const auto v =
+            snapshot.getPressedProgramPadAfterTouchOrVelocity(mpc::ProgramPadIndex(programPadIndex));
 
         if (!secondaryPress ||
             secondaryPress->phase == Press::Phase::Releasing ||
-            secondaryPress->pressTime != mostRecentPress->pressTimeMs)
+            secondaryPress->pressTime != recent->pressTimeMs)
         {
-            secondaryPress =
-                Press{programPadIndex, 1.f, veloOrPressure,
-                      Press::Phase::Immediate, mostRecentPress->pressTimeMs};
-            mutated = true;
+            secondaryPress = Press{
+                programPadIndex, 1.f, v,
+                Press::Phase::Immediate, recent->pressTimeMs
+            };
+            hardMutated = true;
         }
         else
         {
-            mutated |= decayPress(secondaryPress, false);
-        }
+            if (secondaryPress->veloOrPressure != v)
+            {
+                secondaryPress->veloOrPressure = v;
+                hardMutated = true;
+            }
 
-        if (secondaryPress->veloOrPressure != veloOrPressure)
-        {
-            secondaryPress->veloOrPressure = veloOrPressure;
-            mutated = true;
+            if (decayPress(secondaryPress, false))
+                softMutated = true;
         }
     }
     else if (secondaryPress)
@@ -341,56 +341,55 @@ void Pad::sharedTimerCallback()
         if (secondaryPress->phase != Press::Phase::Releasing)
         {
             secondaryPress->phase = Press::Phase::Releasing;
+            hardMutated = true;
         }
-        mutated |= decayPress(secondaryPress, false);
+
+        if (decayPress(secondaryPress, false))
+            softMutated = true;
     }
 
     int8_t otherBanked = -1;
+    std::optional<mpc::performance::ProgramPadPressEvent> otherPress;
 
-    std::optional<mpc::performance::ProgramPadPressEvent> otherBankedPress;
-
-    for (int8_t i = mpcPad->getIndex(); i < mpc::MaxProgramPadIndex;
+    for (int8_t i = mpcPad->getIndex();
+         i < mpc::MaxProgramPadIndex;
          i += mpc::Mpc2000XlSpecs::PADS_PER_BANK_COUNT)
     {
-        if (i == programPadIndex)
-        {
-            continue;
-        }
+        if (i == programPadIndex) continue;
 
-        if (const auto mostRecentOtherBankedPress =
-                snapshot.getMostRecentProgramPadPress(mpc::ProgramPadIndex(i),
-                                                      exclude);
-            mostRecentOtherBankedPress)
+        if (auto p = snapshot.getMostRecentProgramPadPress(mpc::ProgramPadIndex(i), exclude))
         {
             otherBanked = i;
-            otherBankedPress = mostRecentOtherBankedPress;
+            otherPress = p;
             break;
         }
     }
 
-    if (otherBanked != -1 && otherBankedPress)
+    if (otherBanked != -1 && otherPress)
     {
-        const auto veloOrPressure =
-            snapshot.getPressedProgramPadAfterTouchOrVelocity(
-                mpc::ProgramPadIndex(otherBanked));
+        const auto v =
+            snapshot.getPressedProgramPadAfterTouchOrVelocity(mpc::ProgramPadIndex(otherBanked));
 
-        if (!tertiaryPress || tertiaryPress->phase == Press::Phase::Releasing ||
-            tertiaryPress->pressTime != otherBankedPress->pressTimeMs)
+        if (!tertiaryPress ||
+            tertiaryPress->phase == Press::Phase::Releasing ||
+            tertiaryPress->pressTime != otherPress->pressTimeMs)
         {
-            tertiaryPress =
-                Press{otherBanked, 1.f, veloOrPressure, Press::Phase::Immediate,
-                      otherBankedPress->pressTimeMs};
-            mutated = true;
+            tertiaryPress = Press{
+                otherBanked, 1.f, v,
+                Press::Phase::Immediate, otherPress->pressTimeMs
+            };
+            hardMutated = true;
         }
         else
         {
-            mutated |= decayPress(tertiaryPress, false);
-        }
+            if (tertiaryPress->veloOrPressure != v)
+            {
+                tertiaryPress->veloOrPressure = v;
+                hardMutated = true;
+            }
 
-        if (tertiaryPress->veloOrPressure != veloOrPressure)
-        {
-            tertiaryPress->veloOrPressure = veloOrPressure;
-            mutated = true;
+            if (decayPress(tertiaryPress, false))
+                softMutated = true;
         }
     }
     else if (tertiaryPress)
@@ -398,56 +397,36 @@ void Pad::sharedTimerCallback()
         if (tertiaryPress->phase != Press::Phase::Releasing)
         {
             tertiaryPress->phase = Press::Phase::Releasing;
+            hardMutated = true;
         }
-        mutated |= decayPress(tertiaryPress, false);
+
+        if (decayPress(tertiaryPress, false))
+            softMutated = true;
     }
 
-    if (static_cast<int>(bank) != lastBank)
+    if ((int)bank != lastBank)
     {
-        lastBank = static_cast<int>(bank);
-        auto fadePress = [&](std::optional<Press> &press)
+        lastBank = (int)bank;
+
+        auto fadeOne = [&](std::optional<Press>& p)
         {
-            if (press && press->alpha == 1.f)
+            if (p && p->alpha == 1.f)
             {
-                press->alpha -= decay;
-                mutated = true;
+                p->alpha -= decay;
+                softMutated = true;
             }
         };
-        fadePress(secondaryPress);
-        fadePress(tertiaryPress);
+
+        fadeOne(secondaryPress);
+        fadeOne(tertiaryPress);
     }
 
-    if (mutated)
-    {
-        mutatedSinceLastPaint = true;
-        fadeFrameCounter = 0;
-    }
+    float newPrimaryAlpha = 0.f;
 
-    if (mutatedSinceLastPaint)
-    {
-        if (mutated)
-        {
-            repaint();
-            mutatedSinceLastPaint = false;
-        }
-        else
-        {
-            if (++fadeFrameCounter >= fadeRepaintInterval)
-            {
-                repaint();
-                fadeFrameCounter = 0;
-                mutatedSinceLastPaint = false;
-            }
-        }
-    }
-}
-
-void Pad::paint(juce::Graphics &g)
-{
     if (primaryPress)
     {
-        glowSvg->setAlpha(
-            std::clamp(primaryPress->getAlphaWithVeloApplied(), 0.f, 1.f));
+        newPrimaryAlpha =
+            std::clamp(primaryPress->getAlphaWithVeloApplied(), 0.f, 1.f);
 
         if (primaryPress->alpha == 1.f &&
             !primaryPress->wasPaintedWithInitialAlpha)
@@ -455,10 +434,44 @@ void Pad::paint(juce::Graphics &g)
             primaryPress->wasPaintedWithInitialAlpha = true;
         }
     }
-    else
+
+    const bool alphaChanged =
+        !nearlyEqual(glowSvg->getAlpha(), newPrimaryAlpha);
+
+    if (hardMutated)
     {
-        glowSvg->setAlpha(0.f);
+        if (alphaChanged)
+            glowSvg->setAlpha(newPrimaryAlpha);
+
+        mutatedSinceLastPaint = false;
+        fadeFrameCounter = 0;
+
+        if (!alphaChanged)
+            repaint();
+
+        return;
     }
+
+    if (softMutated || alphaChanged)
+        mutatedSinceLastPaint = true;
+
+    if (mutatedSinceLastPaint)
+    {
+        if (++fadeFrameCounter >= fadeRepaintInterval)
+        {
+            if (alphaChanged)
+                glowSvg->setAlpha(newPrimaryAlpha);
+
+            repaint();
+            fadeFrameCounter = 0;
+            mutatedSinceLastPaint = false;
+        }
+    }
+}
+
+void Pad::paint(juce::Graphics &g)
+{
+    printf("%i Painting pad %i\n", repaintCounter++, mpcPad->getIndex());
 
     SvgComponent::paint(g);
     const float scale = getScale();

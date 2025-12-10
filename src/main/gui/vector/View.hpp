@@ -28,6 +28,7 @@ namespace vmpc_juce::gui::vector
     class Menu;
     class Disclaimer;
     class About;
+    class Pad;
 
     class View final : public juce::Component, public juce::Timer
     {
@@ -71,6 +72,8 @@ namespace vmpc_juce::gui::vector
         Menu *menu = nullptr;
         Disclaimer *disclaimer = nullptr;
         About *about = nullptr;
+
+        Timer *padTimer = nullptr;
 
         int base_width;
         int base_height;

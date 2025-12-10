@@ -9,6 +9,8 @@
 #include "gui/vector/Menu.hpp"
 #include "gui/vector/Disclaimer.hpp"
 #include "gui/vector/About.hpp"
+#include "gui/vector/Pad.hpp"
+#include "gui/vector/PadTimer.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "InitialWindowDimensions.hpp"
@@ -296,6 +298,8 @@ View::View(mpc::Mpc &mpcToUse,
     }
 
     startTimer(WithSharedTimerCallback::baseIntervalMs);
+
+    padTimer = new PadTimer(utils::findChildComponentsOfClass<Pad>(this));
 }
 
 float View::getAspectRatio() const
@@ -310,6 +314,9 @@ std::pair<int, int> View::getInitialRootWindowDimensions()
 
 View::~View()
 {
+    stopTimer();
+
+    delete padTimer;
     delete focusHelper;
 
     for (const auto &c : components)
