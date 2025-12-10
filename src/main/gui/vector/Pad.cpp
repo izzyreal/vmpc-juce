@@ -219,17 +219,22 @@ void Pad::padTimerCallback()
     bool hardMutated = false;
     bool softMutated = false;
 
-    auto decayPress = [&](std::optional<Press>& press, bool isPrimary) -> bool
+    auto decayPress = [&](std::optional<Press> &press,
+                          const bool isPrimary) -> bool
     {
         if (!press)
+        {
             return false;
+        }
 
         if (press->alpha == 1.f && !press->wasPaintedWithInitialAlpha)
+        {
             return false;
+        }
 
         bool faded = false;
-        const float fadeFactor =
-            isPrimary ? immediateFadeFactorPrimary : immediateFadeFactorNonPrimary;
+        const float fadeFactor = isPrimary ? immediateFadeFactorPrimary
+                                           : immediateFadeFactorNonPrimary;
 
         switch (press->phase)
         {
@@ -262,18 +267,19 @@ void Pad::padTimerCallback()
 
     const auto bank = mpc.clientEventController->getActiveBank();
     const auto programPadIndex =
-        mpc::controller::physicalPadAndBankToProgramPadIndex(mpcPad->getIndex(), bank);
+        mpc::controller::physicalPadAndBankToProgramPadIndex(mpcPad->getIndex(),
+                                                             bank);
 
     if (mpcPad->isPressed())
     {
-        const auto v = mpcPad->getPressure().value_or(mpcPad->getVelocity().value());
+        const auto v =
+            mpcPad->getPressure().value_or(mpcPad->getVelocity().value());
 
         if (!primaryPress || primaryPress->phase == Press::Phase::Releasing)
         {
-            primaryPress = Press{
-                programPadIndex, 1.f, v,
-                Press::Phase::Immediate, mpc::utils::nowInMilliseconds()
-            };
+            primaryPress =
+                Press{programPadIndex, 1.f, v, Press::Phase::Immediate,
+                      mpc::utils::nowInMilliseconds()};
 
             hardMutated = true;
         }
@@ -286,7 +292,9 @@ void Pad::padTimerCallback()
             }
 
             if (decayPress(primaryPress, true))
+            {
                 softMutated = true;
+            }
         }
     }
     else if (primaryPress)
@@ -298,30 +306,72 @@ void Pad::padTimerCallback()
         }
 
         if (decayPress(primaryPress, true))
+        {
             softMutated = true;
+        }
+    }
+
+    if (static_cast<int>(bank) != lastBank)
+    {
+        lastBank = static_cast<int>(bank);
+
+        auto oldSecondary = secondaryPress;
+        auto oldTertiary = tertiaryPress;
+
+        secondaryPress.reset();
+        tertiaryPress.reset();
+
+        const auto physicalPad = mpcPad->getIndex();
+        constexpr auto padsPerBank = mpc::Mpc2000XlSpecs::PADS_PER_BANK_COUNT;
+
+        const int expectedSecondaryIndex =
+            mpc::controller::physicalPadAndBankToProgramPadIndex(physicalPad,
+                                                                 bank);
+
+        auto reassign = [&](const std::optional<Press> &oldPress)
+        {
+            if (!oldPress)
+            {
+                return;
+            }
+
+            const int idx = oldPress->padIndexWithBank;
+
+            if (idx == expectedSecondaryIndex)
+            {
+                secondaryPress = oldPress;
+                hardMutated = true;
+            }
+            else if (idx % padsPerBank == physicalPad)
+            {
+                tertiaryPress = oldPress;
+                hardMutated = true;
+            }
+        };
+
+        reassign(oldSecondary);
+        reassign(oldTertiary);
     }
 
     const auto snapshot = mpc.getPerformanceManager().lock()->getSnapshot();
     static const std::vector exclude{
-        mpc::performance::PerformanceEventSource::VirtualMpcHardware
-    };
+        mpc::performance::PerformanceEventSource::VirtualMpcHardware};
 
-    const auto recent =
-        snapshot.getMostRecentProgramPadPress(mpc::ProgramPadIndex(programPadIndex), exclude);
+    const auto recent = snapshot.getMostRecentProgramPadPress(
+        mpc::ProgramPadIndex(programPadIndex), exclude);
 
     if (recent)
     {
-        const auto v =
-            snapshot.getPressedProgramPadAfterTouchOrVelocity(mpc::ProgramPadIndex(programPadIndex));
+        const auto v = snapshot.getPressedProgramPadAfterTouchOrVelocity(
+            mpc::ProgramPadIndex(programPadIndex));
 
         if (!secondaryPress ||
             secondaryPress->phase == Press::Phase::Releasing ||
             secondaryPress->pressTime != recent->pressTimeMs)
         {
-            secondaryPress = Press{
-                programPadIndex, 1.f, v,
-                Press::Phase::Immediate, recent->pressTimeMs
-            };
+            secondaryPress =
+                Press{programPadIndex, 1.f, v, Press::Phase::Immediate,
+                      recent->pressTimeMs};
             hardMutated = true;
         }
         else
@@ -333,7 +383,9 @@ void Pad::padTimerCallback()
             }
 
             if (decayPress(secondaryPress, false))
+            {
                 softMutated = true;
+            }
         }
     }
     else if (secondaryPress)
@@ -345,19 +397,24 @@ void Pad::padTimerCallback()
         }
 
         if (decayPress(secondaryPress, false))
+        {
             softMutated = true;
+        }
     }
 
     int8_t otherBanked = -1;
     std::optional<mpc::performance::ProgramPadPressEvent> otherPress;
 
-    for (int8_t i = mpcPad->getIndex();
-         i < mpc::MaxProgramPadIndex;
+    for (int8_t i = mpcPad->getIndex(); i < mpc::MaxProgramPadIndex;
          i += mpc::Mpc2000XlSpecs::PADS_PER_BANK_COUNT)
     {
-        if (i == programPadIndex) continue;
+        if (i == programPadIndex)
+        {
+            continue;
+        }
 
-        if (auto p = snapshot.getMostRecentProgramPadPress(mpc::ProgramPadIndex(i), exclude))
+        if (auto p = snapshot.getMostRecentProgramPadPress(
+                mpc::ProgramPadIndex(i), exclude))
         {
             otherBanked = i;
             otherPress = p;
@@ -367,17 +424,14 @@ void Pad::padTimerCallback()
 
     if (otherBanked != -1 && otherPress)
     {
-        const auto v =
-            snapshot.getPressedProgramPadAfterTouchOrVelocity(mpc::ProgramPadIndex(otherBanked));
+        const auto v = snapshot.getPressedProgramPadAfterTouchOrVelocity(
+            mpc::ProgramPadIndex(otherBanked));
 
-        if (!tertiaryPress ||
-            tertiaryPress->phase == Press::Phase::Releasing ||
+        if (!tertiaryPress || tertiaryPress->phase == Press::Phase::Releasing ||
             tertiaryPress->pressTime != otherPress->pressTimeMs)
         {
-            tertiaryPress = Press{
-                otherBanked, 1.f, v,
-                Press::Phase::Immediate, otherPress->pressTimeMs
-            };
+            tertiaryPress = Press{otherBanked, 1.f, v, Press::Phase::Immediate,
+                                  otherPress->pressTimeMs};
             hardMutated = true;
         }
         else
@@ -389,7 +443,9 @@ void Pad::padTimerCallback()
             }
 
             if (decayPress(tertiaryPress, false))
+            {
                 softMutated = true;
+            }
         }
     }
     else if (tertiaryPress)
@@ -401,24 +457,9 @@ void Pad::padTimerCallback()
         }
 
         if (decayPress(tertiaryPress, false))
-            softMutated = true;
-    }
-
-    if ((int)bank != lastBank)
-    {
-        lastBank = (int)bank;
-
-        auto fadeOne = [&](std::optional<Press>& p)
         {
-            if (p && p->alpha == 1.f)
-            {
-                p->alpha -= decay;
-                softMutated = true;
-            }
-        };
-
-        fadeOne(secondaryPress);
-        fadeOne(tertiaryPress);
+            softMutated = true;
+        }
     }
 
     float newPrimaryAlpha = 0.f;
@@ -441,26 +482,34 @@ void Pad::padTimerCallback()
     if (hardMutated)
     {
         if (alphaChanged)
+        {
             glowSvg->setAlpha(newPrimaryAlpha);
+        }
 
         mutatedSinceLastPaint = false;
         fadeFrameCounter = 0;
 
         if (!alphaChanged)
+        {
             repaint();
+        }
 
         return;
     }
 
     if (softMutated || alphaChanged)
+    {
         mutatedSinceLastPaint = true;
+    }
 
     if (mutatedSinceLastPaint)
     {
         if (++fadeFrameCounter >= fadeRepaintInterval)
         {
             if (alphaChanged)
+            {
                 glowSvg->setAlpha(newPrimaryAlpha);
+            }
 
             repaint();
             fadeFrameCounter = 0;
@@ -471,7 +520,7 @@ void Pad::padTimerCallback()
 
 void Pad::paint(juce::Graphics &g)
 {
-    printf("%i Painting pad %i\n", repaintCounter++, mpcPad->getIndex());
+    printf("%i Painting pad %i\n", repaintCounter++, mpcPad->getIndex().get());
 
     SvgComponent::paint(g);
     const float scale = getScale();
