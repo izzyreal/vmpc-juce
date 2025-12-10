@@ -60,7 +60,7 @@ namespace vmpc_juce::gui::vector
         std::function<float()> getScale;
         bool mutatedSinceLastPaint = false;
         int fadeFrameCounter = 0;
-        const int fadeRepaintInterval = 50;
+        const int fadeRepaintInterval = 25;
 
     public:
         void resized() override;
