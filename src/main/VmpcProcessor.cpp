@@ -574,6 +574,7 @@ static void propagateTransportInfo(mpc::sequencer::Clock &clock,
 
 void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
                                  juce::MidiBuffer &midiMessages)
+[[clang::nonblocking]]
 {
     juce::ScopedNoDenormals noDenormals;
 
