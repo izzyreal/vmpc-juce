@@ -520,8 +520,6 @@ void Pad::padTimerCallback()
 
 void Pad::paint(juce::Graphics &g)
 {
-    printf("%i Painting pad %i\n", repaintCounter++, mpcPad->getIndex().get());
-
     SvgComponent::paint(g);
     const float scale = getScale();
 
