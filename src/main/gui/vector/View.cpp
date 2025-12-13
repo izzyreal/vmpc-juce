@@ -14,6 +14,7 @@
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "InitialWindowDimensions.hpp"
+#include "performance/PerformanceManager.hpp"
 #include "vf_freetype/vf_FreeTypeFaces.h"
 #include "utils/ComponentUtils.hpp"
 
@@ -299,7 +300,68 @@ View::View(mpc::Mpc &mpcToUse,
 
     startTimer(WithSharedTimerCallback::baseIntervalMs);
 
-    padTimer = new PadTimer(utils::findChildComponentsOfClass<Pad>(this));
+    pads = utils::findChildComponentsOfClass<Pad>(this);
+
+    static const std::map<uint8_t, uint8_t> padMap{
+        {12, 0}, {13, 1}, {14, 2}, {15, 3}, {8, 4},  {9, 5},  {10, 6}, {11, 7},
+        {4, 8},  {5, 9},  {6, 10}, {7, 11}, {0, 12}, {1, 13}, {2, 14}, {3, 15}};
+
+    mpc.clientEventController->setActiveBankUiCallback =
+        mpc::controller::SetActiveBankUiCallback(
+            [&](const mpc::controller::Bank bank)
+            {
+                for (const auto &p : pads)
+                {
+                    p->registerBankSwitch(bank);
+                }
+            });
+
+    mpc.getPerformanceManager().lock()->programPadEventUiCallback =
+        mpc::performance::ProgramPadEventUiCallback(
+            [&](const mpc::ProgramPadIndex programPadIndex,
+                const mpc::VelocityOrPressure velocityOrPressure,
+                const mpc::performance::PerformanceEventSource source,
+                const mpc::performance::ProgramPadEventType eventType)
+            {
+                const std::function isActiveBank = [&]
+                {
+                    const auto bank =
+                        mpc::controller::programPadIndexToBank(programPadIndex);
+
+                    const auto activeBank =
+                        mpc.clientEventController->getActiveBank();
+
+                    return bank == activeBank;
+                };
+
+                const auto pressType =
+                    source == mpc::performance::PerformanceEventSource::
+                                  VirtualMpcHardware
+                        ? Pad::PressType::Primary
+                    : isActiveBank() ? Pad::PressType::Secondary
+                                     : Pad::PressType::Tertiary;
+
+                const auto pad = pads[static_cast<size_t>(
+                    padMap.at(static_cast<uint8_t>(programPadIndex % 16)))];
+
+                if (eventType == mpc::performance::ProgramPadEventType::Press)
+                {
+                    pad->registerPress(pressType, programPadIndex,
+                                       velocityOrPressure);
+                }
+                else if (eventType ==
+                         mpc::performance::ProgramPadEventType::Aftertouch)
+                {
+                    pad->registerAftertouch(pressType, velocityOrPressure);
+                }
+                else if (eventType ==
+                         mpc::performance::ProgramPadEventType::Release)
+                {
+                    pad->registerRelease(pressType);
+                }
+            });
+
+    padTimer = new PadTimer(pads);
 }
 
 float View::getAspectRatio() const

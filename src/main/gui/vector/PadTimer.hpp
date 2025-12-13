@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Observer.hpp>
+
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include <vector>
@@ -8,7 +10,7 @@ namespace vmpc_juce::gui::vector
 {
     class Pad;
 
-    class PadTimer final : public juce::Timer
+    class PadTimer final : public juce::Timer, public mpc::Observer
     {
     public:
         explicit PadTimer(const std::vector<Pad *> &);

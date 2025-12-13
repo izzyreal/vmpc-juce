@@ -74,6 +74,7 @@ namespace vmpc_juce::gui::vector
         About *about = nullptr;
 
         Timer *padTimer = nullptr;
+        std::vector<Pad *> pads;
 
         int base_width;
         int base_height;

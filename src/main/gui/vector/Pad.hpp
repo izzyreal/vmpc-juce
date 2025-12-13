@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SvgComponent.hpp"
+#include "controller/Bank.hpp"
 
 #include <IntTypes.hpp>
 
@@ -21,24 +22,40 @@ namespace vmpc_juce::gui::vector
 {
     class Pad final : public SvgComponent, public juce::FileDragAndDropTarget
     {
+    public:
+        enum class PressType
+        {
+            Primary,
+            Secondary,
+            Tertiary
+        };
+
+    private:
         struct Press
         {
-            int padIndexWithBank;
-            float alpha;
-            int veloOrPressure;
+            mpc::ProgramPadIndex programPadIndex;
+
+            mpc::VelocityOrPressure velocityOrPressure;
+
             enum class Phase
             {
                 Immediate,
                 Sustained,
                 Releasing
             } phase = Phase::Immediate;
-            mpc::TimeInMilliseconds pressTime;
+
+            float alpha;
+
+            int pressCount = 1;
+            
             bool wasPaintedWithInitialAlpha = false;
+
             float getAlphaWithVeloApplied() const
             {
-                return alpha * (static_cast<float>(
-                                    std::clamp(veloOrPressure, 50, 127)) /
-                                127.f);
+                return alpha *
+                       (static_cast<float>(std::clamp(
+                            static_cast<int>(velocityOrPressure), 50, 127)) /
+                        127.f);
             }
         };
 
@@ -60,9 +77,16 @@ namespace vmpc_juce::gui::vector
         int fadeFrameCounter = 0;
         const int fadeRepaintInterval = 5;
 
+        std::optional<Press> &pressFor(PressType type);
+        void processDecay(std::optional<Press> &press, bool isPrimary);
+
     public:
+        void registerPress(PressType, mpc::ProgramPadIndex, mpc::Velocity);
+        void registerAftertouch(PressType, mpc::Pressure);
+        void registerRelease(PressType);
+        void registerBankSwitch(mpc::controller::Bank);
         void resized() override;
-        void mouseDrag(const juce::MouseEvent &event) override;
+        void mouseDrag(const juce::MouseEvent &) override;
         void padTimerCallback();
         bool isInterestedInFileDrag(const juce::StringArray &files) override;
         void filesDropped(const juce::StringArray &files, int x,
