@@ -210,8 +210,8 @@ Pad::~Pad()
 
 void Pad::padTimerCallback()
 {
-    static constexpr float decay = 0.003f;
-    static constexpr float immediateDecay = 0.005f;
+    static constexpr float decay = 0.025f;
+    static constexpr float immediateDecay = 0.035f;
     static constexpr float immediateFadeFactorPrimary = 0.8f;
     static constexpr float immediateFadeFactorNonPrimary = 0.6f;
     static constexpr float decayThreshold = 0.f;
