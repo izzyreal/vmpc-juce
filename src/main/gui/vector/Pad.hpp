@@ -47,7 +47,7 @@ namespace vmpc_juce::gui::vector
             float alpha;
 
             int pressCount = 1;
-            
+
             bool wasPaintedWithInitialAlpha = false;
 
             float getAlphaWithVeloApplied() const
@@ -62,8 +62,6 @@ namespace vmpc_juce::gui::vector
         std::optional<Press> primaryPress;
         std::optional<Press> secondaryPress;
         std::optional<Press> tertiaryPress;
-
-        int lastBank = -1;
 
         mpc::Mpc &mpc;
         std::shared_ptr<mpc::hardware::Pad> mpcPad;
