@@ -5,7 +5,6 @@
 #include "VmpcEditor.hpp"
 #include "JuceToMpcMidiEventConvertor.hpp"
 #include "MpcToJuceMidiEventConvertor.hpp"
-#include "controller/ClientEventController.hpp"
 
 #include "FloatUtil.hpp"
 
@@ -15,35 +14,35 @@
 #include "sequencer/Bus.hpp"
 
 #include <AutoSave.hpp>
-#include <MpcSpecs.hpp>
 #include <Logger.hpp>
 
 #include <engine/EngineHost.hpp>
+#include <engine/audio/server/NonRealTimeAudioServer.hpp>
+
 #include <audiomidi/DiskRecorder.hpp>
 #include <audiomidi/MidiOutput.hpp>
 
 #include <file/aps/ApsParser.hpp>
 #include <file/sndwriter/SndWriter.hpp>
 #include <file/sndreader/SndReader.hpp>
+
 #include <disk/AbstractDisk.hpp>
+#include <input/HostInputEvent.hpp>
+#include <performance/PerformanceManager.hpp>
 
 #include <sequencer/Sequencer.hpp>
 #include <sequencer/Transport.hpp>
 #include <sequencer/Clock.hpp>
+#include <sequencer/SequencerStateManager.hpp>
+
 #include <lcdgui/screens/SyncScreen.hpp>
 #include <lcdgui/screens/window/DirectoryScreen.hpp>
 #include <lcdgui/screens/MixerSetupScreen.hpp>
-#include <engine/audio/server/NonRealTimeAudioServer.hpp>
-#include <input/HostInputEvent.hpp>
 
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_core/system/juce_PlatformDefs.h>
 #include <juce_gui_basics/juce_gui_basics.h>
-
-#include "engine/IndivFxMixer.hpp"
-#include "performance/PerformanceManager.hpp"
-#include "sequencer/SequencerStateManager.hpp"
 
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
@@ -58,7 +57,7 @@ using namespace vmpc_juce;
 
 VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
 {
-    midiOutputBuffer.resize(100);
+    midiOutputBuffer.resize(512);
 
     mpcMonoOutputChannelIndicesToRender.reserve(18);
     hostOutputChannelIndicesToRender.reserve(18);
@@ -529,8 +528,8 @@ void VmpcProcessor::computeMpcAndHostOutputChannelIndicesToRender()
 
     for (size_t i = 0; i < mpcMonoOutputChannelIndices.size(); i++)
     {
-        if (possiblyActiveMpcMonoOutChannels[
-                static_cast<size_t>(mpcMonoOutputChannelIndices[i])])
+        if (possiblyActiveMpcMonoOutChannels[static_cast<size_t>(
+                mpcMonoOutputChannelIndices[i])])
         {
             mpcMonoOutputChannelIndicesToRender.push_back(
                 mpcMonoOutputChannelIndices[i]);
@@ -574,7 +573,6 @@ static void propagateTransportInfo(mpc::sequencer::Clock &clock,
 
 void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
                                  juce::MidiBuffer &midiMessages)
-[[clang::nonblocking]]
 {
     juce::ScopedNoDenormals noDenormals;
 
@@ -1180,11 +1178,13 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
         // vice versa.
         if (value % 2 == 0)
         {
-            possiblyActiveMpcMonoOutChannels.set(static_cast<size_t>(value + 1));
+            possiblyActiveMpcMonoOutChannels.set(
+                static_cast<size_t>(value + 1));
         }
         else
         {
-            possiblyActiveMpcMonoOutChannels.set(static_cast<size_t>(value - 1));
+            possiblyActiveMpcMonoOutChannels.set(
+                static_cast<size_t>(value - 1));
         }
     };
 
@@ -1193,10 +1193,12 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
     insertValue(1);
 
     const auto snapshot = mpc.getPerformanceManager().lock()->getSnapshot();
-    const auto mixerSetupScreen = mpc.screens->get<ScreenId::MixerSetupScreen>();
-    const auto stereoMixSourceIsDrum = mixerSetupScreen->isStereoMixSourceDrum();
+    const auto mixerSetupScreen =
+        mpc.screens->get<ScreenId::MixerSetupScreen>();
+    const auto stereoMixSourceIsDrum =
+        mixerSetupScreen->isStereoMixSourceDrum();
 
-    for (int i = 0; i < 4; ++i)
+    for (int8_t i = 0; i < 4; ++i)
     {
         if (stereoMixSourceIsDrum)
         {
@@ -1213,7 +1215,8 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
         }
         else
         {
-            const auto program = snapshot.getProg(snapshot.getDrum(mpc::DrumBusIndex(i)).programIndex);
+            const auto program = snapshot.getProg(
+                snapshot.getDrum(mpc::DrumBusIndex(i)).programIndex);
 
             for (const auto &n : program.noteParameters)
             {
