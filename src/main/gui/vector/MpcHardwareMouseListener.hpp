@@ -13,8 +13,7 @@ namespace vmpc_juce::gui::vector
                                            juce::Timer
     {
     public:
-        MpcHardwareMouseListener(mpc::Mpc &,
-                                 const std::string &labelToUse);
+        MpcHardwareMouseListener(mpc::Mpc &, const std::string &labelToUse);
         void timerCallback() override;
         void mouseMove(const juce::MouseEvent &) override;
         void mouseExit(const juce::MouseEvent &) override;

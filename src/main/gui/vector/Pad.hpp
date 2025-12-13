@@ -19,8 +19,7 @@ namespace mpc::hardware
 
 namespace vmpc_juce::gui::vector
 {
-    class Pad final : public SvgComponent,
-                public juce::FileDragAndDropTarget
+    class Pad final : public SvgComponent, public juce::FileDragAndDropTarget
     {
         int repaintCounter = 0;
         struct Press

@@ -12,7 +12,7 @@
 namespace vmpc_juce::gui::vector
 {
     class SliderCap final : public DraggableSvgComponent,
-                      public WithSharedTimerCallback
+                            public WithSharedTimerCallback
     {
     public:
         SliderCap(mpc::Mpc &mpcToUse,

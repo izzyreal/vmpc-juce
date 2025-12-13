@@ -31,7 +31,8 @@ Lcd::Lcd(mpc::Mpc &mpcToUse) : mpc(mpcToUse)
     };
     drawPixelsToImg();
 
-    const auto othersScreen = mpc.screens->get<mpc::lcdgui::ScreenId::OthersScreen>();
+    const auto othersScreen =
+        mpc.screens->get<mpc::lcdgui::ScreenId::OthersScreen>();
     othersScreen->addObserver(this);
 
     setIntervalMs(30);
@@ -39,7 +40,8 @@ Lcd::Lcd(mpc::Mpc &mpcToUse) : mpc(mpcToUse)
 
 Lcd::~Lcd()
 {
-    const auto othersScreen = mpc.screens->get<mpc::lcdgui::ScreenId::OthersScreen>();
+    const auto othersScreen =
+        mpc.screens->get<mpc::lcdgui::ScreenId::OthersScreen>();
     othersScreen->deleteObserver(this);
     delete auxWindow;
 }
@@ -132,14 +134,16 @@ void Lcd::drawPixelsToImg()
 
     const auto pixels = layeredScreen->getPixels();
 
-    const auto othersScreen = mpc.screens->get<mpc::lcdgui::ScreenId::OthersScreen>();
+    const auto othersScreen =
+        mpc.screens->get<mpc::lcdgui::ScreenId::OthersScreen>();
     const auto contrast = othersScreen->getContrast();
 
     juce::Colour c;
 
     const auto halfOn =
         Constants::lcdOnLight.darker(static_cast<float>(contrast * 0.02));
-    const auto on = Constants::lcdOn.darker(static_cast<float>(contrast * 0.02));
+    const auto on =
+        Constants::lcdOn.darker(static_cast<float>(contrast * 0.02));
     const auto off =
         Constants::lcdOff.brighter(static_cast<float>(contrast * 0.01428));
 

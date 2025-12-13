@@ -11,13 +11,13 @@ namespace vmpc_juce::gui::vector
     class PadTimer final : public juce::Timer
     {
     public:
-        explicit PadTimer(const std::vector<Pad*> &);
+        explicit PadTimer(const std::vector<Pad *> &);
 
         ~PadTimer() override;
 
         void timerCallback() override;
 
     private:
-        std::vector<Pad*> pads;
+        std::vector<Pad *> pads;
     };
-}
+} // namespace vmpc_juce::gui::vector

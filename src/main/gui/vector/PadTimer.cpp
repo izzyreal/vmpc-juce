@@ -4,8 +4,7 @@
 
 using namespace vmpc_juce::gui::vector;
 
-PadTimer::PadTimer(const std::vector<Pad *> &padsToUse)
-    : pads(padsToUse)
+PadTimer::PadTimer(const std::vector<Pad *> &padsToUse) : pads(padsToUse)
 {
     startTimer(1);
 }
