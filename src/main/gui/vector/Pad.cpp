@@ -354,7 +354,8 @@ void Pad::padTimerCallback()
     }
 
     const auto snapshot = mpc.getPerformanceManager().lock()->getSnapshot();
-    static const std::vector exclude{
+
+    static constexpr std::initializer_list<mpc::performance::PerformanceEventSource> exclude{
         mpc::performance::PerformanceEventSource::VirtualMpcHardware};
 
     const auto recent = snapshot.getMostRecentProgramPadPress(
