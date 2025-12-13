@@ -1,12 +1,10 @@
 #pragma once
 
-#include <juce_audio_basics/juce_audio_basics.h>
-#include <juce_audio_plugin_client/juce_audio_plugin_client.h>
-#include <juce_audio_devices/juce_audio_devices.h>
-#include <juce_audio_utils/juce_audio_utils.h>
-
+#include "VmpcStandalonePlayer.hpp"
 #include "VmpcProcessor.hpp"
 #include "AudioMidiSettingsComponent.hpp"
+
+#include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 
 using namespace juce;
 
@@ -366,7 +364,7 @@ namespace vmpc_juce
         OptionalScopedPointer<PropertySet> settings;
         std::unique_ptr<AudioProcessor> processor;
         AudioDeviceManager deviceManager;
-        AudioProcessorPlayer player;
+        VmpcStandalonePlayer player;
         Array<PluginInOuts> channelConfiguration;
         juce::Rectangle<int> lastKnownAudioMidiSettingsWindowBounds;
 
