@@ -66,9 +66,9 @@ namespace vmpc_juce::standalone
 
         void updateResetButton();
 
-        void updateOutputsComboBox();
+        void updateOutputsComboBox() const;
 
-        void updateInputsComboBox();
+        void updateInputsComboBox() const;
 
         void updateSampleRateComboBox(juce::AudioIODevice *currentDevice);
 

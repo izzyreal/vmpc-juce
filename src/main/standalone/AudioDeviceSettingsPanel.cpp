@@ -18,6 +18,92 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
 
     setup.manager->addChangeListener(this);
 
+    {
+        outputDeviceDropDown = std::make_unique<juce::ComboBox>();
+        outputDeviceDropDown->onChange = [this]
+        {
+            updateConfig(true, false, false, false);
+        };
+
+        addAndMakeVisible(outputDeviceDropDown.get());
+
+        outputDeviceLabel = std::make_unique<juce::Label>(
+            juce::String{},
+            type.hasSeparateInputsAndOutputs() ? "Output device:" : "Device:");
+        outputDeviceLabel->attachToComponent(outputDeviceDropDown.get(), true);
+    }
+
+    {
+        inputDeviceDropDown = std::make_unique<juce::ComboBox>();
+        inputDeviceDropDown->onChange = [this]
+        {
+            updateConfig(false, true, false, false);
+        };
+        addAndMakeVisible(inputDeviceDropDown.get());
+
+        inputDeviceLabel =
+            std::make_unique<juce::Label>(juce::String{}, "Input device:");
+        inputDeviceLabel->attachToComponent(inputDeviceDropDown.get(), true);
+
+        inputLevelMeter = std::make_unique<InputLevelMeter>(*setup.manager);
+        addAndMakeVisible(inputLevelMeter.get());
+    }
+
+    {
+        testButton =
+            std::make_unique<juce::TextButton>("Test", "Plays a test tone");
+        addAndMakeVisible(testButton.get());
+        testButton->onClick = [this]
+        {
+            playTestSound();
+        };
+    }
+
+    {
+        outputChanList = std::make_unique<ChannelSelectorListBox>(
+            setup, ChannelSelectorListBox::audioOutputType,
+            "(no audio output channels found)");
+
+        addAndMakeVisible(outputChanList.get());
+
+        outputChanLabel = std::make_unique<juce::Label>(
+            juce::String{}, "MPC2000XL STEREO OUT L/R");
+
+        outputChanLabel->setJustificationType(juce::Justification::centred);
+
+        addAndMakeVisible(outputChanLabel.get());
+    }
+
+    {
+        inputChanList = std::make_unique<ChannelSelectorListBox>(
+            setup, ChannelSelectorListBox::audioInputType,
+            "(no audio input channels found)");
+        addAndMakeVisible(inputChanList.get());
+        inputChanLabel = std::make_unique<juce::Label>(
+            juce::String{}, "MPC2000XL RECORD IN L/R");
+        inputChanLabel->setJustificationType(juce::Justification::centred);
+
+        addAndMakeVisible(inputChanLabel.get());
+    }
+
+    {
+        sampleRateDropDown = std::make_unique<juce::ComboBox>();
+        addAndMakeVisible(sampleRateDropDown.get());
+
+        sampleRateLabel =
+            std::make_unique<juce::Label>(juce::String{}, "Sample rate:");
+        sampleRateLabel->attachToComponent(sampleRateDropDown.get(), true);
+    }
+
+    {
+        bufferSizeDropDown = std::make_unique<juce::ComboBox>();
+        addAndMakeVisible(bufferSizeDropDown.get());
+
+        bufferSizeLabel =
+            std::make_unique<juce::Label>(juce::String{}, "Audio buffer size:");
+        bufferSizeLabel->attachToComponent(bufferSizeDropDown.get(), true);
+    }
+
     updateAllControls();
 }
 
@@ -35,63 +121,66 @@ void AudioDeviceSettingsPanel::resized()
     const int h = parent.getItemHeight();
     const int space = h / 4;
 
-    if (outputDeviceDropDown != nullptr)
     {
         auto row = r.removeFromTop(h);
 
-        if (testButton != nullptr)
-        {
-            testButton->changeWidthToFitText(h);
-            testButton->setBounds(row.removeFromRight(testButton->getWidth()));
-            row.removeFromRight(space);
-        }
+        testButton->changeWidthToFitText(h);
+        testButton->setBounds(row.removeFromRight(testButton->getWidth()));
+        row.removeFromRight(space);
 
         outputDeviceDropDown->setBounds(row);
         r.removeFromTop(space);
     }
 
-    if (inputDeviceDropDown != nullptr)
     {
         auto row = r.removeFromTop(h);
 
-        inputLevelMeter->setBounds(
-            row.removeFromRight(testButton != nullptr ? testButton->getWidth()
-                                                      : row.getWidth() / 6));
+        inputLevelMeter->setBounds(row.removeFromRight(testButton->getWidth()));
         row.removeFromRight(space);
         inputDeviceDropDown->setBounds(row);
         r.removeFromTop(space);
     }
 
-    if (outputChanList != nullptr)
     {
         outputChanList->setRowHeight(juce::jmin(22, h));
-        outputChanList->setBounds(
-            r.removeFromTop(outputChanList->getBestHeight(maxListBoxHeight)));
-        outputChanLabel->setBounds(
-            0, outputChanList->getBounds().getCentreY() - h / 2, r.getX(), h);
+
+        const auto listHeight = outputChanList->getBestHeight(maxListBoxHeight);
+
+        const auto labelArea = r.removeFromTop(h);
+        const auto listArea = r.removeFromTop(listHeight);
+
+        outputChanLabel->setBounds(listArea.getX(), labelArea.getY(),
+                                   listArea.getWidth(), h);
+
+        outputChanList->setBounds(listArea);
+
         r.removeFromTop(space);
     }
 
-    if (inputChanList != nullptr)
     {
         inputChanList->setRowHeight(juce::jmin(22, h));
-        inputChanList->setBounds(
-            r.removeFromTop(inputChanList->getBestHeight(maxListBoxHeight)));
-        inputChanLabel->setBounds(
-            0, inputChanList->getBounds().getCentreY() - h / 2, r.getX(), h);
+
+        const auto listHeight = inputChanList->getBestHeight(maxListBoxHeight);
+
+        const auto labelArea = r.removeFromTop(h);
+        const auto listArea = r.removeFromTop(listHeight);
+
+        inputChanLabel->setBounds(listArea.getX(), labelArea.getY(),
+                                  listArea.getWidth(), h);
+
+        inputChanList->setBounds(listArea);
+
         r.removeFromTop(space);
     }
 
     r.removeFromTop(space * 2);
 
-    if (sampleRateDropDown != nullptr)
     {
         sampleRateDropDown->setVisible(true);
         sampleRateDropDown->setBounds(r.removeFromTop(h));
         r.removeFromTop(space);
     }
 
-    if (bufferSizeDropDown != nullptr)
     {
         bufferSizeDropDown->setVisible(true);
 
@@ -138,19 +227,13 @@ void AudioDeviceSettingsPanel::updateConfig(const bool updateOutputDevice,
 
     if (updateOutputDevice || updateInputDevice)
     {
-        if (outputDeviceDropDown != nullptr)
-        {
-            config.outputDeviceName = outputDeviceDropDown->getSelectedId() < 0
-                                          ? juce::String()
-                                          : outputDeviceDropDown->getText();
-        }
+        config.outputDeviceName = outputDeviceDropDown->getSelectedId() < 0
+                                      ? juce::String()
+                                      : outputDeviceDropDown->getText();
 
-        if (inputDeviceDropDown != nullptr)
-        {
-            config.inputDeviceName = inputDeviceDropDown->getSelectedId() < 0
-                                         ? juce::String()
-                                         : inputDeviceDropDown->getText();
-        }
+        config.inputDeviceName = inputDeviceDropDown->getSelectedId() < 0
+                                     ? juce::String()
+                                     : inputDeviceDropDown->getText();
 
         if (!type.hasSeparateInputsAndOutputs())
         {
@@ -240,88 +323,13 @@ void AudioDeviceSettingsPanel::updateAllControls()
     updateControlPanelButton();
     updateResetButton();
 
-    if (auto *currentDevice = setup.manager->getCurrentAudioDevice())
-    {
-        if (setup.maxNumOutputChannels > 0 &&
-            setup.minNumOutputChannels < setup.manager->getCurrentAudioDevice()
-                                             ->getOutputChannelNames()
-                                             .size())
-        {
-            if (outputChanList == nullptr)
-            {
-                outputChanList = std::make_unique<ChannelSelectorListBox>(
-                    setup, ChannelSelectorListBox::audioOutputType,
-                    "(no audio output channels found)");
-                addAndMakeVisible(outputChanList.get());
-                outputChanLabel = std::make_unique<juce::Label>(
-                    juce::String{}, "Active output channels:");
-                outputChanLabel->setJustificationType(
-                    juce::Justification::centredRight);
-                outputChanLabel->attachToComponent(outputChanList.get(), true);
-            }
+    auto *currentDevice = setup.manager->getCurrentAudioDevice();
 
-            outputChanList->refresh();
-        }
-        else
-        {
-            outputChanLabel.reset();
-            outputChanList.reset();
-        }
+    outputChanList->refresh();
+    inputChanList->refresh();
 
-        if (setup.maxNumInputChannels > 0 &&
-            setup.minNumInputChannels < setup.manager->getCurrentAudioDevice()
-                                            ->getInputChannelNames()
-                                            .size())
-        {
-            if (inputChanList == nullptr)
-            {
-                inputChanList = std::make_unique<ChannelSelectorListBox>(
-                    setup, ChannelSelectorListBox::audioInputType,
-                    "(no audio input channels found)");
-                addAndMakeVisible(inputChanList.get());
-                inputChanLabel = std::make_unique<juce::Label>(
-                    juce::String{}, "Active input channels:");
-                inputChanLabel->setJustificationType(
-                    juce::Justification::centredRight);
-                inputChanLabel->attachToComponent(inputChanList.get(), true);
-            }
-
-            inputChanList->refresh();
-        }
-        else
-        {
-            inputChanLabel.reset();
-            inputChanList.reset();
-        }
-
-        updateSampleRateComboBox(currentDevice);
-        updateBufferSizeComboBox(currentDevice);
-    }
-    else
-    {
-        jassert(setup.manager->getCurrentAudioDevice() ==
-                nullptr); // not the correct device type!
-
-        inputChanLabel.reset();
-        outputChanLabel.reset();
-        sampleRateLabel.reset();
-        bufferSizeLabel.reset();
-
-        inputChanList.reset();
-        outputChanList.reset();
-        sampleRateDropDown.reset();
-        bufferSizeDropDown.reset();
-
-        if (outputDeviceDropDown != nullptr)
-        {
-            outputDeviceDropDown->setSelectedId(-1, juce::dontSendNotification);
-        }
-
-        if (inputDeviceDropDown != nullptr)
-        {
-            inputDeviceDropDown->setSelectedId(-1, juce::dontSendNotification);
-        }
-    }
+    updateSampleRateComboBox(currentDevice);
+    updateBufferSizeComboBox(currentDevice);
 
     sendLookAndFeelChange();
     resized();
@@ -357,10 +365,7 @@ void AudioDeviceSettingsPanel::updateSelectedOutput() const
     constexpr auto isInput = false;
     showCorrectDeviceName(outputDeviceDropDown.get(), isInput);
 
-    if (testButton != nullptr)
-    {
-        testButton->setEnabled(findSelectedDeviceIndex(isInput) >= 0);
-    }
+    testButton->setEnabled(findSelectedDeviceIndex(isInput) >= 0);
 }
 
 void AudioDeviceSettingsPanel::showCorrectDeviceName(juce::ComboBox *box,
@@ -451,66 +456,20 @@ void AudioDeviceSettingsPanel::updateResetButton()
     resetDeviceButton.reset();
 }
 
-void AudioDeviceSettingsPanel::updateOutputsComboBox()
+void AudioDeviceSettingsPanel::updateOutputsComboBox() const
 {
     if (setup.maxNumOutputChannels > 0 || !type.hasSeparateInputsAndOutputs())
     {
-        if (outputDeviceDropDown == nullptr)
-        {
-            outputDeviceDropDown = std::make_unique<juce::ComboBox>();
-            outputDeviceDropDown->onChange = [this]
-            {
-                updateConfig(true, false, false, false);
-            };
-
-            addAndMakeVisible(outputDeviceDropDown.get());
-
-            outputDeviceLabel = std::make_unique<juce::Label>(
-                juce::String{},
-                type.hasSeparateInputsAndOutputs() ? "Output:" : "Device:");
-            outputDeviceLabel->attachToComponent(outputDeviceDropDown.get(),
-                                                 true);
-
-            if (setup.maxNumOutputChannels > 0)
-            {
-                testButton = std::make_unique<juce::TextButton>(
-                    "Test", "Plays a test tone");
-                addAndMakeVisible(testButton.get());
-                testButton->onClick = [this]
-                {
-                    playTestSound();
-                };
-            }
-        }
-
         addNamesToDeviceBox(*outputDeviceDropDown, false);
     }
 
     updateSelectedOutput();
 }
 
-void AudioDeviceSettingsPanel::updateInputsComboBox()
+void AudioDeviceSettingsPanel::updateInputsComboBox() const
 {
     if (setup.maxNumInputChannels > 0 && type.hasSeparateInputsAndOutputs())
     {
-        if (inputDeviceDropDown == nullptr)
-        {
-            inputDeviceDropDown = std::make_unique<juce::ComboBox>();
-            inputDeviceDropDown->onChange = [this]
-            {
-                updateConfig(false, true, false, false);
-            };
-            addAndMakeVisible(inputDeviceDropDown.get());
-
-            inputDeviceLabel =
-                std::make_unique<juce::Label>(juce::String{}, "Input:");
-            inputDeviceLabel->attachToComponent(inputDeviceDropDown.get(),
-                                                true);
-
-            inputLevelMeter = std::make_unique<InputLevelMeter>(*setup.manager);
-            addAndMakeVisible(inputLevelMeter.get());
-        }
-
         addNamesToDeviceBox(*inputDeviceDropDown, true);
     }
 
@@ -520,19 +479,12 @@ void AudioDeviceSettingsPanel::updateInputsComboBox()
 void AudioDeviceSettingsPanel::updateSampleRateComboBox(
     juce::AudioIODevice *currentDevice)
 {
-    if (sampleRateDropDown == nullptr)
-    {
-        sampleRateDropDown = std::make_unique<juce::ComboBox>();
-        addAndMakeVisible(sampleRateDropDown.get());
+    sampleRateDropDown->clear();
+    sampleRateDropDown->onChange = nullptr;
 
-        sampleRateLabel =
-            std::make_unique<juce::Label>(juce::String{}, "Sample rate:");
-        sampleRateLabel->attachToComponent(sampleRateDropDown.get(), true);
-    }
-    else
+    if (!currentDevice)
     {
-        sampleRateDropDown->clear();
-        sampleRateDropDown->onChange = nullptr;
+        return;
     }
 
     const auto getFrequencyString = [](const int rate)
@@ -560,19 +512,12 @@ void AudioDeviceSettingsPanel::updateSampleRateComboBox(
 void AudioDeviceSettingsPanel::updateBufferSizeComboBox(
     juce::AudioIODevice *currentDevice)
 {
-    if (bufferSizeDropDown == nullptr)
-    {
-        bufferSizeDropDown = std::make_unique<juce::ComboBox>();
-        addAndMakeVisible(bufferSizeDropDown.get());
+    bufferSizeDropDown->clear();
+    bufferSizeDropDown->onChange = nullptr;
 
-        bufferSizeLabel =
-            std::make_unique<juce::Label>(juce::String{}, "Audio buffer size:");
-        bufferSizeLabel->attachToComponent(bufferSizeDropDown.get(), true);
-    }
-    else
+    if (!currentDevice)
     {
-        bufferSizeDropDown->clear();
-        bufferSizeDropDown->onChange = nullptr;
+        return;
     }
 
     auto currentRate = currentDevice->getCurrentSampleRate();
