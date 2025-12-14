@@ -108,7 +108,7 @@ namespace vmpc_juce::standalone
         getAvailableDeviceTypes();
 
         void createAudioDeviceTypes(
-            juce::OwnedArray<juce::AudioIODeviceType> &types);
+            juce::OwnedArray<juce::AudioIODeviceType> &types) const;
 
         void addAudioDeviceType(
             std::unique_ptr<juce::AudioIODeviceType> newDeviceType);

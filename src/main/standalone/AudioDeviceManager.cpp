@@ -240,7 +240,7 @@ static void addIfNotNull(juce::OwnedArray<juce::AudioIODeviceType> &list,
 }
 
 void AudioDeviceManager::createAudioDeviceTypes(
-    juce::OwnedArray<juce::AudioIODeviceType> &list)
+    juce::OwnedArray<juce::AudioIODeviceType> &list) const
 {
     addIfNotNull(list, juce::AudioIODeviceType::createAudioIODeviceType_WASAPI(
                            juce::WASAPIDeviceMode::shared));
