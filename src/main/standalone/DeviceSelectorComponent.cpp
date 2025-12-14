@@ -44,9 +44,9 @@ namespace vmpc_juce::standalone
             };
 
             deviceTypeDropDownLabel = std::make_unique<juce::Label>(
-                juce::String{}, "Audio device type:");
+                juce::String{}, "Audio device type");
             deviceTypeDropDownLabel->setJustificationType(
-                juce::Justification::centredRight);
+                juce::Justification::centredLeft);
             deviceTypeDropDownLabel->attachToComponent(deviceTypeDropDown.get(),
                                                        true);
         }
@@ -55,9 +55,9 @@ namespace vmpc_juce::standalone
             deviceManager, "(No MIDI inputs available)");
         addAndMakeVisible(midiInputsList.get());
 
-        midiInputsLabel = std::make_unique<juce::Label>(juce::String{},
-                                                        "Active MIDI inputs:");
-        midiInputsLabel->setJustificationType(juce::Justification::topRight);
+        midiInputsLabel =
+            std::make_unique<juce::Label>(juce::String{}, "Active MIDI inputs");
+        midiInputsLabel->setJustificationType(juce::Justification::topLeft);
         midiInputsLabel->attachToComponent(midiInputsList.get(), true);
 
         if (juce::BluetoothMidiDevicePairingDialogue::isAvailable())
@@ -75,7 +75,7 @@ namespace vmpc_juce::standalone
             std::make_unique<MidiOutputSelector>(deviceManager);
         addAndMakeVisible(midiOutputSelector.get());
 
-        midiOutputLabel = std::make_unique<juce::Label>("lm", "MIDI Output:");
+        midiOutputLabel = std::make_unique<juce::Label>("lm", "MIDI Output");
         midiOutputLabel->attachToComponent(midiOutputSelector.get(), true);
 
         deviceManager.addChangeListener(this);
@@ -99,8 +99,6 @@ namespace vmpc_juce::standalone
                           3000);
         const auto space = itemHeight / 4;
 
-        constexpr int maxListBoxHeight = 100;
-
         if (deviceTypeDropDown != nullptr)
         {
             deviceTypeDropDown->setBounds(r.removeFromTop(itemHeight));
@@ -119,9 +117,9 @@ namespace vmpc_juce::standalone
 
         if (midiInputsList != nullptr)
         {
+            constexpr int maxListBoxHeight = 90;
             midiInputsList->setRowHeight(juce::jmin(22, itemHeight));
-            midiInputsList->setBounds(r.removeFromTop(
-                midiInputsList->getBestHeight(maxListBoxHeight)));
+            midiInputsList->setBounds(r.removeFromTop(maxListBoxHeight));
             r.removeFromTop(space);
         }
 
@@ -135,6 +133,15 @@ namespace vmpc_juce::standalone
         {
             midiOutputSelector->setBounds(r.removeFromTop(itemHeight));
         }
+
+        constexpr int labelAreaWidth = 150;
+        constexpr int labelAreaLeftMargin = 10;
+
+        midiInputsLabel->setBounds(labelAreaLeftMargin, midiInputsList->getY(),
+                                   labelAreaWidth, midiInputsList->getHeight());
+        midiOutputLabel->setBounds(labelAreaLeftMargin,
+                                   midiOutputSelector->getY(), labelAreaWidth,
+                                   midiOutputSelector->getHeight());
 
         r.removeFromTop(itemHeight);
         setSize(getWidth(), r.getY());

@@ -10,6 +10,7 @@ AudioMidiSettingsComponent::AudioMidiSettingsComponent(
     : deviceSelector(deviceManagerToUse, 0, maxAudioInputChannels, 0,
                      maxAudioOutputChannels)
 {
+    juce::Font::setDefaultMinimumHorizontalScaleFactor(1.0f);
     setOpaque(true);
     addAndMakeVisible(deviceSelector);
 }
@@ -27,17 +28,4 @@ void AudioMidiSettingsComponent::resized()
     const auto r = getLocalBounds();
 
     deviceSelector.setBounds(r);
-}
-
-void AudioMidiSettingsComponent::childBoundsChanged(juce::Component *childComp)
-{
-    if (!isResizing && childComp == &deviceSelector)
-    {
-        setToRecommendedSize();
-    }
-}
-
-void AudioMidiSettingsComponent::setToRecommendedSize()
-{
-    setSize(getWidth(), deviceSelector.getHeight());
 }

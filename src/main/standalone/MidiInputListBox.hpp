@@ -24,10 +24,6 @@ namespace vmpc_juce::standalone
         void updateDevices()
         {
             items = juce::MidiInput::getAvailableDevices();
-            items.add(items.getFirst());
-            items.add(items.getFirst());
-            items.add(items.getFirst());
-            items.add(items.getFirst());
         }
 
         int getNumRows() override
@@ -96,14 +92,6 @@ namespace vmpc_juce::standalone
                 g.drawText(noItemsMessage, 0, 0, getWidth(), getHeight() / 2,
                            juce::Justification::centred, true);
             }
-        }
-
-        int getBestHeight(const int maxHeight)
-        {
-            return getRowHeight() *
-                       juce::jlimit(1, juce::jmax(1, maxHeight / getRowHeight()),
-                                    getNumRows()) +
-                   getOutlineThickness() * 2;
         }
 
     private:

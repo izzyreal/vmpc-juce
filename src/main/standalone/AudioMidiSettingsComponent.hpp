@@ -19,10 +19,6 @@ namespace vmpc_juce::standalone
 
         void resized() override;
 
-        void childBoundsChanged(Component *childComp) override;
-
-        void setToRecommendedSize();
-
     private:
         DeviceSelectorComponent deviceSelector;
         bool isResizing = false;

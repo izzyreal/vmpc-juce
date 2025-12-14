@@ -219,15 +219,14 @@ namespace vmpc_juce::standalone
 
             auto content = std::make_unique<AudioMidiSettingsComponent>(
                 deviceManager, maxNumInputs, maxNumOutputs);
-            content->setSize(500, 550);
-            content->setToRecommendedSize();
+            content->setSize(500, 525);
 
             o.content.setOwned(content.release());
             o.dialogTitle = "Audio/MIDI Settings";
             o.dialogBackgroundColour = o.content->getLookAndFeel().findColour(
                 ResizableWindow::backgroundColourId);
             o.escapeKeyTriggersCloseButton = true;
-            o.resizable = true;
+            o.resizable = false;
             o.useBottomRightCornerResizer = true;
 
 #if JUCE_IOS

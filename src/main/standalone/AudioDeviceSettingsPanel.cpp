@@ -30,8 +30,10 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
 
         outputDeviceLabel = std::make_unique<juce::Label>(
             juce::String{},
-            type.hasSeparateInputsAndOutputs() ? "Output device:" : "Device:");
-        outputDeviceLabel->attachToComponent(outputDeviceDropDown.get(), true);
+            type.hasSeparateInputsAndOutputs() ? "Output device" : "Device");
+        outputDeviceLabel->setJustificationType(
+            juce::Justification::centredLeft);
+        addAndMakeVisible(outputDeviceLabel.get());
     }
 
     {
@@ -43,8 +45,10 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
         addAndMakeVisible(inputDeviceDropDown.get());
 
         inputDeviceLabel =
-            std::make_unique<juce::Label>(juce::String{}, "Input device:");
-        inputDeviceLabel->attachToComponent(inputDeviceDropDown.get(), true);
+            std::make_unique<juce::Label>(juce::String{}, "Input device");
+        inputDeviceLabel->setJustificationType(
+            juce::Justification::centredLeft);
+        addAndMakeVisible(inputDeviceLabel.get());
 
         inputLevelMeter = std::make_unique<InputLevelMeter>(*setup.manager);
         addAndMakeVisible(inputLevelMeter.get());
@@ -105,8 +109,10 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
         addAndMakeVisible(sampleRateDropDown.get());
 
         sampleRateLabel =
-            std::make_unique<juce::Label>(juce::String{}, "Sample rate:");
-        sampleRateLabel->attachToComponent(sampleRateDropDown.get(), true);
+            std::make_unique<juce::Label>(juce::String{}, "Sample rate");
+
+        sampleRateLabel->setJustificationType(juce::Justification::centredLeft);
+        addAndMakeVisible(sampleRateLabel.get());
     }
 
     {
@@ -114,8 +120,10 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
         addAndMakeVisible(bufferSizeDropDown.get());
 
         bufferSizeLabel =
-            std::make_unique<juce::Label>(juce::String{}, "Audio buffer size:");
-        bufferSizeLabel->attachToComponent(bufferSizeDropDown.get(), true);
+            std::make_unique<juce::Label>(juce::String{}, "Audio buffer size");
+
+        bufferSizeLabel->setJustificationType(juce::Justification::centredLeft);
+        addAndMakeVisible(bufferSizeLabel.get());
     }
 
     updateAllControls();
@@ -131,7 +139,7 @@ void AudioDeviceSettingsPanel::resized()
     juce::Rectangle r(proportionOfWidth(0.35f), 0, proportionOfWidth(0.6f),
                       3000);
 
-    constexpr int maxListBoxHeight = 100;
+    constexpr int maxListBoxHeight = 90;
     const int h = parent.getItemHeight();
     const int space = h / 4;
 
@@ -174,8 +182,7 @@ void AudioDeviceSettingsPanel::resized()
     {
         assignableMixOutList->setRowHeight(juce::jmin(22, h));
 
-        const auto listHeight =
-            assignableMixOutList->getBestHeight(maxListBoxHeight);
+        constexpr auto listHeight = maxListBoxHeight;
 
         const auto labelArea = r.removeFromTop(h);
         const auto listArea = r.removeFromTop(listHeight);
@@ -244,6 +251,20 @@ void AudioDeviceSettingsPanel::resized()
 
         r.removeFromTop(space);
     }
+
+    constexpr int labelAreaWidth = 150;
+    constexpr int labelAreaLeftMargin = 10;
+
+    outputDeviceLabel->setBounds(labelAreaLeftMargin,
+                                 outputDeviceDropDown->getY(), labelAreaWidth,
+                                 outputDeviceDropDown->getHeight());
+    inputDeviceLabel->setBounds(labelAreaLeftMargin,
+                                inputDeviceDropDown->getY(), labelAreaWidth,
+                                inputDeviceDropDown->getHeight());
+    sampleRateLabel->setBounds(labelAreaLeftMargin, sampleRateDropDown->getY(),
+                               labelAreaWidth, sampleRateDropDown->getHeight());
+    bufferSizeLabel->setBounds(labelAreaLeftMargin, bufferSizeDropDown->getY(),
+                               labelAreaWidth, bufferSizeDropDown->getHeight());
 
     setSize(getWidth(), r.getY());
 }
