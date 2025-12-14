@@ -1,6 +1,5 @@
 #include "standalone/DeviceSelectorComponent.hpp"
 
-#include "standalone/InputLevelMeter.hpp"
 #include "standalone/MidiInputListBox.hpp"
 #include "standalone/MidiOutputSelector.hpp"
 #include "standalone/AudioDeviceSetupDetails.hpp"

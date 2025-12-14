@@ -52,7 +52,7 @@ namespace vmpc_juce::standalone
                     (static_cast<float>(height) - tickW) * 0.5f, tickW, tickW,
                     enabled, true, true, false);
 
-                drawTextLayout(g, *this, item.name,
+                Utils::drawTextLayout(g, *this, item.name,
                                {x + 5, 0, width - x - 5, height}, enabled);
             }
         }

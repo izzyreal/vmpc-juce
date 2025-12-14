@@ -51,7 +51,7 @@ namespace vmpc_juce::standalone
 
             const auto midiOutputs = juce::MidiOutput::getAvailableDevices();
 
-            selector.addItem(getNoDeviceString(), -1);
+            selector.addItem(Utils::getNoDeviceString(), -1);
             selector.setSelectedId(-1, juce::dontSendNotification);
             selector.addSeparator();
 
