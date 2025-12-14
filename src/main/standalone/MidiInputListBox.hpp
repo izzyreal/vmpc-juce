@@ -7,10 +7,12 @@
 
 namespace vmpc_juce::standalone
 {
+    class AudioDeviceManager;
+
     class MidiInputListBox final : public juce::ListBox, juce::ListBoxModel
     {
     public:
-        MidiInputListBox(juce::AudioDeviceManager &dm,
+        MidiInputListBox(AudioDeviceManager &dm,
                          const juce::String &noItems)
             : ListBox({}, nullptr), deviceManager(dm), noItemsMessage(noItems)
         {
@@ -102,7 +104,7 @@ namespace vmpc_juce::standalone
         }
 
     private:
-        juce::AudioDeviceManager &deviceManager;
+        AudioDeviceManager &deviceManager;
         const juce::String noItemsMessage;
         juce::Array<juce::MidiDeviceInfo> items;
 

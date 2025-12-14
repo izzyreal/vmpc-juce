@@ -1,13 +1,17 @@
 #include "standalone/ChannelSelectorListBox.hpp"
+
+#include "standalone/AudioDeviceManager.hpp"
 #include "standalone/Utils.hpp"
 
 using namespace vmpc_juce::standalone;
 
 ChannelSelectorListBox::ChannelSelectorListBox(
-    const AudioDeviceSetupDetails &setupDetails, const BoxType boxType,
-    const juce::String &noItemsText)
+    const bool useStereoPairsToUse, const AudioDeviceSetupDetails &setupDetails,
+    const BoxType boxType, const int channelOffsetToUse,
+    const int maxChannelCountToUse)
     : ListBox({}, nullptr), setup(setupDetails), type(boxType),
-      noItemsMessage(noItemsText)
+      useStereoPairs(useStereoPairsToUse), channelOffset(channelOffsetToUse),
+      maxChannelCount(maxChannelCountToUse)
 {
     refresh();
     setModel(this);
@@ -29,11 +33,16 @@ void ChannelSelectorListBox::refresh()
             items = currentDevice->getOutputChannelNames();
         }
 
-        if (setup.useStereoPairs)
+        items.removeRange(channelOffset + maxChannelCount, items.size());
+        items.removeRange(0, channelOffset);
+
+        if (useStereoPairs)
         {
             juce::StringArray pairs;
 
-            for (int i = 0; i < items.size(); i += 2)
+            for (int i = channelOffset;
+                 i < std::min(items.size(), channelOffset + maxChannelCount);
+                 i += 2)
             {
                 auto &name = items[i];
 
@@ -71,28 +80,28 @@ void ChannelSelectorListBox::paintListBoxItem(const int row, juce::Graphics &g,
         bool enabled = false;
         const auto config = setup.manager->getAudioDeviceSetup();
 
-        if (setup.useStereoPairs)
+        if (useStereoPairs)
         {
             if (type == audioInputType)
             {
-                enabled = config.inputChannels[row * 2] ||
-                          config.inputChannels[row * 2 + 1];
+                enabled = config.inputChannels[row * 2 + channelOffset] ||
+                          config.inputChannels[row * 2 + 1 + channelOffset];
             }
             else if (type == audioOutputType)
             {
-                enabled = config.outputChannels[row * 2] ||
-                          config.outputChannels[row * 2 + 1];
+                enabled = config.outputChannels[row * 2 + channelOffset] ||
+                          config.outputChannels[row * 2 + 1 + channelOffset];
             }
         }
         else
         {
             if (type == audioInputType)
             {
-                enabled = config.inputChannels[row];
+                enabled = config.inputChannels[row + channelOffset];
             }
             else if (type == audioOutputType)
             {
-                enabled = config.outputChannels[row];
+                enabled = config.outputChannels[row + channelOffset];
             }
         }
 
@@ -105,7 +114,7 @@ void ChannelSelectorListBox::paintListBoxItem(const int row, juce::Graphics &g,
                                      tickW, tickW, enabled, true, true, false);
 
         Utils::drawTextLayout(g, *this, item, {x + 5, 0, width - x - 5, height},
-                       enabled);
+                              enabled);
     }
 }
 
@@ -131,23 +140,10 @@ void ChannelSelectorListBox::returnKeyPressed(const int row)
     flipEnablement(row);
 }
 
-void ChannelSelectorListBox::paint(juce::Graphics &g)
-{
-    ListBox::paint(g);
-
-    if (items.isEmpty())
-    {
-        g.setColour(juce::Colours::grey);
-        g.setFont(0.5f * static_cast<float>(getRowHeight()));
-        g.drawText(noItemsMessage, 0, 0, getWidth(), getHeight() / 2,
-                   juce::Justification::centred, true);
-    }
-}
-
 int ChannelSelectorListBox::getBestHeight(const int maxHeight)
 {
     return getRowHeight() *
-               juce::jlimit(2, juce::jmax(2, maxHeight / getRowHeight()),
+               juce::jlimit(1, juce::jmax(1, maxHeight / getRowHeight()),
                             getNumRows()) +
            getOutlineThickness() * 2;
 }
@@ -186,7 +182,7 @@ void ChannelSelectorListBox::flipEnablement(const int row) const
     {
         auto config = setup.manager->getAudioDeviceSetup();
 
-        if (setup.useStereoPairs)
+        if (useStereoPairs)
         {
             juce::BigInteger bits;
             auto &original = type == audioInputType ? config.inputChannels
@@ -194,25 +190,29 @@ void ChannelSelectorListBox::flipEnablement(const int row) const
 
             for (int i = 0; i < 256; i += 2)
             {
-                bits.setBit(i / 2, original[i] || original[i + 1]);
+                bits.setBit(i / 2, original[i] ||
+                                       original[i + 1]);
             }
 
             if (type == audioInputType)
             {
                 config.useDefaultInputChannels = false;
-                flipBit(bits, row, setup.minNumInputChannels / 2,
+                flipBit(bits, row + channelOffset,
+                        setup.minNumInputChannels / 2,
                         setup.maxNumInputChannels / 2);
             }
             else
             {
                 config.useDefaultOutputChannels = false;
-                flipBit(bits, row, setup.minNumOutputChannels / 2,
+                flipBit(bits, row + channelOffset,
+                        setup.minNumOutputChannels / 2,
                         setup.maxNumOutputChannels / 2);
             }
 
             for (int i = 0; i < 256; ++i)
             {
-                original.setBit(i, bits[i / 2]);
+                original.setBit(i,
+                                bits[i / 2]);
             }
         }
         else
@@ -220,13 +220,13 @@ void ChannelSelectorListBox::flipEnablement(const int row) const
             if (type == audioInputType)
             {
                 config.useDefaultInputChannels = false;
-                flipBit(config.inputChannels, row, setup.minNumInputChannels,
+                flipBit(config.inputChannels, row + channelOffset, setup.minNumInputChannels,
                         setup.maxNumInputChannels);
             }
             else
             {
                 config.useDefaultOutputChannels = false;
-                flipBit(config.outputChannels, row, setup.minNumOutputChannels,
+                flipBit(config.outputChannels, row + channelOffset, setup.minNumOutputChannels,
                         setup.maxNumOutputChannels);
             }
         }

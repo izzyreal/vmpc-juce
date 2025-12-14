@@ -7,19 +7,20 @@ namespace vmpc_juce::standalone
 {
     class MidiInputListBox;
     class MidiOutputSelector;
+    class AudioDeviceManager;
 
     class DeviceSelectorComponent final : public juce::Component,
                                                         juce::ChangeListener
     {
     public:
         DeviceSelectorComponent(
-            juce::AudioDeviceManager &deviceManager, int minAudioInputChannels,
+            AudioDeviceManager &deviceManager, int minAudioInputChannels,
             int maxAudioInputChannels, int minAudioOutputChannels,
             int maxAudioOutputChannels);
 
         ~DeviceSelectorComponent() override;
 
-        juce::AudioDeviceManager &deviceManager;
+        AudioDeviceManager &deviceManager;
 
         void setItemHeight(int itemHeight);
 

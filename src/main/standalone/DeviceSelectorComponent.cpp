@@ -1,5 +1,6 @@
 #include "standalone/DeviceSelectorComponent.hpp"
 
+#include "standalone/AudioDeviceManager.hpp"
 #include "standalone/MidiInputListBox.hpp"
 #include "standalone/MidiOutputSelector.hpp"
 #include "standalone/AudioDeviceSetupDetails.hpp"
@@ -10,7 +11,7 @@
 namespace vmpc_juce::standalone
 {
     DeviceSelectorComponent::DeviceSelectorComponent(
-        juce::AudioDeviceManager &deviceManagerToUse,
+        AudioDeviceManager &deviceManagerToUse,
         const int minInputChannelsToUse, const int maxInputChannelsToUse,
         const int minOutputChannelsToUse, const int maxOutputChannelsToUse)
         : deviceManager(deviceManagerToUse), itemHeight(24),
@@ -194,7 +195,6 @@ namespace vmpc_juce::standalone
                 details.maxNumInputChannels = maxInputChannels;
                 details.minNumOutputChannels = minOutputChannels;
                 details.maxNumOutputChannels = maxOutputChannels;
-                details.useStereoPairs = true;
 
                 audioDeviceSettingsComp =
                     std::make_unique<AudioDeviceSettingsPanel>(*type, details,

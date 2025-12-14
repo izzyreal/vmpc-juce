@@ -1,9 +1,11 @@
 #include "standalone/AudioMidiSettingsComponent.hpp"
 
+#include "standalone/AudioDeviceManager.hpp"
+
 using namespace vmpc_juce::standalone;
 
 AudioMidiSettingsComponent::AudioMidiSettingsComponent(
-    juce::AudioDeviceManager &deviceManagerToUse,
+    AudioDeviceManager &deviceManagerToUse,
     const int maxAudioInputChannels, const int maxAudioOutputChannels)
     : deviceSelector(deviceManagerToUse, 0, maxAudioInputChannels, 0,
                      maxAudioOutputChannels)

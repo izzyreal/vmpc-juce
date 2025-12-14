@@ -1,13 +1,14 @@
 #pragma once
 
+#include "standalone/AudioDeviceManager.hpp"
+
 #include <juce_gui_basics/juce_gui_basics.h>
-#include <juce_audio_devices/juce_audio_devices.h>
 
 namespace vmpc_juce::standalone
 {
     struct InputLevelMeter final : juce::Component, juce::Timer
     {
-        explicit InputLevelMeter(juce::AudioDeviceManager &m) : manager(m)
+        explicit InputLevelMeter(AudioDeviceManager &m) : manager(m)
         {
             startTimerHz(20);
             inputLevelGetter = manager.getInputLevelGetter();
@@ -40,8 +41,8 @@ namespace vmpc_juce::standalone
                 static_cast<float>(std::exp(std::log(level) / 3.0)));
         }
 
-        juce::AudioDeviceManager &manager;
-        juce::AudioDeviceManager::LevelMeter::Ptr inputLevelGetter;
+        AudioDeviceManager &manager;
+        AudioDeviceManager::LevelMeter::Ptr inputLevelGetter;
         float level = 0;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(InputLevelMeter)

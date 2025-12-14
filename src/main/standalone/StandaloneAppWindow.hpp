@@ -1,5 +1,6 @@
 #pragma once
 
+#include "standalone/AudioDeviceManager.hpp"
 #include "standalone/VmpcStandalonePlayer.hpp"
 #include "standalone/AudioMidiSettingsComponent.hpp"
 
@@ -12,9 +13,9 @@ using namespace juce;
 namespace vmpc_juce::standalone
 {
     class StandalonePluginHolder final : private AudioIODeviceCallback,
-                                   private Timer,
-                                   private Value::Listener,
-                                   private juce::ComponentListener
+                                         private Timer,
+                                         private Value::Listener,
+                                         private juce::ComponentListener
     {
     public:
         struct PluginInOuts
@@ -25,8 +26,8 @@ namespace vmpc_juce::standalone
         StandalonePluginHolder(
             PropertySet *settingsToUse, bool takeOwnershipOfSettings = true,
             const String &preferredDefaultDeviceName = String(),
-            const AudioDeviceManager::AudioDeviceSetup *preferredSetupOptions =
-                nullptr,
+            const vmpc_juce::standalone::AudioDeviceManager::AudioDeviceSetup
+                *preferredSetupOptions = nullptr,
             const Array<PluginInOuts> &channels = Array<PluginInOuts>(),
 #if JUCE_ANDROID || JUCE_IOS
             bool shouldAutoOpenMidiDevices = true
@@ -681,7 +682,6 @@ namespace vmpc_juce::standalone
             pluginHolder = nullptr;
         }
 
-        //==============================================================================
         AudioProcessor *getAudioProcessor() const noexcept
         {
             return pluginHolder->processor.get();
@@ -691,8 +691,6 @@ namespace vmpc_juce::standalone
             return pluginHolder->deviceManager;
         }
 
-        /** Deletes and re-creates the plugin, resetting it to its default
-         * state. */
         void resetToDefaultState()
         {
             pluginHolder->stopPlaying();
@@ -968,4 +966,4 @@ namespace vmpc_juce::standalone
         return nullptr;
     }
 
-} // namespace vmpc_juce
+} // namespace vmpc_juce::standalone

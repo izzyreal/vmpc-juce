@@ -1,14 +1,13 @@
 #pragma once
 
-#include <juce_audio_devices/juce_audio_devices.h>
-
 namespace vmpc_juce::standalone
 {
+    class AudioDeviceManager;
+
     struct AudioDeviceSetupDetails
     {
-        juce::AudioDeviceManager *manager;
+        AudioDeviceManager *manager;
         int minNumInputChannels, maxNumInputChannels;
         int minNumOutputChannels, maxNumOutputChannels;
-        bool useStereoPairs;
     };
 }

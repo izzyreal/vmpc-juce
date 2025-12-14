@@ -16,33 +16,35 @@ namespace vmpc_juce::standalone
             audioOutputType
         };
 
-        ChannelSelectorListBox(const AudioDeviceSetupDetails &setupDetails,
+        ChannelSelectorListBox(bool useStereoPairs,
+                               const AudioDeviceSetupDetails &setupDetails,
                                BoxType boxType,
-                               const juce::String &noItemsText);
+                               int channelOffset,
+                               int maxChannelCount);
 
         void refresh();
 
         int getNumRows() override;
 
-        void paintListBoxItem(int row, juce::Graphics &g, int width, int height, bool) override;
+        void paintListBoxItem(int row, juce::Graphics &g, int width, int height,
+                              bool) override;
 
-        void listBoxItemClicked(int row,
-                                const juce::MouseEvent &e) override;
+        void listBoxItemClicked(int row, const juce::MouseEvent &e) override;
 
         void listBoxItemDoubleClicked(int row,
                                       const juce::MouseEvent &) override;
 
         void returnKeyPressed(int row) override;
 
-        void paint(juce::Graphics &g) override;
-
         int getBestHeight(int maxHeight);
 
     private:
         const AudioDeviceSetupDetails setup;
         const BoxType type;
-        const juce::String noItemsMessage;
         juce::StringArray items;
+        const bool useStereoPairs;
+        int channelOffset;
+        int maxChannelCount;
 
         static juce::String getNameForChannelPair(const juce::String &name1,
                                                   const juce::String &name2);
@@ -56,4 +58,4 @@ namespace vmpc_juce::standalone
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChannelSelectorListBox)
     };
-}
+} // namespace vmpc_juce::standalone

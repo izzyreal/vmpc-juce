@@ -6,10 +6,12 @@
 
 namespace vmpc_juce::standalone
 {
+    class AudioDeviceManager;
+
     class AudioMidiSettingsComponent final : public juce::Component
     {
     public:
-        AudioMidiSettingsComponent(juce::AudioDeviceManager &deviceManagerToUse,
+        AudioMidiSettingsComponent(AudioDeviceManager &deviceManagerToUse,
                                    int maxAudioInputChannels,
                                    int maxAudioOutputChannels);
 

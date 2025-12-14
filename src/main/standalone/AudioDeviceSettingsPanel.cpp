@@ -1,5 +1,6 @@
 #include "standalone/AudioDeviceSettingsPanel.hpp"
 
+#include "standalone/AudioDeviceManager.hpp"
 #include "standalone/DeviceSelectorComponent.hpp"
 #include "standalone/Utils.hpp"
 
@@ -60,30 +61,43 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
     }
 
     {
-        outputChanList = std::make_unique<ChannelSelectorListBox>(
-            setup, ChannelSelectorListBox::audioOutputType,
-            "(no audio output channels found)");
+        stereoOutList = std::make_unique<ChannelSelectorListBox>(
+            true, setup, ChannelSelectorListBox::audioOutputType, 0, 2);
 
-        addAndMakeVisible(outputChanList.get());
+        addAndMakeVisible(stereoOutList.get());
 
-        outputChanLabel = std::make_unique<juce::Label>(
+        stereoOutLabel = std::make_unique<juce::Label>(
             juce::String{}, "MPC2000XL STEREO OUT L/R");
 
-        outputChanLabel->setJustificationType(juce::Justification::centred);
+        stereoOutLabel->setJustificationType(juce::Justification::centred);
 
-        addAndMakeVisible(outputChanLabel.get());
+        addAndMakeVisible(stereoOutLabel.get());
     }
 
     {
-        inputChanList = std::make_unique<ChannelSelectorListBox>(
-            setup, ChannelSelectorListBox::audioInputType,
-            "(no audio input channels found)");
-        addAndMakeVisible(inputChanList.get());
-        inputChanLabel = std::make_unique<juce::Label>(
-            juce::String{}, "MPC2000XL RECORD IN L/R");
-        inputChanLabel->setJustificationType(juce::Justification::centred);
+        assignableMixOutList = std::make_unique<ChannelSelectorListBox>(
+            false, setup, ChannelSelectorListBox::audioOutputType, 2, 8);
 
-        addAndMakeVisible(inputChanLabel.get());
+        addAndMakeVisible(assignableMixOutList.get());
+
+        assignableMixOutLabel = std::make_unique<juce::Label>(
+            juce::String{}, "MPC2000XL ASSIGNABLE MIX OUT");
+
+        assignableMixOutLabel->setJustificationType(
+            juce::Justification::centred);
+
+        addAndMakeVisible(assignableMixOutLabel.get());
+    }
+
+    {
+        recordInList = std::make_unique<ChannelSelectorListBox>(
+            true, setup, ChannelSelectorListBox::audioInputType, 0, 2);
+        addAndMakeVisible(recordInList.get());
+        recordInLabel = std::make_unique<juce::Label>(
+            juce::String{}, "MPC2000XL RECORD IN L/R");
+        recordInLabel->setJustificationType(juce::Justification::centred);
+
+        addAndMakeVisible(recordInLabel.get());
     }
 
     {
@@ -142,33 +156,50 @@ void AudioDeviceSettingsPanel::resized()
     }
 
     {
-        outputChanList->setRowHeight(juce::jmin(22, h));
+        stereoOutList->setRowHeight(juce::jmin(22, h));
 
-        const auto listHeight = outputChanList->getBestHeight(maxListBoxHeight);
+        const auto listHeight = stereoOutList->getBestHeight(maxListBoxHeight);
 
         const auto labelArea = r.removeFromTop(h);
         const auto listArea = r.removeFromTop(listHeight);
 
-        outputChanLabel->setBounds(listArea.getX(), labelArea.getY(),
-                                   listArea.getWidth(), h);
+        stereoOutLabel->setBounds(listArea.getX(), labelArea.getY(),
+                                  listArea.getWidth(), h);
 
-        outputChanList->setBounds(listArea);
+        stereoOutList->setBounds(listArea);
 
         r.removeFromTop(space);
     }
 
     {
-        inputChanList->setRowHeight(juce::jmin(22, h));
+        assignableMixOutList->setRowHeight(juce::jmin(22, h));
 
-        const auto listHeight = inputChanList->getBestHeight(maxListBoxHeight);
+        const auto listHeight =
+            assignableMixOutList->getBestHeight(maxListBoxHeight);
 
         const auto labelArea = r.removeFromTop(h);
         const auto listArea = r.removeFromTop(listHeight);
 
-        inputChanLabel->setBounds(listArea.getX(), labelArea.getY(),
-                                  listArea.getWidth(), h);
+        assignableMixOutLabel->setBounds(listArea.getX(), labelArea.getY(),
+                                         listArea.getWidth(), h);
 
-        inputChanList->setBounds(listArea);
+        assignableMixOutList->setBounds(listArea);
+
+        r.removeFromTop(space);
+    }
+
+    {
+        recordInList->setRowHeight(juce::jmin(22, h));
+
+        const auto listHeight = recordInList->getBestHeight(maxListBoxHeight);
+
+        const auto labelArea = r.removeFromTop(h);
+        const auto listArea = r.removeFromTop(listHeight);
+
+        recordInLabel->setBounds(listArea.getX(), labelArea.getY(),
+                                 listArea.getWidth(), h);
+
+        recordInList->setBounds(listArea);
 
         r.removeFromTop(space);
     }
@@ -325,8 +356,9 @@ void AudioDeviceSettingsPanel::updateAllControls()
 
     auto *currentDevice = setup.manager->getCurrentAudioDevice();
 
-    outputChanList->refresh();
-    inputChanList->refresh();
+    stereoOutList->refresh();
+    assignableMixOutList->refresh();
+    recordInList->refresh();
 
     updateSampleRateComboBox(currentDevice);
     updateBufferSizeComboBox(currentDevice);

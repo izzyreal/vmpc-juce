@@ -7,12 +7,14 @@
 
 namespace vmpc_juce::standalone
 {
+    class AudioDeviceManager;
+
     class MidiOutputSelector final
         : public juce::Component,
           juce::ChangeListener
     {
     public:
-        explicit MidiOutputSelector(juce::AudioDeviceManager &dm)
+        explicit MidiOutputSelector(AudioDeviceManager &dm)
             : deviceManager(dm)
         {
             deviceManager.addChangeListener(this);
@@ -73,6 +75,6 @@ namespace vmpc_juce::standalone
         }
 
         juce::ComboBox selector;
-        juce::AudioDeviceManager &deviceManager;
+        AudioDeviceManager &deviceManager;
     };
 } // namespace vmpc_juce::standalone
