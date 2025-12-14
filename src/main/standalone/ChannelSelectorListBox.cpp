@@ -8,10 +8,11 @@ using namespace vmpc_juce::standalone;
 ChannelSelectorListBox::ChannelSelectorListBox(
     const bool useStereoPairsToUse, const AudioDeviceSetupDetails &setupDetails,
     const BoxType boxType, const int channelOffsetToUse,
-    const int maxChannelCountToUse)
+    const int maxChannelCountToUse,
+    const std::vector<std::string> &&nameSuffixesToUse)
     : ListBox({}, nullptr), setup(setupDetails), type(boxType),
       useStereoPairs(useStereoPairsToUse), channelOffset(channelOffsetToUse),
-      maxChannelCount(maxChannelCountToUse)
+      maxChannelCount(maxChannelCountToUse), nameSuffixes(nameSuffixesToUse)
 {
     refresh();
     setModel(this);
@@ -57,6 +58,14 @@ void ChannelSelectorListBox::refresh()
             }
 
             items = pairs;
+        }
+
+        for (int i = 0;
+             i < std::min(static_cast<int>(nameSuffixes.size()), items.size());
+             ++i)
+        {
+            items.getReference(i) =
+                items[i] + " <- " + nameSuffixes[static_cast<size_t>(i)];
         }
     }
 
@@ -148,7 +157,6 @@ int ChannelSelectorListBox::getBestHeight(const int maxHeight)
            getOutlineThickness() * 2;
 }
 
-
 void ChannelSelectorListBox::flipEnablement(const int row) const
 {
     jassert(type == audioInputType || type == audioOutputType);
@@ -165,8 +173,7 @@ void ChannelSelectorListBox::flipEnablement(const int row) const
 
             for (int i = 0; i < 256; i += 2)
             {
-                bits.setBit(i / 2, original[i] ||
-                                       original[i + 1]);
+                bits.setBit(i / 2, original[i] || original[i + 1]);
             }
 
             if (type == audioInputType)
@@ -186,8 +193,7 @@ void ChannelSelectorListBox::flipEnablement(const int row) const
 
             for (int i = 0; i < 256; ++i)
             {
-                original.setBit(i,
-                                bits[i / 2]);
+                original.setBit(i, bits[i / 2]);
             }
         }
         else
@@ -195,14 +201,14 @@ void ChannelSelectorListBox::flipEnablement(const int row) const
             if (type == audioInputType)
             {
                 config.useDefaultInputChannels = false;
-                flipBit(config.inputChannels, row + channelOffset, setup.minNumInputChannels,
-                        setup.maxNumInputChannels);
+                flipBit(config.inputChannels, row + channelOffset,
+                        setup.minNumInputChannels, setup.maxNumInputChannels);
             }
             else
             {
                 config.useDefaultOutputChannels = false;
-                flipBit(config.outputChannels, row + channelOffset, setup.minNumOutputChannels,
-                        setup.maxNumOutputChannels);
+                flipBit(config.outputChannels, row + channelOffset,
+                        setup.minNumOutputChannels, setup.maxNumOutputChannels);
             }
         }
 

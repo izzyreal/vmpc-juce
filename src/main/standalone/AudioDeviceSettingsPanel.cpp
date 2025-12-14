@@ -70,8 +70,8 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
 
         addAndMakeVisible(stereoOutList.get());
 
-        stereoOutLabel = std::make_unique<juce::Label>(
-            juce::String{}, "STEREO OUT L/R");
+        stereoOutLabel =
+            std::make_unique<juce::Label>(juce::String{}, "STEREO OUT L/R");
 
         stereoOutLabel->setJustificationType(juce::Justification::centred);
 
@@ -79,13 +79,17 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
     }
 
     {
+        std::vector<std::string> suffixes{"MIX 1", "MIX 2", "MIX 3", "MIX 4",
+                                          "MIX 5", "MIX 6", "MIX 7", "MIX 8"};
+
         assignableMixOutList = std::make_unique<ChannelSelectorListBox>(
-            false, setup, ChannelSelectorListBox::audioOutputType, 2, 8);
+            false, setup, ChannelSelectorListBox::audioOutputType, 2, 8,
+            std::move(suffixes));
 
         addAndMakeVisible(assignableMixOutList.get());
 
-        assignableMixOutLabel = std::make_unique<juce::Label>(
-            juce::String{}, "ASSIGNABLE MIX OUT");
+        assignableMixOutLabel =
+            std::make_unique<juce::Label>(juce::String{}, "ASSIGNABLE MIX OUT 1 - 8");
 
         assignableMixOutLabel->setJustificationType(
             juce::Justification::centred);
@@ -97,8 +101,8 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
         recordInDropDown = std::make_unique<juce::ComboBox>();
 
         addAndMakeVisible(recordInDropDown.get());
-        recordInLabel = std::make_unique<juce::Label>(
-            juce::String{}, "RECORD IN L/R");
+        recordInLabel =
+            std::make_unique<juce::Label>(juce::String{}, "RECORD IN L/R");
         recordInLabel->setJustificationType(juce::Justification::centredLeft);
 
         addAndMakeVisible(recordInLabel.get());
@@ -595,8 +599,7 @@ void AudioDeviceSettingsPanel::updateRecordInComboBox(
     {
         if (selectedInputChannels[i])
         {
-            recordInDropDown->setText(pairs[i/2],
-                          juce::dontSendNotification);
+            recordInDropDown->setText(pairs[i / 2], juce::dontSendNotification);
             break;
         }
     }
@@ -606,11 +609,13 @@ void AudioDeviceSettingsPanel::updateRecordInComboBox(
         auto config = setup.manager->getAudioDeviceSetup();
         config.useDefaultInputChannels = false;
         config.inputChannels.clear();
-        config.inputChannels.setBit(recordInDropDown->getSelectedItemIndex() * 2);
+        config.inputChannels.setBit(recordInDropDown->getSelectedItemIndex() *
+                                    2);
 
         if (recordInDropDown->getSelectedItemIndex() * 2 + 1 < inputChCount)
         {
-            config.inputChannels.setBit(recordInDropDown->getSelectedItemIndex() * 2 + 1);
+            config.inputChannels.setBit(
+                recordInDropDown->getSelectedItemIndex() * 2 + 1);
         }
 
         setup.manager->setAudioDeviceSetup(config, true);

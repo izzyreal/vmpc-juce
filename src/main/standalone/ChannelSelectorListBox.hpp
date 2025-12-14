@@ -20,7 +20,8 @@ namespace vmpc_juce::standalone
                                const AudioDeviceSetupDetails &setupDetails,
                                BoxType boxType,
                                int channelOffset,
-                               int maxChannelCount);
+                               int maxChannelCount,
+                               const std::vector<std::string> &&nameSuffixes = {});
 
         void refresh();
 
@@ -45,6 +46,7 @@ namespace vmpc_juce::standalone
         const bool useStereoPairs;
         int channelOffset;
         int maxChannelCount;
+        const std::vector<std::string> nameSuffixes;
 
         void flipEnablement(int row) const;
 
