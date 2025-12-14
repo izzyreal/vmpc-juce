@@ -2,7 +2,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "standalone/VmpcStandaloneDeviceSelectorComponent.hpp"
+#include "standalone/DeviceSelectorComponent.hpp"
 
 namespace vmpc_juce::standalone
 {
@@ -22,7 +22,7 @@ namespace vmpc_juce::standalone
         void setToRecommendedSize();
 
     private:
-        VmpcStandaloneDeviceSelectorComponent deviceSelector;
+        DeviceSelectorComponent deviceSelector;
         bool isResizing = false;
     };
 } // namespace vmpc_juce

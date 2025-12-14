@@ -5,18 +5,21 @@
 
 namespace vmpc_juce::standalone
 {
-    class VmpcStandaloneDeviceSelectorComponent final : public juce::Component,
-                                                  juce::ChangeListener
+    class MidiInputListBox;
+    class MidiOutputSelector;
+
+    class DeviceSelectorComponent final : public juce::Component,
+                                                        juce::ChangeListener
     {
     public:
-        VmpcStandaloneDeviceSelectorComponent(
+        DeviceSelectorComponent(
             juce::AudioDeviceManager &deviceManager, int minAudioInputChannels,
             int maxAudioInputChannels, int minAudioOutputChannels,
             int maxAudioOutputChannels, bool showMidiInputOptions,
             bool showMidiOutputSelector, bool showChannelsAsStereoPairs,
             bool hideAdvancedOptionsWithButton);
 
-        ~VmpcStandaloneDeviceSelectorComponent() override;
+        ~DeviceSelectorComponent() override;
 
         juce::AudioDeviceManager &deviceManager;
 
@@ -49,17 +52,14 @@ namespace vmpc_juce::standalone
         const bool showChannelsAsStereoPairs;
         const bool hideAdvancedOptionsWithButton;
 
-        class MidiInputSelectorComponentListBox;
-        class MidiOutputSelector;
-
         juce::Array<juce::MidiDeviceInfo> currentMidiOutputs;
-        std::unique_ptr<MidiInputSelectorComponentListBox> midiInputsList;
+        std::unique_ptr<MidiInputListBox> midiInputsList;
         std::unique_ptr<MidiOutputSelector> midiOutputSelector;
         std::unique_ptr<juce::Label> midiInputsLabel, midiOutputLabel;
         std::unique_ptr<juce::TextButton> bluetoothButton;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
-            VmpcStandaloneDeviceSelectorComponent)
+            DeviceSelectorComponent)
     };
 
-} // namespace vmpc_juce
+} // namespace vmpc_juce::standalone
