@@ -3,7 +3,7 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 
-namespace vmpc_juce
+namespace vmpc_juce::standalone
 {
     class VmpcStandalonePlayer final : public juce::AudioIODeviceCallback,
                                        public juce::MidiInputCallback
@@ -96,4 +96,4 @@ namespace vmpc_juce
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(VmpcStandalonePlayer)
     };
 
-} // namespace vmpc_juce
+} // namespace vmpc_juce::standalone

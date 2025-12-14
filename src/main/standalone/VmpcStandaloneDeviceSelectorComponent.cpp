@@ -1,8 +1,8 @@
-#include "VmpcStandaloneDeviceSelectorComponent.hpp"
+#include "standalone/VmpcStandaloneDeviceSelectorComponent.hpp"
 
 #include <juce_audio_utils/juce_audio_utils.h>
 
-namespace vmpc_juce
+namespace vmpc_juce::standalone
 {
     struct SimpleDeviceManagerInputLevelMeter final : juce::Component,
                                                       juce::Timer
@@ -203,7 +203,7 @@ namespace vmpc_juce
 
     static juce::String getNoDeviceString()
     {
-        return "<< " + TRANS("none") + " >>";
+        return "<< none >>";
     }
 
     class VmpcStandaloneDeviceSelectorComponent::MidiOutputSelector final
@@ -288,7 +288,7 @@ namespace vmpc_juce
             if (hideAdvancedOptionsWithButton)
             {
                 showAdvancedSettingsButton = std::make_unique<juce::TextButton>(
-                    TRANS("Show advanced settings..."));
+                    "Show advanced settings...");
                 addAndMakeVisible(showAdvancedSettingsButton.get());
                 showAdvancedSettingsButton->setClickingTogglesState(true);
                 showAdvancedSettingsButton->onClick = [this]
@@ -502,10 +502,9 @@ namespace vmpc_juce
                 messageBox = juce::AlertWindow::showScopedAsync(
                     juce::MessageBoxOptions()
                         .withIconType(juce::MessageBoxIconType::WarningIcon)
-                        .withTitle(
-                            TRANS("Error when trying to open audio device!"))
+                        .withTitle("Error when trying to open audio device!")
                         .withMessage(error)
-                        .withButton(TRANS("OK")),
+                        .withButton("OK"),
                     nullptr);
             }
         }
@@ -570,10 +569,10 @@ namespace vmpc_juce
                         outputChanList =
                             std::make_unique<ChannelSelectorListBox>(
                                 setup, ChannelSelectorListBox::audioOutputType,
-                                TRANS("(no audio output channels found)"));
+                                "(no audio output channels found)");
                         addAndMakeVisible(outputChanList.get());
                         outputChanLabel = std::make_unique<juce::Label>(
-                            juce::String{}, TRANS("Active output channels:"));
+                            juce::String{}, "Active output channels:");
                         outputChanLabel->setJustificationType(
                             juce::Justification::centredRight);
                         outputChanLabel->attachToComponent(outputChanList.get(),
@@ -599,10 +598,10 @@ namespace vmpc_juce
                         inputChanList =
                             std::make_unique<ChannelSelectorListBox>(
                                 setup, ChannelSelectorListBox::audioInputType,
-                                TRANS("(no audio input channels found)"));
+                                "(no audio input channels found)");
                         addAndMakeVisible(inputChanList.get());
                         inputChanLabel = std::make_unique<juce::Label>(
-                            juce::String{}, TRANS("Active input channels:"));
+                            juce::String{}, "Active input channels:");
                         inputChanLabel->setJustificationType(
                             juce::Justification::centredRight);
                         inputChanLabel->attachToComponent(inputChanList.get(),
@@ -751,8 +750,7 @@ namespace vmpc_juce
             if (currentDevice != nullptr && currentDevice->hasControlPanel())
             {
                 showUIButton = std::make_unique<juce::TextButton>(
-                    TRANS("Control Panel"),
-                    TRANS("Opens the device's own control panel"));
+                    "Control Panel", "Opens the device's own control panel");
                 addAndMakeVisible(showUIButton.get());
                 showUIButton->onClick = [this]
                 {
@@ -773,10 +771,10 @@ namespace vmpc_juce
                     if (resetDeviceButton == nullptr)
                     {
                         resetDeviceButton = std::make_unique<juce::TextButton>(
-                            TRANS("Reset Device"),
-                            TRANS("Resets the audio interface - sometimes "
-                                  "needed after changing a device's properties "
-                                  "in its custom control panel"));
+                            "Reset Device",
+                            "Resets the audio interface - sometimes "
+                            "needed after changing a device's properties "
+                            "in its custom control panel");
                         addAndMakeVisible(resetDeviceButton.get());
                         resetDeviceButton->onClick = [this]
                         {
@@ -809,15 +807,15 @@ namespace vmpc_juce
 
                     outputDeviceLabel = std::make_unique<juce::Label>(
                         juce::String{}, type.hasSeparateInputsAndOutputs()
-                                            ? TRANS("Output:")
-                                            : TRANS("Device:"));
+                                            ? "Output:"
+                                            : "Device:");
                     outputDeviceLabel->attachToComponent(
                         outputDeviceDropDown.get(), true);
 
                     if (setup.maxNumOutputChannels > 0)
                     {
                         testButton = std::make_unique<juce::TextButton>(
-                            TRANS("Test"), TRANS("Plays a test tone"));
+                            "Test", "Plays a test tone");
                         addAndMakeVisible(testButton.get());
                         testButton->onClick = [this]
                         {
@@ -846,8 +844,8 @@ namespace vmpc_juce
                     };
                     addAndMakeVisible(inputDeviceDropDown.get());
 
-                    inputDeviceLabel = std::make_unique<juce::Label>(
-                        juce::String{}, TRANS("Input:"));
+                    inputDeviceLabel =
+                        std::make_unique<juce::Label>(juce::String{}, "Input:");
                     inputDeviceLabel->attachToComponent(
                         inputDeviceDropDown.get(), true);
 
@@ -870,8 +868,8 @@ namespace vmpc_juce
                 sampleRateDropDown = std::make_unique<juce::ComboBox>();
                 addAndMakeVisible(sampleRateDropDown.get());
 
-                sampleRateLabel = std::make_unique<juce::Label>(
-                    juce::String{}, TRANS("Sample rate:"));
+                sampleRateLabel = std::make_unique<juce::Label>(juce::String{},
+                                                                "Sample rate:");
                 sampleRateLabel->attachToComponent(sampleRateDropDown.get(),
                                                    true);
             }
@@ -912,7 +910,7 @@ namespace vmpc_juce
                 addAndMakeVisible(bufferSizeDropDown.get());
 
                 bufferSizeLabel = std::make_unique<juce::Label>(
-                    juce::String{}, TRANS("Audio buffer size:"));
+                    juce::String{}, "Audio buffer size:");
                 bufferSizeLabel->attachToComponent(bufferSizeDropDown.get(),
                                                    true);
             }
@@ -1247,10 +1245,10 @@ namespace vmpc_juce
 
     VmpcStandaloneDeviceSelectorComponent::
         VmpcStandaloneDeviceSelectorComponent(
-            juce::AudioDeviceManager &deviceManagerToUse, const int minInputChannelsToUse,
-            const int maxInputChannelsToUse, const int minOutputChannelsToUse,
-            const int maxOutputChannelsToUse, const bool showMidiInputOptions,
-            const bool showMidiOutputSelector,
+            juce::AudioDeviceManager &deviceManagerToUse,
+            const int minInputChannelsToUse, const int maxInputChannelsToUse,
+            const int minOutputChannelsToUse, const int maxOutputChannelsToUse,
+            const bool showMidiInputOptions, const bool showMidiOutputSelector,
             const bool showChannelsAsStereoPairsToUse,
             const bool hideAdvancedOptionsWithButtonToUse)
         : deviceManager(deviceManagerToUse), itemHeight(24),
@@ -1285,7 +1283,7 @@ namespace vmpc_juce
             };
 
             deviceTypeDropDownLabel = std::make_unique<juce::Label>(
-                juce::String{}, TRANS("Audio device type:"));
+                juce::String{}, "Audio device type:");
             deviceTypeDropDownLabel->setJustificationType(
                 juce::Justification::centredRight);
             deviceTypeDropDownLabel->attachToComponent(deviceTypeDropDown.get(),
@@ -1296,12 +1294,11 @@ namespace vmpc_juce
         {
             midiInputsList =
                 std::make_unique<MidiInputSelectorComponentListBox>(
-                    deviceManager,
-                    "(" + TRANS("No MIDI inputs available") + ")");
+                    deviceManager, "(No MIDI inputs available)");
             addAndMakeVisible(midiInputsList.get());
 
             midiInputsLabel = std::make_unique<juce::Label>(
-                juce::String{}, TRANS("Active MIDI inputs:"));
+                juce::String{}, "Active MIDI inputs:");
             midiInputsLabel->setJustificationType(
                 juce::Justification::topRight);
             midiInputsLabel->attachToComponent(midiInputsList.get(), true);
@@ -1309,8 +1306,7 @@ namespace vmpc_juce
             if (juce::BluetoothMidiDevicePairingDialogue::isAvailable())
             {
                 bluetoothButton = std::make_unique<juce::TextButton>(
-                    TRANS("Bluetooth MIDI"),
-                    TRANS("Scan for bluetooth MIDI devices"));
+                    "Bluetooth MIDI", "Scan for bluetooth MIDI devices");
                 addAndMakeVisible(bluetoothButton.get());
                 bluetoothButton->onClick = [this]
                 {
@@ -1332,7 +1328,7 @@ namespace vmpc_juce
             addAndMakeVisible(midiOutputSelector.get());
 
             midiOutputLabel =
-                std::make_unique<juce::Label>("lm", TRANS("MIDI Output:"));
+                std::make_unique<juce::Label>("lm", "MIDI Output:");
             midiOutputLabel->attachToComponent(midiOutputSelector.get(), true);
         }
         else

@@ -1,8 +1,8 @@
-#include "VmpcStandalonePlayer.hpp"
+#include "standalone/VmpcStandalonePlayer.hpp"
 
 #include <cassert>
 
-using namespace vmpc_juce;
+using namespace vmpc_juce::standalone;
 
 static void initialiseIoBuffers(const juce::Span<const float *const> ins,
                                 const juce::Span<float *const> outs,

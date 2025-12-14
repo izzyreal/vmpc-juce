@@ -2,13 +2,13 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "gui/StandaloneAppWindow.hpp"
+#include "standalone/StandaloneAppWindow.hpp"
 
 extern juce::JUCEApplicationBase *juce_CreateApplication();
 
-namespace vmpc_juce
+namespace vmpc_juce::standalone
 {
-    class StandaloneApp : public juce::JUCEApplication
+    class StandaloneApp final : public juce::JUCEApplication
     {
     public:
         StandaloneApp();

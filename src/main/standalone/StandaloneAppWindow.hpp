@@ -1,17 +1,17 @@
 #pragma once
 
-#include "VmpcStandalonePlayer.hpp"
+#include "standalone/VmpcStandalonePlayer.hpp"
+#include "standalone/AudioMidiSettingsComponent.hpp"
+
 #include "VmpcProcessor.hpp"
-#include "AudioMidiSettingsComponent.hpp"
 
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 
 using namespace juce;
 
-namespace vmpc_juce
+namespace vmpc_juce::standalone
 {
-
-    class StandalonePluginHolder : private AudioIODeviceCallback,
+    class StandalonePluginHolder final : private AudioIODeviceCallback,
                                    private Timer,
                                    private Value::Listener,
                                    private juce::ComponentListener

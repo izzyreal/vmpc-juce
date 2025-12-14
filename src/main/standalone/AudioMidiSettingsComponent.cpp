@@ -1,6 +1,6 @@
-#include "AudioMidiSettingsComponent.hpp"
+#include "standalone/AudioMidiSettingsComponent.hpp"
 
-using namespace vmpc_juce;
+using namespace vmpc_juce::standalone;
 
 AudioMidiSettingsComponent::AudioMidiSettingsComponent(
     juce::AudioDeviceManager &deviceManagerToUse, int maxAudioInputChannels,

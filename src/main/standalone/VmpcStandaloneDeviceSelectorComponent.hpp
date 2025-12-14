@@ -3,7 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_devices/juce_audio_devices.h>
 
-namespace vmpc_juce
+namespace vmpc_juce::standalone
 {
     class VmpcStandaloneDeviceSelectorComponent final : public juce::Component,
                                                   juce::ChangeListener

@@ -4,7 +4,7 @@
 
 using namespace juce;
 
-namespace vmpc_juce
+namespace vmpc_juce::standalone
 {
     struct PropertiesFileOptions : public PropertiesFile::Options
     {

@@ -1,6 +1,6 @@
-#include "StandaloneApp.hpp"
+#include "standalone/StandaloneApp.hpp"
 
-#include "PropertiesFileOptions.hpp"
+#include "standalone/PropertiesFileOptions.hpp"
 
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 
@@ -11,11 +11,12 @@ void *juce_GetIOSCustomDelegateClass()
 }
 #endif
 
-using namespace vmpc_juce;
+using namespace vmpc_juce::standalone;
 
 StandaloneApp::StandaloneApp()
 {
-    appProperties.setStorageParameters(vmpc_juce::PropertiesFileOptions());
+    appProperties.setStorageParameters(
+        vmpc_juce::standalone::PropertiesFileOptions());
 }
 
 StandaloneAppWindow *StandaloneApp::createWindow()

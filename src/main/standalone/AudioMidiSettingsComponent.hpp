@@ -2,9 +2,9 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "VmpcStandaloneDeviceSelectorComponent.hpp"
+#include "standalone/VmpcStandaloneDeviceSelectorComponent.hpp"
 
-namespace vmpc_juce
+namespace vmpc_juce::standalone
 {
     class AudioMidiSettingsComponent final : public juce::Component
     {
