@@ -44,6 +44,8 @@
 #include <juce_core/system/juce_PlatformDefs.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "rtsan_standalone.h"
+
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 using namespace mpc::lcdgui::screens::window;
@@ -57,6 +59,8 @@ using namespace vmpc_juce;
 
 VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
 {
+    __rtsan::Initialize();
+
     midiOutputBuffer.resize(512);
 
     mpcMonoOutputChannelIndicesToRender.reserve(18);
@@ -216,7 +220,7 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
     if (juce::JUCEApplication::isStandaloneApp())
     {
         BusesProperties result;
-        result.addBus(false, "OUTPUT", C::discreteChannels(10));
+        result.addBus(true, "OUTPUT", C::discreteChannels(10));
         result.addBus(true, "RECORD", C::discreteChannels(2));
         return result;
     }
@@ -281,7 +285,21 @@ bool VmpcProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
 {
     if (juce::JUCEApplication::isStandaloneApp())
     {
-        return true;
+        const bool main = layouts.getMainInputChannelSet() == juce::AudioChannelSet::stereo() &&
+                layouts.getMainOutputChannelSet() == juce::AudioChannelSet::stereo();
+
+        const bool auxInput = layouts.getBuses(true).size() == 0;
+        const bool auxOutput = layouts.getBuses(false).size() == 9;
+        bool allOutputsAreMono = true;
+        for (int i = 1; i < 9; ++i)
+        {
+            if (layouts.getBuses(false)[i] != juce::AudioChannelSet::mono())
+            {
+                allOutputsAreMono = false;
+                break;
+            }
+        }
+        return main && auxInput && auxOutput && allOutputsAreMono;
     }
 
     if (!juce::JUCEApplication::isStandaloneApp())
@@ -574,6 +592,7 @@ static void propagateTransportInfo(mpc::sequencer::Clock &clock,
 void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
                                  juce::MidiBuffer &midiMessages)
 {
+    // __rtsan::ScopedSanitizeRealtime ssr;
     juce::ScopedNoDenormals noDenormals;
 
     const int totalNumInputChannels = getTotalNumInputChannels();
@@ -921,6 +940,7 @@ void VmpcProcessor::logActualBusLayout()
 
 void VmpcProcessor::computeHostToMpcChannelMappings()
 {
+    return;
     mpcMonoInputChannelIndices.clear();
     mpcMonoOutputChannelIndices.clear();
     hostInputChannelIndices.clear();
@@ -929,7 +949,7 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
 
     if (juce::JUCEApplication::isStandaloneApp())
     {
-        assert(getBusCount(false) == 1);
+        // assert(getBusCount(false) == 1);
 
         for (int i = 0; i < getBus(false, 0)->getNumberOfChannels(); i++)
         {

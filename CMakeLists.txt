@@ -227,6 +227,18 @@ if (IOS)
   target_link_libraries(vmpc2000xl PRIVATE miniz)
 endif()
 
+set(RTSAN_LIB "/Users/izmar/Downloads/libclang_rt.rtsan_osx_dynamic.dylib")
+
+target_link_libraries(vmpc2000xl PRIVATE
+        ${RTSAN_LIB}
+)
+
+target_compile_definitions(vmpc2000xl PRIVATE __SANITIZE_REALTIME)
+
+target_link_options(vmpc2000xl_Standalone PRIVATE
+        "-Wl,-rpath,$ENV{HOME}/Downloads"
+)
+
 target_link_libraries(vmpc2000xl
   PRIVATE
     juce::juce_audio_utils
@@ -234,7 +246,7 @@ target_link_libraries(vmpc2000xl
     melatonin_blur
     raw_keyboard_input
     mpc
-  PUBLIC
+ PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags)
