@@ -11,9 +11,9 @@
 namespace vmpc_juce::standalone
 {
     DeviceSelectorComponent::DeviceSelectorComponent(
-        AudioDeviceManager &deviceManagerToUse,
-        const int minInputChannelsToUse, const int maxInputChannelsToUse,
-        const int minOutputChannelsToUse, const int maxOutputChannelsToUse)
+        AudioDeviceManager &deviceManagerToUse, const int minInputChannelsToUse,
+        const int maxInputChannelsToUse, const int minOutputChannelsToUse,
+        const int maxOutputChannelsToUse)
         : deviceManager(deviceManagerToUse), itemHeight(24),
           minOutputChannels(minOutputChannelsToUse),
           maxOutputChannels(maxOutputChannelsToUse),
@@ -99,6 +99,8 @@ namespace vmpc_juce::standalone
                           3000);
         const auto space = itemHeight / 4;
 
+        constexpr int maxListBoxHeight = 100;
+
         if (deviceTypeDropDown != nullptr)
         {
             deviceTypeDropDown->setBounds(r.removeFromTop(itemHeight));
@@ -118,10 +120,8 @@ namespace vmpc_juce::standalone
         if (midiInputsList != nullptr)
         {
             midiInputsList->setRowHeight(juce::jmin(22, itemHeight));
-            midiInputsList->setBounds(
-                r.removeFromTop(midiInputsList->getBestHeight(
-                    juce::jmin(itemHeight * 8,
-                               getHeight() - r.getY() - space - itemHeight))));
+            midiInputsList->setBounds(r.removeFromTop(
+                midiInputsList->getBestHeight(maxListBoxHeight)));
             r.removeFromTop(space);
         }
 
