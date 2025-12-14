@@ -200,7 +200,18 @@ void VmpcStandalonePlayer::setMidiOutput(juce::MidiOutput *midiOutputToUse)
     if (midiOutput != midiOutputToUse)
     {
         const juce::ScopedLock sl(lock);
+
+        if (midiOutput != nullptr)
+        {
+            midiOutput->stopBackgroundThread();
+        }
+
         midiOutput = midiOutputToUse;
+
+        if (midiOutput != nullptr)
+        {
+            midiOutput->startBackgroundThread();
+        }
     }
 }
 
