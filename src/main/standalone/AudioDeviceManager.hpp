@@ -90,7 +90,7 @@ namespace vmpc_juce::standalone
                                         juce::MidiInputCallback *callback);
 
         void removeMidiInputDeviceCallback(const juce::String &deviceIdentifier,
-                                           juce::MidiInputCallback *callback);
+                                      const juce::MidiInputCallback *callback);
 
         void setDefaultMidiOutputDevice(const juce::String &deviceIdentifier);
 
@@ -107,17 +107,18 @@ namespace vmpc_juce::standalone
         const juce::OwnedArray<juce::AudioIODeviceType> &
         getAvailableDeviceTypes();
 
-        virtual void createAudioDeviceTypes(
+        void createAudioDeviceTypes(
             juce::OwnedArray<juce::AudioIODeviceType> &types);
 
         void addAudioDeviceType(
             std::unique_ptr<juce::AudioIODeviceType> newDeviceType);
 
-        void removeAudioDeviceType(juce::AudioIODeviceType *deviceTypeToRemove);
+        void removeAudioDeviceType(
+            const juce::AudioIODeviceType *deviceTypeToRemove);
 
         void playTestSound();
 
-        struct LevelMeter : public juce::ReferenceCountedObject
+        struct LevelMeter final : juce::ReferenceCountedObject
         {
             LevelMeter() noexcept;
             double getCurrentLevel() const noexcept;
@@ -204,15 +205,12 @@ namespace vmpc_juce::standalone
             int numSamples, const juce::AudioIODeviceCallbackContext &context);
         void audioDeviceAboutToStartInt(juce::AudioIODevice *);
         void audioDeviceStoppedInt();
-        void audioDeviceErrorInt(const juce::String &);
+        void audioDeviceErrorInt(const juce::String &) const;
         void handleIncomingMidiMessageInt(juce::MidiInput *,
                                           const juce::MidiMessage &);
         void audioDeviceListChanged();
         void midiDeviceListChanged();
 
-        juce::String restartDevice(int blockSizeToUse, double sampleRateToUse,
-                                   const juce::BigInteger &ins,
-                                   const juce::BigInteger &outs);
         void stopDevice();
 
         void updateXml();
