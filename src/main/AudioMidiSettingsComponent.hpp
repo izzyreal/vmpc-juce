@@ -1,11 +1,12 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
-#include <juce_audio_utils/juce_audio_utils.h>
+
+#include "VmpcStandaloneDeviceSelectorComponent.hpp"
 
 namespace vmpc_juce
 {
-    class AudioMidiSettingsComponent : public juce::Component
+    class AudioMidiSettingsComponent final : public juce::Component
     {
     public:
         AudioMidiSettingsComponent(juce::AudioDeviceManager &deviceManagerToUse,
@@ -21,7 +22,7 @@ namespace vmpc_juce
         void setToRecommendedSize();
 
     private:
-        juce::AudioDeviceSelectorComponent deviceSelector;
+        VmpcStandaloneDeviceSelectorComponent deviceSelector;
         bool isResizing = false;
     };
 } // namespace vmpc_juce
