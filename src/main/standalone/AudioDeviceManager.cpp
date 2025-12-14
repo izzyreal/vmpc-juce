@@ -935,16 +935,6 @@ AudioDeviceManager::setAudioDeviceSetup(const AudioDeviceSetup &newSetup,
 
     currentSetup = newSetup;
 
-    if (!currentSetup.useDefaultInputChannels)
-    {
-        numInputChansNeeded = currentSetup.inputChannels.countNumberOfSetBits();
-    }
-    if (!currentSetup.useDefaultOutputChannels)
-    {
-        numOutputChansNeeded =
-            currentSetup.outputChannels.countNumberOfSetBits();
-    }
-
     updateSetupChannels(currentSetup, numInputChansNeeded,
                         numOutputChansNeeded);
 
