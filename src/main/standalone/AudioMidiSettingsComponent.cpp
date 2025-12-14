@@ -3,10 +3,10 @@
 using namespace vmpc_juce::standalone;
 
 AudioMidiSettingsComponent::AudioMidiSettingsComponent(
-    juce::AudioDeviceManager &deviceManagerToUse, int maxAudioInputChannels,
-    int maxAudioOutputChannels)
+    juce::AudioDeviceManager &deviceManagerToUse,
+    const int maxAudioInputChannels, const int maxAudioOutputChannels)
     : deviceSelector(deviceManagerToUse, 0, maxAudioInputChannels, 0,
-                     maxAudioOutputChannels, true, true, true, false)
+                     maxAudioOutputChannels)
 {
     setOpaque(true);
     addAndMakeVisible(deviceSelector);
@@ -20,9 +20,9 @@ void AudioMidiSettingsComponent::paint(juce::Graphics &g)
 
 void AudioMidiSettingsComponent::resized()
 {
-    const juce::ScopedValueSetter<bool> scope(isResizing, true);
+    const juce::ScopedValueSetter scope(isResizing, true);
 
-    auto r = getLocalBounds();
+    const auto r = getLocalBounds();
 
     deviceSelector.setBounds(r);
 }

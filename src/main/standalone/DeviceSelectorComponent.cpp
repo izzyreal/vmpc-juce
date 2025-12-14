@@ -9,21 +9,15 @@
 
 namespace vmpc_juce::standalone
 {
-    DeviceSelectorComponent::
-        DeviceSelectorComponent(
-            juce::AudioDeviceManager &deviceManagerToUse,
-            const int minInputChannelsToUse, const int maxInputChannelsToUse,
-            const int minOutputChannelsToUse, const int maxOutputChannelsToUse,
-            const bool showMidiInputOptions, const bool showMidiOutputSelector,
-            const bool showChannelsAsStereoPairsToUse,
-            const bool hideAdvancedOptionsWithButtonToUse)
+    DeviceSelectorComponent::DeviceSelectorComponent(
+        juce::AudioDeviceManager &deviceManagerToUse,
+        const int minInputChannelsToUse, const int maxInputChannelsToUse,
+        const int minOutputChannelsToUse, const int maxOutputChannelsToUse)
         : deviceManager(deviceManagerToUse), itemHeight(24),
           minOutputChannels(minOutputChannelsToUse),
           maxOutputChannels(maxOutputChannelsToUse),
           minInputChannels(minInputChannelsToUse),
-          maxInputChannels(maxInputChannelsToUse),
-          showChannelsAsStereoPairs(showChannelsAsStereoPairsToUse),
-          hideAdvancedOptionsWithButton(hideAdvancedOptionsWithButtonToUse)
+          maxInputChannels(maxInputChannelsToUse)
     {
         jassert(minOutputChannels >= 0 &&
                 minOutputChannels <= maxOutputChannels);
@@ -56,65 +50,43 @@ namespace vmpc_juce::standalone
                                                        true);
         }
 
-        if (showMidiInputOptions)
+        midiInputsList = std::make_unique<MidiInputListBox>(
+            deviceManager, "(No MIDI inputs available)");
+        addAndMakeVisible(midiInputsList.get());
+
+        midiInputsLabel = std::make_unique<juce::Label>(juce::String{},
+                                                        "Active MIDI inputs:");
+        midiInputsLabel->setJustificationType(juce::Justification::topRight);
+        midiInputsLabel->attachToComponent(midiInputsList.get(), true);
+
+        if (juce::BluetoothMidiDevicePairingDialogue::isAvailable())
         {
-            midiInputsList =
-                std::make_unique<MidiInputListBox>(
-                    deviceManager, "(No MIDI inputs available)");
-            addAndMakeVisible(midiInputsList.get());
-
-            midiInputsLabel = std::make_unique<juce::Label>(
-                juce::String{}, "Active MIDI inputs:");
-            midiInputsLabel->setJustificationType(
-                juce::Justification::topRight);
-            midiInputsLabel->attachToComponent(midiInputsList.get(), true);
-
-            if (juce::BluetoothMidiDevicePairingDialogue::isAvailable())
+            bluetoothButton = std::make_unique<juce::TextButton>(
+                "Bluetooth MIDI", "Scan for bluetooth MIDI devices");
+            addAndMakeVisible(bluetoothButton.get());
+            bluetoothButton->onClick = [this]
             {
-                bluetoothButton = std::make_unique<juce::TextButton>(
-                    "Bluetooth MIDI", "Scan for bluetooth MIDI devices");
-                addAndMakeVisible(bluetoothButton.get());
-                bluetoothButton->onClick = [this]
-                {
-                    handleBluetoothButton();
-                };
-            }
-        }
-        else
-        {
-            midiInputsList.reset();
-            midiInputsLabel.reset();
-            bluetoothButton.reset();
+                handleBluetoothButton();
+            };
         }
 
-        if (showMidiOutputSelector)
-        {
-            midiOutputSelector =
-                std::make_unique<MidiOutputSelector>(deviceManager);
-            addAndMakeVisible(midiOutputSelector.get());
+        midiOutputSelector =
+            std::make_unique<MidiOutputSelector>(deviceManager);
+        addAndMakeVisible(midiOutputSelector.get());
 
-            midiOutputLabel =
-                std::make_unique<juce::Label>("lm", "MIDI Output:");
-            midiOutputLabel->attachToComponent(midiOutputSelector.get(), true);
-        }
-        else
-        {
-            midiOutputSelector.reset();
-            midiOutputLabel.reset();
-        }
+        midiOutputLabel = std::make_unique<juce::Label>("lm", "MIDI Output:");
+        midiOutputLabel->attachToComponent(midiOutputSelector.get(), true);
 
         deviceManager.addChangeListener(this);
         updateAllControls();
     }
 
-    DeviceSelectorComponent::
-        ~DeviceSelectorComponent()
+    DeviceSelectorComponent::~DeviceSelectorComponent()
     {
         deviceManager.removeChangeListener(this);
     }
 
-    void DeviceSelectorComponent::setItemHeight(
-        const int newItemHeight)
+    void DeviceSelectorComponent::setItemHeight(const int newItemHeight)
     {
         itemHeight = newItemHeight;
         resized();
@@ -167,8 +139,7 @@ namespace vmpc_juce::standalone
         setSize(getWidth(), r.getY());
     }
 
-    void
-    DeviceSelectorComponent::childBoundsChanged(Component *child)
+    void DeviceSelectorComponent::childBoundsChanged(Component *child)
     {
         if (child == audioDeviceSettingsComp.get())
         {
@@ -188,8 +159,8 @@ namespace vmpc_juce::standalone
         }
     }
 
-    void DeviceSelectorComponent::changeListenerCallback(
-        juce::ChangeBroadcaster *)
+    void
+    DeviceSelectorComponent::changeListenerCallback(juce::ChangeBroadcaster *)
     {
         updateAllControls();
     }
@@ -223,11 +194,11 @@ namespace vmpc_juce::standalone
                 details.maxNumInputChannels = maxInputChannels;
                 details.minNumOutputChannels = minOutputChannels;
                 details.maxNumOutputChannels = maxOutputChannels;
-                details.useStereoPairs = showChannelsAsStereoPairs;
+                details.useStereoPairs = true;
 
                 audioDeviceSettingsComp =
-                    std::make_unique<AudioDeviceSettingsPanel>(
-                        *type, details, hideAdvancedOptionsWithButton, *this);
+                    std::make_unique<AudioDeviceSettingsPanel>(*type, details,
+                                                               *this);
                 addAndMakeVisible(audioDeviceSettingsComp.get());
             }
         }
@@ -265,10 +236,9 @@ namespace vmpc_juce::standalone
     }
 
     juce::ListBox *
-    DeviceSelectorComponent::getMidiInputSelectorListBox()
-        const noexcept
+    DeviceSelectorComponent::getMidiInputSelectorListBox() const noexcept
     {
         return midiInputsList.get();
     }
 
-} // namespace vmpc_juce
+} // namespace vmpc_juce::standalone

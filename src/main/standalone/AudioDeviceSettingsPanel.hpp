@@ -17,7 +17,6 @@ namespace vmpc_juce::standalone
     public:
         AudioDeviceSettingsPanel(juce::AudioIODeviceType &t,
                                  const AudioDeviceSetupDetails &setupDetails,
-                                 bool hideAdvancedOptionsWithButton,
                                  DeviceSelectorComponent &p);
 
         ~AudioDeviceSettingsPanel() override;
@@ -28,8 +27,6 @@ namespace vmpc_juce::standalone
                           bool updateSampleRate, bool updateBufferSize);
 
         bool showDeviceControlPanel() const;
-
-        void toggleAdvancedSettings();
 
         void showDeviceUIPanel() const;
 
@@ -52,8 +49,7 @@ namespace vmpc_juce::standalone
             sampleRateLabel, bufferSizeLabel, inputChanLabel, outputChanLabel;
         std::unique_ptr<juce::TextButton> testButton;
         std::unique_ptr<Component> inputLevelMeter;
-        std::unique_ptr<juce::TextButton> showUIButton,
-            showAdvancedSettingsButton, resetDeviceButton;
+        std::unique_ptr<juce::TextButton> showUIButton, resetDeviceButton;
 
         int findSelectedDeviceIndex(bool isInput) const;
         void updateSelectedInput() const;

@@ -15,9 +15,7 @@ namespace vmpc_juce::standalone
         DeviceSelectorComponent(
             juce::AudioDeviceManager &deviceManager, int minAudioInputChannels,
             int maxAudioInputChannels, int minAudioOutputChannels,
-            int maxAudioOutputChannels, bool showMidiInputOptions,
-            bool showMidiOutputSelector, bool showChannelsAsStereoPairs,
-            bool hideAdvancedOptionsWithButton);
+            int maxAudioOutputChannels);
 
         ~DeviceSelectorComponent() override;
 
@@ -49,8 +47,6 @@ namespace vmpc_juce::standalone
         int itemHeight = 0;
         const int minOutputChannels, maxOutputChannels, minInputChannels,
             maxInputChannels;
-        const bool showChannelsAsStereoPairs;
-        const bool hideAdvancedOptionsWithButton;
 
         juce::Array<juce::MidiDeviceInfo> currentMidiOutputs;
         std::unique_ptr<MidiInputListBox> midiInputsList;

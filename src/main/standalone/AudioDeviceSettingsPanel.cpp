@@ -11,21 +11,9 @@ using namespace vmpc_juce::standalone;
 
 AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
     juce::AudioIODeviceType &t, const AudioDeviceSetupDetails &setupDetails,
-    const bool hideAdvancedOptionsWithButton, DeviceSelectorComponent &p)
+    DeviceSelectorComponent &p)
     : type(t), setup(setupDetails), parent(p)
 {
-    if (hideAdvancedOptionsWithButton)
-    {
-        showAdvancedSettingsButton =
-            std::make_unique<juce::TextButton>("Show advanced settings...");
-        addAndMakeVisible(showAdvancedSettingsButton.get());
-        showAdvancedSettingsButton->setClickingTogglesState(true);
-        showAdvancedSettingsButton->onClick = [this]
-        {
-            toggleAdvancedSettings();
-        };
-    }
-
     type.scanForDevices();
 
     setup.manager->addChangeListener(this);
@@ -96,38 +84,19 @@ void AudioDeviceSettingsPanel::resized()
 
     r.removeFromTop(space * 2);
 
-    if (showAdvancedSettingsButton != nullptr &&
-        sampleRateDropDown != nullptr && bufferSizeDropDown != nullptr)
-    {
-        showAdvancedSettingsButton->setBounds(r.removeFromTop(h));
-        r.removeFromTop(space);
-        showAdvancedSettingsButton->changeWidthToFitText();
-    }
-
-    const auto advancedSettingsVisible =
-        showAdvancedSettingsButton == nullptr ||
-        showAdvancedSettingsButton->getToggleState();
-
     if (sampleRateDropDown != nullptr)
     {
-        sampleRateDropDown->setVisible(advancedSettingsVisible);
-
-        if (advancedSettingsVisible)
-        {
-            sampleRateDropDown->setBounds(r.removeFromTop(h));
-            r.removeFromTop(space);
-        }
+        sampleRateDropDown->setVisible(true);
+        sampleRateDropDown->setBounds(r.removeFromTop(h));
+        r.removeFromTop(space);
     }
 
     if (bufferSizeDropDown != nullptr)
     {
-        bufferSizeDropDown->setVisible(advancedSettingsVisible);
+        bufferSizeDropDown->setVisible(true);
 
-        if (advancedSettingsVisible)
-        {
-            bufferSizeDropDown->setBounds(r.removeFromTop(h));
-            r.removeFromTop(space);
-        }
+        bufferSizeDropDown->setBounds(r.removeFromTop(h));
+        r.removeFromTop(space);
     }
 
     r.removeFromTop(space);
@@ -138,7 +107,7 @@ void AudioDeviceSettingsPanel::resized()
 
         if (showUIButton != nullptr)
         {
-            showUIButton->setVisible(advancedSettingsVisible);
+            showUIButton->setVisible(true);
             showUIButton->changeWidthToFitText(h);
             showUIButton->setBounds(
                 buttons.removeFromLeft(showUIButton->getWidth()));
@@ -147,7 +116,7 @@ void AudioDeviceSettingsPanel::resized()
 
         if (resetDeviceButton != nullptr)
         {
-            resetDeviceButton->setVisible(advancedSettingsVisible);
+            resetDeviceButton->setVisible(true);
             resetDeviceButton->changeWidthToFitText(h);
             resetDeviceButton->setBounds(
                 buttons.removeFromLeft(resetDeviceButton->getWidth()));
@@ -246,14 +215,6 @@ bool AudioDeviceSettingsPanel::showDeviceControlPanel() const
     }
 
     return false;
-}
-
-void AudioDeviceSettingsPanel::toggleAdvancedSettings()
-{
-    showAdvancedSettingsButton->setButtonText(
-        (showAdvancedSettingsButton->getToggleState() ? "Hide " : "Show ") +
-        juce::String("advanced settings..."));
-    resized();
 }
 
 void AudioDeviceSettingsPanel::showDeviceUIPanel() const
