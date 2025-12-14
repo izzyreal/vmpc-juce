@@ -71,7 +71,7 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
         addAndMakeVisible(stereoOutList.get());
 
         stereoOutLabel = std::make_unique<juce::Label>(
-            juce::String{}, "MPC2000XL STEREO OUT L/R");
+            juce::String{}, "STEREO OUT L/R");
 
         stereoOutLabel->setJustificationType(juce::Justification::centred);
 
@@ -85,7 +85,7 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
         addAndMakeVisible(assignableMixOutList.get());
 
         assignableMixOutLabel = std::make_unique<juce::Label>(
-            juce::String{}, "MPC2000XL ASSIGNABLE MIX OUT");
+            juce::String{}, "ASSIGNABLE MIX OUT");
 
         assignableMixOutLabel->setJustificationType(
             juce::Justification::centred);
@@ -94,12 +94,12 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
     }
 
     {
-        recordInList = std::make_unique<ChannelSelectorListBox>(
-            true, setup, ChannelSelectorListBox::audioInputType, 0, 2);
-        addAndMakeVisible(recordInList.get());
+        recordInDropDown = std::make_unique<juce::ComboBox>();
+
+        addAndMakeVisible(recordInDropDown.get());
         recordInLabel = std::make_unique<juce::Label>(
-            juce::String{}, "MPC2000XL RECORD IN L/R");
-        recordInLabel->setJustificationType(juce::Justification::centred);
+            juce::String{}, "RECORD IN L/R");
+        recordInLabel->setJustificationType(juce::Justification::centredLeft);
 
         addAndMakeVisible(recordInLabel.get());
     }
@@ -196,18 +196,8 @@ void AudioDeviceSettingsPanel::resized()
     }
 
     {
-        recordInList->setRowHeight(juce::jmin(22, h));
-
-        const auto listHeight = recordInList->getBestHeight(maxListBoxHeight);
-
-        const auto labelArea = r.removeFromTop(h);
-        const auto listArea = r.removeFromTop(listHeight);
-
-        recordInLabel->setBounds(listArea.getX(), labelArea.getY(),
-                                 listArea.getWidth(), h);
-
-        recordInList->setBounds(listArea);
-
+        recordInDropDown->setVisible(true);
+        recordInDropDown->setBounds(r.removeFromTop(h));
         r.removeFromTop(space);
     }
 
@@ -265,6 +255,9 @@ void AudioDeviceSettingsPanel::resized()
                                labelAreaWidth, sampleRateDropDown->getHeight());
     bufferSizeLabel->setBounds(labelAreaLeftMargin, bufferSizeDropDown->getY(),
                                labelAreaWidth, bufferSizeDropDown->getHeight());
+
+    recordInLabel->setBounds(labelAreaLeftMargin, recordInDropDown->getY(),
+                             labelAreaWidth, recordInDropDown->getHeight());
 
     setSize(getWidth(), r.getY());
 }
@@ -379,8 +372,8 @@ void AudioDeviceSettingsPanel::updateAllControls()
 
     stereoOutList->refresh();
     assignableMixOutList->refresh();
-    recordInList->refresh();
 
+    updateRecordInComboBox(currentDevice);
     updateSampleRateComboBox(currentDevice);
     updateBufferSizeComboBox(currentDevice);
 
@@ -559,6 +552,68 @@ void AudioDeviceSettingsPanel::updateSampleRateComboBox(
     sampleRateDropDown->onChange = [this]
     {
         updateConfig(false, false, true, false);
+    };
+}
+
+void AudioDeviceSettingsPanel::updateRecordInComboBox(
+    juce::AudioIODevice *currentDevice) const
+{
+    recordInDropDown->clear();
+    recordInDropDown->onChange = nullptr;
+
+    if (!currentDevice)
+    {
+        return;
+    }
+
+    const auto chNames = currentDevice->getInputChannelNames();
+
+    juce::StringArray pairs;
+
+    for (int i = 0; i < chNames.size(); i += 2)
+    {
+        auto &name = chNames[i];
+
+        if (i + 1 >= chNames.size())
+        {
+            pairs.add(name.trim());
+        }
+        else
+        {
+            pairs.add(Utils::getNameForChannelPair(name, chNames[i + 1]));
+        }
+    }
+
+    for (auto chName : pairs)
+    {
+        recordInDropDown->addItem(chName, chName.hashCode());
+    }
+
+    const auto selectedInputChannels = currentDevice->getActiveInputChannels();
+
+    for (int i = 0; i < chNames.size(); ++i)
+    {
+        if (selectedInputChannels[i])
+        {
+            recordInDropDown->setText(pairs[i/2],
+                          juce::dontSendNotification);
+            break;
+        }
+    }
+
+    recordInDropDown->onChange = [this, inputChCount = chNames.size()]
+    {
+        auto config = setup.manager->getAudioDeviceSetup();
+        config.useDefaultInputChannels = false;
+        config.inputChannels.clear();
+        config.inputChannels.setBit(recordInDropDown->getSelectedItemIndex() * 2);
+
+        if (recordInDropDown->getSelectedItemIndex() * 2 + 1 < inputChCount)
+        {
+            config.inputChannels.setBit(recordInDropDown->getSelectedItemIndex() * 2 + 1);
+        }
+
+        setup.manager->setAudioDeviceSetup(config, true);
     };
 }
 

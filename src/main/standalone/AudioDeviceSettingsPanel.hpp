@@ -44,7 +44,9 @@ namespace vmpc_juce::standalone
         DeviceSelectorComponent &parent;
 
         std::unique_ptr<juce::ComboBox> outputDeviceDropDown,
-            inputDeviceDropDown, sampleRateDropDown, bufferSizeDropDown;
+            inputDeviceDropDown, sampleRateDropDown, bufferSizeDropDown,
+            recordInDropDown;
+
         std::unique_ptr<juce::Label> outputDeviceLabel, inputDeviceLabel,
             sampleRateLabel, bufferSizeLabel, recordInLabel, stereoOutLabel,
             assignableMixOutLabel;
@@ -72,12 +74,15 @@ namespace vmpc_juce::standalone
 
         void updateInputsComboBox() const;
 
+        void updateRecordInComboBox(juce::AudioIODevice *currentDevice) const;
+
         void updateSampleRateComboBox(juce::AudioIODevice *currentDevice);
 
         void updateBufferSizeComboBox(juce::AudioIODevice *currentDevice);
 
-        std::unique_ptr<ChannelSelectorListBox> recordInList, stereoOutList,
+        std::unique_ptr<ChannelSelectorListBox> stereoOutList,
             assignableMixOutList;
+
         juce::ScopedMessageBox messageBox;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioDeviceSettingsPanel)

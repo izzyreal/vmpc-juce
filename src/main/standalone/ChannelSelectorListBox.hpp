@@ -46,9 +46,6 @@ namespace vmpc_juce::standalone
         int channelOffset;
         int maxChannelCount;
 
-        static juce::String getNameForChannelPair(const juce::String &name1,
-                                                  const juce::String &name2);
-
         void flipEnablement(int row) const;
 
         static void flipBit(juce::BigInteger &chans, int index, int minNumber,

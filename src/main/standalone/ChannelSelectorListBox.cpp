@@ -52,7 +52,7 @@ void ChannelSelectorListBox::refresh()
                 }
                 else
                 {
-                    pairs.add(getNameForChannelPair(name, items[i + 1]));
+                    pairs.add(Utils::getNameForChannelPair(name, items[i + 1]));
                 }
             }
 
@@ -148,31 +148,6 @@ int ChannelSelectorListBox::getBestHeight(const int maxHeight)
            getOutlineThickness() * 2;
 }
 
-juce::String
-ChannelSelectorListBox::getNameForChannelPair(const juce::String &name1,
-                                              const juce::String &name2)
-{
-    juce::String commonBit;
-
-    for (int j = 0; j < name1.length(); ++j)
-    {
-        if (name1.substring(0, j).equalsIgnoreCase(name2.substring(0, j)))
-        {
-            commonBit = name1.substring(0, j);
-        }
-    }
-
-    // Make sure we only split the name at a space, because
-    // otherwise, things like "input 11" + "input 12" would become
-    // "input 11 + 2"
-    while (commonBit.isNotEmpty() && !juce::CharacterFunctions::isWhitespace(
-                                         commonBit.getLastCharacter()))
-    {
-        commonBit = commonBit.dropLastCharacters(1);
-    }
-
-    return name1.trim() + " + " + name2.substring(commonBit.length()).trim();
-}
 
 void ChannelSelectorListBox::flipEnablement(const int row) const
 {
