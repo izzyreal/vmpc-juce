@@ -605,7 +605,7 @@ namespace vmpc_juce::standalone
 #else
             updateContent();
 
-            const auto windowScreenBounds = [this]() -> Rectangle<int>
+            const auto windowScreenBounds = [this]() -> juce::Rectangle<int>
             {
                 const auto width = getWidth();
                 const auto height = getHeight();
@@ -827,7 +827,7 @@ namespace vmpc_juce::standalone
                 }
             }
 
-            Rectangle<int> getSizeToContainEditor() const
+            juce::Rectangle<int> getSizeToContainEditor() const
             {
                 if (editor != nullptr)
                 {
@@ -846,9 +846,9 @@ namespace vmpc_juce::standalone
 
         struct DecoratorConstrainer final : ComponentBoundsConstrainer
         {
-            void checkBounds(Rectangle<int> &bounds,
-                             const Rectangle<int> &previousBounds,
-                             const Rectangle<int> &limits,
+            void checkBounds(juce::Rectangle<int> &bounds,
+                             const juce::Rectangle<int> &previousBounds,
+                             const juce::Rectangle<int> &limits,
                              const bool isStretchingTop,
                              const bool isStretchingLeft,
                              const bool isStretchingBottom,
