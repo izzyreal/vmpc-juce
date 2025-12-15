@@ -74,7 +74,7 @@ namespace vmpc_juce::standalone
 
         midiInputsLabel =
             std::make_unique<juce::Label>(juce::String{}, "Active MIDI Inputs");
-        midiInputsLabel->setJustificationType(juce::Justification::topLeft);
+        midiInputsLabel->setJustificationType(juce::Justification::centredLeft);
         midiInputsLabel->attachToComponent(midiInputsList.get(), true);
         midiInputsLabel->setLookAndFeel(lookAndFeel.get());
 

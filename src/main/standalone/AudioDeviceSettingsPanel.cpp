@@ -96,7 +96,7 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
         assignableMixOutLabel->setJustificationType(
             juce::Justification::centredLeft);
 
-        addAndMakeVisible(assignableMixOutLabel.get());
+        assignableMixOutLabel->attachToComponent(assignableMixOutList.get(), true);
     }
 
     {
@@ -254,8 +254,8 @@ void AudioDeviceSettingsPanel::resized()
     stereoOutLabel->setBounds(labelAreaLeftMargin, stereoOutList->getY(),
                               labelAreaWidth, h);
 
-    assignableMixOutLabel->setBounds(
-        labelAreaLeftMargin, assignableMixOutList->getY(), labelAreaWidth, h);
+    assignableMixOutLabel->setBounds(labelAreaLeftMargin, assignableMixOutList->getY(),
+                              labelAreaWidth, assignableMixOutList->getHeight());
 
     sampleRateLabel->setBounds(labelAreaLeftMargin, sampleRateDropDown->getY(),
                                labelAreaWidth, sampleRateDropDown->getHeight());
