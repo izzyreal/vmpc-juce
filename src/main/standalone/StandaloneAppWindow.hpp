@@ -220,8 +220,12 @@ namespace vmpc_juce::standalone
 
             auto content = std::make_unique<AudioMidiSettingsComponent>(
                 deviceManager, maxNumInputs, maxNumOutputs);
-            content->setSize(480, 460);
+
+            content->setSize(480, 100);
             content->setToRecommendedSize();
+
+            const auto contentW = content->getWidth();
+            const auto contentH = content->getHeight();
 
             o.content.setOwned(content.release());
             o.dialogTitle = "Audio/MIDI Settings";
@@ -229,7 +233,6 @@ namespace vmpc_juce::standalone
                 ResizableWindow::backgroundColourId);
             o.escapeKeyTriggersCloseButton = true;
             o.resizable = false;
-            o.useBottomRightCornerResizer = false;
 
 #if JUCE_IOS
             o.useNativeTitleBar = false;
@@ -238,6 +241,7 @@ namespace vmpc_juce::standalone
             const auto window = o.launchAsync();
             window->setComponentID("AudioMidiSettingsWindow");
             window->addComponentListener(this);
+            window->setSize(contentW, contentH);
         }
 
         void saveAudioDeviceState() const

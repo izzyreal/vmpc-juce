@@ -118,7 +118,7 @@ namespace vmpc_juce::standalone
 
     void DeviceSelectorComponent::resized()
     {
-        juce::Rectangle r(proportionOfWidth(0.35f), 15, proportionOfWidth(0.6f),
+        juce::Rectangle r(proportionOfWidth(0.35f), 22, proportionOfWidth(0.6f),
                           3000);
         const auto space = itemHeight / 4;
 

@@ -149,7 +149,7 @@ void AudioDeviceSettingsPanel::resized()
     const int space = h / 4;
 
     {
-        auto row = r.removeFromTop(h + 5);
+        auto row = r.removeFromTop(h);
 
         testButton->changeWidthToFitText(h);
         testButton->setBounds(row.removeFromRight(testButton->getWidth()));

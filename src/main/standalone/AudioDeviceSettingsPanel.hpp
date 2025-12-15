@@ -10,7 +10,7 @@ namespace vmpc_juce::standalone
 {
     class ChannelSelectorListBox;
     class DeviceSelectorComponent;
-    class InputLevelMeter;
+    struct InputLevelMeter;
 
     class AudioDeviceSettingsPanel final : public juce::Component,
                                            juce::ChangeListener
