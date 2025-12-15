@@ -74,7 +74,7 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
         stereoOutLabel =
             std::make_unique<juce::Label>(juce::String{}, "STEREO OUT L/R");
 
-        stereoOutLabel->setJustificationType(juce::Justification::centred);
+        stereoOutLabel->setJustificationType(juce::Justification::centredLeft);
 
         addAndMakeVisible(stereoOutLabel.get());
     }
@@ -85,16 +85,15 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
 
         assignableMixOutList = std::make_unique<ChannelSelectorListBox>(
             false, setup, ChannelSelectorListBox::audioOutputType, 2, 8,
-            mainFont,
-            std::move(suffixes));
+            mainFont, std::move(suffixes));
 
         addAndMakeVisible(assignableMixOutList.get());
 
         assignableMixOutLabel = std::make_unique<juce::Label>(
-            juce::String{}, "ASSIGNABLE MIX OUT 1 - 8");
+            juce::String{}, "ASSIGNABLE MIX OUT");
 
         assignableMixOutLabel->setJustificationType(
-            juce::Justification::centred);
+            juce::Justification::centredLeft);
 
         addAndMakeVisible(assignableMixOutLabel.get());
     }
@@ -174,11 +173,7 @@ void AudioDeviceSettingsPanel::resized()
 
         const auto listHeight = stereoOutList->getBestHeight(maxListBoxHeight);
 
-        const auto labelArea = r.removeFromTop(h);
         const auto listArea = r.removeFromTop(listHeight);
-
-        stereoOutLabel->setBounds(listArea.getX(), labelArea.getY(),
-                                  listArea.getWidth(), h);
 
         stereoOutList->setBounds(listArea);
 
@@ -190,11 +185,7 @@ void AudioDeviceSettingsPanel::resized()
 
         constexpr auto listHeight = maxListBoxHeight;
 
-        const auto labelArea = r.removeFromTop(h);
         const auto listArea = r.removeFromTop(listHeight);
-
-        assignableMixOutLabel->setBounds(listArea.getX(), labelArea.getY(),
-                                         listArea.getWidth(), h);
 
         assignableMixOutList->setBounds(listArea);
 
@@ -248,15 +239,23 @@ void AudioDeviceSettingsPanel::resized()
         r.removeFromTop(space);
     }
 
-    constexpr int labelAreaWidth = 150;
+    constexpr int labelAreaWidth = 160;
     constexpr int labelAreaLeftMargin = 10;
 
     outputDeviceLabel->setBounds(labelAreaLeftMargin,
                                  outputDeviceDropDown->getY(), labelAreaWidth,
                                  outputDeviceDropDown->getHeight());
+
     inputDeviceLabel->setBounds(labelAreaLeftMargin,
                                 inputDeviceDropDown->getY(), labelAreaWidth,
                                 inputDeviceDropDown->getHeight());
+
+    stereoOutLabel->setBounds(labelAreaLeftMargin, stereoOutList->getY(),
+                              labelAreaWidth, h);
+
+    assignableMixOutLabel->setBounds(
+        labelAreaLeftMargin, assignableMixOutList->getY(), labelAreaWidth, h);
+
     sampleRateLabel->setBounds(labelAreaLeftMargin, sampleRateDropDown->getY(),
                                labelAreaWidth, sampleRateDropDown->getHeight());
     bufferSizeLabel->setBounds(labelAreaLeftMargin, bufferSizeDropDown->getY(),
