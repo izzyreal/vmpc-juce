@@ -16,7 +16,8 @@ namespace vmpc_juce::standalone
                                    const juce::Component &owner,
                                    const juce::StringRef &text,
                                    const juce::Rectangle<int> &textBounds,
-                                   const bool enabled)
+                                   const bool enabled,
+                                   const juce::Font &mainFont)
         {
             const auto textColour =
                 owner.findColour(juce::ListBox::textColourId, true)
@@ -24,8 +25,7 @@ namespace vmpc_juce::standalone
 
             juce::AttributedString attributedString{text};
             attributedString.setColour(textColour);
-            attributedString.setFont(
-                static_cast<float>(textBounds.getHeight()) * 0.6f);
+            attributedString.setFont(mainFont.withHeight(16));
             attributedString.setJustification(juce::Justification::centredLeft);
             attributedString.setWordWrap(
                 juce::AttributedString::WordWrap::none);

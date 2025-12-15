@@ -1,10 +1,13 @@
 #include "standalone/DeviceSelectorComponent.hpp"
 
+#include "DeviceSelectorComponentLookAndFeel.hpp"
+#include "VmpcJuceResourceUtil.hpp"
 #include "standalone/AudioDeviceManager.hpp"
 #include "standalone/MidiInputListBox.hpp"
 #include "standalone/MidiOutputSelector.hpp"
 #include "standalone/AudioDeviceSetupDetails.hpp"
 #include "standalone/AudioDeviceSettingsPanel.hpp"
+#include "vf_freetype/vf_FreeTypeFaces.h"
 
 #include <juce_audio_utils/juce_audio_utils.h>
 
@@ -23,6 +26,17 @@ namespace vmpc_juce::standalone
         jassert(minOutputChannels >= 0 &&
                 minOutputChannels <= maxOutputChannels);
         jassert(minInputChannels >= 0 && minInputChannels <= maxInputChannels);
+
+        mainFontData =
+            VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
+        FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true, mainFontData.data(),
+                                         static_cast<int>(mainFontData.size()));
+        mainFont.setTypefaceName("Neutral Sans");
+        mainFont = juce::Font(FreeTypeFaces::createTypefaceForFont(mainFont));
+        mainFont.setHeight(18);
+
+        lookAndFeel =
+            std::make_unique<DeviceSelectorComponentLookAndFeel>(mainFont);
 
         const juce::OwnedArray<juce::AudioIODeviceType> &types =
             deviceManager.getAvailableDeviceTypes();
@@ -49,21 +63,24 @@ namespace vmpc_juce::standalone
                 juce::Justification::centredLeft);
             deviceTypeDropDownLabel->attachToComponent(deviceTypeDropDown.get(),
                                                        true);
+            deviceTypeDropDownLabel->setFont(mainFont);
         }
 
         midiInputsList = std::make_unique<MidiInputListBox>(
-            deviceManager, "(No MIDI inputs available)");
+            deviceManager, "(No MIDI inputs available)", mainFont);
         addAndMakeVisible(midiInputsList.get());
 
         midiInputsLabel =
-            std::make_unique<juce::Label>(juce::String{}, "Active MIDI inputs");
+            std::make_unique<juce::Label>(juce::String{}, "Active MIDI Inputs");
         midiInputsLabel->setJustificationType(juce::Justification::topLeft);
         midiInputsLabel->attachToComponent(midiInputsList.get(), true);
+        midiInputsLabel->setLookAndFeel(lookAndFeel.get());
 
         if (juce::BluetoothMidiDevicePairingDialogue::isAvailable())
         {
             bluetoothButton = std::make_unique<juce::TextButton>(
                 "Bluetooth MIDI", "Scan for bluetooth MIDI devices");
+            bluetoothButton->setLookAndFeel(lookAndFeel.get());
             addAndMakeVisible(bluetoothButton.get());
             bluetoothButton->onClick = [this]
             {
@@ -73,10 +90,14 @@ namespace vmpc_juce::standalone
 
         midiOutputSelector =
             std::make_unique<MidiOutputSelector>(deviceManager);
+
+        midiOutputSelector->setLookAndFeel(lookAndFeel.get());
+
         addAndMakeVisible(midiOutputSelector.get());
 
         midiOutputLabel = std::make_unique<juce::Label>("lm", "MIDI Output");
         midiOutputLabel->attachToComponent(midiOutputSelector.get(), true);
+        midiOutputLabel->setLookAndFeel(lookAndFeel.get());
 
         deviceManager.addChangeListener(this);
         updateAllControls();
@@ -120,6 +141,7 @@ namespace vmpc_juce::standalone
             constexpr int maxListBoxHeight = 90;
             midiInputsList->setRowHeight(juce::jmin(22, itemHeight));
             midiInputsList->setBounds(r.removeFromTop(maxListBoxHeight));
+            midiInputsList->setLookAndFeel(lookAndFeel.get());
             r.removeFromTop(space);
         }
 
@@ -205,7 +227,8 @@ namespace vmpc_juce::standalone
 
                 audioDeviceSettingsComp =
                     std::make_unique<AudioDeviceSettingsPanel>(*type, details,
-                                                               *this);
+                                                               *this, mainFont);
+                audioDeviceSettingsComp->setLookAndFeel(lookAndFeel.get());
                 addAndMakeVisible(audioDeviceSettingsComp.get());
             }
         }

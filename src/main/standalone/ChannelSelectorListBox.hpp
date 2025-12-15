@@ -21,6 +21,7 @@ namespace vmpc_juce::standalone
                                BoxType boxType,
                                int channelOffset,
                                int maxChannelCount,
+                               const juce::Font &mainFont,
                                const std::vector<std::string> &&nameSuffixes = {});
 
         void refresh();
@@ -47,6 +48,7 @@ namespace vmpc_juce::standalone
         int channelOffset;
         int maxChannelCount;
         const std::vector<std::string> nameSuffixes;
+        const juce::Font &mainFont;
 
         void flipEnablement(int row) const;
 

@@ -8,6 +8,7 @@ namespace vmpc_juce::standalone
     class MidiInputListBox;
     class MidiOutputSelector;
     class AudioDeviceManager;
+    class DeviceSelectorComponentLookAndFeel;
 
     class DeviceSelectorComponent final : public juce::Component,
                                                         juce::ChangeListener
@@ -40,6 +41,11 @@ namespace vmpc_juce::standalone
         void updateDeviceType();
         void changeListenerCallback(juce::ChangeBroadcaster *) override;
         void updateAllControls();
+
+        std::vector<char> mainFontData;
+        juce::Font mainFont;
+
+        std::unique_ptr<DeviceSelectorComponentLookAndFeel> lookAndFeel;
 
         std::unique_ptr<juce::ComboBox> deviceTypeDropDown;
         std::unique_ptr<juce::Label> deviceTypeDropDownLabel;

@@ -12,8 +12,8 @@ using namespace vmpc_juce::standalone;
 
 AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
     juce::AudioIODeviceType &t, const AudioDeviceSetupDetails &setupDetails,
-    DeviceSelectorComponent &p)
-    : type(t), setup(setupDetails), parent(p)
+    DeviceSelectorComponent &p, const juce::Font &mainFontToUse)
+    : mainFont(mainFontToUse), type(t), setup(setupDetails), parent(p)
 {
     type.scanForDevices();
 
@@ -30,7 +30,7 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
 
         outputDeviceLabel = std::make_unique<juce::Label>(
             juce::String{},
-            type.hasSeparateInputsAndOutputs() ? "Output device" : "Device");
+            type.hasSeparateInputsAndOutputs() ? "Output Device" : "Device");
         outputDeviceLabel->setJustificationType(
             juce::Justification::centredLeft);
         addAndMakeVisible(outputDeviceLabel.get());
@@ -45,7 +45,7 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
         addAndMakeVisible(inputDeviceDropDown.get());
 
         inputDeviceLabel =
-            std::make_unique<juce::Label>(juce::String{}, "Input device");
+            std::make_unique<juce::Label>(juce::String{}, "Input Device");
         inputDeviceLabel->setJustificationType(
             juce::Justification::centredLeft);
         addAndMakeVisible(inputDeviceLabel.get());
@@ -66,7 +66,8 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
 
     {
         stereoOutList = std::make_unique<ChannelSelectorListBox>(
-            true, setup, ChannelSelectorListBox::audioOutputType, 0, 2);
+            true, setup, ChannelSelectorListBox::audioOutputType, 0, 2,
+            mainFont);
 
         addAndMakeVisible(stereoOutList.get());
 
@@ -84,12 +85,13 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
 
         assignableMixOutList = std::make_unique<ChannelSelectorListBox>(
             false, setup, ChannelSelectorListBox::audioOutputType, 2, 8,
+            mainFont,
             std::move(suffixes));
 
         addAndMakeVisible(assignableMixOutList.get());
 
-        assignableMixOutLabel =
-            std::make_unique<juce::Label>(juce::String{}, "ASSIGNABLE MIX OUT 1 - 8");
+        assignableMixOutLabel = std::make_unique<juce::Label>(
+            juce::String{}, "ASSIGNABLE MIX OUT 1 - 8");
 
         assignableMixOutLabel->setJustificationType(
             juce::Justification::centred);
@@ -113,7 +115,7 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
         addAndMakeVisible(sampleRateDropDown.get());
 
         sampleRateLabel =
-            std::make_unique<juce::Label>(juce::String{}, "Sample rate");
+            std::make_unique<juce::Label>(juce::String{}, "Sample Rate");
 
         sampleRateLabel->setJustificationType(juce::Justification::centredLeft);
         addAndMakeVisible(sampleRateLabel.get());
@@ -124,7 +126,7 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
         addAndMakeVisible(bufferSizeDropDown.get());
 
         bufferSizeLabel =
-            std::make_unique<juce::Label>(juce::String{}, "Audio buffer size");
+            std::make_unique<juce::Label>(juce::String{}, "Audio Buffer Size");
 
         bufferSizeLabel->setJustificationType(juce::Justification::centredLeft);
         addAndMakeVisible(bufferSizeLabel.get());
@@ -526,39 +528,6 @@ void AudioDeviceSettingsPanel::updateInputsComboBox() const
     updateSelectedInput();
 }
 
-void AudioDeviceSettingsPanel::updateSampleRateComboBox(
-    juce::AudioIODevice *currentDevice)
-{
-    sampleRateDropDown->clear();
-    sampleRateDropDown->onChange = nullptr;
-
-    if (!currentDevice)
-    {
-        return;
-    }
-
-    const auto getFrequencyString = [](const int rate)
-    {
-        return juce::String(rate) + " Hz";
-    };
-
-    for (const auto rate : currentDevice->getAvailableSampleRates())
-    {
-        const auto intRate = juce::roundToInt(rate);
-        sampleRateDropDown->addItem(getFrequencyString(intRate), intRate);
-    }
-
-    const auto intRate =
-        juce::roundToInt(currentDevice->getCurrentSampleRate());
-    sampleRateDropDown->setText(getFrequencyString(intRate),
-                                juce::dontSendNotification);
-
-    sampleRateDropDown->onChange = [this]
-    {
-        updateConfig(false, false, true, false);
-    };
-}
-
 void AudioDeviceSettingsPanel::updateRecordInComboBox(
     juce::AudioIODevice *currentDevice) const
 {
@@ -619,6 +588,39 @@ void AudioDeviceSettingsPanel::updateRecordInComboBox(
         }
 
         setup.manager->setAudioDeviceSetup(config, true);
+    };
+}
+
+void AudioDeviceSettingsPanel::updateSampleRateComboBox(
+    juce::AudioIODevice *currentDevice)
+{
+    sampleRateDropDown->clear();
+    sampleRateDropDown->onChange = nullptr;
+
+    if (!currentDevice)
+    {
+        return;
+    }
+
+    const auto getFrequencyString = [](const int rate)
+    {
+        return juce::String(rate) + " Hz";
+    };
+
+    for (const auto rate : currentDevice->getAvailableSampleRates())
+    {
+        const auto intRate = juce::roundToInt(rate);
+        sampleRateDropDown->addItem(getFrequencyString(intRate), intRate);
+    }
+
+    const auto intRate =
+        juce::roundToInt(currentDevice->getCurrentSampleRate());
+    sampleRateDropDown->setText(getFrequencyString(intRate),
+                                juce::dontSendNotification);
+
+    sampleRateDropDown->onChange = [this]
+    {
+        updateConfig(false, false, true, false);
     };
 }
 

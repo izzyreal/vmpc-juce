@@ -17,7 +17,8 @@ namespace vmpc_juce::standalone
     public:
         AudioDeviceSettingsPanel(juce::AudioIODeviceType &t,
                                  const AudioDeviceSetupDetails &setupDetails,
-                                 DeviceSelectorComponent &p);
+                                 DeviceSelectorComponent &p,
+                                 const juce::Font &mainFont);
 
         ~AudioDeviceSettingsPanel() override;
 
@@ -39,6 +40,7 @@ namespace vmpc_juce::standalone
         void resetDevice() const;
 
     private:
+        const juce::Font &mainFont;
         juce::AudioIODeviceType &type;
         const AudioDeviceSetupDetails setup;
         DeviceSelectorComponent &parent;

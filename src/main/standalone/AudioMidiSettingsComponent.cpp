@@ -17,8 +17,7 @@ AudioMidiSettingsComponent::AudioMidiSettingsComponent(
 
 void AudioMidiSettingsComponent::paint(juce::Graphics &g)
 {
-    g.fillAll(
-        getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+    g.fillAll(juce::Colours::slategrey);
 }
 
 void AudioMidiSettingsComponent::resized()

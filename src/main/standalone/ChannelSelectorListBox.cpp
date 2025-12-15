@@ -8,11 +8,12 @@ using namespace vmpc_juce::standalone;
 ChannelSelectorListBox::ChannelSelectorListBox(
     const bool useStereoPairsToUse, const AudioDeviceSetupDetails &setupDetails,
     const BoxType boxType, const int channelOffsetToUse,
-    const int maxChannelCountToUse,
+    const int maxChannelCountToUse, const juce::Font &mainFontToUse,
     const std::vector<std::string> &&nameSuffixesToUse)
     : ListBox({}, nullptr), setup(setupDetails), type(boxType),
       useStereoPairs(useStereoPairsToUse), channelOffset(channelOffsetToUse),
-      maxChannelCount(maxChannelCountToUse), nameSuffixes(nameSuffixesToUse)
+      maxChannelCount(maxChannelCountToUse), nameSuffixes(nameSuffixesToUse),
+      mainFont(mainFontToUse)
 {
     refresh();
     setModel(this);
@@ -122,8 +123,9 @@ void ChannelSelectorListBox::paintListBoxItem(const int row, juce::Graphics &g,
                                          0.5f,
                                      tickW, tickW, enabled, true, true, false);
 
-        Utils::drawTextLayout(g, *this, item, {x + 5, 0, width - x - 5, height},
-                              enabled);
+        Utils::drawTextLayout(g, *this, item,
+                              {x + 5, -1, width - x - 5, height}, enabled,
+                              mainFont);
     }
 }
 

@@ -12,9 +12,10 @@ namespace vmpc_juce::standalone
     class MidiInputListBox final : public juce::ListBox, juce::ListBoxModel
     {
     public:
-        MidiInputListBox(AudioDeviceManager &dm,
-                         const juce::String &noItems)
-            : ListBox({}, nullptr), deviceManager(dm), noItemsMessage(noItems)
+        MidiInputListBox(AudioDeviceManager &dm, const juce::String &noItems,
+                         const juce::Font &mainFontToUse)
+            : ListBox({}, nullptr), deviceManager(dm), noItemsMessage(noItems),
+              mainFont(mainFontToUse)
         {
             updateDevices();
             setModel(this);
@@ -55,7 +56,8 @@ namespace vmpc_juce::standalone
                     enabled, true, true, false);
 
                 Utils::drawTextLayout(g, *this, item.name,
-                               {x + 5, 0, width - x - 5, height}, enabled);
+                                      {x + 5, -1, width - x - 5, height},
+                                      enabled, mainFont);
             }
         }
 
@@ -98,6 +100,7 @@ namespace vmpc_juce::standalone
         AudioDeviceManager &deviceManager;
         const juce::String noItemsMessage;
         juce::Array<juce::MidiDeviceInfo> items;
+        const juce::Font &mainFont;
 
         void flipEnablement(const int row) const
         {
