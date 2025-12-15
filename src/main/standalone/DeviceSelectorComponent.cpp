@@ -51,6 +51,8 @@ namespace vmpc_juce::standalone
                     types.getUnchecked(i)->getTypeName(), i + 1);
             }
 
+            deviceTypeDropDown->setLookAndFeel(lookAndFeel.get());
+
             addAndMakeVisible(deviceTypeDropDown.get());
             deviceTypeDropDown->onChange = [this]
             {
@@ -58,12 +60,12 @@ namespace vmpc_juce::standalone
             };
 
             deviceTypeDropDownLabel = std::make_unique<juce::Label>(
-                juce::String{}, "Audio device type");
+                juce::String{}, "Audio Device Type");
             deviceTypeDropDownLabel->setJustificationType(
                 juce::Justification::centredLeft);
             deviceTypeDropDownLabel->attachToComponent(deviceTypeDropDown.get(),
                                                        true);
-            deviceTypeDropDownLabel->setFont(mainFont);
+            deviceTypeDropDownLabel->setLookAndFeel(lookAndFeel.get());
         }
 
         midiInputsList = std::make_unique<MidiInputListBox>(
