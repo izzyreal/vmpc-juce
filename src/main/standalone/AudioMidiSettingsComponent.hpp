@@ -19,8 +19,18 @@ namespace vmpc_juce::standalone
 
         void resized() override;
 
+        void childBoundsChanged(Component *childComp) override
+        {
+            if (!isResizing && childComp == &deviceSelector)
+            {
+                setToRecommendedSize();
+            }
+        }
+
+        void setToRecommendedSize();
+
     private:
         DeviceSelectorComponent deviceSelector;
         bool isResizing = false;
     };
-} // namespace vmpc_juce
+} // namespace vmpc_juce::standalone

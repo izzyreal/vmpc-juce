@@ -5,8 +5,8 @@
 using namespace vmpc_juce::standalone;
 
 AudioMidiSettingsComponent::AudioMidiSettingsComponent(
-    AudioDeviceManager &deviceManagerToUse,
-    const int maxAudioInputChannels, const int maxAudioOutputChannels)
+    AudioDeviceManager &deviceManagerToUse, const int maxAudioInputChannels,
+    const int maxAudioOutputChannels)
     : deviceSelector(deviceManagerToUse, 0, maxAudioInputChannels, 0,
                      maxAudioOutputChannels)
 {
@@ -27,4 +27,9 @@ void AudioMidiSettingsComponent::resized()
     const auto r = getLocalBounds();
 
     deviceSelector.setBounds(r);
+}
+
+void AudioMidiSettingsComponent::setToRecommendedSize()
+{
+    setSize(getWidth(), deviceSelector.getHeight());
 }

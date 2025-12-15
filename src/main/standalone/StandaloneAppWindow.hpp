@@ -221,6 +221,7 @@ namespace vmpc_juce::standalone
             auto content = std::make_unique<AudioMidiSettingsComponent>(
                 deviceManager, maxNumInputs, maxNumOutputs);
             content->setSize(480, 460);
+            content->setToRecommendedSize();
 
             o.content.setOwned(content.release());
             o.dialogTitle = "Audio/MIDI Settings";
@@ -813,7 +814,6 @@ namespace vmpc_juce::standalone
             { /* not needed */
             }
 
-            //==============================================================================
             void componentMovedOrResized(Component &, bool, bool) override
             {
                 const ScopedValueSetter scope(preventResizingEditor,
@@ -837,7 +837,6 @@ namespace vmpc_juce::standalone
                 return {};
             }
 
-            //==============================================================================
             StandaloneAppWindow &owner;
             std::unique_ptr<AudioProcessorEditor> editor;
             bool preventResizingEditor = false;
@@ -845,20 +844,6 @@ namespace vmpc_juce::standalone
             JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
         };
 
-        /*  This custom constrainer checks with the AudioProcessorEditor (which
-           might itself be constrained) to ensure that any size we choose for
-           the standalone window will be suitable for the editor too.
-
-            Without this constrainer, attempting to resize the standalone window
-           may set bounds on the peer that are unsupported by the inner editor.
-           In this scenario, the peer will be set to a 'bad' size, then the
-           inner editor will be resized. The editor will check the new bounds
-           with its own constrainer, and may set itself to a more suitable size.
-           After that, the resizable window will see that its content component
-           has changed size, and set the bounds of the peer accordingly. The end
-           result is that the peer is resized twice in a row to different sizes,
-            which can appear glitchy/flickery to the user.
-        */
         struct DecoratorConstrainer final : ComponentBoundsConstrainer
         {
             void checkBounds(Rectangle<int> &bounds,
