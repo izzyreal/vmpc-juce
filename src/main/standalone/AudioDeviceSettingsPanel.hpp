@@ -10,6 +10,7 @@ namespace vmpc_juce::standalone
 {
     class ChannelSelectorListBox;
     class DeviceSelectorComponent;
+    class InputLevelMeter;
 
     class AudioDeviceSettingsPanel final : public juce::Component,
                                            juce::ChangeListener
@@ -54,7 +55,7 @@ namespace vmpc_juce::standalone
             assignableMixOutLabel;
 
         std::unique_ptr<juce::TextButton> testButton;
-        std::unique_ptr<Component> inputLevelMeter;
+        std::unique_ptr<InputLevelMeter> inputLevelMeter;
         std::unique_ptr<juce::TextButton> showUIButton, resetDeviceButton;
 
         int findSelectedDeviceIndex(bool isInput) const;

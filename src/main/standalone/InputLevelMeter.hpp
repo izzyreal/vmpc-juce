@@ -33,6 +33,12 @@ namespace vmpc_juce::standalone
             }
         }
 
+        void resetLevel()
+        {
+            level = 0;
+            repaint();
+        }
+
         void paint(juce::Graphics &g) override
         {
             // (add a bit of a skew to make the level more obvious)

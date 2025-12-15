@@ -157,7 +157,7 @@ namespace vmpc_juce::standalone
         }
 
         constexpr int labelAreaWidth = 150;
-        constexpr int labelAreaLeftMargin = 10;
+        constexpr int labelAreaLeftMargin = 15;
 
         midiInputsLabel->setBounds(labelAreaLeftMargin, midiInputsList->getY(),
                                    labelAreaWidth, midiInputsList->getHeight());

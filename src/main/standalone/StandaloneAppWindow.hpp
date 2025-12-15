@@ -219,7 +219,7 @@ namespace vmpc_juce::standalone
 
             auto content = std::make_unique<AudioMidiSettingsComponent>(
                 deviceManager, maxNumInputs, maxNumOutputs);
-            content->setSize(500, 525);
+            content->setSize(480, 460);
 
             o.content.setOwned(content.release());
             o.dialogTitle = "Audio/MIDI Settings";
@@ -227,7 +227,7 @@ namespace vmpc_juce::standalone
                 ResizableWindow::backgroundColourId);
             o.escapeKeyTriggersCloseButton = true;
             o.resizable = false;
-            o.useBottomRightCornerResizer = true;
+            o.useBottomRightCornerResizer = false;
 
 #if JUCE_IOS
             o.useNativeTitleBar = false;
@@ -236,20 +236,6 @@ namespace vmpc_juce::standalone
             auto window = o.launchAsync();
             window->setComponentID("AudioMidiSettingsWindow");
             window->addComponentListener(this);
-            if (!lastKnownAudioMidiSettingsWindowBounds.isEmpty())
-            {
-                window->setBounds(lastKnownAudioMidiSettingsWindowBounds);
-            }
-        }
-
-        void componentMovedOrResized(Component &component, bool wasMoved,
-                                     bool wasResized) override
-        {
-            if (!wasMoved && !wasResized)
-            {
-                return;
-            }
-            lastKnownAudioMidiSettingsWindowBounds = component.getBounds();
         }
 
         void saveAudioDeviceState()
@@ -366,7 +352,6 @@ namespace vmpc_juce::standalone
         AudioDeviceManager deviceManager;
         VmpcStandalonePlayer player;
         Array<PluginInOuts> channelConfiguration;
-        juce::Rectangle<int> lastKnownAudioMidiSettingsWindowBounds;
 
         AudioBuffer<float> emptyBuffer;
         bool autoOpenMidiDevices;

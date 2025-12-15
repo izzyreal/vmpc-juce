@@ -149,7 +149,7 @@ void AudioDeviceSettingsPanel::resized()
     const int space = h / 4;
 
     {
-        auto row = r.removeFromTop(h);
+        auto row = r.removeFromTop(h + 5);
 
         testButton->changeWidthToFitText(h);
         testButton->setBounds(row.removeFromRight(testButton->getWidth()));
@@ -239,8 +239,8 @@ void AudioDeviceSettingsPanel::resized()
         r.removeFromTop(space);
     }
 
-    constexpr int labelAreaWidth = 160;
-    constexpr int labelAreaLeftMargin = 10;
+    constexpr int labelAreaWidth = 150;
+    constexpr int labelAreaLeftMargin = 15;
 
     outputDeviceLabel->setBounds(labelAreaLeftMargin,
                                  outputDeviceDropDown->getY(), labelAreaWidth,
@@ -300,6 +300,8 @@ void AudioDeviceSettingsPanel::updateConfig(const bool updateOutputDevice,
         }
 
         error = setup.manager->setAudioDeviceSetup(config, true);
+
+        inputLevelMeter->resetLevel();
 
         updateSelectedInput();
         updateSelectedOutput();
@@ -586,6 +588,7 @@ void AudioDeviceSettingsPanel::updateRecordInComboBox(
                 recordInDropDown->getSelectedItemIndex() * 2 + 1);
         }
 
+        inputLevelMeter->resetLevel();
         setup.manager->setAudioDeviceSetup(config, true);
     };
 }
