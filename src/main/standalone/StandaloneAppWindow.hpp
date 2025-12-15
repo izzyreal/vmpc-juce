@@ -12,10 +12,10 @@ using namespace juce;
 
 namespace vmpc_juce::standalone
 {
-    class StandalonePluginHolder final : private AudioIODeviceCallback,
-                                         private Timer,
-                                         private Value::Listener,
-                                         private juce::ComponentListener
+    class StandalonePluginHolder final : AudioIODeviceCallback,
+                                         Timer,
+                                         Value::Listener,
+                                         ComponentListener
     {
     public:
         struct PluginInOuts
@@ -24,15 +24,16 @@ namespace vmpc_juce::standalone
         };
 
         StandalonePluginHolder(
-            PropertySet *settingsToUse, bool takeOwnershipOfSettings = true,
+            PropertySet *settingsToUse,
+            const bool takeOwnershipOfSettings = true,
             const String &preferredDefaultDeviceName = String(),
-            const vmpc_juce::standalone::AudioDeviceManager::AudioDeviceSetup
+            const AudioDeviceManager::AudioDeviceSetup
                 *preferredSetupOptions = nullptr,
             const Array<PluginInOuts> &channels = Array<PluginInOuts>(),
 #if JUCE_ANDROID || JUCE_IOS
             bool shouldAutoOpenMidiDevices = true
 #else
-            bool shouldAutoOpenMidiDevices = false
+            const bool shouldAutoOpenMidiDevices = false
 #endif
             )
 
@@ -41,15 +42,16 @@ namespace vmpc_juce::standalone
               autoOpenMidiDevices(shouldAutoOpenMidiDevices)
         {
             createPlugin();
-            ((VmpcProcessor *)processor.get())->showAudioSettingsDialog =
-                [this]()
+            static_cast<VmpcProcessor *>(processor.get())
+                ->showAudioSettingsDialog =
+                [this]
             {
                 this->showAudioSettingsDialog();
             };
 
-            auto inChannels = (channelConfiguration.size() > 0
-                                   ? channelConfiguration[0].numIns
-                                   : processor->getMainBusNumInputChannels());
+            const auto inChannels = channelConfiguration.size() > 0
+                    ? channelConfiguration[0].numIns
+                    : processor->getMainBusNumInputChannels();
 
             if (preferredSetupOptions != nullptr)
             {
@@ -57,7 +59,7 @@ namespace vmpc_juce::standalone
                     *preferredSetupOptions));
             }
 
-            auto audioInputRequired = (inChannels > 0);
+            const auto audioInputRequired = inChannels > 0;
 
             if (audioInputRequired &&
                 RuntimePermissions::isRequired(
@@ -66,7 +68,7 @@ namespace vmpc_juce::standalone
             {
                 RuntimePermissions::request(
                     RuntimePermissions::recordAudio,
-                    [this, preferredDefaultDeviceName](bool granted)
+                    [this, preferredDefaultDeviceName](const bool granted)
                     {
                         init(granted, preferredDefaultDeviceName);
                     });
@@ -77,7 +79,7 @@ namespace vmpc_juce::standalone
             }
         }
 
-        void init(bool enableAudioInput,
+        void init(const bool enableAudioInput,
                   const String &preferredDefaultDeviceName)
         {
             setupAudioDevices(enableAudioInput, preferredDefaultDeviceName,
@@ -99,15 +101,14 @@ namespace vmpc_juce::standalone
             shutDownAudioDevices();
         }
 
-        //==============================================================================
-        virtual void createPlugin()
+        void createPlugin()
         {
             processor = createPluginFilterOfType(
                 AudioProcessor::wrapperType_Standalone);
             processor->setRateAndBufferSizeDetails(44100, 512);
         }
 
-        virtual void deletePlugin()
+        void deletePlugin()
         {
             stopPlaying();
             processor = nullptr;
@@ -120,9 +121,9 @@ namespace vmpc_juce::standalone
                 return 0;
             }
 
-            return (channelConfiguration.size() > 0
-                        ? channelConfiguration[0].numIns
-                        : processor->getMainBusNumInputChannels());
+            return channelConfiguration.size() > 0
+                       ? channelConfiguration[0].numIns
+                       : processor->getMainBusNumInputChannels();
         }
 
         int getNumOutputChannels() const
@@ -132,9 +133,9 @@ namespace vmpc_juce::standalone
                 return 0;
             }
 
-            return (channelConfiguration.size() > 0
-                        ? channelConfiguration[0].numOuts
-                        : processor->getMainBusNumOutputChannels());
+            return channelConfiguration.size() > 0
+                       ? channelConfiguration[0].numOuts
+                       : processor->getMainBusNumOutputChannels();
         }
 
         static String getFilePatterns(const String &fileSuffix)
@@ -199,19 +200,19 @@ namespace vmpc_juce::standalone
 
             if (channelConfiguration.size() > 0)
             {
-                auto &defaultConfig = channelConfiguration.getReference(0);
+                const auto &defaultConfig = channelConfiguration.getReference(0);
 
-                maxNumInputs = jmax(0, (int)defaultConfig.numIns);
-                maxNumOutputs = jmax(0, (int)defaultConfig.numOuts);
+                maxNumInputs = jmax(0, static_cast<int>(defaultConfig.numIns));
+                maxNumOutputs = jmax(0, static_cast<int>(defaultConfig.numOuts));
             }
 
-            if (auto *bus = processor->getBus(true, 0))
+            if (const auto *bus = processor->getBus(true, 0))
             {
                 maxNumInputs =
                     jmax(maxNumInputs, bus->getDefaultLayout().size());
             }
 
-            if (auto *bus = processor->getBus(false, 0))
+            if (const auto *bus = processor->getBus(false, 0))
             {
                 maxNumOutputs =
                     jmax(maxNumOutputs, bus->getDefaultLayout().size());
@@ -233,23 +234,23 @@ namespace vmpc_juce::standalone
             o.useNativeTitleBar = false;
 #endif
 
-            auto window = o.launchAsync();
+            const auto window = o.launchAsync();
             window->setComponentID("AudioMidiSettingsWindow");
             window->addComponentListener(this);
         }
 
-        void saveAudioDeviceState()
+        void saveAudioDeviceState() const
         {
             if (settings != nullptr)
             {
-                auto xml = deviceManager.createStateXml();
+                const auto xml = deviceManager.createStateXml();
 
                 settings->setValue("audioSetup", xml.get());
             }
         }
 
         void reloadAudioDeviceState(
-            bool enableAudioInput, const String &preferredDefaultDeviceName,
+            const bool enableAudioInput, const String &preferredDefaultDeviceName,
             const AudioDeviceManager::AudioDeviceSetup *preferredSetupOptions)
         {
             std::unique_ptr<XmlElement> savedState;
@@ -259,7 +260,7 @@ namespace vmpc_juce::standalone
                 savedState = settings->getXmlValue("audioSetup");
             }
 
-            auto inputChannels = getNumInputChannels();
+            const auto inputChannels = getNumInputChannels();
             auto outputChannels = getNumOutputChannels();
 
             if (inputChannels == 0 && outputChannels == 0 &&
@@ -277,7 +278,7 @@ namespace vmpc_juce::standalone
         }
 
         //==============================================================================
-        void savePluginState()
+        void savePluginState() const
         {
             if (settings != nullptr && processor != nullptr)
             {
@@ -288,7 +289,7 @@ namespace vmpc_juce::standalone
             }
         }
 
-        void reloadPluginState()
+        void reloadPluginState() const
         {
             if (settings != nullptr)
             {
@@ -299,7 +300,7 @@ namespace vmpc_juce::standalone
                     data.getSize() > 0)
                 {
                     processor->setStateInformation(data.getData(),
-                                                   (int)data.getSize());
+                                                   static_cast<int>(data.getSize()));
                 }
             }
         }
@@ -375,7 +376,7 @@ namespace vmpc_juce::standalone
            will only ever be called with a block with a length less than or
            equal to the expected block size.
         */
-        class CallbackMaxSizeEnforcer : public AudioIODeviceCallback
+        class CallbackMaxSizeEnforcer final : public AudioIODeviceCallback
         {
         public:
             explicit CallbackMaxSizeEnforcer(AudioIODeviceCallback &callbackIn)
@@ -387,24 +388,25 @@ namespace vmpc_juce::standalone
             {
                 maximumSize = device->getCurrentBufferSizeSamples();
                 storedInputChannels.resize(
-                    (size_t)device->getActiveInputChannels()
-                        .countNumberOfSetBits());
+                    static_cast<size_t>(
+                    device->getActiveInputChannels().countNumberOfSetBits()));
                 storedOutputChannels.resize(
-                    (size_t)device->getActiveOutputChannels()
-                        .countNumberOfSetBits());
+                    static_cast<size_t>(
+                    device->getActiveOutputChannels().countNumberOfSetBits()));
 
                 inner.audioDeviceAboutToStart(device);
             }
 
             void audioDeviceIOCallbackWithContext(
-                const float *const *inputChannelData, int numInputChannels,
-                float *const *outputChannelData, int numOutputChannels,
-                int numSamples,
+                const float *const *inputChannelData,
+                const int numInputChannels,
+                float *const *outputChannelData,
+                const int numOutputChannels, const int numSamples,
                 const AudioIODeviceCallbackContext &context) override
             {
-                jassertquiet((int)storedInputChannels.size() ==
+                jassertquiet(static_cast<int>(storedInputChannels.size()) ==
                              numInputChannels);
-                jassertquiet((int)storedOutputChannels.size() ==
+                jassertquiet(static_cast<int>(storedOutputChannels.size()) ==
                              numOutputChannels);
 
                 int position = 0;
@@ -421,9 +423,9 @@ namespace vmpc_juce::standalone
 
                     inner.audioDeviceIOCallbackWithContext(
                         storedInputChannels.data(),
-                        (int)storedInputChannels.size(),
+                        static_cast<int>(storedInputChannels.size()),
                         storedOutputChannels.data(),
-                        (int)storedOutputChannels.size(), blockLength, context);
+                        static_cast<int>(storedOutputChannels.size()), blockLength, context);
 
                     position += blockLength;
                 }
@@ -447,7 +449,8 @@ namespace vmpc_juce::standalone
             };
 
             template <typename Ptr, typename Vector>
-            void initChannelPointers(Ptr &&source, Vector &&target, int offset)
+            void initChannelPointers(Ptr &&source, Vector &&target,
+                                     const int offset)
             {
                 std::transform(source, source + target.size(), target.begin(),
                                GetChannelWithOffset{offset});
@@ -463,9 +466,9 @@ namespace vmpc_juce::standalone
 
         //==============================================================================
         void audioDeviceIOCallbackWithContext(
-            const float *const *inputChannelData, int numInputChannels,
-            float *const *outputChannelData, int numOutputChannels,
-            int numSamples,
+            const float *const *inputChannelData, const int numInputChannels,
+            float *const *outputChannelData, const int numOutputChannels,
+            const int numSamples,
             const AudioIODeviceCallbackContext &context) override
         {
             player.audioDeviceIOCallbackWithContext(
@@ -493,7 +496,7 @@ namespace vmpc_juce::standalone
 
         //==============================================================================
         void setupAudioDevices(
-            bool enableAudioInput, const String &preferredDefaultDeviceName,
+            const bool enableAudioInput, const String &preferredDefaultDeviceName,
             const AudioDeviceManager::AudioDeviceSetup *preferredSetupOptions)
         {
             deviceManager.addAudioCallback(&maxSizeEnforcer);
@@ -542,14 +545,14 @@ namespace vmpc_juce::standalone
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StandalonePluginHolder)
     };
 
-    class StandaloneAppWindow : public DocumentWindow
+    class StandaloneAppWindow final : public DocumentWindow
     {
     public:
         typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
         StandaloneAppWindow(
-            const String &title, Colour backgroundColour,
-            PropertySet *settingsToUse, bool takeOwnershipOfSettings,
+            const String &title, const Colour backgroundColour,
+            PropertySet *settingsToUse, const bool takeOwnershipOfSettings,
             const String &preferredDefaultDeviceName = String(),
             const AudioDeviceManager::AudioDeviceSetup *preferredSetupOptions =
                 nullptr,
@@ -557,7 +560,7 @@ namespace vmpc_juce::standalone
 #if JUCE_ANDROID || JUCE_IOS
             bool autoOpenMidiDevices = true
 #else
-            bool autoOpenMidiDevices = false
+            const bool autoOpenMidiDevices = false
 #endif
             )
 #ifdef _WIN32
@@ -568,8 +571,8 @@ namespace vmpc_juce::standalone
         {
 #else
             : DocumentWindow(title, backgroundColour,
-                             DocumentWindow::minimiseButton |
-                                 DocumentWindow::closeButton)
+                             minimiseButton |
+                                 closeButton)
         {
 #endif
 #ifndef __linux__
@@ -585,8 +588,8 @@ namespace vmpc_juce::standalone
                                            DocumentWindow::maximiseButton,
                                        false);
 #else
-        setTitleBarButtonsRequired(DocumentWindow::minimiseButton |
-                                       DocumentWindow::closeButton,
+        setTitleBarButtonsRequired(minimiseButton |
+                                       closeButton,
                                    false);
 #endif
 
@@ -601,14 +604,14 @@ namespace vmpc_juce::standalone
 #else
             updateContent();
 
-            const auto windowScreenBounds = [this]() -> juce::Rectangle<int>
+            const auto windowScreenBounds = [this]() -> Rectangle<int>
             {
                 const auto width = getWidth();
                 const auto height = getHeight();
 
                 const auto &displays = Desktop::getInstance().getDisplays();
 
-                if (auto *props = pluginHolder->settings.get())
+                if (const auto *props = pluginHolder->settings.get())
                 {
                     constexpr int defaultValue = -100;
 
@@ -641,9 +644,9 @@ namespace vmpc_juce::standalone
 
             setBoundsConstrained(windowScreenBounds);
 
-            if (auto *processor = getAudioProcessor())
+            if (const auto *processor = getAudioProcessor())
             {
-                if (auto *editor = processor->getActiveEditor())
+                if (const auto *editor = processor->getActiveEditor())
                 {
                     setResizable(editor->isResizable(), false);
                 }
@@ -699,7 +702,7 @@ namespace vmpc_juce::standalone
             JUCEApplicationBase::quit();
         }
 
-        virtual StandalonePluginHolder *getPluginHolder()
+        StandalonePluginHolder *getPluginHolder() const
         {
             return pluginHolder.get();
         }
@@ -721,13 +724,12 @@ namespace vmpc_juce::standalone
             setContentOwned(content, resizeAutomatically);
         }
 
-        //==============================================================================
-        class MainContentComponent : public Component,
-                                     private Value::Listener,
-                                     private ComponentListener
+        class MainContentComponent final : public Component,
+                                     Value::Listener,
+                                     ComponentListener
         {
         public:
-            MainContentComponent(StandaloneAppWindow &filterWindow)
+            explicit MainContentComponent(StandaloneAppWindow &filterWindow)
                 : owner(filterWindow),
                   editor(owner.getAudioProcessor()->hasEditor()
                              ? owner.getAudioProcessor()->createEditorIfNeeded()
@@ -756,7 +758,7 @@ namespace vmpc_juce::standalone
 
             void resized() override
             {
-                auto r = getLocalBounds();
+                const auto r = getLocalBounds();
 
                 if (editor != nullptr)
                 {
@@ -791,7 +793,7 @@ namespace vmpc_juce::standalone
             {
                 const auto nativeFrame = [&]() -> BorderSize<int>
                 {
-                    if (auto *peer = owner.getPeer())
+                    if (const auto *peer = owner.getPeer())
                     {
                         if (const auto frameSize =
                                 peer->getFrameSizeIfPresent())
@@ -814,18 +816,18 @@ namespace vmpc_juce::standalone
             //==============================================================================
             void componentMovedOrResized(Component &, bool, bool) override
             {
-                const ScopedValueSetter<bool> scope(preventResizingEditor,
+                const ScopedValueSetter scope(preventResizingEditor,
                                                     true);
 
                 if (editor != nullptr)
                 {
-                    auto rect = getSizeToContainEditor();
+                    const auto rect = getSizeToContainEditor();
 
                     setSize(rect.getWidth(), rect.getHeight());
                 }
             }
 
-            juce::Rectangle<int> getSizeToContainEditor() const
+            Rectangle<int> getSizeToContainEditor() const
             {
                 if (editor != nullptr)
                 {
@@ -857,14 +859,15 @@ namespace vmpc_juce::standalone
            result is that the peer is resized twice in a row to different sizes,
             which can appear glitchy/flickery to the user.
         */
-        struct DecoratorConstrainer : public ComponentBoundsConstrainer
+        struct DecoratorConstrainer final : ComponentBoundsConstrainer
         {
-            void checkBounds(juce::Rectangle<int> &bounds,
-                             const juce::Rectangle<int> &previousBounds,
-                             const juce::Rectangle<int> &limits,
-                             bool isStretchingTop, bool isStretchingLeft,
-                             bool isStretchingBottom,
-                             bool isStretchingRight) override
+            void checkBounds(Rectangle<int> &bounds,
+                             const Rectangle<int> &previousBounds,
+                             const Rectangle<int> &limits,
+                             const bool isStretchingTop,
+                             const bool isStretchingLeft,
+                             const bool isStretchingBottom,
+                             const bool isStretchingRight) override
             {
                 auto *decorated = contentComponent != nullptr
                                       ? contentComponent->getEditorConstrainer()
@@ -933,12 +936,12 @@ namespace vmpc_juce::standalone
         if (PluginHostType::getPluginLoadedAs() ==
             AudioProcessor::wrapperType_Standalone)
         {
-            auto &desktop = Desktop::getInstance();
+            const auto &desktop = Desktop::getInstance();
             const int numTopLevelWindows = desktop.getNumComponents();
 
             for (int i = 0; i < numTopLevelWindows; ++i)
             {
-                if (auto window = dynamic_cast<StandaloneAppWindow *>(
+                if (const auto window = dynamic_cast<StandaloneAppWindow *>(
                         desktop.getComponent(i)))
                 {
                     return window->getPluginHolder();
