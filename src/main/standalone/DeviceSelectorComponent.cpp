@@ -167,7 +167,15 @@ namespace vmpc_juce::standalone
                                    midiOutputSelector->getY(), labelAreaWidth,
                                    midiOutputSelector->getHeight());
 
+        if (deviceTypeDropDownLabel && deviceTypeDropDown)
+        {
+            deviceTypeDropDownLabel->setBounds(
+                labelAreaLeftMargin, deviceTypeDropDown->getY(), labelAreaWidth,
+                deviceTypeDropDown->getHeight());
+        }
+
         r.removeFromTop(itemHeight);
+
         setSize(getWidth(), r.getY());
     }
 
