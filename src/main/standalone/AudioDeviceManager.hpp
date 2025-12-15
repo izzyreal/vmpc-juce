@@ -125,6 +125,8 @@ namespace vmpc_juce::standalone
 
             using Ptr = juce::ReferenceCountedObjectPtr<LevelMeter>;
 
+            void resetToZeroLevel() noexcept;
+
         private:
             friend class AudioDeviceManager;
 

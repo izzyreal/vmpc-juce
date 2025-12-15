@@ -1533,6 +1533,11 @@ double AudioDeviceManager::LevelMeter::getCurrentLevel() const noexcept
     return level.get();
 }
 
+void AudioDeviceManager::LevelMeter::resetToZeroLevel() noexcept
+{
+    level = 0;
+}
+
 void AudioDeviceManager::playTestSound()
 {
     {

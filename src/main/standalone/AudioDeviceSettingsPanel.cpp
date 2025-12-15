@@ -24,6 +24,7 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
         outputDeviceDropDown->onChange = [this]
         {
             updateConfig(true, false, false, false);
+            setup.manager->getInputLevelGetter()->resetToZeroLevel();
         };
 
         addAndMakeVisible(outputDeviceDropDown.get());
@@ -301,7 +302,7 @@ void AudioDeviceSettingsPanel::updateConfig(const bool updateOutputDevice,
 
         error = setup.manager->setAudioDeviceSetup(config, true);
 
-        inputLevelMeter->resetLevel();
+        setup.manager->getInputLevelGetter()->resetToZeroLevel();
 
         updateSelectedInput();
         updateSelectedOutput();
@@ -588,7 +589,7 @@ void AudioDeviceSettingsPanel::updateRecordInComboBox(
                 recordInDropDown->getSelectedItemIndex() * 2 + 1);
         }
 
-        inputLevelMeter->resetLevel();
+        setup.manager->getInputLevelGetter()->resetToZeroLevel();
         setup.manager->setAudioDeviceSetup(config, true);
     };
 }
