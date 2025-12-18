@@ -1,5 +1,7 @@
 #include "VmpcProcessor.hpp"
 
+#include <rtsan_standalone/rtsan_standalone.h>
+
 #include "build_info/VmpcJuceBuildInfo.hpp"
 
 #include "VmpcEditor.hpp"
@@ -57,6 +59,7 @@ using namespace vmpc_juce;
 
 VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
 {
+    __rtsan::Initialize();
     midiOutputBuffer.resize(512);
 
     mpcMonoOutputChannelIndicesToRender.reserve(18);
@@ -579,6 +582,7 @@ static void propagateTransportInfo(mpc::sequencer::Clock &clock,
 void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
                                  juce::MidiBuffer &midiMessages)
 {
+    __rtsan::ScopedSanitizeRealtime ssr;
     juce::ScopedNoDenormals noDenormals;
 
     const int totalNumInputChannels = getTotalNumInputChannels();

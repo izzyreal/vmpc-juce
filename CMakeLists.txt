@@ -117,6 +117,15 @@ FetchContent_MakeAvailable(melatonin_blur)
 message(STATUS "Downloading json...")
 FetchContent_MakeAvailable(json)
 
+FetchContent_Declare(
+  rtsan
+  GIT_REPOSITORY https://github.com/izzyreal/rtsan-libs-cmake.git
+  GIT_TAG main
+)
+
+message(STATUS "Downloading rtsan-libs-cmake...")
+FetchContent_MakeAvailable(rtsan)
+
 if (IOS)
     set(IOS_SPECIFIC_SETTINGS
         REQUIRES_FULL_SCREEN TRUE
@@ -239,6 +248,7 @@ target_link_libraries(vmpc2000xl
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags)
 
+rtsan_libs_enable(TARGET vmpc2000xl)
 _bundle_vmpc_juce_resources(vmpc2000xl)
 
 if (APPLE)
