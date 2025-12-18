@@ -37,6 +37,7 @@ namespace vmpc_juce::gui::vector
                 static_cast<int>(getLocalBounds().toFloat().getCentreX() -
                                  (width * 0.5f)),
                 50);
+            sliderCap->updatePositionFromModel();
         }
 
         void paint(juce::Graphics &g) override

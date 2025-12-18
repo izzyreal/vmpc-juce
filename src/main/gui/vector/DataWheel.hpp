@@ -78,6 +78,7 @@ namespace vmpc_juce::gui::vector
         {
             backgroundSvg->setSize(getWidth(), getHeight());
             lines->setSize(getWidth(), getHeight());
+            lastDrawnAngle = std::numeric_limits<float>::max();
             handleAngleChanged(dataWheelModel->getAngle());
         }
 

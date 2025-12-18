@@ -28,13 +28,8 @@ namespace vmpc_juce::gui::vector
             setIntervalMs(20);
         }
 
-        void sharedTimerCallback() override
+        void updatePositionFromModel()
         {
-            if (isDragging)
-            {
-                return;
-            }
-
             const auto [min, max] = model->getRangeAs<float>();
             const float modelValue = model->getValue();
             float norm =
@@ -48,11 +43,21 @@ namespace vmpc_juce::gui::vector
 
             if (const auto *parent = getParentComponent())
             {
-                const float range =
+                const auto range =
                     static_cast<float>(parent->getHeight() - getHeight());
                 const int newY = static_cast<int>(std::lround(range * norm));
                 setTopLeftPosition(getX(), newY);
             }
+        }
+
+        void sharedTimerCallback() override
+        {
+            if (isDragging)
+            {
+                return;
+            }
+
+            updatePositionFromModel();
         }
 
     private:
