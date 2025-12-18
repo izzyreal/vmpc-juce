@@ -173,6 +173,8 @@ View::View(mpc::Mpc &mpcToUse,
         onKeyUp(i, ctrlDown, altDown, shiftDown);
     };
 
+    setWantsKeyboardFocus(true);
+
     const auto jsonFileData =
         VmpcJuceResourceUtil::getResourceData("json/" + layoutName + ".json");
     const nlohmann::json data = nlohmann::json::parse(jsonFileData);
