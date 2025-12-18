@@ -119,23 +119,23 @@ View::View(mpc::Mpc &mpcToUse,
         return helper->hasFocus();
     };
 
-    const auto getKeyboardMods = [&]() -> std::tuple<bool, bool, bool>
+    const auto isVmpcKeyDown =
+        [&](const std::initializer_list<mpc::input::VmpcKeyCode> keyCodes)
+    {
+        for (auto &k : keyCodes)
+        {
+            if (keyboard->isKeyDown(
+                    mpc::input::KeyCodeHelper::getPlatformFromVmpcKeyCode(k)))
+            {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    const auto getKeyboardMods = [&, isVmpcKeyDown]() -> std::tuple<bool, bool, bool>
     {
         using namespace mpc::input;
-
-        const static auto isVmpcKeyDown =
-            [&](const std::initializer_list<VmpcKeyCode> keyCodes)
-        {
-            for (auto &k : keyCodes)
-            {
-                if (keyboard->isKeyDown(
-                        KeyCodeHelper::getPlatformFromVmpcKeyCode(k)))
-                {
-                    return true;
-                }
-            }
-            return false;
-        };
 
         const bool shiftDown = isVmpcKeyDown(
             {VmpcKeyCode::VMPC_KEY_Shift, VmpcKeyCode::VMPC_KEY_LeftShift,
