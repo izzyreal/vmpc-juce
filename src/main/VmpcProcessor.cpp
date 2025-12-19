@@ -767,9 +767,21 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
     builder.writeToStream(combinedOut, nullptr);
 }
 
+static bool looksLikeZip (const void* data, int size)
+{
+    if (size < 4 || data == nullptr)
+        return false;
+
+    const auto* b = static_cast<const uint8_t*>(data);
+
+    return (b[0] == 'P' && b[1] == 'K' &&
+           (b[2] == 3 || b[2] == 5 || b[2] == 7) &&
+           (b[3] == 4 || b[3] == 6 || b[3] == 8));
+}
+
 void VmpcProcessor::setStateInformation(const void *data, const int sizeInBytes)
 {
-    if (sizeInBytes <= 0 || !data)
+    if (sizeInBytes <= 0 || data == nullptr)
     {
         return;
     }
@@ -787,15 +799,20 @@ void VmpcProcessor::setStateInformation(const void *data, const int sizeInBytes)
         }
         return;
     }
-
-    // Plugin: unpack combined zip
+    
+    if (!looksLikeZip(data, sizeInBytes))
+    {
+        return;
+    }
+    
     juce::MemoryInputStream in(data, static_cast<size_t>(sizeInBytes), false);
-    juce::ZipFile zip(in);
+        
+    juce::ZipFile zipFile(in);
 
     std::unique_ptr<juce::InputStream> uiStream, mpcStream;
-    for (int i = 0; i < zip.getNumEntries(); ++i)
+    for (int i = 0; i < zipFile.getNumEntries(); ++i)
     {
-        auto *entry = zip.getEntry(i);
+        auto *entry = zipFile.getEntry(i);
         if (!entry)
         {
             continue;
@@ -803,18 +820,25 @@ void VmpcProcessor::setStateInformation(const void *data, const int sizeInBytes)
 
         if (entry->filename == "ui.xml")
         {
-            uiStream.reset(zip.createStreamForEntry(i));
+            uiStream.reset(zipFile.createStreamForEntry(i));
         }
         else if (entry->filename == "autosave.zip")
         {
-            mpcStream.reset(zip.createStreamForEntry(i));
+            mpcStream.reset(zipFile.createStreamForEntry(i));
         }
     }
 
     // Restore UI dimensions
     if (uiStream)
     {
-        const auto xmlText = uiStream->readEntireStreamAsString();
+        juce::MemoryBlock uiData;
+        uiStream->readIntoMemoryBlock (uiData);
+
+        juce::String xmlText = juce::String::fromUTF8 (
+            static_cast<const char*> (uiData.getData()),
+            (int) uiData.getSize()
+        );
+        
         if (const std::unique_ptr xmlState(juce::parseXML(xmlText)); xmlState)
         {
             if (const auto *juce_ui = xmlState->getChildByName("JUCE-UI"))
