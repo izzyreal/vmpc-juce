@@ -459,14 +459,17 @@ void VmpcProcessor::processTransport()
     if (const auto positionInfo = getPlayHead()->getPosition();
         positionInfo.hasValue() && syncEnabled)
     {
-        const double tempo = positionInfo->getBpm().orFallback(120);
+        const int tempo10 = static_cast<int>(
+            std::lround(positionInfo->getBpm().orFallback(120.0) * 10.0));
+
         const bool isPlaying = positionInfo->getIsPlaying();
 
-        if (!nearlyEqual(tempo, m_Tempo) ||
-            !nearlyEqual(mpcTransport->getTempo(), tempo))
+        if (tempo10 != previousTempo10 ||
+            static_cast<int>(std::lround(mpcTransport->getTempo() * 10.0)) !=
+                tempo10)
         {
-            mpcTransport->setTempo(tempo);
-            m_Tempo = tempo;
+            mpcTransport->setTempo(tempo10 * 0.1);
+            previousTempo10 = tempo10;
         }
 
         const auto positionQuarterNotes =

@@ -65,7 +65,7 @@ namespace vmpc_juce
         void computeMpcAndHostOutputChannelIndicesToRender();
 
         int8_t lastHostChannelIndexThatWillBeWritten = 0;
-        double m_Tempo = 0;
+        int previousTempo10 = 0;
         bool wasPlaying = false;
         int framesProcessed = 0;
         double previousPositionQuarterNotes =
