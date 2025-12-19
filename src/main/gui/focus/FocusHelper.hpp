@@ -135,6 +135,11 @@ namespace vmpc_juce::gui::focus
                 newFocus = isForegroundProcess && peerIsValid &&
                            peerHandleIsValid && isEditorFrontmost;
             }
+            else if (juce::PluginHostType().isGarageBand())
+            {
+                newFocus = isForegroundProcess && peerIsValid &&
+                           peerHandleIsValid && isEditorFrontmost;
+            }
             else
             {
                 newFocus = isForegroundProcess && isActiveWindow &&
