@@ -71,7 +71,7 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
     const auto versionString = std::string(build_info::getVersionString());
     const auto buildTimeString = std::string(build_info::getTimeStampString());
 
-    mpc::Logger::l.setPath(mpc.paths->logFilePath().string());
+    mpc::Logger::l.setPath(mpc.paths->getDocuments()->logFilePath().string());
     mpc::Logger::l.log(
         "\n\n"
         "------------------------------------------------------------\n"
@@ -95,7 +95,7 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
 
     if (juce::JUCEApplication::isStandaloneApp())
     {
-        const auto autosaveDir = mpc.paths->autoSavePath();
+        const auto autosaveDir = mpc.paths->getDocuments()->autoSavePath();
         const auto saveTarget =
             std::make_shared<mpc::DirectorySaveTarget>(autosaveDir);
         const bool headless = !VmpcProcessor::hasEditor();
@@ -114,7 +114,7 @@ VmpcProcessor::~VmpcProcessor()
 {
     if (juce::JUCEApplication::isStandaloneApp())
     {
-        const auto autosaveDir = mpc.paths->autoSavePath();
+        const auto autosaveDir = mpc.paths->getDocuments()->autoSavePath();
         const auto saveTarget =
             std::make_shared<mpc::DirectorySaveTarget>(autosaveDir);
 
