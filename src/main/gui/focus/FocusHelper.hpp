@@ -145,8 +145,21 @@ namespace vmpc_juce::gui::focus
                 newFocus = isForegroundProcess && peerIsValid &&
                            peerHandleIsValid && isEditorFrontmost;
             }
+            else if (juce::PluginHostType().isRenoise())
+            {
+                newFocus = isForegroundProcess && peerIsValid &&
+                           peerHandleIsValid && isEditorFrontmost;
+            }
+            else if (!juce::JUCEApplication::isStandaloneApp())
+            {
+                // Unknown plugin hosts, such as:
+                // Cakewalk Next
+                newFocus = isForegroundProcess && peerIsValid &&
+                           peerHandleIsValid && isEditorFrontmost;
+            }
             else
             {
+                // Standalone app
                 newFocus = isForegroundProcess && isActiveWindow &&
                            hasFocusedComponent && peerIsValid &&
                            peerHandleIsValid && isEditorFrontmost;
