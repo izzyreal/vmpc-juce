@@ -74,7 +74,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
 
     addAndMakeVisible(view);
 
-    startTimer(100);
+    startTimer(500);
 }
 
 VmpcEditor::~VmpcEditor()
