@@ -103,7 +103,6 @@ namespace vmpc_juce::gui::focus
 
                     if (auxHandleValid && isEditorKeyWindow(auxHandle))
                     {
-                        // substitute aux peer completely
                         peerIsValid = true;
                         peerHandleIsValid = true;
                         isEditorFrontmost = true;
@@ -118,13 +117,11 @@ namespace vmpc_juce::gui::focus
             if (juce::PluginHostType::jucePlugInClientCurrentWrapperType ==
                 juce::AudioProcessor::wrapperType_AudioUnitv3)
             {
-                // AUv3 case
                 newFocus = isForegroundProcess && peerIsValid &&
                            peerHandleIsValid && isEditorFrontmost;
             }
             else if (juce::PluginHostType().isReaper())
             {
-                // Reaper-specific rule
                 newFocus = isForegroundProcess && peerIsValid &&
                            peerHandleIsValid && isEditorFrontmost;
             }
@@ -133,15 +130,18 @@ namespace vmpc_juce::gui::focus
                 newFocus = isForegroundProcess && peerIsValid &&
                            peerHandleIsValid && isEditorFrontmost;
             }
+            else if (juce::PluginHostType().isBitwigStudio())
+            {
+                newFocus = isForegroundProcess && peerIsValid &&
+                           peerHandleIsValid && isEditorFrontmost;
+            }
             else
             {
-                // Generic / other hosts
                 newFocus = isForegroundProcess && isActiveWindow &&
                            hasFocusedComponent && peerIsValid &&
                            peerHandleIsValid && isEditorFrontmost;
             }
 
-            // --- handle transitions ---
             if (focus && !newFocus)
             {
                 onFocusLost();
