@@ -3,6 +3,8 @@
 
 #include "gui/vector/View.hpp"
 
+#include <raw_keyboard_input/raw_keyboard_input.h>
+
 using namespace vmpc_juce;
 using namespace vmpc_juce::gui::vector;
 
@@ -113,4 +115,21 @@ void VmpcEditor::resized()
 
     view->setBounds(viewOffsetX, viewOffsetY, static_cast<int>(targetWidth),
                     static_cast<int>(targetHeight));
+}
+
+void VmpcEditor::handleRawKeyEvent(const juce::RawKeyEvent &k)
+{
+    if (!juce::PluginHostType().isRenoise())
+    {
+        return;
+    }
+
+    if (k.keyDown)
+    {
+        view->getKeyboard()->onKeyDownFn(k.keyCode);
+    }
+    else
+    {
+        view->getKeyboard()->onKeyUpFn(k.keyCode);
+    }
 }

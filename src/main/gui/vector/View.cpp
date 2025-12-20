@@ -481,3 +481,8 @@ vmpc_juce::gui::focus::FocusHelper *View::getFocusHelper() const
 {
     return focusHelper;
 }
+
+Keyboard *View::getKeyboard() const
+{
+    return keyboard;
+}

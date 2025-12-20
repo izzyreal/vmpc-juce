@@ -51,6 +51,8 @@ namespace vmpc_juce::gui::vector
 
         focus::FocusHelper *getFocusHelper() const;
 
+        Keyboard *getKeyboard() const;
+
     private:
         void onKeyUp(int, bool ctrlDown, bool altDown, bool shiftDown) const;
         void onKeyDown(int, bool ctrlDown, bool altDown, bool shiftDown) const;
