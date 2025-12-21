@@ -29,6 +29,17 @@ namespace vmpc_juce
 
         void timerCallback() override;
 
+        // Invoked by patched JUCE code (raw_keyboard.patch), but only
+        // on macOS. See juce_NSViewComponentPeer.mm, juce_RawKeyEvent.hpp, etc.
+        // We usually rely on juce-raw-keyboard-input-module, which, on
+        // macOS, sets up an event monitor in the current process. This works
+        // well in most hosts and most platforms, but in Renoise on macOS it
+        // doesn't, except for modifier input. So it seems that Renoise is
+        // (knowingly or unknowingly) preventing non-modifier monitoring.
+        // So in this case we rely on juce_NSViewComponentPeer.mm propagating
+        // raw key events, which it only does for non-modifier events.
+        // juce-raw-keyboard-input-module is still used in Renoise on macOS
+        // for modifier events.
         void handleRawKeyEvent(const juce::RawKeyEvent &) override;
 
         bool keyPressed(const juce::KeyPress &k) override
