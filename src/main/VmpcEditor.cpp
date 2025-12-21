@@ -119,7 +119,11 @@ void VmpcEditor::resized()
 
 void VmpcEditor::handleRawKeyEvent(const juce::RawKeyEvent &k)
 {
-    if (!juce::PluginHostType().isRenoise())
+    const auto hostType = juce::PluginHostType();
+    const auto hostPath = juce::PluginHostType().getHostPath();
+
+    if (!hostType.isRenoise() &&
+        !hostPath.containsIgnoreCase("ardour"))
     {
         return;
     }

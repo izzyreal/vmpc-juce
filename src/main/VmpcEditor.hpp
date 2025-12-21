@@ -21,7 +21,10 @@ namespace vmpc_juce
 
     class VmpcProcessor;
 
-    class VmpcEditor : public juce::AudioProcessorEditor, juce::Timer, public juce::RawKeyEventSink
+    class VmpcEditor : public juce::AudioProcessorEditor,
+                       juce::Timer,
+                       public juce::RawKeyEventSink,
+                       public juce::MouseListener
     {
     public:
         explicit VmpcEditor(VmpcProcessor &);
@@ -40,6 +43,7 @@ namespace vmpc_juce
         // raw key events, which it only does for non-modifier events.
         // juce-raw-keyboard-input-module is still used in Renoise on macOS
         // for modifier events.
+        // Also adding to the list: Ardour on macOS.
         void handleRawKeyEvent(const juce::RawKeyEvent &) override;
 
         bool keyPressed(const juce::KeyPress &k) override
