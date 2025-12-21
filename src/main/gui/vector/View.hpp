@@ -67,6 +67,8 @@ namespace vmpc_juce::gui::vector
         const std::function<juce::Font &()> getMpc2000xlFaceplateGlyphsScaled;
         const std::function<juce::Font &()> getKeyTooltipFontScaled;
 
+        std::function<void()> closeAbout;
+
         focus::FocusHelper *focusHelper = nullptr;
         Keyboard *keyboard = nullptr;
 

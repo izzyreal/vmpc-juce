@@ -56,7 +56,7 @@ namespace vmpc_juce::gui::vector
 
     private:
         const std::function<float()> &getScale;
-        const std::function<void()> closeAbout;
+        const std::function<void()> &closeAbout;
         bool mouseIsOver = false;
     };
 } // namespace vmpc_juce::gui::vector

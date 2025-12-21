@@ -210,7 +210,7 @@ View::View(mpc::Mpc &mpcToUse,
         tooltipOverlay->setAllKeyTooltipsVisibility(visibleEnabled);
     };
 
-    const auto closeAbout = [this]
+    closeAbout = [this]
     {
         if (about == nullptr)
         {
@@ -221,7 +221,7 @@ View::View(mpc::Mpc &mpcToUse,
         about = nullptr;
     };
 
-    const auto openAbout = [this, closeAbout, wrapperType, isInstrument]
+    const auto openAbout = [this, wrapperType, isInstrument]
     {
         using W = juce::AudioProcessor::WrapperType;
         std::string wrapperTypeString;

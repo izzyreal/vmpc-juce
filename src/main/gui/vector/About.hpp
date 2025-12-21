@@ -346,7 +346,7 @@ namespace vmpc_juce::gui::vector
 
         const std::function<float()> &getScale;
         const std::function<juce::Font &()> &getMainFontScaled;
-        const std::function<void()> closeAboutFn;
+        const std::function<void()> &closeAboutFn;
         TextWithLinks *textWithLinks = nullptr;
         std::string creditsText;
         float scrollOffset = 0.f;
