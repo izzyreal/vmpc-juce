@@ -61,15 +61,26 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
 #else
 
     setSize(initialWindowWidth, initialWindowHeight);
-    const bool useCornerResizer = vmpcProcessor.wrapperType !=
-                                  juce::AudioProcessor::wrapperType_AudioUnitv3;
-    setResizable(true, useCornerResizer);
-    getConstrainer()->setFixedAspectRatio(viewAspectRatio);
-    getConstrainer()->setSizeLimits(
-        static_cast<int>(static_cast<float>(initialDimensions.first) / 2.f),
-        static_cast<int>(static_cast<float>(initialDimensions.second) / 2.f),
-        static_cast<int>(static_cast<float>(initialDimensions.first) * 1.1f),
-        static_cast<int>(static_cast<float>(initialDimensions.second) * 1.1f));
+
+    if (juce::PluginHostType::getHostPath().containsIgnoreCase("ardour"))
+    {
+        constexpr bool useCornerResizer = false;
+        setResizable(true, useCornerResizer);
+        juce::Desktop::getInstance().setGlobalScaleFactor(0.5f);
+    }
+    else
+    {
+        const bool useCornerResizer = vmpcProcessor.wrapperType !=
+                              juce::AudioProcessor::wrapperType_AudioUnitv3;
+        setResizable(true, useCornerResizer);
+        getConstrainer()->setFixedAspectRatio(viewAspectRatio);
+        getConstrainer()->setSizeLimits(
+            static_cast<int>(static_cast<float>(initialDimensions.first) / 2.f),
+            static_cast<int>(static_cast<float>(initialDimensions.second) / 2.f),
+            static_cast<int>(static_cast<float>(initialDimensions.first) * 1.1f),
+            static_cast<int>(static_cast<float>(initialDimensions.second) * 1.1f));
+    }
+
     setLookAndFeel(&lookAndFeel);
 
 #endif
@@ -120,7 +131,7 @@ void VmpcEditor::resized()
 void VmpcEditor::handleRawKeyEvent(const juce::RawKeyEvent &k)
 {
     const auto hostType = juce::PluginHostType();
-    const auto hostPath = juce::PluginHostType().getHostPath();
+    const auto hostPath = juce::PluginHostType::getHostPath();
 
     if (!hostType.isRenoise() &&
         !hostPath.containsIgnoreCase("ardour"))
@@ -128,5 +139,5 @@ void VmpcEditor::handleRawKeyEvent(const juce::RawKeyEvent &k)
         return;
     }
 
-    view->getKeyboard()->processKeyEvent(k.keyCode, k.keyDown);
+    Keyboard::processKeyEvent(k.keyCode, k.keyDown);
 }

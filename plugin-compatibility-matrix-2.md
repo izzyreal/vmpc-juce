@@ -5,7 +5,8 @@
 | [Ableton Live](https://www.ableton.com/) AUv3 inst           | :heavy_check_mark:     | :heavy_check_mark:       | :heavy_check_mark:       | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_check_mark:`AAA` |
 | [Ableton Live](https://www.ableton.com/) AUv3 fx             | :heavy_check_mark:`A`​ | :heavy_check_mark:       | :heavy_check_mark:`AA` | :heavy_multiplication_x: | :heavy_multiplication_x: | :heavy_check_mark:`AAA` |
 | [Ableton Live](https://www.ableton.com/) VST3                | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:       | :heavy_check_mark:       | :heavy_check_mark:`AAA`  |
-| [Ardour](https://ardour.org/) LV2                            |                        |                          |                          |                          |                          |                          |
+| [Ardour](https://ardour.org/) LV2 |  |  |  |  |  |  |
+| [Ardour](https://ardour.org/) VST3 |  |  |  |  |  |  |
 | [AUM](https://kymatica.com/apps/aum) AUv3 instrument         |                        |                          |                          |                          |                          |                          |
 | [AUM](https://kymatica.com/apps/aum) AUv3 fx | | | | | | |
 | [Bitwig](https://www.bitwig.com/) VST3                       | :heavy_check_mark:     | :heavy_check_mark:       | :heavy_check_mark:       | :heavy_check_mark:       | :heavy_check_mark:       | :heavy_check_mark:       |
@@ -123,6 +124,10 @@ When using the LV2 in Reaper, and when pressing the "Escape" key in VMPC2000XL t
 On Windows, the issue of the plugin window closing when you press the "Escape" key can be resolved by enabling "FX | Window float selected FX" or "FX | Dock FX window in Docker".
 
 Note: Carla on Windows and macOS don't have this "Escape" key probem with the LV2. "Send all keyboard input to plug-in" seems to have no effect.
+
+## Ardour
+
+Ardour does not respect VMPC2000XL's plugin aspect ratio, so after resizing it's likely you will see some empty area around VMPC2000XL's GUI. I also couldn't find a way to specify a minimum window size without affecting the initial one, so, in Ardour, the window size is initially at its smallest.
 
 ## Miscellaneous hosts
 
