@@ -60,26 +60,29 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
     }
 #else
 
-    setSize(initialWindowWidth, initialWindowHeight);
-
     if (juce::PluginHostType::getHostPath().containsIgnoreCase("ardour"))
     {
+        setSize(
+            static_cast<int>(static_cast<float>(initialWindowWidth) * 0.5f),
+            static_cast<int>(static_cast<float>(initialWindowHeight) * 0.5f));
         constexpr bool useCornerResizer = false;
         setResizable(true, useCornerResizer);
-        juce::Desktop::getInstance().setGlobalScaleFactor(0.5f);
     }
     else
     {
-        const bool useCornerResizer = vmpcProcessor.wrapperType !=
-                              juce::AudioProcessor::wrapperType_AudioUnitv3;
+        setSize(initialWindowWidth, initialWindowHeight);
+        const bool useCornerResizer =
+            vmpcProcessor.wrapperType !=
+            juce::AudioProcessor::wrapperType_AudioUnitv3;
         setResizable(true, useCornerResizer);
-        getConstrainer()->setFixedAspectRatio(viewAspectRatio);
-        getConstrainer()->setSizeLimits(
-            static_cast<int>(static_cast<float>(initialDimensions.first) / 2.f),
-            static_cast<int>(static_cast<float>(initialDimensions.second) / 2.f),
-            static_cast<int>(static_cast<float>(initialDimensions.first) * 1.1f),
-            static_cast<int>(static_cast<float>(initialDimensions.second) * 1.1f));
     }
+
+    getConstrainer()->setFixedAspectRatio(viewAspectRatio);
+    getConstrainer()->setSizeLimits(
+        static_cast<int>(static_cast<float>(initialDimensions.first) / 2.f),
+        static_cast<int>(static_cast<float>(initialDimensions.second) / 2.f),
+        static_cast<int>(static_cast<float>(initialDimensions.first) * 1.1f),
+        static_cast<int>(static_cast<float>(initialDimensions.second) * 1.1f));
 
     setLookAndFeel(&lookAndFeel);
 
@@ -133,8 +136,7 @@ void VmpcEditor::handleRawKeyEvent(const juce::RawKeyEvent &k)
     const auto hostType = juce::PluginHostType();
     const auto hostPath = juce::PluginHostType::getHostPath();
 
-    if (!hostType.isRenoise() &&
-        !hostPath.containsIgnoreCase("ardour"))
+    if (!hostType.isRenoise() && !hostPath.containsIgnoreCase("ardour"))
     {
         return;
     }
