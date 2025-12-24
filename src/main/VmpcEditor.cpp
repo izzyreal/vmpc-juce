@@ -65,7 +65,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
         setSize(
             static_cast<int>(static_cast<float>(initialWindowWidth) * 0.5f),
             static_cast<int>(static_cast<float>(initialWindowHeight) * 0.5f));
-        constexpr bool useCornerResizer = false;
+        constexpr bool useCornerResizer = true;
         setResizable(true, useCornerResizer);
     }
     else
