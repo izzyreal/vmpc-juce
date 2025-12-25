@@ -77,10 +77,23 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
         setResizable(true, useCornerResizer);
     }
 
-    getConstrainer()->setFixedAspectRatio(viewAspectRatio);
+#if __linux__
+    const bool shouldFixAspectRatio =
+        !juce::PluginHostType::hostPath.containsIgnoreCase("ardour") &&
+        !juce::PluginHostType::hostPath.containsIgnoreCase("carla");
+#else
+    const bool shouldFixAspectRatio =
+        !juce::PluginHostType::hostPath.containsIgnoreCase("ardour");
+#endif
+
+    if (shouldFixAspectRatio)
+    {
+        getConstrainer()->setFixedAspectRatio(viewAspectRatio);
+    }
+
     getConstrainer()->setSizeLimits(
-        static_cast<int>(static_cast<float>(initialDimensions.first) / 2.f),
-        static_cast<int>(static_cast<float>(initialDimensions.second) / 2.f),
+        static_cast<int>(static_cast<float>(initialDimensions.first) / 4.f),
+        static_cast<int>(static_cast<float>(initialDimensions.second) / 4.f),
         static_cast<int>(static_cast<float>(initialDimensions.first) * 1.1f),
         static_cast<int>(static_cast<float>(initialDimensions.second) * 1.1f));
 
