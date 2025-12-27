@@ -25,7 +25,7 @@
 
 #include "hardware/ComponentId.hpp"
 #include "hardware/Hardware.hpp"
-#include "input/KeyCodeHelper.hpp"
+#include "input/keyboard/KeyCodeHelper.hpp"
 #include "sequencer/Sequencer.hpp"
 #include "sequencer/Transport.hpp"
 
@@ -450,7 +450,7 @@ void ViewUtil::createComponent(
                     {
                         const auto keyboardBindings =
                             mpc.clientEventController->getKeyboardBindings();
-                        return mpc::input::KeyCodeHelper::
+                        return mpc::input::keyboard::KeyCodeHelper::
                             guessCharactersPrintedOnKeyUnicode(keycode);
                     };
 
