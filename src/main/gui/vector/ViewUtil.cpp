@@ -434,7 +434,7 @@ void ViewUtil::createComponent(
             for (size_t i = 0; i < componentIds.size(); i++)
             {
                 auto keycodes = mpc.clientEventController->getKeyboardBindings()
-                                    ->lookupComponent(componentIds[i]);
+                                    ->lookupComponentKeyCodes(componentIds[i]);
 
                 for (size_t j = 0; j < keycodes.size(); j++)
                 {
