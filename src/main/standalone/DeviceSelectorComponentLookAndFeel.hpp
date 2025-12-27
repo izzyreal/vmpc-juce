@@ -182,12 +182,13 @@ namespace vmpc_juce::standalone
         }
 
         void drawButtonBackground(juce::Graphics &g, juce::Button &button,
-                                  const juce::Colour &/*backgroundColour*/,
+                                  const juce::Colour & /*backgroundColour*/,
                                   const bool shouldDrawButtonAsHighlighted,
                                   const bool shouldDrawButtonAsDown) override
         {
             constexpr auto cornerSize = 3.0f;
-            const auto bounds = button.getLocalBounds().toFloat().reduced(0.5f, 0.5f);
+            const auto bounds =
+                button.getLocalBounds().toFloat().reduced(0.5f, 0.5f);
 
             auto baseColour =
                 backgroundColour
@@ -387,32 +388,38 @@ namespace vmpc_juce::standalone
             }
         }
 
-        void drawLabel (juce::Graphics& g, juce::Label& label) override
+        void drawLabel(juce::Graphics &g, juce::Label &label) override
         {
-            g.fillAll (label.findColour (juce::Label::backgroundColourId));
+            g.fillAll(label.findColour(juce::Label::backgroundColourId));
 
-            if (! label.isBeingEdited())
+            if (!label.isBeingEdited())
             {
                 auto alpha = label.isEnabled() ? 1.0f : 0.5f;
-                const juce::Font font (getLabelFont (label));
+                const juce::Font font(getLabelFont(label));
 
-                g.setColour (label.findColour (juce::Label::textColourId).withMultipliedAlpha (alpha));
-                g.setFont (font);
+                g.setColour(label.findColour(juce::Label::textColourId)
+                                .withMultipliedAlpha(alpha));
+                g.setFont(font);
 
-                auto textArea = getLabelBorderSize (label).subtractedFrom (label.getLocalBounds()).translated(0, -3);
+                auto textArea = getLabelBorderSize(label)
+                                    .subtractedFrom(label.getLocalBounds())
+                                    .translated(0, -3);
 
-                g.drawFittedText (label.getText(), textArea, label.getJustificationType(),
-                                  juce::jmax (1, (int) ((float) textArea.getHeight() / font.getHeight())),
-                                  label.getMinimumHorizontalScale());
+                g.drawFittedText(
+                    label.getText(), textArea, label.getJustificationType(),
+                    juce::jmax(1, (int)((float)textArea.getHeight() /
+                                        font.getHeight())),
+                    label.getMinimumHorizontalScale());
 
-                g.setColour (label.findColour (juce::Label::outlineColourId).withMultipliedAlpha (alpha));
+                g.setColour(label.findColour(juce::Label::outlineColourId)
+                                .withMultipliedAlpha(alpha));
             }
             else if (label.isEnabled())
             {
-                g.setColour (label.findColour (juce::Label::outlineColourId));
+                g.setColour(label.findColour(juce::Label::outlineColourId));
             }
 
-            g.drawRect (label.getLocalBounds());
+            g.drawRect(label.getLocalBounds());
         }
 
     private:

@@ -80,12 +80,10 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
     const auto hostPath = juce::PluginHostType::getHostPath();
 
 #if __linux__
-    const bool shouldFixAspectRatio =
-        !hostPath.containsIgnoreCase("ardour") &&
-        !hostPath.containsIgnoreCase("carla");
+    const bool shouldFixAspectRatio = !hostPath.containsIgnoreCase("ardour") &&
+                                      !hostPath.containsIgnoreCase("carla");
 #else
-    const bool shouldFixAspectRatio =
-        !hostPath.containsIgnoreCase("ardour");
+    const bool shouldFixAspectRatio = !hostPath.containsIgnoreCase("ardour");
 #endif
 
     if (shouldFixAspectRatio)

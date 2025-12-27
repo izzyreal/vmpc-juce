@@ -11,13 +11,14 @@ namespace vmpc_juce::standalone
     class DeviceSelectorComponentLookAndFeel;
 
     class DeviceSelectorComponent final : public juce::Component,
-                                                        juce::ChangeListener
+                                          juce::ChangeListener
     {
     public:
-        DeviceSelectorComponent(
-            AudioDeviceManager &deviceManager, int minAudioInputChannels,
-            int maxAudioInputChannels, int minAudioOutputChannels,
-            int maxAudioOutputChannels);
+        DeviceSelectorComponent(AudioDeviceManager &deviceManager,
+                                int minAudioInputChannels,
+                                int maxAudioInputChannels,
+                                int minAudioOutputChannels,
+                                int maxAudioOutputChannels);
 
         ~DeviceSelectorComponent() override;
 
@@ -61,8 +62,7 @@ namespace vmpc_juce::standalone
         std::unique_ptr<juce::Label> midiInputsLabel, midiOutputLabel;
         std::unique_ptr<juce::TextButton> bluetoothButton;
 
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
-            DeviceSelectorComponent)
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DeviceSelectorComponent)
     };
 
 } // namespace vmpc_juce::standalone

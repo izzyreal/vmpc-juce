@@ -27,8 +27,8 @@ namespace vmpc_juce::standalone
             PropertySet *settingsToUse,
             const bool takeOwnershipOfSettings = true,
             const String &preferredDefaultDeviceName = String(),
-            const AudioDeviceManager::AudioDeviceSetup
-                *preferredSetupOptions = nullptr,
+            const AudioDeviceManager::AudioDeviceSetup *preferredSetupOptions =
+                nullptr,
             const Array<PluginInOuts> &channels = Array<PluginInOuts>(),
 #if JUCE_ANDROID || JUCE_IOS
             bool shouldAutoOpenMidiDevices = true
@@ -43,13 +43,13 @@ namespace vmpc_juce::standalone
         {
             createPlugin();
             static_cast<VmpcProcessor *>(processor.get())
-                ->showAudioSettingsDialog =
-                [this]
+                ->showAudioSettingsDialog = [this]
             {
                 this->showAudioSettingsDialog();
             };
 
-            const auto inChannels = channelConfiguration.size() > 0
+            const auto inChannels =
+                channelConfiguration.size() > 0
                     ? channelConfiguration[0].numIns
                     : processor->getMainBusNumInputChannels();
 
@@ -200,10 +200,12 @@ namespace vmpc_juce::standalone
 
             if (channelConfiguration.size() > 0)
             {
-                const auto &defaultConfig = channelConfiguration.getReference(0);
+                const auto &defaultConfig =
+                    channelConfiguration.getReference(0);
 
                 maxNumInputs = jmax(0, static_cast<int>(defaultConfig.numIns));
-                maxNumOutputs = jmax(0, static_cast<int>(defaultConfig.numOuts));
+                maxNumOutputs =
+                    jmax(0, static_cast<int>(defaultConfig.numOuts));
             }
 
             if (const auto *bus = processor->getBus(true, 0))
@@ -255,7 +257,8 @@ namespace vmpc_juce::standalone
         }
 
         void reloadAudioDeviceState(
-            const bool enableAudioInput, const String &preferredDefaultDeviceName,
+            const bool enableAudioInput,
+            const String &preferredDefaultDeviceName,
             const AudioDeviceManager::AudioDeviceSetup *preferredSetupOptions)
         {
             std::unique_ptr<XmlElement> savedState;
@@ -304,8 +307,8 @@ namespace vmpc_juce::standalone
                         settings->getValue("filterState")) &&
                     data.getSize() > 0)
                 {
-                    processor->setStateInformation(data.getData(),
-                                                   static_cast<int>(data.getSize()));
+                    processor->setStateInformation(
+                        data.getData(), static_cast<int>(data.getSize()));
                 }
             }
         }
@@ -392,11 +395,9 @@ namespace vmpc_juce::standalone
             void audioDeviceAboutToStart(AudioIODevice *device) override
             {
                 maximumSize = device->getCurrentBufferSizeSamples();
-                storedInputChannels.resize(
-                    static_cast<size_t>(
+                storedInputChannels.resize(static_cast<size_t>(
                     device->getActiveInputChannels().countNumberOfSetBits()));
-                storedOutputChannels.resize(
-                    static_cast<size_t>(
+                storedOutputChannels.resize(static_cast<size_t>(
                     device->getActiveOutputChannels().countNumberOfSetBits()));
 
                 inner.audioDeviceAboutToStart(device);
@@ -404,8 +405,7 @@ namespace vmpc_juce::standalone
 
             void audioDeviceIOCallbackWithContext(
                 const float *const *inputChannelData,
-                const int numInputChannels,
-                float *const *outputChannelData,
+                const int numInputChannels, float *const *outputChannelData,
                 const int numOutputChannels, const int numSamples,
                 const AudioIODeviceCallbackContext &context) override
             {
@@ -430,7 +430,8 @@ namespace vmpc_juce::standalone
                         storedInputChannels.data(),
                         static_cast<int>(storedInputChannels.size()),
                         storedOutputChannels.data(),
-                        static_cast<int>(storedOutputChannels.size()), blockLength, context);
+                        static_cast<int>(storedOutputChannels.size()),
+                        blockLength, context);
 
                     position += blockLength;
                 }
@@ -501,7 +502,8 @@ namespace vmpc_juce::standalone
 
         //==============================================================================
         void setupAudioDevices(
-            const bool enableAudioInput, const String &preferredDefaultDeviceName,
+            const bool enableAudioInput,
+            const String &preferredDefaultDeviceName,
             const AudioDeviceManager::AudioDeviceSetup *preferredSetupOptions)
         {
             deviceManager.addAudioCallback(&maxSizeEnforcer);
@@ -576,8 +578,7 @@ namespace vmpc_juce::standalone
         {
 #else
             : DocumentWindow(title, backgroundColour,
-                             minimiseButton |
-                                 closeButton)
+                             minimiseButton | closeButton)
         {
 #endif
 #ifndef __linux__
@@ -593,9 +594,7 @@ namespace vmpc_juce::standalone
                                            DocumentWindow::maximiseButton,
                                        false);
 #else
-        setTitleBarButtonsRequired(minimiseButton |
-                                       closeButton,
-                                   false);
+        setTitleBarButtonsRequired(minimiseButton | closeButton, false);
 #endif
 
             pluginHolder.reset(new StandalonePluginHolder(
@@ -730,8 +729,8 @@ namespace vmpc_juce::standalone
         }
 
         class MainContentComponent final : public Component,
-                                     Value::Listener,
-                                     ComponentListener
+                                           Value::Listener,
+                                           ComponentListener
         {
         public:
             explicit MainContentComponent(StandaloneAppWindow &filterWindow)
@@ -820,8 +819,7 @@ namespace vmpc_juce::standalone
 
             void componentMovedOrResized(Component &, bool, bool) override
             {
-                const ScopedValueSetter scope(preventResizingEditor,
-                                                    true);
+                const ScopedValueSetter scope(preventResizingEditor, true);
 
                 if (editor != nullptr)
                 {

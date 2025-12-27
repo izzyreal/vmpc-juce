@@ -90,13 +90,14 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
 
         addAndMakeVisible(assignableMixOutList.get());
 
-        assignableMixOutLabel = std::make_unique<juce::Label>(
-            juce::String{}, "ASSIGNABLE MIX OUT");
+        assignableMixOutLabel =
+            std::make_unique<juce::Label>(juce::String{}, "ASSIGNABLE MIX OUT");
 
         assignableMixOutLabel->setJustificationType(
             juce::Justification::centredLeft);
 
-        assignableMixOutLabel->attachToComponent(assignableMixOutList.get(), true);
+        assignableMixOutLabel->attachToComponent(assignableMixOutList.get(),
+                                                 true);
     }
 
     {
@@ -254,8 +255,9 @@ void AudioDeviceSettingsPanel::resized()
     stereoOutLabel->setBounds(labelAreaLeftMargin, stereoOutList->getY(),
                               labelAreaWidth, h);
 
-    assignableMixOutLabel->setBounds(labelAreaLeftMargin, assignableMixOutList->getY(),
-                              labelAreaWidth, assignableMixOutList->getHeight());
+    assignableMixOutLabel->setBounds(
+        labelAreaLeftMargin, assignableMixOutList->getY(), labelAreaWidth,
+        assignableMixOutList->getHeight());
 
     sampleRateLabel->setBounds(labelAreaLeftMargin, sampleRateDropDown->getY(),
                                labelAreaWidth, sampleRateDropDown->getHeight());

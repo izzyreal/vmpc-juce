@@ -16,13 +16,11 @@ namespace vmpc_juce::standalone
             audioOutputType
         };
 
-        ChannelSelectorListBox(bool useStereoPairs,
-                               const AudioDeviceSetupDetails &setupDetails,
-                               BoxType boxType,
-                               int channelOffset,
-                               int maxChannelCount,
-                               const juce::Font &mainFont,
-                               const std::vector<std::string> &&nameSuffixes = {});
+        ChannelSelectorListBox(
+            bool useStereoPairs, const AudioDeviceSetupDetails &setupDetails,
+            BoxType boxType, int channelOffset, int maxChannelCount,
+            const juce::Font &mainFont,
+            const std::vector<std::string> &&nameSuffixes = {});
 
         void refresh();
 

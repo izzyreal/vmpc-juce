@@ -38,7 +38,7 @@ namespace vmpc_juce::standalone
         }
 
         static juce::String getNameForChannelPair(const juce::String &name1,
-                                           const juce::String &name2)
+                                                  const juce::String &name2)
         {
             juce::String commonBit;
 

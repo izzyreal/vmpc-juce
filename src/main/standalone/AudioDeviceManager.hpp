@@ -89,7 +89,8 @@ namespace vmpc_juce::standalone
         void addMidiInputDeviceCallback(const juce::String &deviceIdentifier,
                                         juce::MidiInputCallback *callback);
 
-        void removeMidiInputDeviceCallback(const juce::String &deviceIdentifier,
+        void
+        removeMidiInputDeviceCallback(const juce::String &deviceIdentifier,
                                       const juce::MidiInputCallback *callback);
 
         void setDefaultMidiOutputDevice(const juce::String &deviceIdentifier);

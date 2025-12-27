@@ -10,4 +10,4 @@ namespace vmpc_juce::standalone
         int minNumInputChannels, maxNumInputChannels;
         int minNumOutputChannels, maxNumOutputChannels;
     };
-}
+} // namespace vmpc_juce::standalone

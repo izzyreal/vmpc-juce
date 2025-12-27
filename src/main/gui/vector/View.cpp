@@ -120,12 +120,13 @@ View::View(mpc::Mpc &mpcToUse,
     };
 
     const auto isVmpcKeyDown =
-        [&](const std::initializer_list<mpc::input::keyboard::VmpcKeyCode> keyCodes)
+        [&](const std::initializer_list<mpc::input::keyboard::VmpcKeyCode>
+                keyCodes)
     {
         for (auto &k : keyCodes)
         {
-            if (keyboard->isKeyDown(
-                    mpc::input::keyboard::KeyCodeHelper::getPlatformFromVmpcKeyCode(k)))
+            if (keyboard->isKeyDown(mpc::input::keyboard::KeyCodeHelper::
+                                        getPlatformFromVmpcKeyCode(k)))
             {
                 return true;
             }
@@ -133,14 +134,14 @@ View::View(mpc::Mpc &mpcToUse,
         return false;
     };
 
-    const auto getKeyboardMods = [&, isVmpcKeyDown]() -> std::tuple<bool, bool, bool>
+    const auto getKeyboardMods =
+        [&, isVmpcKeyDown]() -> std::tuple<bool, bool, bool>
     {
         using namespace mpc::input::keyboard;
 
         const bool shiftDown = isVmpcKeyDown(
-            {VmpcKeyCode::VMPC_KEY_Shift,
-                           VmpcKeyCode::VMPC_KEY_LeftShift,
-                           VmpcKeyCode::VMPC_KEY_RightShift});
+            {VmpcKeyCode::VMPC_KEY_Shift, VmpcKeyCode::VMPC_KEY_LeftShift,
+             VmpcKeyCode::VMPC_KEY_RightShift});
 
         const bool altDown =
             isVmpcKeyDown({VmpcKeyCode::VMPC_KEY_OptionOrAlt,

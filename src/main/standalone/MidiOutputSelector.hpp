@@ -9,13 +9,11 @@ namespace vmpc_juce::standalone
 {
     class AudioDeviceManager;
 
-    class MidiOutputSelector final
-        : public juce::Component,
-          juce::ChangeListener
+    class MidiOutputSelector final : public juce::Component,
+                                     juce::ChangeListener
     {
     public:
-        explicit MidiOutputSelector(AudioDeviceManager &dm)
-            : deviceManager(dm)
+        explicit MidiOutputSelector(AudioDeviceManager &dm) : deviceManager(dm)
         {
             deviceManager.addChangeListener(this);
             selector.onChange = [&]

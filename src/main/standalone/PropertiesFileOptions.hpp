@@ -25,4 +25,4 @@ namespace vmpc_juce::standalone
 #endif
         }
     };
-} // namespace vmpc_juce
+} // namespace vmpc_juce::standalone

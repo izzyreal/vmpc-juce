@@ -38,4 +38,4 @@ namespace vmpc_juce::standalone
         std::unique_ptr<StandaloneAppWindow> mainWindow;
         void requestQuit() const;
     };
-} // namespace vmpc_juce
+} // namespace vmpc_juce::standalone
