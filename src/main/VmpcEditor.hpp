@@ -23,8 +23,7 @@ namespace vmpc_juce
 
     class VmpcEditor : public juce::AudioProcessorEditor,
                        juce::Timer,
-                       public juce::RawKeyEventSink,
-                       public juce::MouseListener
+                       public juce::RawKeyEventSink
     {
     public:
         explicit VmpcEditor(VmpcProcessor &);
