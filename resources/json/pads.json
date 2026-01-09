@@ -72,7 +72,7 @@
       "children" : [
     { "name" : "pad-13", "type" : "pad", "hardware_label" : "pad-13-or-yz", "width" : "auto", "area" : [ 2, 1, 2, 1 ] },
     { "name" : "pad-14", "type" : "pad", "hardware_label" : "pad-14-or-ampersand-octothorpe", "width" : "auto", "area" : [ 2, 3, 2, 3 ] },
-    { "name" : "pad-15", "type" : "pad", "hardware_label" : "pad-15-or-hyphen-eclamation-mark", "width" : "auto", "area" : [ 2, 5, 2, 5 ] },
+    { "name" : "pad-15", "type" : "pad", "hardware_label" : "pad-15-or-hyphen-exclamation-mark", "width" : "auto", "area" : [ 2, 5, 2, 5 ] },
     { "name" : "pad-16", "type" : "pad", "hardware_label" : "pad-16-or-parentheses", "width" : "auto", "area" : [ 2, 7, 2, 7 ] },
     { "name" : "pad-9",  "type" : "pad", "hardware_label" : "pad-9-or-qr", "width" : "auto", "area" : [ 4, 1, 4, 1 ] },
     { "name" : "pad-10", "type" : "pad", "hardware_label" : "pad-10-or-st", "width" : "auto", "area" : [ 4, 3, 4, 3 ] },
