@@ -168,7 +168,7 @@
 
 -(UIAlertAction *)createShareDirectToDiskRecordingAction:(mpc::Mpc*)mpc filePathsArray:(NSMutableArray<NSString *> *)filePathsArray {
 
-    const fs::path directToDiskRecordingsDirectory = mpc->paths->recordingsPath();
+    const fs::path directToDiskRecordingsDirectory = mpc->paths->getDocuments()->recordingsPath();
 
     UIAlertAction *action = [UIAlertAction actionWithTitle:@"Share Direct to Disk Recordings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull /* action */) {
         

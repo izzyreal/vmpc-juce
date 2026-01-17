@@ -60,7 +60,7 @@
     [self.directoryPaths removeAllObjects];
     int yPosition = 20;
     int tag = 0;
-    for (auto& p : fs::directory_iterator(self.mpc->paths->recordingsPath())) {
+    for (auto& p : fs::directory_iterator(self.mpc->paths->getDocuments()->recordingsPath())) {
         NSString *directoryPath = [NSString stringWithUTF8String:p.path().c_str()];
         [self.directoryPaths addObject:directoryPath];
 
