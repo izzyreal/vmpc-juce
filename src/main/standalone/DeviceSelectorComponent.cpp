@@ -175,7 +175,11 @@ namespace vmpc_juce::standalone
         }
 
         r.removeFromTop(itemHeight);
-
+        
+#if JUCE_IOS
+        r.removeFromTop(itemHeight);
+#endif
+    
         setSize(getWidth(), r.getY());
     }
 

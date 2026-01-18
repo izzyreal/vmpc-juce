@@ -30,8 +30,7 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
         addAndMakeVisible(outputDeviceDropDown.get());
 
         outputDeviceLabel = std::make_unique<juce::Label>(
-            juce::String{},
-            type.hasSeparateInputsAndOutputs() ? "Output Device" : "Device");
+            juce::String{}, "Output Device");
         outputDeviceLabel->setJustificationType(
             juce::Justification::centredLeft);
         addAndMakeVisible(outputDeviceLabel.get());
@@ -39,6 +38,7 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
 
     {
         inputDeviceDropDown = std::make_unique<juce::ComboBox>();
+        inputDeviceDropDown->setTextWhenNothingSelected("(Same as output device)");
         inputDeviceDropDown->onChange = [this]
         {
             updateConfig(false, true, false, false);
