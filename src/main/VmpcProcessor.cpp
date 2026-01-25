@@ -744,7 +744,7 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
         juce::MemoryOutputStream xmlOut;
         root.writeTo(xmlOut, {});
         auto *xmlIn = new juce::MemoryInputStream(xmlOut.getData(),
-                                                  xmlOut.getDataSize(), false);
+                                                  xmlOut.getDataSize(), true);
         builder.addEntry(xmlIn, 0, "ui.xml", juce::Time::getCurrentTime());
     }
 
@@ -754,7 +754,7 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
         const auto zipBlock = mpcTarget->toZipMemoryBlock();
 
         auto *mpcIn = new juce::MemoryInputStream(zipBlock->getData(),
-                                                  zipBlock->getSize(), false);
+                                                  zipBlock->getSize(), true);
         builder.addEntry(mpcIn, 0, "autosave.zip",
                          juce::Time::getCurrentTime());
     }
