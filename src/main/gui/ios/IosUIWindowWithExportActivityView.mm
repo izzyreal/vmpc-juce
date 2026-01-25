@@ -20,41 +20,45 @@
 
 @implementation UIWindow (WithExportActivityView)
 
-- (NSMutableArray<NSString *> *)writeApsAllAndSnd:(mpc::Mpc *)mpc {
+- (NSMutableArray<NSURL *> *)writeApsAllAndSnd:(mpc::Mpc *)mpc {
     
-    NSString *tempDirectory = NSTemporaryDirectory();
-    NSMutableArray<NSString *> *filePathsArray = [NSMutableArray array];
+    NSURL *tempDirectoryURL = [NSURL fileURLWithPath:NSTemporaryDirectory() isDirectory:YES];
+    NSMutableArray<NSURL *> *fileURLsArray = [NSMutableArray array];
 
     const std::vector<char>& apsData = mpc::file::aps::ApsParser(*mpc, "ALL_PGMS").saveBytes;
     NSData *data = [NSData dataWithBytes:apsData.data() length:apsData.size()];
-    NSString *apsDataFilePath = [tempDirectory stringByAppendingPathComponent:@"ALL_PGMS.APS"];
-    if ([data writeToFile:apsDataFilePath atomically:YES]) { [filePathsArray addObject:apsDataFilePath]; }
+    NSURL *apsDataFileURL = [tempDirectoryURL URLByAppendingPathComponent:@"ALL_PGMS.APS"];
+    if ([data writeToURL:apsDataFileURL atomically:YES]) { [fileURLsArray addObject:apsDataFileURL]; }
 
     const std::vector<char>& allData = mpc::file::all::AllParser(*mpc).saveBytes;
     data = [NSData dataWithBytes:allData.data() length:allData.size()];
-    NSString *allDataFilePath = [tempDirectory stringByAppendingPathComponent:@"ALL_SEQS.ALL"];
-    if ([data writeToFile:allDataFilePath atomically:YES]) { [filePathsArray addObject:allDataFilePath]; }
+    NSURL *allDataFileURL = [tempDirectoryURL URLByAppendingPathComponent:@"ALL_SEQS.ALL"];
+    if ([data writeToURL:allDataFileURL atomically:YES]) { [fileURLsArray addObject:allDataFileURL]; }
 
     for (auto& sound : mpc->getSampler()->getSounds()) {
-        
-        const std::vector<char>& sndData = mpc::file::sndwriter::SndWriter(sound.get()).getSndFileArray();
+        mpc::file::sndwriter::SndWriter sndWriter(sound.get());
+        const std::vector<char>& sndData = sndWriter.getSndFileArray();
         
         data = [NSData dataWithBytes:sndData.data() length:sndData.size()];
         std::string soundName = sound->getName();
         NSString *soundNameNSString = [NSString stringWithUTF8String:soundName.c_str()];
         NSString *uppercasedSoundName = [soundNameNSString uppercaseString];
-        NSString *sndDataFilePath = [tempDirectory stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.SND", uppercasedSoundName]];
-        if ([data writeToFile:sndDataFilePath atomically:YES]) { [filePathsArray addObject:sndDataFilePath]; }
+        NSString *sndFileName = [NSString stringWithFormat:@"%@.SND", uppercasedSoundName];
+        NSURL *sndDataFileURL = [tempDirectoryURL URLByAppendingPathComponent:sndFileName];
+        if ([data writeToURL:sndDataFileURL atomically:YES]) { [fileURLsArray addObject:sndDataFileURL]; }
     }
     
-    return filePathsArray;
+    return fileURLsArray;
 }
 
-- (void)createDirectoryZip:(const std::string &)selectedFilePath currentDirectory:(const std::string &)currentDirectory
-            filePathsArray:(NSMutableArray<NSString *> *)filePathsArray {
-    NSString *tempDirectory = NSTemporaryDirectory();
+- (void)createDirectoryZip:(const std::string &)selectedFilePath
+          currentDirectory:(const std::string &)currentDirectory
+             fileURLsArray:(NSMutableArray<NSURL *> *)fileURLsArray {
+
+    NSURL *tempDirectoryURL = [NSURL fileURLWithPath:NSTemporaryDirectory() isDirectory:YES];
     NSString *zipFileName = [[NSString stringWithUTF8String:selectedFilePath.c_str()] lastPathComponent];
-    NSString *zipFilePath = [tempDirectory stringByAppendingPathComponent:[zipFileName stringByAppendingString:@".zip"]];
+    NSURL *zipFileURL = [tempDirectoryURL URLByAppendingPathComponent:[zipFileName stringByAppendingString:@".zip"]];
+    NSString *zipFilePath = zipFileURL.path;
 
     mz_zip_archive zip_archive;
     memset(&zip_archive, 0, sizeof(zip_archive));
@@ -80,20 +84,22 @@
     mz_zip_writer_finalize_archive(&zip_archive);
     mz_zip_writer_end(&zip_archive);
 
-    [filePathsArray addObject:zipFilePath];
+    [fileURLsArray addObject:zipFileURL];
 }
 
 #include "miniz.h"
 
-- (void)createRecordingZip:(fs::path)dirPath filePathsArray:(NSMutableArray<NSString *> *)filePathsArray {
+- (void)createRecordingZip:(fs::path)dirPath fileURLsArray:(NSMutableArray<NSURL *> *)fileURLsArray {
 
     mz_zip_archive zipArchive;
     memset(&zipArchive, 0, sizeof(zipArchive));
 
+    NSURL *tempDirectoryURL = [NSURL fileURLWithPath:NSTemporaryDirectory() isDirectory:YES];
     NSString *zipFileName = [[NSString stringWithUTF8String:dirPath.filename().c_str()] stringByAppendingString:@".zip"];
-    NSString *zipFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:zipFileName];
+    NSURL *zipFileURL = [tempDirectoryURL URLByAppendingPathComponent:zipFileName];
+    NSString *zipFilePath = zipFileURL.path;
 
-    mz_bool status = mz_zip_writer_init_file(&zipArchive, [zipFilePath UTF8String], 0);
+    mz_bool status = mz_zip_writer_init_file(&zipArchive, zipFilePath.UTF8String, 0);
 
     if (!status) {
         NSLog(@"Failed to initialize zip file");
@@ -111,43 +117,42 @@
     mz_zip_writer_end(&zipArchive);
 
     if (status) {
-        [filePathsArray addObject:zipFilePath];
+        [fileURLsArray addObject:zipFileURL];
     } else {
         NSLog(@"Failed to create zip file");
     }
 }
 
-- (NSMutableArray<NSString *> *)getSelectedFileOrDirectory:(mpc::Mpc *)mpc {
+- (NSMutableArray<NSURL *> *)getSelectedFileOrDirectory:(mpc::Mpc *)mpc {
     const auto selectedFile = mpc->screens->get<mpc::lcdgui::ScreenId::LoadScreen>()->getSelectedFile();
     const bool isDirectory = selectedFile->isDirectory();
     const auto selectedFilePath = selectedFile->getPath();
     const auto currentDirectory = mpc->getDisk()->getAbsolutePath();
     
-    NSMutableArray<NSString *> *filePathsArray = [NSMutableArray array];
+    NSMutableArray<NSURL *> *fileURLsArray = [NSMutableArray array];
 
     if (isDirectory) {
-        [self createDirectoryZip:selectedFilePath currentDirectory:currentDirectory filePathsArray:filePathsArray];
+        [self createDirectoryZip:selectedFilePath currentDirectory:currentDirectory fileURLsArray:fileURLsArray];
     } else {
         NSString *filePath = [NSString stringWithUTF8String:selectedFilePath.c_str()];
-        [filePathsArray addObject:filePath];
+        [fileURLsArray addObject:[NSURL fileURLWithPath:filePath]];
     }
 
-    return filePathsArray;
+    return fileURLsArray;
 }
 
--(UIAlertAction *)createShareApsSndsAllAction:
-    (mpc::Mpc*)mpc filePathsArray:(NSMutableArray<NSString *> *)filePathsArray {
+-(UIAlertAction *)createShareApsSndsAllAction:(mpc::Mpc*)mpc fileURLsArray:(NSMutableArray<NSURL *> *)fileURLsArray {
     return [UIAlertAction actionWithTitle:@"Share APS, SNDs and ALL of current project" style:UIAlertActionStyleDefault
                                   handler:^(UIAlertAction * _Nonnull /* action */) {
-        NSMutableArray<NSString *> *generatedFilePaths = [self writeApsAllAndSnd:mpc];
-        [filePathsArray addObjectsFromArray:generatedFilePaths];
+        NSMutableArray<NSURL *> *generatedFileURLs = [self writeApsAllAndSnd:mpc];
+        [fileURLsArray addObjectsFromArray:generatedFileURLs];
 
         const bool shouldCleanUpAfter = true;
-        [self openActivityView:filePathsArray shouldCleanUpAfter:shouldCleanUpAfter];
+        [self openActivityView:fileURLsArray shouldCleanUpAfter:shouldCleanUpAfter];
     }];
 }
 
--(UIAlertAction *)createShareSelectedAction:(mpc::Mpc*)mpc filePathsArray:(NSMutableArray<NSString *> *)filePathsArray {
+-(UIAlertAction *)createShareSelectedAction:(mpc::Mpc*)mpc fileURLsArray:(NSMutableArray<NSURL *> *)fileURLsArray {
     const auto selectedFile = mpc->screens->get<mpc::lcdgui::ScreenId::LoadScreen>()->getSelectedFile();
     bool isDirectory = selectedFile->isDirectory();
     std::string name = selectedFile->getName();
@@ -158,15 +163,15 @@
 
     return [UIAlertAction actionWithTitle:title style:UIAlertActionStyleDefault
                                   handler:^(UIAlertAction * _Nonnull /* action */) {
-        NSMutableArray<NSString *> *generatedFilePaths = [self getSelectedFileOrDirectory:mpc];
-        [filePathsArray addObjectsFromArray:generatedFilePaths];
+        NSMutableArray<NSURL *> *generatedFileURLs = [self getSelectedFileOrDirectory:mpc];
+        [fileURLsArray addObjectsFromArray:generatedFileURLs];
         
         const bool shouldCleanUpAfter = isDirectory;
-        [self openActivityView:filePathsArray shouldCleanUpAfter:shouldCleanUpAfter];
+        [self openActivityView:fileURLsArray shouldCleanUpAfter:shouldCleanUpAfter];
     }];
 }
 
--(UIAlertAction *)createShareDirectToDiskRecordingAction:(mpc::Mpc*)mpc filePathsArray:(NSMutableArray<NSString *> *)filePathsArray {
+-(UIAlertAction *)createShareDirectToDiskRecordingAction:(mpc::Mpc*)mpc fileURLsArray:(NSMutableArray<NSURL *> *)fileURLsArray {
 
     const fs::path directToDiskRecordingsDirectory = mpc->paths->getDocuments()->recordingsPath();
 
@@ -179,9 +184,9 @@
                 const auto entryPath = entry.path();
                 NSString *dirName = [NSString stringWithUTF8String:entryPath.filename().string().c_str()];
                 [alertController addAction:[UIAlertAction actionWithTitle:dirName style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull /* action */) {
-                    [self createRecordingZip:entryPath filePathsArray:filePathsArray];
+                    [self createRecordingZip:entryPath fileURLsArray:fileURLsArray];
                     const bool shouldCleanUpAfter = true;
-                    [self openActivityView:filePathsArray shouldCleanUpAfter:shouldCleanUpAfter];
+                    [self openActivityView:fileURLsArray shouldCleanUpAfter:shouldCleanUpAfter];
                 }]];
             }
         }
@@ -219,22 +224,22 @@
                                                                              message:nil
                                                                       preferredStyle:UIAlertControllerStyleAlert];
 
-    NSMutableArray<NSString *> *filePathsArray = [NSMutableArray array];
+    NSMutableArray<NSURL *> *fileURLsArray = [NSMutableArray array];
 
-    UIAlertAction *shareApsSndsAllAction = [self createShareApsSndsAllAction:mpc filePathsArray:filePathsArray];
+    UIAlertAction *shareApsSndsAllAction = [self createShareApsSndsAllAction:mpc fileURLsArray:fileURLsArray];
     [alertController addAction:shareApsSndsAllAction];
 
     const auto selectedFile = mpc->screens->get<mpc::lcdgui::ScreenId::LoadScreen>()->getSelectedFile();
     
     if (selectedFile) {
-        UIAlertAction *shareSelectedAction = [self createShareSelectedAction:mpc filePathsArray:filePathsArray];
+        UIAlertAction *shareSelectedAction = [self createShareSelectedAction:mpc fileURLsArray:fileURLsArray];
         [alertController addAction:shareSelectedAction];
     } else {
         UIAlertAction *noFileSelectedAction = [self createNoFileSelectedAction];
         [alertController addAction:noFileSelectedAction];
     }
     
-    UIAlertAction *shareDirectToDiskRecordingAction = [self createShareDirectToDiskRecordingAction:mpc filePathsArray:filePathsArray];
+    UIAlertAction *shareDirectToDiskRecordingAction = [self createShareDirectToDiskRecordingAction:mpc fileURLsArray:fileURLsArray];
 
     [alertController addAction:shareDirectToDiskRecordingAction];
     
@@ -244,17 +249,17 @@
 }
 
 
-- (UIActivityViewControllerCompletionWithItemsHandler)createActivityViewCompletionHandler:(NSArray<NSString *> *)filePathsArray shouldCleanUpAfter:(BOOL)shouldCleanUpAfter {
+- (UIActivityViewControllerCompletionWithItemsHandler)createActivityViewCompletionHandler:(NSArray<NSURL *> *)fileURLsArray shouldCleanUpAfter:(BOOL)shouldCleanUpAfter {
     
     UIActivityViewControllerCompletionWithItemsHandler handler = ^(UIActivityType _Nullable /* activityType */, BOOL completed, NSArray * _Nullable /* returnedItems */, NSError * _Nullable /* activityError */) {
         
         NSFileManager *fileManager = [NSFileManager defaultManager];
         
         if (completed && shouldCleanUpAfter) {
-            for (NSString *path in filePathsArray) {
-                NSError *error;
-                if (![fileManager removeItemAtPath:path error:&error]) {
-                    NSLog(@"Failed to delete %@: %@", path, error);
+            for (NSURL *url in fileURLsArray) {
+                NSError *error = nil;
+                if (![fileManager removeItemAtURL:url error:&error]) {
+                    NSLog(@"Failed to delete %@: %@", url, error);
                 }
             }
         }
@@ -263,7 +268,7 @@
     return [handler copy];
 }
 
-- (UIActivityViewController *)createActivityViewController:(NSArray *)itemsToShare shouldCleanUpAfter:(BOOL)shouldCleanUpAfter {
+- (UIActivityViewController *)createActivityViewController:(NSArray<NSURL *> *)itemsToShare shouldCleanUpAfter:(BOOL)shouldCleanUpAfter {
     
     UIActivityViewController *activityViewController = [[UIActivityViewController alloc] initWithActivityItems:itemsToShare applicationActivities:nil];
 
@@ -277,15 +282,14 @@
     return activityViewController;
 }
 
--(void)openActivityView:(NSArray *)filePathsArray shouldCleanUpAfter:(BOOL)shouldCleanUpAfter {
+-(void)openActivityView:(NSArray<NSURL *> *)fileURLsArray shouldCleanUpAfter:(BOOL)shouldCleanUpAfter {
     
-    NSMutableArray *itemsToShare = [[NSMutableArray alloc] init];
+    NSMutableArray<NSURL *> *itemsToShare = [[NSMutableArray alloc] init];
     NSFileManager *fileManager = [NSFileManager defaultManager];
 
-    for (NSString *path in filePathsArray) {
-        if ([fileManager fileExistsAtPath:path]) {
-            NSURL *fileURL = [NSURL fileURLWithPath:path];
-            [itemsToShare addObject:fileURL];
+    for (NSURL *url in fileURLsArray) {
+        if ([fileManager fileExistsAtPath:url.path]) {
+            [itemsToShare addObject:url];
         }
     }
 
