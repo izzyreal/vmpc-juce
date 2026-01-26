@@ -117,6 +117,8 @@ FetchContent_MakeAvailable(melatonin_blur)
 message(STATUS "Downloading json...")
 FetchContent_MakeAvailable(json)
 
+juce_set_vst2_sdk_path("/Users/izmar/Downloads/vstsdk2.4")
+
 if (IOS)
     set(IOS_SPECIFIC_SETTINGS
         REQUIRES_FULL_SCREEN TRUE
@@ -133,7 +135,7 @@ else()
         VST3_CATEGORIES Instrument Drum OnlyRT Sampler Stereo
         VST_NUM_MIDI_INS 1
         VST_NUM_MIDI_OUTS 1
-        FORMATS LV2 VST3 AU AUv3 Standalone
+        FORMATS LV2 VST3 AU AUv3 Standalone VST
         LV2URI "http://www.izmar.nl/VMPC2000XL")
 endif()
 
