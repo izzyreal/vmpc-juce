@@ -324,8 +324,7 @@ View::View(mpc::Mpc &mpcToUse,
         mpc::performance::ProgramPadEventUiCallback(
             [&](const mpc::ProgramPadIndex programPadIndex,
                 const mpc::VelocityOrPressure velocityOrPressure,
-                const mpc::performance::PerformanceEventSource source,
-                const mpc::performance::ProgramPadEventType eventType)
+                const mpc::performance::UiCallbackPadEventType eventType)
             {
                 const std::function isActiveBank = [&]
                 {
@@ -338,28 +337,55 @@ View::View(mpc::Mpc &mpcToUse,
                     return bank == activeBank;
                 };
 
-                const auto pressType =
-                    source == mpc::performance::PerformanceEventSource::
-                                  VirtualMpcHardware
-                        ? Pad::PressType::Primary
-                    : isActiveBank() ? Pad::PressType::Secondary
-                                     : Pad::PressType::Tertiary;
+                const auto pressType = isActiveBank()
+                                           ? Pad::PressType::Secondary
+                                           : Pad::PressType::Tertiary;
 
                 const auto pad = pads[static_cast<size_t>(
                     padMap.at(static_cast<uint8_t>(programPadIndex % 16)))];
 
-                if (eventType == mpc::performance::ProgramPadEventType::Press)
+                if (eventType ==
+                    mpc::performance::UiCallbackPadEventType::Press)
                 {
                     pad->registerPress(pressType, programPadIndex,
                                        velocityOrPressure);
                 }
                 else if (eventType ==
-                         mpc::performance::ProgramPadEventType::Aftertouch)
+                         mpc::performance::UiCallbackPadEventType::Aftertouch)
                 {
                     pad->registerAftertouch(pressType, velocityOrPressure);
                 }
                 else if (eventType ==
-                         mpc::performance::ProgramPadEventType::Release)
+                         mpc::performance::UiCallbackPadEventType::Release)
+                {
+                    pad->registerRelease(pressType);
+                }
+            });
+
+    mpc.getPerformanceManager().lock()->physicalPadEventUiCallback =
+        mpc::performance::PhysicalPadEventUiCallback(
+            [&](const mpc::PhysicalPadIndex physicalPadIndex,
+                const mpc::VelocityOrPressure velocityOrPressure,
+                const mpc::performance::UiCallbackPadEventType eventType)
+            {
+                constexpr auto pressType = Pad::PressType::Primary;
+
+                const auto pad = pads[static_cast<size_t>(
+                    padMap.at(static_cast<uint8_t>(physicalPadIndex)))];
+
+                if (eventType ==
+                    mpc::performance::UiCallbackPadEventType::Press)
+                {
+                    pad->registerPress(pressType, physicalPadIndex,
+                                       velocityOrPressure);
+                }
+                else if (eventType ==
+                         mpc::performance::UiCallbackPadEventType::Aftertouch)
+                {
+                    pad->registerAftertouch(pressType, velocityOrPressure);
+                }
+                else if (eventType ==
+                         mpc::performance::UiCallbackPadEventType::Release)
                 {
                     pad->registerRelease(pressType);
                 }
