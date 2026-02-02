@@ -11,14 +11,14 @@ VMPC2000XL supports a typical CMake workflow, for example on Windows:
 git clone https://github.com/izzyreal/vmpc-juce
 cd vmpc-juce && mkdir build
 cmake -B build -G "Visual Studio 17 2022"
-cmake --build build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3
+cmake --build build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3 vmpc2000xl_LV2
 ```
 and on macOS:
 ```
 git clone https://github.com/izzyreal/vmpc-juce
 cd vmpc-juce && mkdir build
 cmake -B build -G "Xcode"
-cmake --build build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3
+cmake --build build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3 vmpc2000xl_LV2 vmpc2000xl_AU
 ```
 or Linux:
 ```
