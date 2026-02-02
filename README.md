@@ -20,6 +20,13 @@ cd vmpc-juce && mkdir build
 cmake -B build -G "Xcode"
 cmake --build build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3 vmpc2000xl_LV2 vmpc2000xl_AU
 ```
+and on macOS to build for iOS:
+```
+git clone https://github.com/izzyreal/vmpc-juce
+cd vmpc-juce && mkdir build
+cmake -B build -G "Xcode" -DCMAKE_SYSTEM_NAME="iOS"
+cmake --build build --config Release --target vmpc2000xl_Standalone
+```
 or Linux:
 ```
 git clone https://github.com/izzyreal/vmpc-juce
@@ -51,9 +58,14 @@ RUN apt-get -y install ninja-build
 RUN apt -y install libxrandr-dev libudisks2-dev libglib2.0-dev
 ```
 
-The targets described above are also the currently supported targets for each platform.
+The targets described above are also the currently supported targets for each platform. Note that the standalone builds for macOS and iOS contain the AUv3 as well. Also note that AUv3 is only built if you're using the Xcode generator. AUv2 works fine with other generators.
 
 The above generators are just some examples. If you experience issues with generators other than the ones mentioned here, [file an issue here](https://github.com/izzyreal/vmpc-juce/issues).
+
+If you're actively developing and you've already run the CMake generation command, and you've added new source files, and you don't have internet available, use the following to regenerate the build files:
+```
+cmake -B build -DFETCHCONTENT_FULLY_DISCONNECTED=ON
+```
 
 ## Modifying and contributing to VMPC2000XL and its dependencies
 Just skip the second `cmake -B ...` statement in the above examples and you have the IDE project that you can use for this flow.
