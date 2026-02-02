@@ -58,6 +58,28 @@ RUN apt-get -y install ninja-build
 RUN apt -y install libxrandr-dev libudisks2-dev libglib2.0-dev
 ```
 
+On Debian you should be able to build after installing these packages:
+```sh
+sudo apt-get install \
+  build-essential \
+  wget \
+  cmake \
+  git \
+  ninja-build \
+  libasound2-dev \
+  libjack-jackd2-dev \
+  libfreetype6-dev \
+  libx11-dev \
+  libxcomposite-dev \
+  libxcursor-dev \
+  libxext-dev \
+  libxinerama-dev \
+  libxrender-dev \
+  libxrandr-dev \
+  libudisks2-dev \
+  libglib2.0-dev
+```
+
 The targets described above are also the currently supported targets for each platform. Note that the standalone builds for macOS and iOS contain the AUv3 as well. Also note that AUv3 is only built if you're using the Xcode generator. AUv2 works fine with other generators.
 
 The above generators are just some examples. If you experience issues with generators other than the ones mentioned here, [file an issue here](https://github.com/izzyreal/vmpc-juce/issues).
