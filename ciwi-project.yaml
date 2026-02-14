@@ -17,8 +17,7 @@ pipelines:
         requires:
           tools:
             git: "*"
-            cmake: "*"
-            ninja: "*"
+            docker: "*"
         timeout_seconds: 3600
         artifacts:
           - dist/**
@@ -44,8 +43,10 @@ pipelines:
             max_size_mb: 20480
         steps:
           - run: mkdir -p dist
-          - run: cmake -S . -B build -G "Ninja Multi-Config" -Wno-dev -DFETCHCONTENT_BASE_DIR="$FETCHCONTENT_BASE_DIR"
-          - run: cmake --build build --config Release --target vmpc2000xl_All mpc-tests
+          - run: docker stop ubuntu-vmpc || true && docker rm ubuntu-vmpc || true
+          - run: docker run -d --name ubuntu-vmpc -v "$(pwd)":/home/vmpc-juce ubuntu-vmpc sleep infinity
+          - run: docker exec -w /home/vmpc-juce ubuntu-vmpc sh -c "cmake -B build -G \"Ninja Multi-Config\" -Wno-dev && cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests"
+          - run: docker stop ubuntu-vmpc && docker rm ubuntu-vmpc
           - test:
               name: mpc-tests
               command: ./build/_deps/mpc-build/Release/mpc-tests --reporter JUnit::out=build/result-junit.xml
