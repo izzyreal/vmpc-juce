@@ -56,33 +56,52 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
+function(resolve_fetchcontent_source_dir dep_key default_path out_var)
+  string(TOUPPER "${dep_key}" dep_upper)
+  set(dep_var "FETCHCONTENT_SOURCE_DIR_${dep_upper}")
+  if(DEFINED ${dep_var} AND NOT "${${dep_var}}" STREQUAL "")
+    set(dep_source_dir "${${dep_var}}")
+  else()
+    set(dep_source_dir "${default_path}")
+  endif()
+  set(${out_var} "${dep_source_dir}" PARENT_SCOPE)
+endfunction()
+
+resolve_fetchcontent_source_dir("JUCE" "${CMAKE_SOURCE_DIR}/editables/JUCE" VMPC_JUCE_SOURCE_DIR)
+resolve_fetchcontent_source_dir("MELATONIN_BLUR" "${CMAKE_CURRENT_BINARY_DIR}/melatonin_blur" VMPC_MELATONIN_BLUR_SOURCE_DIR)
+resolve_fetchcontent_source_dir("JUCE_RAW_KEYBOARD_INPUT_MODULE" "${CMAKE_SOURCE_DIR}/editables/juce-raw-keyboard-input-module" VMPC_RAW_KBD_SOURCE_DIR)
+resolve_fetchcontent_source_dir("JSON" "${CMAKE_CURRENT_BINARY_DIR}/json-src" VMPC_JSON_SOURCE_DIR)
+resolve_fetchcontent_source_dir("MPC" "${CMAKE_SOURCE_DIR}/editables/mpc" VMPC_MPC_SOURCE_DIR)
+resolve_fetchcontent_source_dir("MINIZ" "${CMAKE_SOURCE_DIR}/deps/miniz" VMPC_MINIZ_SOURCE_DIR)
+
 FetchContent_Declare(JUCE
   GIT_REPOSITORY https://github.com/izzyreal/JUCE.git
   GIT_TAG        7.0.9-vmpc
-  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/JUCE
+  SOURCE_DIR     ${VMPC_JUCE_SOURCE_DIR}
   GIT_SHALLOW    ON
 )
 
 FetchContent_Declare(melatonin_blur
     GIT_REPOSITORY https://github.com/sudara/melatonin_blur.git
     GIT_TAG origin/main
-    SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/melatonin_blur)
+    SOURCE_DIR ${VMPC_MELATONIN_BLUR_SOURCE_DIR})
 
 FetchContent_Declare(juce-raw-keyboard-input-module
   GIT_REPOSITORY https://github.com/izzyreal/juce-raw-keyboard-input-module.git
   GIT_TAG        external-focus-provider
-  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/juce-raw-keyboard-input-module
+  SOURCE_DIR     ${VMPC_RAW_KBD_SOURCE_DIR}
 )
 
 FetchContent_Declare(json
     URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
+    SOURCE_DIR ${VMPC_JSON_SOURCE_DIR}
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 
 FetchContent_Declare(mpc
   GIT_REPOSITORY https://github.com/izzyreal/mpc.git
   GIT_TAG        master
-  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/editables/mpc
+  SOURCE_DIR     ${VMPC_MPC_SOURCE_DIR}
 )
 
 set(BUILD_EXAMPLES OFF)
@@ -94,7 +113,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
 FetchContent_Declare(miniz
   GIT_REPOSITORY https://github.com/richgel999/miniz
   GIT_TAG        master
-  SOURCE_DIR     ${CMAKE_SOURCE_DIR}/deps/miniz
+  SOURCE_DIR     ${VMPC_MINIZ_SOURCE_DIR}
   GIT_SHALLOW    ON
 )
 message(STATUS "Downloading miniz...")
