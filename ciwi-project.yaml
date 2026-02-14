@@ -18,6 +18,7 @@ pipelines:
           tools:
             git: "*"
             cmake: "*"
+            ninja: "*"
         timeout_seconds: 3600
         artifacts:
           - dist/**
