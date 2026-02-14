@@ -1,0 +1,121 @@
+version: 1
+project:
+  name: VMPC2000XL
+
+pipelines:
+  - id: build
+    trigger: manual
+    source:
+      repo: https://github.com/izzyreal/vmpc-juce.git
+    jobs:
+      - id: linux-amd64
+        runs_on:
+          executor: script
+          shell: posix
+          os: linux
+          arch: amd64
+        requires:
+          tools:
+            git: "*"
+            cmake: "*"
+        timeout_seconds: 3600
+        artifacts:
+          - dist/**
+        caches: &fetchcontent_caches
+          - id: fetchcontent
+            env: FETCHCONTENT_BASE_DIR
+            key:
+              prefix: fetchcontent-v1
+              files:
+                - CMakeLists.txt
+                - cmake/**/*.cmake
+              runtime:
+                - os
+                - arch
+              tools:
+                - cmake
+              env:
+                - CC
+                - CXX
+                - CMAKE_TOOLCHAIN_FILE
+            policy: pull-push
+            ttl_days: 14
+            max_size_mb: 20480
+        steps:
+          - run: mkdir -p dist
+          - run: cmake -S . -B build -G "Ninja Multi-Config" -Wno-dev -DFETCHCONTENT_BASE_DIR="$FETCHCONTENT_BASE_DIR"
+          - run: cmake --build build --config Release --target vmpc2000xl_All mpc-tests
+          - test:
+              name: mpc-tests
+              command: ./build/_deps/mpc-build/Release/mpc-tests --reporter JUnit::out=build/result-junit.xml
+              format: junit-xml
+              report: build/result-junit.xml
+          - run: cp build/_deps/mpc-build/Release/mpc-tests dist/mpc-tests-linux-amd64
+          - run: cp build/version.txt dist/version-linux-amd64.txt
+          - run: cp build/vmpc2000xl_artefacts/Release/Standalone/VMPC2000XL dist/VMPC2000XL-linux-amd64-Standalone
+          - run: cp -R build/vmpc2000xl_artefacts/Release/VST3/VMPC2000XL.vst3 dist/VMPC2000XL-linux-amd64-VST3.vst3
+          - run: cp -R build/vmpc2000xl_artefacts/Release/LV2/VMPC2000XL.lv2 dist/VMPC2000XL-linux-amd64-LV2.lv2
+
+      - id: macos-universal
+        runs_on:
+          executor: script
+          shell: posix
+          os: darwin
+          arch: arm64
+        requires:
+          tools:
+            git: "*"
+            cmake: "*"
+            xcodebuild: "*"
+        timeout_seconds: 5400
+        artifacts:
+          - dist/**
+        caches: *fetchcontent_caches
+        steps:
+          - run: mkdir -p dist
+          - run: cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DFETCHCONTENT_BASE_DIR="$FETCHCONTENT_BASE_DIR"
+          - run: xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - run: xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_AU -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - run: xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_VST3 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - run: xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_LV2 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - run: xcodebuild -project build/vmpc2000xl.xcodeproj -scheme mpc-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - test:
+              name: mpc-tests
+              command: ./build/_deps/mpc-build/Release/mpc-tests.app/Contents/MacOS/mpc-tests --reporter JUnit::out=build/result-junit.xml
+              format: junit-xml
+              report: build/result-junit.xml
+          - run: cp -R build/vmpc2000xl_artefacts/Release/Standalone/VMPC2000XL.app dist/VMPC2000XL-macos-universal-Standalone.app
+          - run: cp -R build/vmpc2000xl_artefacts/Release/AU/VMPC2000XL.component dist/VMPC2000XL-macos-universal-AU.component
+          - run: cp -R build/vmpc2000xl_artefacts/Release/VST3/VMPC2000XL.vst3 dist/VMPC2000XL-macos-universal-VST3.vst3
+          - run: cp -R build/vmpc2000xl_artefacts/Release/LV2/VMPC2000XL.lv2 dist/VMPC2000XL-macos-universal-LV2.lv2
+          - run: cp build/version.txt dist/version-macos-universal.txt
+
+      - id: windows10-amd64
+        runs_on:
+          executor: script
+          shell: cmd
+          os: windows
+          arch: amd64
+        requires:
+          tools:
+            git: "*"
+            cmake: "*"
+        timeout_seconds: 5400
+        artifacts:
+          - dist/**
+        caches: *fetchcontent_caches
+        steps:
+          - run: if exist build rmdir /s /q build
+          - run: if not exist dist mkdir dist
+          - run: cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DFETCHCONTENT_BASE_DIR="%FETCHCONTENT_BASE_DIR%"
+          - run: cmake --build build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3 vmpc2000xl_LV2 mpc-tests
+          - test:
+              name: mpc-tests
+              command: build\_deps\mpc-build\Release\mpc-tests.exe --reporter JUnit::out=build\result-junit.xml
+              format: junit-xml
+              report: build/result-junit.xml
+          - run: copy /Y build\_deps\mpc-build\Release\mpc-tests.exe dist\mpc-tests-windows10-amd64.exe
+          - run: copy /Y build\version.txt dist\version-windows10-amd64.txt
+          - run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows10-amd64-Standalone.exe
+          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows10-amd64-VST3.vst3
+          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows10-amd64-LV2.lv2
