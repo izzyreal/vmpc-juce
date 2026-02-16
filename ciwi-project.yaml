@@ -75,7 +75,12 @@ pipelines:
         caches: *fetchcontent_caches
         steps:
           - run: mkdir -p dist
+          - run: mkdir -p "$VMPC2000XL_DOCUMENTS_PATH"
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - run: cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_BASE_DIR="$FETCHCONTENT_BASE_DIR"
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - run: xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -destination "generic/platform=macOS,name=Any Mac" -configuration Release
           - run: xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_AU -destination "generic/platform=macOS,name=Any Mac" -configuration Release
           - run: xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_VST3 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
