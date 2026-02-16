@@ -50,9 +50,9 @@ pipelines:
           - run: docker stop ubuntu-vmpc && docker rm ubuntu-vmpc
           - test:
               name: mpc-tests
-              command: ./build/_deps/mpc-build/Release/mpc-tests --reporter JUnit::out=build/result-junit.xml
+              command: ./build/_deps/mpc-build/Release/mpc-tests --reporter JUnit::out=dist/result-junit.xml
               format: junit-xml
-              report: build/result-junit.xml
+              report: dist/result-junit.xml
           - run: cp build/_deps/mpc-build/Release/mpc-tests dist/mpc-tests-linux-amd64
           - run: cp build/version.txt dist/version-linux-amd64.txt
           - run: cp build/vmpc2000xl_artefacts/Release/Standalone/VMPC2000XL dist/VMPC2000XL-linux-amd64-Standalone
