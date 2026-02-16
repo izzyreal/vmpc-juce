@@ -77,7 +77,7 @@ pipelines:
         steps:
           - run: mkdir -p dist
           - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
-          - run: mkdir -p "$VMPC2000XL_DOCUMENTS_PATH"
+          - run: rm -rf "$VMPC2000XL_DOCUMENTS_PATH" && mkdir -p "$VMPC2000XL_DOCUMENTS_PATH"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - run: cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_FETCHCONTENT_SOURCES_DIR="$CIWI_FETCHCONTENT_SOURCES_DIR"
