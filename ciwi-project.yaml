@@ -23,7 +23,7 @@ pipelines:
           - dist/**
         caches: &fetchcontent_caches
           - id: fetchcontent
-            env: FETCHCONTENT_BASE_DIR
+            env: CIWI_FETCHCONTENT_SOURCES_DIR
             key:
               prefix: fetchcontent-v1
               files:
@@ -43,9 +43,10 @@ pipelines:
             max_size_mb: 20480
         steps:
           - run: mkdir -p dist
+          - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
           - run: docker stop ubuntu-vmpc || true && docker rm ubuntu-vmpc || true
-          - run: docker run -d --name ubuntu-vmpc -v "$(pwd)":/home/vmpc-juce ubuntu-vmpc sleep infinity
-          - run: docker exec -w /home/vmpc-juce ubuntu-vmpc sh -c "cmake -B build -G \"Ninja Multi-Config\" -Wno-dev && cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests"
+          - run: docker run -d --name ubuntu-vmpc -v "$(pwd)":/home/vmpc-juce -v "$CIWI_FETCHCONTENT_SOURCES_DIR":/ciwi-fetchcontent ubuntu-vmpc sleep infinity
+          - run: docker exec -w /home/vmpc-juce ubuntu-vmpc sh -c "cmake -B build -G \"Ninja Multi-Config\" -Wno-dev -DVMPC_FETCHCONTENT_SOURCES_DIR=/ciwi-fetchcontent && cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests"
           - run: docker stop ubuntu-vmpc && docker rm ubuntu-vmpc
           - test:
               name: mpc-tests
@@ -75,10 +76,11 @@ pipelines:
         caches: *fetchcontent_caches
         steps:
           - run: mkdir -p dist
+          - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
           - run: mkdir -p "$VMPC2000XL_DOCUMENTS_PATH"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_BASE_DIR="$FETCHCONTENT_BASE_DIR"
+          - run: cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_FETCHCONTENT_SOURCES_DIR="$CIWI_FETCHCONTENT_SOURCES_DIR"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - run: xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -destination "generic/platform=macOS,name=Any Mac" -configuration Release
@@ -114,7 +116,8 @@ pipelines:
         steps:
           - run: if exist build rmdir /s /q build
           - run: if not exist dist mkdir dist
-          - run: cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DFETCHCONTENT_BASE_DIR="%FETCHCONTENT_BASE_DIR%"
+          - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - run: cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DVMPC_FETCHCONTENT_SOURCES_DIR="%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: cmake --build build --config Release --target vmpc2000xl_Standalone vmpc2000xl_VST3 vmpc2000xl_LV2 mpc-tests
           - test:
               name: mpc-tests
