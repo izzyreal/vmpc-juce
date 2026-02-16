@@ -1,9 +1,13 @@
 include(cmake/CMakeRC.cmake)
 
 set(_vmpc_juce_resources_root ${CMAKE_SOURCE_DIR}/resources)
-set(_mpc_resources_root ${CMAKE_SOURCE_DIR}/editables/mpc/resources)
 
 function(_bundle_vmpc_juce_resources _target_name)
+  set(_mpc_resources_root ${CMAKE_SOURCE_DIR}/editables/mpc/resources)
+  if (DEFINED mpc_SOURCE_DIR AND NOT "${mpc_SOURCE_DIR}" STREQUAL "")
+    set(_mpc_resources_root ${mpc_SOURCE_DIR}/resources)
+  endif()
+
 
   file(GLOB_RECURSE VMPC_JUCE_RESOURCES "${_vmpc_juce_resources_root}/*")
   list(FILTER VMPC_JUCE_RESOURCES EXCLUDE REGEX "\\.DS_Store$")
