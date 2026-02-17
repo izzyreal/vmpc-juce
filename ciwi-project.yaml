@@ -34,10 +34,7 @@ pipelines:
                 - arch
               tools:
                 - cmake
-              env:
-                - CC
-                - CXX
-                - CMAKE_TOOLCHAIN_FILE
+              env: []
             policy: pull-push
             ttl_days: 14
             max_size_mb: 20480

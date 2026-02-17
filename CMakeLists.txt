@@ -9,6 +9,7 @@ include(FetchContent)
 include(cmake/ResourceBundling.cmake)
 include(cmake/ASIOSDK.cmake)
 include(cmake/ClangFormat.cmake)
+include(cmake/FetchContentCache.cmake)
 
 find_package(Git)
 
@@ -58,55 +59,31 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
-function(resolve_fetchcontent_source_dir dep_key cache_subdir default_path out_var)
-  string(TOUPPER "${dep_key}" dep_upper)
-  set(dep_var "FETCHCONTENT_SOURCE_DIR_${dep_upper}")
-  if(DEFINED ${dep_var} AND NOT "${${dep_var}}" STREQUAL "")
-    set(dep_source_dir "${${dep_var}}")
-  elseif(DEFINED VMPC_FETCHCONTENT_SOURCES_DIR AND NOT "${VMPC_FETCHCONTENT_SOURCES_DIR}" STREQUAL "")
-    set(dep_source_dir "${VMPC_FETCHCONTENT_SOURCES_DIR}/${cache_subdir}")
-  else()
-    set(dep_source_dir "${default_path}")
-  endif()
-  set(${out_var} "${dep_source_dir}" PARENT_SCOPE)
-endfunction()
+set(VMPC_JUCE_REPO "https://github.com/izzyreal/JUCE.git")
+set(VMPC_JUCE_REF "7.0.9-vmpc")
+set(VMPC_MELATONIN_BLUR_REPO "https://github.com/sudara/melatonin_blur.git")
+set(VMPC_MELATONIN_BLUR_REF "main")
+set(VMPC_RAW_KBD_REPO "https://github.com/izzyreal/juce-raw-keyboard-input-module.git")
+set(VMPC_RAW_KBD_REF "external-focus-provider")
+set(VMPC_MPC_REPO "https://github.com/izzyreal/mpc.git")
+set(VMPC_MPC_REF "master")
+set(VMPC_MINIZ_REPO "https://github.com/richgel999/miniz")
+set(VMPC_MINIZ_REF "master")
 
-resolve_fetchcontent_source_dir("JUCE" "JUCE" "${CMAKE_SOURCE_DIR}/editables/JUCE" VMPC_JUCE_SOURCE_DIR)
-resolve_fetchcontent_source_dir("MELATONIN_BLUR" "melatonin_blur" "${CMAKE_CURRENT_BINARY_DIR}/melatonin_blur" VMPC_MELATONIN_BLUR_SOURCE_DIR)
-resolve_fetchcontent_source_dir("JUCE_RAW_KEYBOARD_INPUT_MODULE" "juce-raw-keyboard-input-module" "${CMAKE_SOURCE_DIR}/editables/juce-raw-keyboard-input-module" VMPC_RAW_KBD_SOURCE_DIR)
-resolve_fetchcontent_source_dir("JSON" "json-src" "${CMAKE_CURRENT_BINARY_DIR}/json-src" VMPC_JSON_SOURCE_DIR)
-resolve_fetchcontent_source_dir("MPC" "mpc" "${CMAKE_SOURCE_DIR}/editables/mpc" VMPC_MPC_SOURCE_DIR)
-resolve_fetchcontent_source_dir("MINIZ" "miniz" "${CMAKE_SOURCE_DIR}/deps/miniz" VMPC_MINIZ_SOURCE_DIR)
+set(FETCHCONTENT_CACHE_ROOT "${VMPC_FETCHCONTENT_SOURCES_DIR}")
 
-FetchContent_Declare(JUCE
-  GIT_REPOSITORY https://github.com/izzyreal/JUCE.git
-  GIT_TAG        7.0.9-vmpc
-  SOURCE_DIR     ${VMPC_JUCE_SOURCE_DIR}
+fetchcontent_declare_cached_git(JUCE "JUCE" "${CMAKE_SOURCE_DIR}/editables/JUCE" "${VMPC_JUCE_REPO}" "${VMPC_JUCE_REF}"
   GIT_SHALLOW    ON
 )
 
-FetchContent_Declare(melatonin_blur
-    GIT_REPOSITORY https://github.com/sudara/melatonin_blur.git
-    GIT_TAG origin/main
-    SOURCE_DIR ${VMPC_MELATONIN_BLUR_SOURCE_DIR})
+fetchcontent_declare_cached_git(melatonin_blur "melatonin_blur" "${CMAKE_CURRENT_BINARY_DIR}/melatonin_blur" "${VMPC_MELATONIN_BLUR_REPO}" "${VMPC_MELATONIN_BLUR_REF}")
 
-FetchContent_Declare(juce-raw-keyboard-input-module
-  GIT_REPOSITORY https://github.com/izzyreal/juce-raw-keyboard-input-module.git
-  GIT_TAG        external-focus-provider
-  SOURCE_DIR     ${VMPC_RAW_KBD_SOURCE_DIR}
-)
+fetchcontent_declare_cached_git(juce-raw-keyboard-input-module "juce-raw-keyboard-input-module" "${CMAKE_SOURCE_DIR}/editables/juce-raw-keyboard-input-module" "${VMPC_RAW_KBD_REPO}" "${VMPC_RAW_KBD_REF}")
 
-FetchContent_Declare(json
-    URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
-    SOURCE_DIR ${VMPC_JSON_SOURCE_DIR}
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
+fetchcontent_declare_cached_url(json "json-src" "${CMAKE_CURRENT_BINARY_DIR}/json-src" "https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz"
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 
-FetchContent_Declare(mpc
-  GIT_REPOSITORY https://github.com/izzyreal/mpc.git
-  GIT_TAG        master
-  SOURCE_DIR     ${VMPC_MPC_SOURCE_DIR}
-)
+fetchcontent_declare_cached_git(mpc "mpc" "${CMAKE_SOURCE_DIR}/editables/mpc" "${VMPC_MPC_REPO}" "${VMPC_MPC_REF}")
 
 set(BUILD_EXAMPLES OFF)
 set(BUILD_TESTS OFF)
@@ -114,10 +91,7 @@ set(INSTALL_PROJECT OFF)
 
 if(APPLE)
 if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
-FetchContent_Declare(miniz
-  GIT_REPOSITORY https://github.com/richgel999/miniz
-  GIT_TAG        master
-  SOURCE_DIR     ${VMPC_MINIZ_SOURCE_DIR}
+fetchcontent_declare_cached_git(miniz "miniz" "${CMAKE_SOURCE_DIR}/deps/miniz" "${VMPC_MINIZ_REPO}" "${VMPC_MINIZ_REF}"
   GIT_SHALLOW    ON
 )
 message(STATUS "Downloading miniz...")

@@ -7,6 +7,7 @@ function(_bundle_vmpc_juce_resources _target_name)
   if (DEFINED mpc_SOURCE_DIR AND NOT "${mpc_SOURCE_DIR}" STREQUAL "")
     set(_mpc_resources_root ${mpc_SOURCE_DIR}/resources)
   endif()
+  message(STATUS "ResourceBundling: mpc resources root=${_mpc_resources_root}")
 
 
   file(GLOB_RECURSE VMPC_JUCE_RESOURCES "${_vmpc_juce_resources_root}/*")
