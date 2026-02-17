@@ -37,7 +37,7 @@ function(fetchcontent_resolve_source dep_key cache_subdir default_path repositor
   elseif(NOT "${cache_root}" STREQUAL "")
     if(NOT "${repository}" STREQUAL "" AND NOT "${git_ref}" STREQUAL "")
       fetchcontent_resolve_git_hash("${repository}" "${git_ref}" dep_source_hash)
-      set(dep_source_dir "${cache_root}/${cache_subdir}-${dep_source_hash}")
+      set(dep_source_dir "${cache_root}/${cache_subdir}-${dep_source_hash}/${cache_subdir}")
       set(dep_git_tag "${dep_source_hash}")
     else()
       set(dep_source_dir "${cache_root}/${cache_subdir}")
