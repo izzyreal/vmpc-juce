@@ -98,24 +98,24 @@ if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
 fetchcontent_declare_cached_git(miniz "miniz" "${CMAKE_SOURCE_DIR}/deps/miniz" "${VMPC_MINIZ_REPO}" "${VMPC_MINIZ_REF}"
   GIT_SHALLOW    ON
 )
-message(STATUS "Downloading miniz...")
+message(STATUS "Resolving miniz...")
 FetchContent_MakeAvailable(miniz)
 endif()
 endif()
 
-message(STATUS "Downloading mpc...")
+message(STATUS "Resolving mpc...")
 FetchContent_MakeAvailable(mpc)
 
-message(STATUS "Downloading JUCE...")
+message(STATUS "Resolving JUCE...")
 FetchContent_MakeAvailable(JUCE)
 
-message(STATUS "Downloading juce-raw-keyboard-input-module...")
+message(STATUS "Resolving juce-raw-keyboard-input-module...")
 FetchContent_MakeAvailable(juce-raw-keyboard-input-module)
 
-message(STATUS "Downloading melatonin_blur...")
+message(STATUS "Resolving melatonin_blur...")
 FetchContent_MakeAvailable(melatonin_blur)
 
-message(STATUS "Downloading json...")
+message(STATUS "Resolving json...")
 FetchContent_MakeAvailable(json)
 
 if (IOS)
