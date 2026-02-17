@@ -63,6 +63,18 @@ function(fetchcontent_declare_cached_git dep_name cache_subdir default_path repo
     _git_tag
     _source_hash
   )
+
+  string(TOUPPER "${dep_name}" _dep_upper)
+  set(_dep_override_var "FETCHCONTENT_SOURCE_DIR_${_dep_upper}")
+  if(IS_DIRECTORY "${_source_dir}")
+    file(GLOB _cached_entries LIST_DIRECTORIES true "${_source_dir}/*")
+    list(LENGTH _cached_entries _cached_entry_count)
+    if(_cached_entry_count GREATER 0)
+      set(${_dep_override_var} "${_source_dir}" PARENT_SCOPE)
+      message(STATUS "FetchContent ${dep_name}: reusing cached source ${_source_dir}")
+    endif()
+  endif()
+
   FetchContent_Declare(${dep_name}
     GIT_REPOSITORY "${repository}"
     GIT_TAG "${_git_tag}"
@@ -85,6 +97,18 @@ function(fetchcontent_declare_cached_url dep_name cache_subdir default_path url)
     _git_tag
     _source_hash
   )
+
+  string(TOUPPER "${dep_name}" _dep_upper)
+  set(_dep_override_var "FETCHCONTENT_SOURCE_DIR_${_dep_upper}")
+  if(IS_DIRECTORY "${_source_dir}")
+    file(GLOB _cached_entries LIST_DIRECTORIES true "${_source_dir}/*")
+    list(LENGTH _cached_entries _cached_entry_count)
+    if(_cached_entry_count GREATER 0)
+      set(${_dep_override_var} "${_source_dir}" PARENT_SCOPE)
+      message(STATUS "FetchContent ${dep_name}: reusing cached source ${_source_dir}")
+    endif()
+  endif()
+
   FetchContent_Declare(${dep_name}
     URL "${url}"
     SOURCE_DIR "${_source_dir}"
