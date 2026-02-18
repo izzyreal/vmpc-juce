@@ -94,7 +94,6 @@ pipelines:
           tools:
             git: "*"
             cmake: "*"
-            sccache: "*"
         timeout_seconds: 5400
         artifacts:
           - dist/**
@@ -103,7 +102,7 @@ pipelines:
           - run: if exist build rmdir /s /q build
           - run: if not exist dist mkdir dist
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
-          - run: where sccache
+          - run: where sccache >nul 2>&1 || winget install --id Mozilla.sccache --silent --accept-package-agreements --accept-source-agreements
           - run: if not exist "%SCCACHE_DIR%" mkdir "%SCCACHE_DIR%"
           - run: cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DCMAKE_POLICY_DEFAULT_CMP0141=NEW -DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded
           - run: sccache --start-server
