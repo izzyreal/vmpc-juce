@@ -18,6 +18,7 @@ pipelines:
           tools:
             git: "*"
             docker: "*"
+            ccache: "*"
         timeout_seconds: 3600
         artifacts:
           - dist/**
@@ -55,6 +56,7 @@ pipelines:
           tools:
             git: "*"
             cmake: "*"
+            ccache: "*"
             xcodebuild: "*"
         timeout_seconds: 5400
         artifacts:
@@ -96,6 +98,7 @@ pipelines:
           tools:
             git: "*"
             cmake: "*"
+            ccache: "*"
         timeout_seconds: 5400
         artifacts:
           - dist/**
@@ -105,8 +108,10 @@ pipelines:
           - run: if not exist dist mkdir dist
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
-          - run: cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
-          - run: cmake --build build --config Release --target vmpc2000xl_All mpc-tests
+          - run: "C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All mpc-tests
+          - run: "C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats
           - test:
               name: mpc-tests
               command: build\_deps\mpc-build\Release\mpc-tests.exe --reporter JUnit::out=build\result-junit.xml
