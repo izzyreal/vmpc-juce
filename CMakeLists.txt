@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #add_definitions(-DJUCE_ENABLE_REPAINT_DEBUGGING)
@@ -44,6 +46,8 @@ if (APPLE)
 else()
     project(vmpc2000xl VERSION ${VMPC_VERSION} LANGUAGES C CXX)
 endif()
+
+find_package(ccache)
 
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
