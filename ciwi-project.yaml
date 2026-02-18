@@ -16,10 +16,9 @@ pipelines:
           arch: amd64
         requires:
           tools:
-            <<: &tools_git_ccache
-              git: "*"
-              ccache: "*"
+            git: "*"
             docker: "*"
+            ccache: "*"
         timeout_seconds: 3600
         artifacts:
           - dist/**
@@ -29,17 +28,15 @@ pipelines:
           - id: ccache
             env: CCACHE_DIR
         steps:
-          - run: |
-              set -e
-              mkdir -p dist "$CIWI_FETCHCONTENT_SOURCES_DIR" "$CCACHE_DIR"
-              docker stop ubuntu-vmpc || true
-              docker rm ubuntu-vmpc || true
-              docker run -d --name ubuntu-vmpc -v "$(pwd)":/home/vmpc-juce -v "$CIWI_FETCHCONTENT_SOURCES_DIR":/ciwi-fetchcontent -v "$CCACHE_DIR":/ciwi-ccache ubuntu-vmpc sleep infinity
-              docker exec -e CCACHE_DIR=/ciwi-ccache -w /home/vmpc-juce ubuntu-vmpc sh -c 'if command -v ccache >/dev/null 2>&1; then ccache --zero-stats; else echo "ccache not found in container"; fi'
-              docker exec -e CCACHE_DIR=/ciwi-ccache -e CCACHE_BASEDIR=/home/vmpc-juce -e CCACHE_NOHASHDIR=true -e CCACHE_COMPILERCHECK=content -w /home/vmpc-juce ubuntu-vmpc sh -c "cmake -B build -G \"Ninja Multi-Config\" -Wno-dev -DFETCHCONTENT_CACHE_ROOT=/ciwi-fetchcontent && cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests"
-              docker exec -e CCACHE_DIR=/ciwi-ccache -w /home/vmpc-juce ubuntu-vmpc sh -c 'if command -v ccache >/dev/null 2>&1; then ccache --show-stats; else echo "ccache not found in container"; fi'
-              docker stop ubuntu-vmpc
-              docker rm ubuntu-vmpc
+          - run: mkdir -p dist
+          - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - run: mkdir -p "$CCACHE_DIR"
+          - run: docker stop ubuntu-vmpc || true && docker rm ubuntu-vmpc || true
+          - run: docker run -d --name ubuntu-vmpc -v "$(pwd)":/home/vmpc-juce -v "$CIWI_FETCHCONTENT_SOURCES_DIR":/ciwi-fetchcontent -v "$CCACHE_DIR":/ciwi-ccache ubuntu-vmpc sleep infinity
+          - run: docker exec -e CCACHE_DIR=/ciwi-ccache -w /home/vmpc-juce ubuntu-vmpc sh -c 'if command -v ccache >/dev/null 2>&1; then ccache --zero-stats; else echo "ccache not found in container"; fi'
+          - run: docker exec -e CCACHE_DIR=/ciwi-ccache -e CCACHE_BASEDIR=/home/vmpc-juce -e CCACHE_NOHASHDIR=true -e CCACHE_COMPILERCHECK=content -w /home/vmpc-juce ubuntu-vmpc sh -c "cmake -B build -G \"Ninja Multi-Config\" -Wno-dev -DFETCHCONTENT_CACHE_ROOT=/ciwi-fetchcontent && cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests"
+          - run: docker exec -e CCACHE_DIR=/ciwi-ccache -w /home/vmpc-juce ubuntu-vmpc sh -c 'if command -v ccache >/dev/null 2>&1; then ccache --show-stats; else echo "ccache not found in container"; fi'
+          - run: docker stop ubuntu-vmpc && docker rm ubuntu-vmpc
           - test:
               name: mpc-tests
               command: ./build/_deps/mpc-build/Release/mpc-tests --reporter JUnit::out=dist/result-junit.xml
@@ -59,31 +56,30 @@ pipelines:
           arch: arm64
         requires:
           tools:
-            <<: *tools_git_ccache
+            git: "*"
             cmake: "*"
+            ccache: "*"
             xcodebuild: "*"
         timeout_seconds: 5400
         artifacts:
           - dist/**
         caches: *build_caches
         steps:
-          - run: |
-              set -e
-              mkdir -p dist "$CIWI_FETCHCONTENT_SOURCES_DIR" "$CCACHE_DIR"
-              ccache --dir "$CCACHE_DIR" --zero-stats
-              export VMPC2000XL_DOCUMENTS_PATH=/tmp/vmpc2000xl_documents/
-              rm -rf "$VMPC2000XL_DOCUMENTS_PATH"
-              mkdir -p "$VMPC2000XL_DOCUMENTS_PATH"
-              export CCACHE_BASEDIR="$PWD"
-              export CCACHE_NOHASHDIR=true
-              export CCACHE_COMPILERCHECK=content
-              cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
-              xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -destination "generic/platform=macOS,name=Any Mac" -configuration Release
-              xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_AU -destination "generic/platform=macOS,name=Any Mac" -configuration Release
-              xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_VST3 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
-              xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_LV2 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
-              xcodebuild -project build/vmpc2000xl.xcodeproj -scheme mpc-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
-              ccache --dir "$CCACHE_DIR" --show-stats
+          - run: mkdir -p dist
+          - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - run: mkdir -p "$CCACHE_DIR"
+          - run: ccache --dir "$CCACHE_DIR" --zero-stats
+          - run: rm -rf "$VMPC2000XL_DOCUMENTS_PATH" && mkdir -p "$VMPC2000XL_DOCUMENTS_PATH"
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
+          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
+          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_AU -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_VST3 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_LV2 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme mpc-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
           - test:
               name: mpc-tests
               command: ./build/_deps/mpc-build/Release/mpc-tests.app/Contents/MacOS/mpc-tests --reporter JUnit::out=build/result-junit.xml
@@ -94,6 +90,7 @@ pipelines:
           - run: cp -R build/vmpc2000xl_artefacts/Release/VST3/VMPC2000XL.vst3 dist/VMPC2000XL-macos-universal-VST3.vst3
           - run: cp -R build/vmpc2000xl_artefacts/Release/LV2/VMPC2000XL.lv2 dist/VMPC2000XL-macos-universal-LV2.lv2
           - run: cp build/version.txt dist/version-macos-universal.txt
+          - run: ccache --dir "$CCACHE_DIR" --show-stats
 
       - id: windows10-amd64
         runs_on:
@@ -103,25 +100,22 @@ pipelines:
           arch: amd64
         requires:
           tools:
-            <<: *tools_git_ccache
+            git: "*"
             cmake: "*"
+            ccache: "*"
         timeout_seconds: 5400
         artifacts:
           - dist/**
         caches: *build_caches
         steps:
-          - run: |
-              if exist build rmdir /s /q build
-              if not exist dist mkdir dist
-              if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
-              if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
-              "C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats
-              set "CCACHE_BASEDIR=%CD%"
-              set "CCACHE_NOHASHDIR=true"
-              set "CCACHE_COMPILERCHECK=content"
-              cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
-              cmake --build build --config Release --target vmpc2000xl_All mpc-tests
-              "C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats
+          - run: if exist build rmdir /s /q build
+          - run: if not exist dist mkdir dist
+          - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
+          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All mpc-tests
+          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
           - test:
               name: mpc-tests
               command: build\_deps\mpc-build\Release\mpc-tests.exe --reporter JUnit::out=build\result-junit.xml
