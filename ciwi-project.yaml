@@ -34,7 +34,7 @@ pipelines:
           - run: docker stop ubuntu-vmpc || true && docker rm ubuntu-vmpc || true
           - run: docker run -d --name ubuntu-vmpc -v "$(pwd)":/home/vmpc-juce -v "$CIWI_FETCHCONTENT_SOURCES_DIR":/ciwi-fetchcontent -v "$CCACHE_DIR":/ciwi-ccache ubuntu-vmpc sleep infinity
           - run: docker exec -e CCACHE_DIR=/ciwi-ccache -w /home/vmpc-juce ubuntu-vmpc sh -c 'if command -v ccache >/dev/null 2>&1; then ccache --zero-stats; else echo "ccache not found in container"; fi'
-          - run: docker exec -e CCACHE_DIR=/ciwi-ccache -e CCACHE_BASEDIR=/home/vmpc-juce -e CCACHE_NOHASHDIR=true -e CCACHE_COMPILERCHECK=content -w /home/vmpc-juce ubuntu-vmpc sh -c "cmake -B build -G \"Ninja Multi-Config\" -Wno-dev -DFETCHCONTENT_CACHE_ROOT=/ciwi-fetchcontent && cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests"
+          - run: docker exec -e CCACHE_DIR=/ciwi-ccache -e CCACHE_BASEDIR=/home/vmpc-juce -e CCACHE_NOHASHDIR=true -e CCACHE_COMPILERCHECK=content -w /home/vmpc-juce ubuntu-vmpc sh -c "cmake -B build -G \"Ninja Multi-Config\" -DRTMIDI_API_ALSA=ON -Wno-dev -DFETCHCONTENT_CACHE_ROOT=/ciwi-fetchcontent && cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests"
           - run: docker exec -e CCACHE_DIR=/ciwi-ccache -w /home/vmpc-juce ubuntu-vmpc sh -c 'if command -v ccache >/dev/null 2>&1; then ccache --show-stats; else echo "ccache not found in container"; fi'
           - run: docker stop ubuntu-vmpc && docker rm ubuntu-vmpc
           - test:
