@@ -58,6 +58,24 @@ set(CCACHE_PROGRAMS "ccache" CACHE STRING "eligible compiler cache programs to l
 
 find_program(CCACHE_PROGRAM NAMES ${CCACHE_PROGRAMS} DOC "compiler cache executable")
 
+set(CCACHE_PROGRAM_RESOLVED "${CCACHE_PROGRAM}")
+if (WIN32 AND CCACHE_PROGRAM)
+    string(REPLACE "\\" "/" _ccache_program_unix "${CCACHE_PROGRAM}")
+    string(TOLOWER "${_ccache_program_unix}" _ccache_program_unix_lower)
+    if (_ccache_program_unix_lower MATCHES "/chocolatey/bin/ccache\\.exe$")
+        get_filename_component(_ccache_bin_dir "${CCACHE_PROGRAM}" DIRECTORY)
+        get_filename_component(_choco_root "${_ccache_bin_dir}" DIRECTORY)
+        file(GLOB_RECURSE _choco_ccache_candidates
+            "${_choco_root}/lib/ccache/tools/*/ccache.exe"
+            "${_choco_root}/lib/ccache/tools/ccache.exe"
+        )
+        if (_choco_ccache_candidates)
+            list(SORT _choco_ccache_candidates)
+            list(GET _choco_ccache_candidates -1 CCACHE_PROGRAM_RESOLVED)
+        endif()
+    endif()
+endif()
+
 # handle the QUIETLY and REQUIRED arguments and set xxx_FOUND to TRUE if
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
@@ -86,8 +104,10 @@ if (CCACHE_FOUND)
         set(CMAKE_XCODE_ATTRIBUTE_LD         "${CMAKE_BINARY_DIR}/launch-c"   CACHE INTERNAL _)
         set(CMAKE_XCODE_ATTRIBUTE_LDPLUSPLUS "${CMAKE_BINARY_DIR}/launch-cxx" CACHE INTERNAL _)
     elseif (CMAKE_GENERATOR MATCHES "Visual Studio")
-        # Copy original ccache.exe and rename to cl.exe, this way intermediate cmd file is not needed
-        file(COPY_FILE ${CCACHE_PROGRAM} ${CMAKE_BINARY_DIR}/cl.exe ONLY_IF_DIFFERENT)
+        # Copy original ccache.exe and rename to cl.exe, this way intermediate cmd file is not needed.
+        # On Windows with Chocolatey, CCACHE_PROGRAM may be a shim in chocolatey/bin.
+        # Copying the shim breaks because it resolves targets relative to its own path.
+        file(COPY_FILE ${CCACHE_PROGRAM_RESOLVED} ${CMAKE_BINARY_DIR}/cl.exe ONLY_IF_DIFFERENT)
 
         # Set Visual Studio global variables:
         # - Use above cl.exe (ccache.exe) as a compiler 
