@@ -124,6 +124,7 @@ pipelines:
           - run: cp build/version.txt dist/version-ios.txt
           - run: cp -R build/vmpc2000xl_StandaloneAndAUv3.xcarchive dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
           - run: for f in build/*.ipa; do [ -e "$f" ] && cp "$f" dist/; done
+            skip_dry_run: true
 
       - id: windows10-amd64
         runs_on:
