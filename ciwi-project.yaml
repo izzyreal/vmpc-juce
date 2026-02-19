@@ -97,7 +97,7 @@ pipelines:
           - run: cp build/build/vmpc2000xl_AUv3.build/Release/DerivedSources/Entitlements.plist dist/AUv3Entitlements.plist
           - run: ccache --dir "$CCACHE_DIR" --show-stats
 
-      - id: ios
+      - id: "ios (build and publish)"
         runs_on:
           executor: script
           shell: posix
@@ -120,6 +120,7 @@ pipelines:
           - run: cd build && xcodebuild -project vmpc2000xl.xcodeproj build -target vmpc2000xl_Standalone -parallelizeTargets -configuration RelWithDebInfo -allowProvisioningUpdates
           - run: cd build && xcodebuild -project vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -allowProvisioningUpdates -sdk iphoneos -configuration RelWithDebInfo archive -archivePath "./vmpc2000xl_StandaloneAndAUv3.xcarchive"
           - run: cd build && xcodebuild -exportArchive -archivePath ./vmpc2000xl_StandaloneAndAUv3.xcarchive -exportOptionsPlist ../ExportOptions.plist -exportPath "./" -allowProvisioningUpdates
+            skip_dry_run: true
           - run: cp build/version.txt dist/version-ios.txt
           - run: cp -R build/vmpc2000xl_StandaloneAndAUv3.xcarchive dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
           - run: for f in build/*.ipa; do [ -e "$f" ] && cp "$f" dist/; done
@@ -348,6 +349,7 @@ pipelines:
           - dist/**
         steps:
           - run: test -n "$DEV_IDENTITY_APP"
+            skip_dry_run: true
           - run: rm -rf binaries && mkdir -p binaries/Standalone binaries/AU binaries/VST3 binaries/LV2 binaries/StandaloneEntitlements binaries/AUv3Entitlements
           - run: cp -R dist/VMPC2000XL-macos-universal-Standalone.app binaries/Standalone/VMPC2000XL.app
           - run: cp -R dist/VMPC2000XL-macos-universal-AU.component binaries/AU/VMPC2000XL.component
@@ -389,6 +391,7 @@ pipelines:
           - dist/**
         steps:
           - run: test -n "$GITHUB_TOKEN" && test -n "$DEV_IDENTITY_INSTALLER" && test -n "$NOTARYTOOL_PASSWORD" && test -n "$APPLE_TEAM_ID" && test -n "$APPLE_ID"
+            skip_dry_run: true
           - run: rm -rf binaries && mkdir -p binaries/Standalone binaries/AU binaries/VST3 binaries/LV2
           - run: cp -R dist/codesigned-macos/VMPC2000XL.app binaries/Standalone/VMPC2000XL.app
           - run: cp -R dist/codesigned-macos/VMPC2000XL.component binaries/AU/VMPC2000XL.component
@@ -398,16 +401,18 @@ pipelines:
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && packagesutil set package-1 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-2 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-3 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-4 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && sed -i '' "s#<string>VMPC2000XL .*</string>#<string>VMPC2000XL ${VERSION}</string>#g" ./mac/VMPC2000XL.pkgproj
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && git commit -am "Bump Packages project versions to ${VERSION}" && git push "https://izzyreal:${GITHUB_TOKEN}@github.com/izzyreal/vmpc-installer-scripts"
+            skip_dry_run: true
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && mkdir -p dist/${VERSION}/mac
           - run: chmod +x ./binaries/Standalone/VMPC2000XL.app/Contents/MacOS/VMPC2000XL && chmod +x ./binaries/Standalone/VMPC2000XL.app/Contents/PlugIns/VMPC2000XL.appex/Contents/MacOS/VMPC2000XL
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && packagesbuild --build-folder "$PWD/dist/${VERSION}/mac" ./mac/VMPC2000XL.pkgproj
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && mv "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg"
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && productsign --sign "$DEV_IDENTITY_INSTALLER" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun notarytool submit "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" --apple-id "$APPLE_ID" --password "$NOTARYTOOL_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+            skip_dry_run: true
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun stapler staple "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && cp "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" dist/
 
-  - id: publish
+  - id: release
     trigger: manual
     depends_on:
       - package-sign
@@ -431,18 +436,27 @@ pipelines:
         timeout_seconds: 1200
         steps:
           - run: test -n "$GITHUB_TOKEN"
+            skip_dry_run: true
           - run: VERSION="$(cat dist/version-windows10-amd64.txt | tr -d '\r\n')" && test -n "$VERSION" && echo "$VERSION" > dist/release-version.txt
+            skip_dry_run: true
           - run: TAG="v$(cat dist/release-version.txt)" && if ! gh release view "$TAG" --repo izzyreal/vmpc-juce >/dev/null 2>&1; then gh release create "$TAG" --repo izzyreal/vmpc-juce --title "VMPC2000XL $TAG" --notes "Release $TAG"; fi
+            skip_dry_run: true
           - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Win7-x86_64.exe --repo izzyreal/vmpc-juce --clobber
+            skip_dry_run: true
           - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Win10-x86_64.exe --repo izzyreal/vmpc-juce --clobber
+            skip_dry_run: true
           - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Intel-M1.pkg --repo izzyreal/vmpc-juce --clobber
+            skip_dry_run: true
           - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-Standalone.zip --repo izzyreal/vmpc-juce --clobber
+            skip_dry_run: true
           - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-VST3.zip --repo izzyreal/vmpc-juce --clobber
+            skip_dry_run: true
           - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-LV2.zip --repo izzyreal/vmpc-juce --clobber
+            skip_dry_run: true
 
 pipeline_chains:
-  - id: build-package-sign-publish
+  - id: build-package-sign-release
     pipelines:
       - build
       - package-sign
-      - publish
+      - release
