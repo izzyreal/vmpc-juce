@@ -126,3 +126,96 @@ pipelines:
           - run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows10-amd64-Standalone.exe
           - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows10-amd64-VST3.vst3
           - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows10-amd64-LV2.lv2
+
+      - id: windows10-x86
+        needs:
+          - windows10-amd64
+        runs_on:
+          executor: script
+          shell: cmd
+          os: windows
+          arch: amd64
+        requires:
+          tools:
+            git: "*"
+            cmake: "*"
+            ccache: "*"
+        timeout_seconds: 5400
+        artifacts:
+          - dist/**
+        caches: *build_caches
+        steps:
+          - run: if exist build rmdir /s /q build
+          - run: if not exist dist mkdir dist
+          - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
+          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A Win32 -Wno-dev -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
+          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
+          - run: copy /Y build\version.txt dist\version-windows10-x86.txt
+          - run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows10-x86-Standalone.exe
+          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows10-x86-VST3.vst3
+          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows10-x86-LV2.lv2
+
+      - id: windows7-amd64
+        needs:
+          - windows10-amd64
+        runs_on:
+          executor: script
+          shell: cmd
+          os: windows
+          arch: amd64
+        requires:
+          tools:
+            git: "*"
+            cmake: "*"
+            ccache: "*"
+        timeout_seconds: 5400
+        artifacts:
+          - dist/**
+        caches: *build_caches
+        steps:
+          - run: if exist build rmdir /s /q build
+          - run: if not exist dist mkdir dist
+          - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
+          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
+          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
+          - run: copy /Y build\version.txt dist\version-windows7-amd64.txt
+          - run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows7-amd64-Standalone.exe
+          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows7-amd64-VST3.vst3
+          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows7-amd64-LV2.lv2
+
+      - id: windows7-x86
+        needs:
+          - windows10-amd64
+        runs_on:
+          executor: script
+          shell: cmd
+          os: windows
+          arch: amd64
+        requires:
+          tools:
+            git: "*"
+            cmake: "*"
+            ccache: "*"
+        timeout_seconds: 5400
+        artifacts:
+          - dist/**
+        caches: *build_caches
+        steps:
+          - run: if exist build rmdir /s /q build
+          - run: if not exist dist mkdir dist
+          - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
+          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
+          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
+          - run: copy /Y build\version.txt dist\version-windows7-x86.txt
+          - run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows7-x86-Standalone.exe
+          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows7-x86-VST3.vst3
+          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows7-x86-LV2.lv2
