@@ -15,12 +15,15 @@ include(cmake/FetchContentCache.cmake)
 
 find_package(Git)
 
-# Note that IOS (as of CMake 3.14) is not set until the project() call is made.
-if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
-  set(VMPC_VERSION 0.9.0)
-else()
-  set(VMPC_VERSION 0.9.0.25)
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION")
+  message(FATAL_ERROR "VERSION file not found at ${CMAKE_CURRENT_SOURCE_DIR}/VERSION")
 endif()
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" VMPC_VERSION LIMIT_COUNT 1)
+string(STRIP "${VMPC_VERSION}" VMPC_VERSION)
+if("${VMPC_VERSION}" STREQUAL "")
+  message(FATAL_ERROR "VERSION file is empty")
+endif()
+
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
