@@ -17,11 +17,16 @@ pipelines:
           shell: posix
           os: linux
           arch: amd64
+          container_probe: ubuntu-vmpc
         requires:
           tools:
             git: "*"
             docker: "*"
-            ccache: "*"
+          container:
+            tools:
+              ccache: "*"
+              cmake: "*"
+              ninja: "*"
         timeout_seconds: 3600
         artifacts:
           - dist/**
