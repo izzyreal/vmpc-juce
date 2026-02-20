@@ -41,7 +41,12 @@ pipelines:
           - run: mkdir -p "$CCACHE_DIR"
           - run: mkdir -p /tmp/vmpc2000xl_documents
           - run: if command -v ccache >/dev/null 2>&1; then ccache --zero-stats; else echo "ccache not found in container"; fi
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content VMPC2000XL_DOCUMENTS_PATH=/tmp/vmpc2000xl_documents cmake -B build -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR" && cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests
+          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content cmake -B build -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
+          - run: cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
           - run: if command -v ccache >/dev/null 2>&1; then ccache --show-stats; else echo "ccache not found in container"; fi
           - test:
               name: mpc-tests
