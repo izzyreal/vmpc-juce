@@ -19,6 +19,7 @@ pipelines:
           arch: amd64
           container_image: ubuntu-vmpc
           container_devices: /dev/snd
+          container_groups: audio
         requires:
           tools:
             git: "*"
