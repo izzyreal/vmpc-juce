@@ -285,7 +285,7 @@ pipelines:
           - run: Copy-Item -Force dist\VMPC2000XL-windows10-amd64-Standalone.exe binaries\win64\Standalone\VMPC2000XL.exe
           - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-amd64-VST3.vst3 binaries\win64\VST3\VMPC2000XL.vst3
           - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-amd64-LV2.lv2 binaries\win64\LV2\VMPC2000XL.lv2
-          - run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe"; Copy-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe" dist\VMPC2000XL-Installer-Win10-x86_64.exe
+          - run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe"; Copy-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe" dist\VMPC2000XL-Installer-Win10-x86_64.exe; Copy-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe" "dist\VMPC2000XL-Installer-Win10-x86_64-v$($env:VERSION_IN_EXECUTABLE).exe"
 
       - id: windows7-installer
         runs_on:
@@ -310,7 +310,7 @@ pipelines:
           - run: Copy-Item -Force dist\VMPC2000XL-windows7-amd64-Standalone.exe binaries\win64\Standalone\VMPC2000XL.exe
           - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-amd64-VST3.vst3 binaries\win64\VST3\VMPC2000XL.vst3
           - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-amd64-LV2.lv2 binaries\win64\LV2\VMPC2000XL.lv2
-          - run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe"; Copy-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe" dist\VMPC2000XL-Installer-Win7-x86_64.exe
+          - run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe"; Copy-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe" dist\VMPC2000XL-Installer-Win7-x86_64.exe; Copy-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe" "dist\VMPC2000XL-Installer-Win7-x86_64-v$($env:VERSION_IN_EXECUTABLE).exe"
 
       - id: linux-package
         runs_on:
@@ -411,7 +411,7 @@ pipelines:
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun notarytool submit "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" --apple-id "$APPLE_ID" --password "$NOTARYTOOL_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
             skip_dry_run: true
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun stapler staple "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && cp "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" dist/
+          - run: VERSION="$(cat dist/version-macos-installer.txt)" && cp "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" dist/ && cp "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "dist/VMPC2000XL-Installer-Intel-M1-v${VERSION}.pkg"
 
   - id: release
     trigger: manual
@@ -442,11 +442,11 @@ pipelines:
             skip_dry_run: true
           - run: TAG="v$(cat dist/release-version.txt)" && if ! gh release view "$TAG" --repo izzyreal/vmpc-juce >/dev/null 2>&1; then gh release create "$TAG" --repo izzyreal/vmpc-juce --title "VMPC2000XL $TAG" --notes "Release $TAG"; fi
             skip_dry_run: true
-          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Win7-x86_64.exe --repo izzyreal/vmpc-juce --clobber
+          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Win7-x86_64-v$(cat dist/release-version.txt).exe --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
-          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Win10-x86_64.exe --repo izzyreal/vmpc-juce --clobber
+          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Win10-x86_64-v$(cat dist/release-version.txt).exe --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
-          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Intel-M1.pkg --repo izzyreal/vmpc-juce --clobber
+          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Intel-M1-v$(cat dist/release-version.txt).pkg --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
           - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-Standalone.zip --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
