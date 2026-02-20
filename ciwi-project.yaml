@@ -38,7 +38,7 @@ pipelines:
           - run: docker run -d --name ubuntu-vmpc --user "$(id -u):$(id -g)" -v "$(pwd)":/home/vmpc-juce -v "$CIWI_FETCHCONTENT_SOURCES_DIR":/ciwi-fetchcontent -v "$CCACHE_DIR":/ciwi-ccache ubuntu-vmpc sleep infinity
           - run: docker exec --user "$(id -u):$(id -g)" -w /home/vmpc-juce ubuntu-vmpc sh -c "mkdir -p /tmp/vmpc2000xl_documents"
           - run: docker exec --user "$(id -u):$(id -g)" -e CCACHE_DIR=/ciwi-ccache -w /home/vmpc-juce ubuntu-vmpc sh -c 'if command -v ccache >/dev/null 2>&1; then ccache --zero-stats; else echo "ccache not found in container"; fi'
-          - run: docker exec --user "$(id -u):$(id -g)" -e CCACHE_DIR=/ciwi-ccache -e CCACHE_BASEDIR=/home/vmpc-juce -e CCACHE_NOHASHDIR=true -e CCACHE_COMPILERCHECK=content -e VMPC2000XL_DOCUMENTS_PATH=/tmp/vmpc2000xl_documents -w /home/vmpc-juce ubuntu-vmpc sh -c "cmake -B build -G \"Ninja Multi-Config\" -DRTMIDI_API_ALSA=ON -Wno-dev -DFETCHCONTENT_CACHE_ROOT=/ciwi-fetchcontent && cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests"
+          - run: docker exec --user "$(id -u):$(id -g)" -e CCACHE_DIR=/ciwi-ccache -e CCACHE_BASEDIR=/home/vmpc-juce -e CCACHE_NOHASHDIR=true -e CCACHE_COMPILERCHECK=content -e VMPC2000XL_DOCUMENTS_PATH=/tmp/vmpc2000xl_documents -w /home/vmpc-juce ubuntu-vmpc sh -c "cmake -B build -G \"Ninja Multi-Config\" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT=/ciwi-fetchcontent && cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests"
           - run: docker exec --user "$(id -u):$(id -g)" -e CCACHE_DIR=/ciwi-ccache -w /home/vmpc-juce ubuntu-vmpc sh -c 'if command -v ccache >/dev/null 2>&1; then ccache --show-stats; else echo "ccache not found in container"; fi'
           - run: docker stop ubuntu-vmpc && docker rm ubuntu-vmpc
           - test:
@@ -117,7 +117,7 @@ pipelines:
           - run: mkdir -p dist
           - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
           - run: rm -rf build
-          - run: cmake -Wno-dev -B build -G "Xcode" -DCMAKE_SYSTEM_NAME=iOS -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - run: cmake -Wno-dev -B build -G "Xcode" -DCMAKE_SYSTEM_NAME=iOS -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
           - run: cd build && xcodebuild -project vmpc2000xl.xcodeproj build -target vmpc2000xl_Standalone -parallelizeTargets -configuration RelWithDebInfo -allowProvisioningUpdates
           - run: cd build && xcodebuild -project vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -allowProvisioningUpdates -sdk iphoneos -configuration RelWithDebInfo archive -archivePath "./vmpc2000xl_StandaloneAndAUv3.xcarchive"
           - run: cd build && xcodebuild -exportArchive -archivePath ./vmpc2000xl_StandaloneAndAUv3.xcarchive -exportOptionsPlist ../ExportOptions.plist -exportPath "./" -allowProvisioningUpdates
@@ -148,7 +148,7 @@ pipelines:
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All mpc-tests
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
           - test:
@@ -185,7 +185,7 @@ pipelines:
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A Win32 -Wno-dev -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
           - run: copy /Y build\version.txt dist\version-windows10-x86.txt
@@ -216,7 +216,7 @@ pipelines:
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
           - run: copy /Y build\version.txt dist\version-windows7-amd64.txt
@@ -247,7 +247,7 @@ pipelines:
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
           - run: copy /Y build\version.txt dist\version-windows7-x86.txt
