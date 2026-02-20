@@ -18,6 +18,7 @@ pipelines:
           os: linux
           arch: amd64
           container_image: ubuntu-vmpc
+          container_devices: /dev/snd
         requires:
           tools:
             git: "*"
