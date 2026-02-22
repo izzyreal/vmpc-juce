@@ -326,10 +326,55 @@ pipelines:
           - run: /usr/libexec/PlistBuddy -c 'Delete :com.apple.security.get-task-allow' ./binaries/StandaloneEntitlements/Entitlements.plist || true
           - run: /usr/libexec/PlistBuddy -c 'Delete :com.apple.security.get-task-allow' ./binaries/AUv3Entitlements/Entitlements.plist || true
           - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/Standalone/VMPC2000XL.app/Contents/PlugIns/VMPC2000XL.appex --entitlements ./binaries/AUv3Entitlements/Entitlements.plist --deep --strict --options=runtime --timestamp
+            vault:
+              connection: home-vault
+              secrets:
+                - name: dev-identity-app
+                  mount: kv
+                  path: apple-id
+                  key: dev-identity-app
+            env:
+              DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
           - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/Standalone/VMPC2000XL.app --entitlements ./binaries/StandaloneEntitlements/Entitlements.plist --strict --options=runtime --timestamp
+            vault:
+              connection: home-vault
+              secrets:
+                - name: dev-identity-app
+                  mount: kv
+                  path: apple-id
+                  key: dev-identity-app
+            env:
+              DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
           - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/AU/VMPC2000XL.component --deep --strict --options=runtime --timestamp
+            vault:
+              connection: home-vault
+              secrets:
+                - name: dev-identity-app
+                  mount: kv
+                  path: apple-id
+                  key: dev-identity-app
+            env:
+              DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
           - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/VST3/VMPC2000XL.vst3 --deep --strict --options=runtime --timestamp
+            vault:
+              connection: home-vault
+              secrets:
+                - name: dev-identity-app
+                  mount: kv
+                  path: apple-id
+                  key: dev-identity-app
+            env:
+              DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
           - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/LV2/VMPC2000XL.lv2/libVMPC2000XL.so --strict --timestamp
+            vault:
+              connection: home-vault
+              secrets:
+                - name: dev-identity-app
+                  mount: kv
+                  path: apple-id
+                  key: dev-identity-app
+            env:
+              DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
           - run: rm -rf dist/codesigned-macos && mkdir -p dist/codesigned-macos
           - run: cp -R binaries/Standalone/VMPC2000XL.app dist/codesigned-macos/VMPC2000XL.app
           - run: cp -R binaries/AU/VMPC2000XL.component dist/codesigned-macos/VMPC2000XL.component
@@ -417,7 +462,35 @@ pipelines:
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && packagesbuild --build-folder "$PWD/dist/${VERSION}/mac" ./mac/VMPC2000XL.pkgproj
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && mv "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg"
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && productsign --sign "$DEV_IDENTITY_INSTALLER" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
+            vault:
+              connection: home-vault
+              secrets:
+                - name: dev-identity-installer
+                  mount: kv
+                  path: apple-id
+                  key: dev-identity-installer
+            env:
+              DEV_IDENTITY_INSTALLER: "{{ secret.dev-identity-installer }}"
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun notarytool submit "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" --apple-id "$APPLE_ID" --password "$NOTARYTOOL_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+            vault:
+              connection: home-vault
+              secrets:
+                - name: notarytool-password
+                  mount: kv
+                  path: notarytool
+                  key: password
+                - name: apple-team-id
+                  mount: kv
+                  path: apple-id
+                  key: team-id
+                - name: apple-id
+                  mount: kv
+                  path: apple-id
+                  key: email
+            env:
+              NOTARYTOOL_PASSWORD: "{{ secret.notarytool-password }}"
+              APPLE_TEAM_ID: "{{ secret.apple-team-id }}"
+              APPLE_ID: "{{ secret.apple-id }}"
             skip_dry_run: true
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun stapler staple "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && cp "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" dist/ && cp "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "dist/VMPC2000XL-Installer-Intel-M1-v${VERSION}.pkg"
