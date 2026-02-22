@@ -306,7 +306,6 @@ pipelines:
           - dist/**
         steps:
           - run: test -n "$DEV_IDENTITY_APP"
-            skip_dry_run: true
             vault:
               connection: home-vault
               secrets:
@@ -408,7 +407,6 @@ pipelines:
           - dist/**
         steps:
           - run: test -n "$GITHUB_TOKEN" && test -n "$DEV_IDENTITY_INSTALLER" && test -n "$NOTARYTOOL_PASSWORD" && test -n "$APPLE_TEAM_ID" && test -n "$APPLE_ID"
-            skip_dry_run: true
             vault:
               connection: home-vault
               secrets:
@@ -493,6 +491,7 @@ pipelines:
               APPLE_ID: "{{ secret.apple-id }}"
             skip_dry_run: true
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun stapler staple "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
+            skip_dry_run: true
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && cp "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" dist/ && cp "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "dist/VMPC2000XL-Installer-Intel-M1-v${VERSION}.pkg"
 
   - id: package-windows
