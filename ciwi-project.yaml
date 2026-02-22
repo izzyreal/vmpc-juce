@@ -170,7 +170,7 @@ pipelines:
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (set "CIWI_CMAKE_GEN=" && for %%G in ("Visual Studio 18 2026" "Visual Studio 17 2022" "Visual Studio 16 2019") do @if not defined CIWI_CMAKE_GEN (cmake -S . -B build -G %%~G -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" && set "CIWI_CMAKE_GEN=%%~G")) && if not defined CIWI_CMAKE_GEN (echo No supported Visual Studio CMake generator found. & exit /b 1)
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%")
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All mpc-tests
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
@@ -187,8 +187,6 @@ pipelines:
           - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows10-amd64-LV2.lv2
 
       - id: windows10-x86
-        needs:
-          - windows10-amd64
         runs_on:
           executor: script
           shell: cmd
@@ -208,7 +206,7 @@ pipelines:
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (set "CIWI_CMAKE_GEN=" && for %%G in ("Visual Studio 18 2026" "Visual Studio 17 2022" "Visual Studio 16 2019") do @if not defined CIWI_CMAKE_GEN (cmake -S . -B build -G %%~G -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" && set "CIWI_CMAKE_GEN=%%~G")) && if not defined CIWI_CMAKE_GEN (echo No supported Visual Studio CMake generator found. & exit /b 1)
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 18 2026" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || cmake -S . -B build -G "Visual Studio 16 2019" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%")
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
@@ -219,8 +217,6 @@ pipelines:
           - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows10-x86-LV2.lv2
 
       - id: windows7-amd64
-        needs:
-          - windows10-amd64
         runs_on:
           executor: script
           shell: cmd
@@ -240,7 +236,7 @@ pipelines:
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (set "CIWI_CMAKE_GEN=" && for %%G in ("Visual Studio 18 2026" "Visual Studio 17 2022" "Visual Studio 16 2019") do @if not defined CIWI_CMAKE_GEN (cmake -S . -B build -G %%~G -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" && set "CIWI_CMAKE_GEN=%%~G")) && if not defined CIWI_CMAKE_GEN (echo No supported Visual Studio CMake generator found. & exit /b 1)
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%")
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
@@ -251,8 +247,6 @@ pipelines:
           - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows7-amd64-LV2.lv2
 
       - id: windows7-x86
-        needs:
-          - windows10-amd64
         runs_on:
           executor: script
           shell: cmd
@@ -272,7 +266,7 @@ pipelines:
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (set "CIWI_CMAKE_GEN=" && for %%G in ("Visual Studio 18 2026" "Visual Studio 17 2022" "Visual Studio 16 2019") do @if not defined CIWI_CMAKE_GEN (cmake -S . -B build -G %%~G -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" && set "CIWI_CMAKE_GEN=%%~G")) && if not defined CIWI_CMAKE_GEN (echo No supported Visual Studio CMake generator found. & exit /b 1)
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 18 2026" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || cmake -S . -B build -G "Visual Studio 16 2019" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%")
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
