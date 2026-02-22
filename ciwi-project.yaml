@@ -386,7 +386,6 @@ pipelines:
       - codesign-macos
     vcs_source:
       repo: https://github.com/izzyreal/vmpc-installer-scripts.git
-      ref: master
     jobs:
       - id: macos-installer
         runs_on:
@@ -500,7 +499,6 @@ pipelines:
       - codesign-macos
     vcs_source:
       repo: https://github.com/izzyreal/vmpc-installer-scripts.git
-      ref: master
     jobs:
       - id: windows10-installer
         runs_on:
