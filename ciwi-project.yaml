@@ -307,6 +307,15 @@ pipelines:
         steps:
           - run: test -n "$DEV_IDENTITY_APP"
             skip_dry_run: true
+            vault:
+              connection: home-vault
+              secrets:
+                - name: dev-identity-app
+                  mount: kv
+                  path: apple-id
+                  key: dev-identity-app
+            env:
+              DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
           - run: rm -rf binaries && mkdir -p binaries/Standalone binaries/AU binaries/VST3 binaries/LV2 binaries/StandaloneEntitlements binaries/AUv3Entitlements
           - run: cp -R dist/VMPC2000XL-macos-universal-Standalone.app binaries/Standalone/VMPC2000XL.app
           - run: cp -R dist/VMPC2000XL-macos-universal-AU.component binaries/AU/VMPC2000XL.component
@@ -362,8 +371,28 @@ pipelines:
                   mount: kv
                   path: gh
                   key: token
+                - name: dev-identity-installer
+                  mount: kv
+                  path: apple-id
+                  key: dev-identity-installer
+                - name: notarytool-password
+                  mount: kv
+                  path: notarytool
+                  key: password
+                - name: apple-team-id
+                  mount: kv
+                  path: apple-id
+                  key: team-id
+                - name: apple-id
+                  mount: kv
+                  path: apple-id
+                  key: email
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
+              DEV_IDENTITY_INSTALLER: "{{ secret.dev-identity-installer }}"
+              NOTARYTOOL_PASSWORD: "{{ secret.notarytool-password }}"
+              APPLE_TEAM_ID: "{{ secret.apple-team-id }}"
+              APPLE_ID: "{{ secret.apple-id }}"
           - run: rm -rf binaries && mkdir -p binaries/Standalone binaries/AU binaries/VST3 binaries/LV2
           - run: cp -R dist/codesigned-macos/VMPC2000XL.app binaries/Standalone/VMPC2000XL.app
           - run: cp -R dist/codesigned-macos/VMPC2000XL.component binaries/AU/VMPC2000XL.component
