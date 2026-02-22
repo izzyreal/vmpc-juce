@@ -553,7 +553,7 @@ pipelines:
   - id: package-linux
     trigger: manual
     depends_on:
-      - codesign-macos
+      - build
     jobs:
       - id: linux-package
         runs_on:
