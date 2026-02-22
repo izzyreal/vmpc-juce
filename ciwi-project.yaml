@@ -89,10 +89,20 @@ pipelines:
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_AU -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_VST3 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_LV2 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme mpc-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - test:
               name: mpc-tests
               command: ./build/_deps/mpc-build/Release/mpc-tests.app/Contents/MacOS/mpc-tests --reporter JUnit::out=build/result-junit.xml
@@ -128,7 +138,11 @@ pipelines:
           - run: rm -rf build
           - run: cmake -Wno-dev -B build -G "Xcode" -DCMAKE_SYSTEM_NAME=iOS -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
           - run: cd build && xcodebuild -project vmpc2000xl.xcodeproj build -target vmpc2000xl_Standalone -parallelizeTargets -configuration RelWithDebInfo -allowProvisioningUpdates
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - run: cd build && xcodebuild -project vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -allowProvisioningUpdates -sdk iphoneos -configuration RelWithDebInfo archive -archivePath "./vmpc2000xl_StandaloneAndAUv3.xcarchive"
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - run: cd build && xcodebuild -exportArchive -archivePath ./vmpc2000xl_StandaloneAndAUv3.xcarchive -exportOptionsPlist ../ExportOptions.plist -exportPath "./" -allowProvisioningUpdates
             skip_dry_run: true
           - run: cp build/version.txt dist/version-ios.txt
@@ -159,6 +173,8 @@ pipelines:
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All mpc-tests
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
           - test:
               name: mpc-tests
@@ -196,6 +212,8 @@ pipelines:
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
           - run: copy /Y build\version.txt dist\version-windows10-x86.txt
           - run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows10-x86-Standalone.exe
@@ -227,6 +245,8 @@ pipelines:
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
           - run: copy /Y build\version.txt dist\version-windows7-amd64.txt
           - run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows7-amd64-Standalone.exe
@@ -258,6 +278,8 @@ pipelines:
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake -S . -B build -G "Visual Studio 18 2026" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
           - run: copy /Y build\version.txt dist\version-windows7-x86.txt
           - run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows7-x86-Standalone.exe
