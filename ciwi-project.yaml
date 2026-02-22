@@ -155,7 +155,6 @@ pipelines:
           executor: script
           shell: cmd
           os: windows
-          arch: amd64
         requires:
           tools:
             git: "*"
@@ -194,7 +193,6 @@ pipelines:
           executor: script
           shell: cmd
           os: windows
-          arch: amd64
         requires:
           tools:
             git: "*"
@@ -227,7 +225,6 @@ pipelines:
           executor: script
           shell: cmd
           os: windows
-          arch: amd64
         requires:
           tools:
             git: "*"
@@ -260,7 +257,6 @@ pipelines:
           executor: script
           shell: cmd
           os: windows
-          arch: amd64
         requires:
           tools:
             git: "*"
@@ -505,7 +501,6 @@ pipelines:
           executor: script
           shell: powershell
           os: windows
-          arch: amd64
         requires:
           tools:
             git: "*"
@@ -530,7 +525,6 @@ pipelines:
           executor: script
           shell: powershell
           os: windows
-          arch: amd64
         requires:
           tools:
             git: "*"
