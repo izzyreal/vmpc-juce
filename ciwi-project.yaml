@@ -5,7 +5,7 @@ project:
 pipelines:
   - id: build
     trigger: manual
-    source:
+    vcs_source:
       repo: https://github.com/izzyreal/vmpc-juce.git
     versioning:
       file: VERSION
@@ -264,11 +264,100 @@ pipelines:
           - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows7-x86-VST3.vst3
           - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows7-x86-LV2.lv2
 
-  - id: package-sign
+  - id: codesign-macos
     trigger: manual
     depends_on:
       - build
-    source:
+    jobs:
+      - id: macos-codesign
+        runs_on:
+          executor: script
+          shell: posix
+          os: darwin
+          arch: arm64
+        requires:
+          tools:
+            codesign: "*"
+            plistbuddy: "*"
+        timeout_seconds: 1800
+        artifacts:
+          - dist/**
+        steps:
+          - run: test -n "$DEV_IDENTITY_APP"
+            skip_dry_run: true
+          - run: rm -rf binaries && mkdir -p binaries/Standalone binaries/AU binaries/VST3 binaries/LV2 binaries/StandaloneEntitlements binaries/AUv3Entitlements
+          - run: cp -R dist/VMPC2000XL-macos-universal-Standalone.app binaries/Standalone/VMPC2000XL.app
+          - run: cp -R dist/VMPC2000XL-macos-universal-AU.component binaries/AU/VMPC2000XL.component
+          - run: cp -R dist/VMPC2000XL-macos-universal-VST3.vst3 binaries/VST3/VMPC2000XL.vst3
+          - run: cp -R dist/VMPC2000XL-macos-universal-LV2.lv2 binaries/LV2/VMPC2000XL.lv2
+          - run: cp dist/StandaloneEntitlements.plist binaries/StandaloneEntitlements/Entitlements.plist
+          - run: cp dist/AUv3Entitlements.plist binaries/AUv3Entitlements/Entitlements.plist
+          - run: /usr/libexec/PlistBuddy -c 'Delete :com.apple.security.get-task-allow' ./binaries/StandaloneEntitlements/Entitlements.plist || true
+          - run: /usr/libexec/PlistBuddy -c 'Delete :com.apple.security.get-task-allow' ./binaries/AUv3Entitlements/Entitlements.plist || true
+          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/Standalone/VMPC2000XL.app/Contents/PlugIns/VMPC2000XL.appex --entitlements ./binaries/AUv3Entitlements/Entitlements.plist --deep --strict --options=runtime --timestamp
+          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/Standalone/VMPC2000XL.app --entitlements ./binaries/StandaloneEntitlements/Entitlements.plist --strict --options=runtime --timestamp
+          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/AU/VMPC2000XL.component --deep --strict --options=runtime --timestamp
+          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/VST3/VMPC2000XL.vst3 --deep --strict --options=runtime --timestamp
+          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/LV2/VMPC2000XL.lv2/libVMPC2000XL.so --strict --timestamp
+          - run: rm -rf dist/codesigned-macos && mkdir -p dist/codesigned-macos
+          - run: cp -R binaries/Standalone/VMPC2000XL.app dist/codesigned-macos/VMPC2000XL.app
+          - run: cp -R binaries/AU/VMPC2000XL.component dist/codesigned-macos/VMPC2000XL.component
+          - run: cp -R binaries/VST3/VMPC2000XL.vst3 dist/codesigned-macos/VMPC2000XL.vst3
+          - run: cp -R binaries/LV2/VMPC2000XL.lv2 dist/codesigned-macos/VMPC2000XL.lv2
+
+  - id: package-macos
+    trigger: manual
+    depends_on:
+      - codesign-macos
+    vcs_source:
+      repo: https://github.com/izzyreal/vmpc-installer-scripts.git
+      ref: master
+    jobs:
+      - id: macos-installer
+        runs_on:
+          executor: script
+          shell: posix
+          os: darwin
+          arch: arm64
+        requires:
+          tools:
+            git: "*"
+            packagesbuild: "*"
+            packagesutil: "*"
+            productsign: "*"
+            notarytool: "*"
+            stapler: "*"
+        timeout_seconds: 2400
+        artifacts:
+          - dist/**
+        steps:
+          - run: test -n "$GITHUB_TOKEN" && test -n "$DEV_IDENTITY_INSTALLER" && test -n "$NOTARYTOOL_PASSWORD" && test -n "$APPLE_TEAM_ID" && test -n "$APPLE_ID"
+            skip_dry_run: true
+          - run: rm -rf binaries && mkdir -p binaries/Standalone binaries/AU binaries/VST3 binaries/LV2
+          - run: cp -R dist/codesigned-macos/VMPC2000XL.app binaries/Standalone/VMPC2000XL.app
+          - run: cp -R dist/codesigned-macos/VMPC2000XL.component binaries/AU/VMPC2000XL.component
+          - run: cp -R dist/codesigned-macos/VMPC2000XL.vst3 binaries/VST3/VMPC2000XL.vst3
+          - run: cp -R dist/codesigned-macos/VMPC2000XL.lv2 binaries/LV2/VMPC2000XL.lv2
+          - run: VERSION="$([ -f dist/version-macos-universal.txt ] && cat dist/version-macos-universal.txt | tr -d '\r\n' || /usr/libexec/PlistBuddy -c 'print :CFBundleVersion' binaries/Standalone/VMPC2000XL.app/Contents/Info.plist)" && test -n "$VERSION" && echo "$VERSION" > dist/version-macos-installer.txt
+          - run: VERSION="$(cat dist/version-macos-installer.txt)" && packagesutil set package-1 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-2 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-3 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-4 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj
+          - run: VERSION="$(cat dist/version-macos-installer.txt)" && sed -i '' "s#<string>VMPC2000XL .*</string>#<string>VMPC2000XL ${VERSION}</string>#g" ./mac/VMPC2000XL.pkgproj
+          - run: VERSION="$(cat dist/version-macos-installer.txt)" && git commit -am "Bump Packages project versions to ${VERSION}" && git push "https://izzyreal:${GITHUB_TOKEN}@github.com/izzyreal/vmpc-installer-scripts"
+            skip_dry_run: true
+          - run: VERSION="$(cat dist/version-macos-installer.txt)" && mkdir -p dist/${VERSION}/mac
+          - run: chmod +x ./binaries/Standalone/VMPC2000XL.app/Contents/MacOS/VMPC2000XL && chmod +x ./binaries/Standalone/VMPC2000XL.app/Contents/PlugIns/VMPC2000XL.appex/Contents/MacOS/VMPC2000XL
+          - run: VERSION="$(cat dist/version-macos-installer.txt)" && packagesbuild --build-folder "$PWD/dist/${VERSION}/mac" ./mac/VMPC2000XL.pkgproj
+          - run: VERSION="$(cat dist/version-macos-installer.txt)" && mv "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg"
+          - run: VERSION="$(cat dist/version-macos-installer.txt)" && productsign --sign "$DEV_IDENTITY_INSTALLER" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
+          - run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun notarytool submit "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" --apple-id "$APPLE_ID" --password "$NOTARYTOOL_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+            skip_dry_run: true
+          - run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun stapler staple "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
+          - run: VERSION="$(cat dist/version-macos-installer.txt)" && cp "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" dist/ && cp "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "dist/VMPC2000XL-Installer-Intel-M1-v${VERSION}.pkg"
+
+  - id: package-windows
+    trigger: manual
+    depends_on:
+      - codesign-macos
+    vcs_source:
       repo: https://github.com/izzyreal/vmpc-installer-scripts.git
       ref: master
     jobs:
@@ -322,6 +411,11 @@ pipelines:
           - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-amd64-LV2.lv2 binaries\win64\LV2\VMPC2000XL.lv2
           - run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe"; Copy-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe" dist\VMPC2000XL-Installer-Win7-x86_64.exe; Copy-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe" "dist\VMPC2000XL-Installer-Win7-x86_64-v$($env:VERSION_IN_EXECUTABLE).exe"
 
+  - id: package-linux
+    trigger: manual
+    depends_on:
+      - codesign-macos
+    jobs:
       - id: linux-package
         runs_on:
           executor: script
@@ -344,90 +438,13 @@ pipelines:
           - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/VST3 && zip -v -r "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-VST3.zip" ./VMPC2000XL.vst3)
           - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/LV2 && zip -v -r "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-LV2.zip" ./VMPC2000XL.lv2)
           - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && cp dist/${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-*.zip dist/
-
-      - id: macos-codesign
-        runs_on:
-          executor: script
-          shell: posix
-          os: darwin
-          arch: arm64
-        requires:
-          tools:
-            codesign: "*"
-            plistbuddy: "*"
-        timeout_seconds: 1800
-        artifacts:
-          - dist/**
-        steps:
-          - run: test -n "$DEV_IDENTITY_APP"
-            skip_dry_run: true
-          - run: rm -rf binaries && mkdir -p binaries/Standalone binaries/AU binaries/VST3 binaries/LV2 binaries/StandaloneEntitlements binaries/AUv3Entitlements
-          - run: cp -R dist/VMPC2000XL-macos-universal-Standalone.app binaries/Standalone/VMPC2000XL.app
-          - run: cp -R dist/VMPC2000XL-macos-universal-AU.component binaries/AU/VMPC2000XL.component
-          - run: cp -R dist/VMPC2000XL-macos-universal-VST3.vst3 binaries/VST3/VMPC2000XL.vst3
-          - run: cp -R dist/VMPC2000XL-macos-universal-LV2.lv2 binaries/LV2/VMPC2000XL.lv2
-          - run: cp dist/StandaloneEntitlements.plist binaries/StandaloneEntitlements/Entitlements.plist
-          - run: cp dist/AUv3Entitlements.plist binaries/AUv3Entitlements/Entitlements.plist
-          - run: /usr/libexec/PlistBuddy -c 'Delete :com.apple.security.get-task-allow' ./binaries/StandaloneEntitlements/Entitlements.plist || true
-          - run: /usr/libexec/PlistBuddy -c 'Delete :com.apple.security.get-task-allow' ./binaries/AUv3Entitlements/Entitlements.plist || true
-          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/Standalone/VMPC2000XL.app/Contents/PlugIns/VMPC2000XL.appex --entitlements ./binaries/AUv3Entitlements/Entitlements.plist --deep --strict --options=runtime --timestamp
-          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/Standalone/VMPC2000XL.app --entitlements ./binaries/StandaloneEntitlements/Entitlements.plist --strict --options=runtime --timestamp
-          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/AU/VMPC2000XL.component --deep --strict --options=runtime --timestamp
-          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/VST3/VMPC2000XL.vst3 --deep --strict --options=runtime --timestamp
-          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/LV2/VMPC2000XL.lv2/libVMPC2000XL.so --strict --timestamp
-          - run: rm -rf dist/codesigned-macos && mkdir -p dist/codesigned-macos
-          - run: cp -R binaries/Standalone/VMPC2000XL.app dist/codesigned-macos/VMPC2000XL.app
-          - run: cp -R binaries/AU/VMPC2000XL.component dist/codesigned-macos/VMPC2000XL.component
-          - run: cp -R binaries/VST3/VMPC2000XL.vst3 dist/codesigned-macos/VMPC2000XL.vst3
-          - run: cp -R binaries/LV2/VMPC2000XL.lv2 dist/codesigned-macos/VMPC2000XL.lv2
-
-      - id: macos-installer
-        needs:
-          - macos-codesign
-        runs_on:
-          executor: script
-          shell: posix
-          os: darwin
-          arch: arm64
-        requires:
-          tools:
-            git: "*"
-            packagesbuild: "*"
-            packagesutil: "*"
-            productsign: "*"
-            notarytool: "*"
-            stapler: "*"
-        timeout_seconds: 2400
-        artifacts:
-          - dist/**
-        steps:
-          - run: test -n "$GITHUB_TOKEN" && test -n "$DEV_IDENTITY_INSTALLER" && test -n "$NOTARYTOOL_PASSWORD" && test -n "$APPLE_TEAM_ID" && test -n "$APPLE_ID"
-            skip_dry_run: true
-          - run: rm -rf binaries && mkdir -p binaries/Standalone binaries/AU binaries/VST3 binaries/LV2
-          - run: cp -R dist/codesigned-macos/VMPC2000XL.app binaries/Standalone/VMPC2000XL.app
-          - run: cp -R dist/codesigned-macos/VMPC2000XL.component binaries/AU/VMPC2000XL.component
-          - run: cp -R dist/codesigned-macos/VMPC2000XL.vst3 binaries/VST3/VMPC2000XL.vst3
-          - run: cp -R dist/codesigned-macos/VMPC2000XL.lv2 binaries/LV2/VMPC2000XL.lv2
-          - run: VERSION="$([ -f dist/version-macos-universal.txt ] && cat dist/version-macos-universal.txt | tr -d '\r\n' || /usr/libexec/PlistBuddy -c 'print :CFBundleVersion' binaries/Standalone/VMPC2000XL.app/Contents/Info.plist)" && test -n "$VERSION" && echo "$VERSION" > dist/version-macos-installer.txt
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && packagesutil set package-1 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-2 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-3 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-4 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && sed -i '' "s#<string>VMPC2000XL .*</string>#<string>VMPC2000XL ${VERSION}</string>#g" ./mac/VMPC2000XL.pkgproj
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && git commit -am "Bump Packages project versions to ${VERSION}" && git push "https://izzyreal:${GITHUB_TOKEN}@github.com/izzyreal/vmpc-installer-scripts"
-            skip_dry_run: true
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && mkdir -p dist/${VERSION}/mac
-          - run: chmod +x ./binaries/Standalone/VMPC2000XL.app/Contents/MacOS/VMPC2000XL && chmod +x ./binaries/Standalone/VMPC2000XL.app/Contents/PlugIns/VMPC2000XL.appex/Contents/MacOS/VMPC2000XL
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && packagesbuild --build-folder "$PWD/dist/${VERSION}/mac" ./mac/VMPC2000XL.pkgproj
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && mv "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg"
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && productsign --sign "$DEV_IDENTITY_INSTALLER" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun notarytool submit "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" --apple-id "$APPLE_ID" --password "$NOTARYTOOL_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
-            skip_dry_run: true
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun stapler staple "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && cp "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" dist/ && cp "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "dist/VMPC2000XL-Installer-Intel-M1-v${VERSION}.pkg"
-
   - id: release
     trigger: manual
     depends_on:
-      - package-sign
-    source:
+      - package-macos
+      - package-windows
+      - package-linux
+    vcs_source:
       repo: https://github.com/izzyreal/vmpc-juce.git
     versioning:
       file: VERSION
@@ -466,8 +483,11 @@ pipelines:
             skip_dry_run: true
 
 pipeline_chains:
-  - id: build-package-sign-release
+  - id: build-codesign-package-release
     pipelines:
       - build
-      - package-sign
+      - codesign-macos
+      - package-macos
+      - package-windows
+      - package-linux
       - release
