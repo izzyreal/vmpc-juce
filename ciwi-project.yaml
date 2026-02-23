@@ -482,7 +482,7 @@ pipelines:
   - id: package-windows
     trigger: manual
     depends_on:
-      - codesign-macos
+      - build
     vcs_source:
       repo: https://github.com/izzyreal/vmpc-installer-scripts.git
     jobs:
