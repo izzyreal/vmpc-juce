@@ -393,7 +393,7 @@ pipelines:
             stapler: "*"
         timeout_seconds: 2400
         artifacts:
-          - dist/**
+          - dist/VMPC2000XL-Installer-Intel-M1-v*.pkg
         steps:
           - run: test -n "$GITHUB_TOKEN" && test -n "$DEV_IDENTITY_INSTALLER" && test -n "$NOTARYTOOL_PASSWORD" && test -n "$APPLE_TEAM_ID" && test -n "$APPLE_ID"
             vault:
@@ -481,7 +481,7 @@ pipelines:
             skip_dry_run: true
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun stapler staple "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
             skip_dry_run: true
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && cp "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" dist/ && cp "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "dist/VMPC2000XL-Installer-Intel-M1-v${VERSION}.pkg"
+          - run: VERSION="$(cat dist/version-macos-installer.txt)" && mv "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "dist/VMPC2000XL-Installer-Intel-M1-v${VERSION}.pkg" && rm -f "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg"
 
   - id: package-windows
     trigger: manual
@@ -501,7 +501,8 @@ pipelines:
             iscc: "*"
         timeout_seconds: 1800
         artifacts:
-          - dist/**
+          - dist/VMPC2000XL-Installer-Win10-x86_64-v*.exe
+          - dist/version-windows10-amd64.txt
         steps:
           - run: if (-not (Test-Path dist)) { New-Item -ItemType Directory -Path dist | Out-Null }
           - run: if (Test-Path binaries) { Remove-Item -Recurse -Force binaries }
@@ -512,7 +513,7 @@ pipelines:
           - run: Copy-Item -Force dist\VMPC2000XL-windows10-amd64-Standalone.exe binaries\win64\Standalone\VMPC2000XL.exe
           - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-amd64-VST3.vst3 binaries\win64\VST3\VMPC2000XL.vst3
           - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-amd64-LV2.lv2 binaries\win64\LV2\VMPC2000XL.lv2
-          - run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe"; Copy-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe" dist\VMPC2000XL-Installer-Win10-x86_64.exe; Copy-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe" "dist\VMPC2000XL-Installer-Win10-x86_64-v$($env:VERSION_IN_EXECUTABLE).exe"
+          - run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe"; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe" "dist\VMPC2000XL-Installer-Win10-x86_64-v$($env:VERSION_IN_EXECUTABLE).exe"
 
       - id: windows7-installer
         runs_on:
@@ -525,7 +526,8 @@ pipelines:
             iscc: "*"
         timeout_seconds: 1800
         artifacts:
-          - dist/**
+          - dist/VMPC2000XL-Installer-Win7-x86_64-v*.exe
+          - dist/version-windows10-amd64.txt
         steps:
           - run: if (-not (Test-Path dist)) { New-Item -ItemType Directory -Path dist | Out-Null }
           - run: if (Test-Path binaries) { Remove-Item -Recurse -Force binaries }
@@ -536,7 +538,7 @@ pipelines:
           - run: Copy-Item -Force dist\VMPC2000XL-windows7-amd64-Standalone.exe binaries\win64\Standalone\VMPC2000XL.exe
           - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-amd64-VST3.vst3 binaries\win64\VST3\VMPC2000XL.vst3
           - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-amd64-LV2.lv2 binaries\win64\LV2\VMPC2000XL.lv2
-          - run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe"; Copy-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe" dist\VMPC2000XL-Installer-Win7-x86_64.exe; Copy-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe" "dist\VMPC2000XL-Installer-Win7-x86_64-v$($env:VERSION_IN_EXECUTABLE).exe"
+          - run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe"; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe" "dist\VMPC2000XL-Installer-Win7-x86_64-v$($env:VERSION_IN_EXECUTABLE).exe"
 
   - id: package-linux
     trigger: manual
@@ -554,7 +556,7 @@ pipelines:
             zip: "*"
         timeout_seconds: 900
         artifacts:
-          - dist/**
+          - dist/VMPC2000XL-Ubuntu20-x86_64-*.zip
         steps:
           - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && test -n "$VERSION" && mkdir -p dist/${VERSION}/ubuntu
           - run: mkdir -p dist/stage/Standalone dist/stage/VST3 dist/stage/LV2
