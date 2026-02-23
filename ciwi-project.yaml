@@ -117,7 +117,7 @@ pipelines:
           - run: cp build/build/vmpc2000xl_AUv3.build/Release/DerivedSources/Entitlements.plist dist/AUv3Entitlements.plist
           - run: ccache --dir "$CCACHE_DIR" --show-stats
 
-      - id: "ios (build and publish)"
+      - id: ios
         runs_on:
           executor: script
           shell: posix
@@ -143,12 +143,8 @@ pipelines:
           - run: cd build && xcodebuild -project vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -allowProvisioningUpdates -sdk iphoneos -configuration RelWithDebInfo archive -archivePath "./vmpc2000xl_StandaloneAndAUv3.xcarchive"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: cd build && xcodebuild -exportArchive -archivePath ./vmpc2000xl_StandaloneAndAUv3.xcarchive -exportOptionsPlist ../ExportOptions.plist -exportPath "./" -allowProvisioningUpdates
-            skip_dry_run: true
           - run: cp build/version.txt dist/version-ios.txt
           - run: cp -R build/vmpc2000xl_StandaloneAndAUv3.xcarchive dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
-          - run: for f in build/*.ipa; do [ -e "$f" ] && cp "$f" dist/; done
-            skip_dry_run: true
 
       - id: windows10-amd64
         runs_on:
@@ -570,6 +566,7 @@ pipelines:
   - id: release
     trigger: manual
     depends_on:
+      - build
       - package-macos
       - package-windows
       - package-linux
@@ -580,6 +577,24 @@ pipelines:
       tag_prefix: v
       auto_bump: patch
     jobs:
+      - id: ios-export-appstore
+        runs_on:
+          executor: script
+          shell: posix
+          os: darwin
+          arch: arm64
+        requires:
+          tools:
+            xcodebuild: "*"
+        timeout_seconds: 3600
+        steps:
+          - run: test -d dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
+          - run: rm -rf build/vmpc2000xl_StandaloneAndAUv3.xcarchive
+          - run: mkdir -p build
+          - run: cp -R dist/vmpc2000xl_StandaloneAndAUv3.xcarchive build/vmpc2000xl_StandaloneAndAUv3.xcarchive
+          - run: cd build && xcodebuild -exportArchive -archivePath ./vmpc2000xl_StandaloneAndAUv3.xcarchive -exportOptionsPlist ../ExportOptions.plist -exportPath "./" -allowProvisioningUpdates
+            skip_dry_run: true
+
       - id: github-release
         runs_on:
           executor: script
