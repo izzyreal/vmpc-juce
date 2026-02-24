@@ -262,7 +262,7 @@ pipelines:
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || (if exist build rmdir /s /q build & cmake -S . -B build -G "Visual Studio 16 2019" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DVMPC2000XL_WIN7=1 -DVMPC_AUDIO_TELEMETRY=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || (if exist build rmdir /s /q build & cmake -S . -B build -G "Visual Studio 16 2019" -A Win32 -DVMPC2000XL_WIN7=1 -DVMPC_AUDIO_TELEMETRY=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
