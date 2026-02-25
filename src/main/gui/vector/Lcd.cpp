@@ -65,32 +65,26 @@ void Lcd::paint(juce::Graphics &g)
 {
     g.setImageResamplingQuality(juce::Graphics::highResamplingQuality);
 
-    const auto layeredScreen = mpc.getLayeredScreen();
-
     const auto t = getMyTransform();
 
     g.drawImageTransformed(img, t);
 
-    shadow.setRadius(std::round(static_cast<float>(getWidth()) / 248.f));
-
-    juce::Path p;
-
-    const auto &rawPixels = *layeredScreen->getPixels();
-
-    for (uint8_t y = 0; y < 60; y++)
+    const auto currentShadowRadius =
+        static_cast<int>(std::round(static_cast<float>(getWidth()) / 248.f));
+    if (currentShadowRadius != lastShadowRadius)
     {
-        for (uint8_t x = 0; x < 248; x++)
-        {
-            const bool on = rawPixels[x][y];
-            if (!on)
-            {
-                p.addRectangle(x * 2, y * 2, 2, 2);
-            }
-        }
+        lastShadowRadius = currentShadowRadius;
+        shadow.setRadius(currentShadowRadius);
     }
 
-    p.applyTransform(t);
-    shadow.render(g, p);
+    if (shadowPathDirty)
+    {
+        rebuildShadowPath();
+    }
+
+    juce::Path transformedPath(shadowPath);
+    transformedPath.applyTransform(t);
+    shadow.render(g, transformedPath);
 }
 
 void Lcd::checkLsDirty()
@@ -113,6 +107,7 @@ void Lcd::checkLsDirty()
 
     layeredScreen->Draw();
     drawPixelsToImg();
+    shadowPathDirty = true;
 
     repaint(dirtyRectT.toNearestInt().expanded(1));
 
@@ -177,6 +172,26 @@ void Lcd::drawPixelsToImg()
     }
 
     dirtyRect = juce::Rectangle<int>();
+}
+
+void Lcd::rebuildShadowPath()
+{
+    shadowPath.clear();
+
+    const auto &rawPixels = *mpc.getLayeredScreen()->getPixels();
+
+    for (uint8_t y = 0; y < 60; y++)
+    {
+        for (uint8_t x = 0; x < 248; x++)
+        {
+            if (!rawPixels[x][y])
+            {
+                shadowPath.addRectangle(x * 2, y * 2, 2, 2);
+            }
+        }
+    }
+
+    shadowPathDirty = false;
 }
 
 void Lcd::mouseDoubleClick(const juce::MouseEvent &)

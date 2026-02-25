@@ -55,6 +55,9 @@ namespace vmpc_juce::gui::vector
         juce::Rectangle<int> dirtyRect;
         juce::Image img =
             juce::Image(juce::Image::PixelFormat::RGB, 248 * 2, 60 * 2, false);
+        juce::Path shadowPath;
+        bool shadowPathDirty = true;
+        int lastShadowRadius = -1;
 
         std::function<void()> resetAuxWindowF;
         std::function<void()> resetKeyboardAuxParent;
@@ -63,6 +66,7 @@ namespace vmpc_juce::gui::vector
         melatonin::DropShadow shadow;
 
         juce::AffineTransform getMyTransform() const;
+        void rebuildShadowPath();
 
         void resetAuxWindow();
 
