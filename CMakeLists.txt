@@ -73,7 +73,7 @@ set(VMPC_MELATONIN_BLUR_REF "main")
 set(VMPC_RAW_KBD_REPO "https://github.com/izzyreal/juce-raw-keyboard-input-module.git")
 set(VMPC_RAW_KBD_REF "external-focus-provider")
 set(VMPC_MPC_REPO "https://github.com/izzyreal/mpc.git")
-set(VMPC_MPC_REF "master")
+set(VMPC_MPC_REF "oldmachine2")
 set(VMPC_MINIZ_REPO "https://github.com/richgel999/miniz")
 set(VMPC_MINIZ_REF "master")
 
