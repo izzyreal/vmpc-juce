@@ -29,7 +29,7 @@ pipelines:
               ccache: "*"
               cmake: "*"
               ninja: "*"
-        timeout_seconds: 3600
+        timeout_seconds: 2700
         artifacts:
           - dist/**
         caches: &build_caches
@@ -73,7 +73,7 @@ pipelines:
             cmake: "*"
             ccache: "*"
             xcodebuild: "*"
-        timeout_seconds: 5400
+        timeout_seconds: 2700
         artifacts:
           - dist/**
         caches: *build_caches
@@ -128,7 +128,7 @@ pipelines:
             git: "*"
             cmake: "*"
             xcodebuild: "*"
-        timeout_seconds: 7200
+        timeout_seconds: 2700
         artifacts:
           - dist/**
         caches: *build_caches
@@ -156,7 +156,7 @@ pipelines:
             git: "*"
             cmake: "*"
             ccache: "*"
-        timeout_seconds: 5400
+        timeout_seconds: 2700
         artifacts:
           - dist/**
         caches: *build_caches
@@ -192,7 +192,7 @@ pipelines:
             git: "*"
             cmake: "*"
             ccache: "*"
-        timeout_seconds: 5400
+        timeout_seconds: 2700
         artifacts:
           - dist/**
         caches: *build_caches
@@ -222,7 +222,7 @@ pipelines:
             git: "*"
             cmake: "*"
             ccache: "*"
-        timeout_seconds: 5400
+        timeout_seconds: 2700
         artifacts:
           - dist/**
         caches: *build_caches
@@ -252,7 +252,7 @@ pipelines:
             git: "*"
             cmake: "*"
             ccache: "*"
-        timeout_seconds: 5400
+        timeout_seconds: 2700
         artifacts:
           - dist/**
         caches: *build_caches
@@ -287,7 +287,7 @@ pipelines:
           tools:
             codesign: "*"
             plistbuddy: "*"
-        timeout_seconds: 1800
+        timeout_seconds: 600
         artifacts:
           - dist/**
         steps:
@@ -586,7 +586,7 @@ pipelines:
         requires:
           tools:
             xcodebuild: "*"
-        timeout_seconds: 3600
+        timeout_seconds: 2700
         steps:
           - run: test -d dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
           - run: rm -rf build/vmpc2000xl_StandaloneAndAUv3.xcarchive
