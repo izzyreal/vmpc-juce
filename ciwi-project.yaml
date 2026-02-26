@@ -31,7 +31,12 @@ pipelines:
               ninja: "*"
         timeout_seconds: 2700
         artifacts:
-          - dist/**
+          - dist/result-junit.xml
+          - dist/mpc-tests-linux-amd64
+          - dist/version-linux-amd64.txt
+          - dist/VMPC2000XL-linux-amd64-Standalone
+          - dist/VMPC2000XL-linux-amd64-VST3.vst3/**
+          - dist/VMPC2000XL-linux-amd64-LV2.lv2/**
         caches: &build_caches
           - id: fetchcontent
             env: CIWI_FETCHCONTENT_SOURCES_DIR
@@ -75,7 +80,13 @@ pipelines:
             xcodebuild: "*"
         timeout_seconds: 2700
         artifacts:
-          - dist/**
+          - dist/VMPC2000XL-macos-universal-Standalone.app/**
+          - dist/VMPC2000XL-macos-universal-AU.component/**
+          - dist/VMPC2000XL-macos-universal-VST3.vst3/**
+          - dist/VMPC2000XL-macos-universal-LV2.lv2/**
+          - dist/version-macos-universal.txt
+          - dist/StandaloneEntitlements.plist
+          - dist/AUv3Entitlements.plist
         caches: *build_caches
         steps:
           - run: mkdir -p dist
@@ -130,7 +141,8 @@ pipelines:
             xcodebuild: "*"
         timeout_seconds: 2700
         artifacts:
-          - dist/**
+          - dist/version-ios.txt
+          - dist/vmpc2000xl_StandaloneAndAUv3.xcarchive/**
         caches: *build_caches
         steps:
           - run: mkdir -p dist
@@ -158,7 +170,11 @@ pipelines:
             ccache: "*"
         timeout_seconds: 2700
         artifacts:
-          - dist/**
+          - dist/mpc-tests-windows10-amd64.exe
+          - dist/version-windows10-amd64.txt
+          - dist/VMPC2000XL-windows10-amd64-Standalone.exe
+          - dist/VMPC2000XL-windows10-amd64-VST3.vst3/**
+          - dist/VMPC2000XL-windows10-amd64-LV2.lv2/**
         caches: *build_caches
         steps:
           - run: if exist build rmdir /s /q build
@@ -194,7 +210,10 @@ pipelines:
             ccache: "*"
         timeout_seconds: 2700
         artifacts:
-          - dist/**
+          - dist/version-windows10-x86.txt
+          - dist/VMPC2000XL-windows10-x86-Standalone.exe
+          - dist/VMPC2000XL-windows10-x86-VST3.vst3/**
+          - dist/VMPC2000XL-windows10-x86-LV2.lv2/**
         caches: *build_caches
         steps:
           - run: if exist build rmdir /s /q build
@@ -224,7 +243,10 @@ pipelines:
             ccache: "*"
         timeout_seconds: 2700
         artifacts:
-          - dist/**
+          - dist/version-windows7-amd64.txt
+          - dist/VMPC2000XL-windows7-amd64-Standalone.exe
+          - dist/VMPC2000XL-windows7-amd64-VST3.vst3/**
+          - dist/VMPC2000XL-windows7-amd64-LV2.lv2/**
         caches: *build_caches
         steps:
           - run: if exist build rmdir /s /q build
@@ -254,7 +276,10 @@ pipelines:
             ccache: "*"
         timeout_seconds: 2700
         artifacts:
-          - dist/**
+          - dist/version-windows7-x86.txt
+          - dist/VMPC2000XL-windows7-x86-Standalone.exe
+          - dist/VMPC2000XL-windows7-x86-VST3.vst3/**
+          - dist/VMPC2000XL-windows7-x86-LV2.lv2/**
         caches: *build_caches
         steps:
           - run: if exist build rmdir /s /q build
@@ -289,7 +314,8 @@ pipelines:
             plistbuddy: "*"
         timeout_seconds: 600
         artifacts:
-          - dist/**
+          - dist/codesigned-macos/**
+          - dist/version-macos-universal.txt
         steps:
           - run: test -n "$DEV_IDENTITY_APP"
             vault:
