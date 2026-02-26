@@ -563,7 +563,7 @@ pipelines:
           - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/VST3 && zip -v -r "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-VST3.zip" ./VMPC2000XL.vst3)
           - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/LV2 && zip -v -r "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-LV2.zip" ./VMPC2000XL.lv2)
           - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && cp dist/${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-*.zip dist/
-  - id: release
+  - id: release-ios
     trigger: manual
     depends_on:
       - build
@@ -572,10 +572,6 @@ pipelines:
       - package-linux
     vcs_source:
       repo: https://github.com/izzyreal/vmpc-juce.git
-    versioning:
-      file: VERSION
-      tag_prefix: v
-      auto_bump: patch
     jobs:
       - id: ios-export-appstore
         runs_on:
@@ -595,6 +591,20 @@ pipelines:
           - run: cd build && xcodebuild -exportArchive -archivePath ./vmpc2000xl_StandaloneAndAUv3.xcarchive -exportOptionsPlist ../ExportOptions.plist -exportPath "./" -allowProvisioningUpdates
             skip_dry_run: true
 
+  - id: release-github
+    trigger: manual
+    depends_on:
+      - build
+      - package-macos
+      - package-windows
+      - package-linux
+    vcs_source:
+      repo: https://github.com/izzyreal/vmpc-juce.git
+    versioning:
+      file: VERSION
+      tag_prefix: v
+      auto_bump: patch
+    jobs:
       - id: github-release
         runs_on:
           executor: script
@@ -706,4 +716,5 @@ pipeline_chains:
       - package-macos
       - package-windows
       - package-linux
-      - release
+      - release-ios
+      - release-github
