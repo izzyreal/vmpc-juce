@@ -630,6 +630,14 @@ pipelines:
       file: VERSION
       tag_prefix: v
       auto_bump: patch
+      auto_bump_vcs_token: "{{ secret.github-secret }}"
+      auto_bump_vault:
+        connection: home-vault
+        secrets:
+          - name: github-secret
+            mount: kv
+            path: gh
+            key: token
     jobs:
       - id: github-release
         runs_on:
