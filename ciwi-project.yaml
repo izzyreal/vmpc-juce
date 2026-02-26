@@ -143,6 +143,7 @@ pipelines:
         artifacts:
           - dist/version-ios.txt
           - dist/vmpc2000xl_StandaloneAndAUv3.xcarchive/**
+          - dist/ExportOptions.plist
         caches: *build_caches
         steps:
           - run: mkdir -p dist
@@ -156,6 +157,7 @@ pipelines:
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - run: cp build/version.txt dist/version-ios.txt
+          - run: cp ExportOptions.plist dist/ExportOptions.plist
           - run: cp -R build/vmpc2000xl_StandaloneAndAUv3.xcarchive dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
 
       - id: windows10-amd64
@@ -596,8 +598,6 @@ pipelines:
       - package-macos
       - package-windows
       - package-linux
-    vcs_source:
-      repo: https://github.com/izzyreal/vmpc-juce.git
     jobs:
       - id: ios-export-appstore
         runs_on:
@@ -614,7 +614,7 @@ pipelines:
           - run: rm -rf build/vmpc2000xl_StandaloneAndAUv3.xcarchive
           - run: mkdir -p build
           - run: cp -R dist/vmpc2000xl_StandaloneAndAUv3.xcarchive build/vmpc2000xl_StandaloneAndAUv3.xcarchive
-          - run: cd build && xcodebuild -exportArchive -archivePath ./vmpc2000xl_StandaloneAndAUv3.xcarchive -exportOptionsPlist ../ExportOptions.plist -exportPath "./" -allowProvisioningUpdates
+          - run: cd build && xcodebuild -exportArchive -archivePath ./vmpc2000xl_StandaloneAndAUv3.xcarchive -exportOptionsPlist ../dist/ExportOptions.plist -exportPath "./" -allowProvisioningUpdates
             skip_dry_run: true
 
   - id: release-github
