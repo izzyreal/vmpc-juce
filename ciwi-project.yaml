@@ -429,7 +429,7 @@ pipelines:
           - run: VERSION="$([ -f dist/version-macos-universal.txt ] && cat dist/version-macos-universal.txt | tr -d '\r\n' || /usr/libexec/PlistBuddy -c 'print :CFBundleVersion' binaries/Standalone/VMPC2000XL.app/Contents/Info.plist)" && test -n "$VERSION" && echo "$VERSION" > dist/version-macos-installer.txt
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && packagesutil set package-1 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-2 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-3 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-4 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj
           - run: VERSION="$(cat dist/version-macos-installer.txt)" && sed -i '' "s#<string>VMPC2000XL .*</string>#<string>VMPC2000XL ${VERSION}</string>#g" ./mac/VMPC2000XL.pkgproj
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && git commit -am "Bump Packages project versions to ${VERSION}" && git push "https://izzyreal:${GITHUB_TOKEN}@github.com/izzyreal/vmpc-installer-scripts"
+          - run: VERSION="$(cat dist/version-macos-installer.txt)" && git commit -am "Bump Packages project versions to ${VERSION}" && git push "https://izzyreal:${GITHUB_TOKEN}@github.com/izzyreal/vmpc-installer-scripts" HEAD:master
             skip_dry_run: true
             vault:
               connection: home-vault
