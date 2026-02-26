@@ -454,7 +454,7 @@ pipelines:
                   key: dev-identity-installer
             env:
               DEV_IDENTITY_INSTALLER: "{{ secret.dev-identity-installer }}"
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun notarytool submit "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" --apple-id "$APPLE_ID" --password "$NOTARYTOOL_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+          - run: VERSION="$(cat dist/version-macos-installer.txt)" && RESULT_JSON="$PWD/dist/${VERSION}/mac/notary-result.json" && xcrun notarytool submit "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" --apple-id "$APPLE_ID" --password "$NOTARYTOOL_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait --output-format json > "$RESULT_JSON" && STATUS="$(plutil -extract status raw -o - "$RESULT_JSON")" && SUBMISSION_ID="$(plutil -extract id raw -o - "$RESULT_JSON")" && if [ "$STATUS" != "Accepted" ]; then echo "notarytool status=${STATUS} submission_id=${SUBMISSION_ID}"; xcrun notarytool log "$SUBMISSION_ID" --apple-id "$APPLE_ID" --password "$NOTARYTOOL_PASSWORD" --team-id "$APPLE_TEAM_ID"; exit 1; fi
             vault:
               connection: home-vault
               secrets:
