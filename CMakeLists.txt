@@ -50,7 +50,10 @@ else()
     project(vmpc2000xl VERSION ${VMPC_VERSION} LANGUAGES C CXX)
 endif()
 
-find_package(ccache)
+option(VMPC_BUILD_CCACHE_ENABLED "Enable compiler cache integration via find_package(ccache)" OFF)
+if(VMPC_BUILD_CCACHE_ENABLED)
+  find_package(ccache)
+endif()
 
 if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
