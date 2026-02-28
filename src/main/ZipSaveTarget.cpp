@@ -32,7 +32,7 @@ ZipSaveTarget::ZipSaveTarget(const void *data, size_t size)
     }
 }
 
-void ZipSaveTarget::setFileData(const fs::path &path,
+void ZipSaveTarget::setFileData(const mpc_fs::path &path,
                                 const std::vector<char> &data)
 {
     const auto key = path.string();
@@ -46,7 +46,7 @@ void ZipSaveTarget::setFileData(const fs::path &path,
     }
 }
 
-std::vector<char> ZipSaveTarget::getFileData(const fs::path &path) const
+std::vector<char> ZipSaveTarget::getFileData(const mpc_fs::path &path) const
 {
     const auto key = path.string();
     auto it = files.find(key);
@@ -57,12 +57,12 @@ std::vector<char> ZipSaveTarget::getFileData(const fs::path &path) const
     return it->second;
 }
 
-bool ZipSaveTarget::exists(const fs::path &path) const
+bool ZipSaveTarget::exists(const mpc_fs::path &path) const
 {
     return files.find(path.string()) != files.end();
 }
 
-std::uintmax_t ZipSaveTarget::fileSize(const fs::path &path) const
+std::uintmax_t ZipSaveTarget::fileSize(const mpc_fs::path &path) const
 {
     auto it = files.find(path.string());
     if (it == files.end())

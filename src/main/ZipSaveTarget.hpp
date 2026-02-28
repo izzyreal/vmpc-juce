@@ -20,14 +20,14 @@ namespace vmpc_juce
         // Construct from an existing zip blob
         explicit ZipSaveTarget(const void *data, size_t size);
 
-        void setFileData(const fs::path &path,
+        void setFileData(const mpc_fs::path &path,
                          const std::vector<char> &data) override;
 
-        std::vector<char> getFileData(const fs::path &path) const override;
+        std::vector<char> getFileData(const mpc_fs::path &path) const override;
 
-        bool exists(const fs::path &path) const override;
+        bool exists(const mpc_fs::path &path) const override;
 
-        std::uintmax_t fileSize(const fs::path &path) const override;
+        std::uintmax_t fileSize(const mpc_fs::path &path) const override;
 
         std::unique_ptr<juce::MemoryBlock> toZipMemoryBlock() const;
     };

@@ -19,16 +19,16 @@ bool ImportDocumentUrlProcessor::destinationExists(const char *filename,
                                                    const char *relativePath)
 {
     auto newFilePath =
-        fs::path(destinationDir()).append(relativePath).append(filename);
-    return fs::exists(newFilePath);
+        mpc_fs::path(destinationDir()).append(relativePath).append(filename);
+    return mpc_fs::exists(newFilePath);
 }
 
 std::shared_ptr<std::ostream>
 ImportDocumentUrlProcessor::openOutputStream(const char *filename,
                                              const char *relativePath)
 {
-    auto newFileDir = fs::path(destinationDir()).append(relativePath);
-    fs::create_directories(newFileDir);
+    auto newFileDir = mpc_fs::path(destinationDir()).append(relativePath);
+    mpc_fs::create_directories(newFileDir);
     auto newFilePath = newFileDir.append(filename);
     mpc::disk::MpcFile newFile(newFilePath);
     return newFile.getOutputStream();

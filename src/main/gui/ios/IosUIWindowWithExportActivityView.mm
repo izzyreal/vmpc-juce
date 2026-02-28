@@ -69,9 +69,9 @@
         return;
     }
 
-    for (const auto &entry : fs::recursive_directory_iterator(selectedFilePath)) {
+    for (const auto &entry : mpc_fs::recursive_directory_iterator(selectedFilePath)) {
         if (!entry.is_directory()) {
-            std::string relativePath = fs::relative(entry.path(), currentDirectory).string();
+            std::string relativePath = mpc_fs::relative(entry.path(), currentDirectory).string();
             mz_bool file_added = mz_zip_writer_add_file(&zip_archive, relativePath.c_str(), entry.path().c_str(), "", 0, MZ_BEST_COMPRESSION);
             if (!file_added) {
                 NSLog(@"Failed to add file to zip archive: %s", entry.path().c_str());
@@ -89,7 +89,7 @@
 
 #include "miniz.h"
 
-- (void)createRecordingZip:(fs::path)dirPath fileURLsArray:(NSMutableArray<NSURL *> *)fileURLsArray {
+- (void)createRecordingZip:(mpc_fs::path)dirPath fileURLsArray:(NSMutableArray<NSURL *> *)fileURLsArray {
 
     mz_zip_archive zipArchive;
     memset(&zipArchive, 0, sizeof(zipArchive));
@@ -106,7 +106,7 @@
         return;
     }
 
-    for (const auto& entry : fs::directory_iterator(dirPath)) {
+    for (const auto& entry : mpc_fs::directory_iterator(dirPath)) {
         if (!entry.is_directory()) {
             std::string filePath = entry.path().string();
             mz_zip_writer_add_file(&zipArchive, entry.path().filename().string().c_str(), filePath.c_str(), "", 0, MZ_BEST_COMPRESSION);
@@ -173,13 +173,13 @@
 
 -(UIAlertAction *)createShareDirectToDiskRecordingAction:(mpc::Mpc*)mpc fileURLsArray:(NSMutableArray<NSURL *> *)fileURLsArray {
 
-    const fs::path directToDiskRecordingsDirectory = mpc->paths->getDocuments()->recordingsPath();
+    const mpc_fs::path directToDiskRecordingsDirectory = mpc->paths->getDocuments()->recordingsPath();
 
     UIAlertAction *action = [UIAlertAction actionWithTitle:@"Share Direct to Disk Recordings" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull /* action */) {
         
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Recordings" message:@"Select a directory" preferredStyle:UIAlertControllerStyleAlert];
 
-        for (const auto& entry : fs::directory_iterator(directToDiskRecordingsDirectory)) {
+        for (const auto& entry : mpc_fs::directory_iterator(directToDiskRecordingsDirectory)) {
             if (entry.is_directory()) {
                 const auto entryPath = entry.path();
                 NSString *dirName = [NSString stringWithUTF8String:entryPath.filename().string().c_str()];

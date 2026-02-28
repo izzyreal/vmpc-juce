@@ -85,7 +85,7 @@ void Pad::loadFile(const juce::String &path, bool shouldBeConverted)
 
     auto compatiblePath =
         mpc::StrUtil::replaceAll(path.toStdString(), '\\', std::string("\\"));
-    auto file = std::make_shared<MpcFile>(fs::path(compatiblePath));
+    auto file = std::make_shared<MpcFile>(mpc_fs::path(compatiblePath));
     auto layeredScreen = mpc.getLayeredScreen();
 
     SoundLoaderResult result;
