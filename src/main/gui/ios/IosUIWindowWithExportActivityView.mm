@@ -69,12 +69,22 @@
         return;
     }
 
-    for (const auto &entry : mpc_fs::recursive_directory_iterator(selectedFilePath)) {
-        if (!entry.is_directory()) {
-            std::string relativePath = mpc_fs::relative(entry.path(), currentDirectory).string();
-            mz_bool file_added = mz_zip_writer_add_file(&zip_archive, relativePath.c_str(), entry.path().c_str(), "", 0, MZ_BEST_COMPRESSION);
+    const auto recursiveDirItRes = mpc_fs::make_recursive_directory_iterator(selectedFilePath);
+    if (!recursiveDirItRes) {
+        mz_zip_writer_end(&zip_archive);
+        return;
+    }
+
+    for (auto entry = *recursiveDirItRes; entry != mpc_fs::recursive_directory_end(); ++entry) {
+        if (!entry->is_directory()) {
+            const auto relativePathRes = mpc_fs::relative(entry->path(), currentDirectory);
+            if (!relativePathRes) {
+                continue;
+            }
+            std::string relativePath = relativePathRes->string();
+            mz_bool file_added = mz_zip_writer_add_file(&zip_archive, relativePath.c_str(), entry->path().c_str(), "", 0, MZ_BEST_COMPRESSION);
             if (!file_added) {
-                NSLog(@"Failed to add file to zip archive: %s", entry.path().c_str());
+                NSLog(@"Failed to add file to zip archive: %s", entry->path().c_str());
                 mz_zip_writer_end(&zip_archive);
                 return;
             }
@@ -106,10 +116,16 @@
         return;
     }
 
-    for (const auto& entry : mpc_fs::directory_iterator(dirPath)) {
-        if (!entry.is_directory()) {
-            std::string filePath = entry.path().string();
-            mz_zip_writer_add_file(&zipArchive, entry.path().filename().string().c_str(), filePath.c_str(), "", 0, MZ_BEST_COMPRESSION);
+    const auto dirItRes = mpc_fs::make_directory_iterator(dirPath);
+    if (!dirItRes) {
+        mz_zip_writer_end(&zipArchive);
+        return;
+    }
+
+    for (auto entry = *dirItRes; entry != mpc_fs::directory_end(); ++entry) {
+        if (!entry->is_directory()) {
+            std::string filePath = entry->path().string();
+            mz_zip_writer_add_file(&zipArchive, entry->path().filename().string().c_str(), filePath.c_str(), "", 0, MZ_BEST_COMPRESSION);
         }
     }
 
@@ -179,9 +195,16 @@
         
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Recordings" message:@"Select a directory" preferredStyle:UIAlertControllerStyleAlert];
 
-        for (const auto& entry : mpc_fs::directory_iterator(directToDiskRecordingsDirectory)) {
-            if (entry.is_directory()) {
-                const auto entryPath = entry.path();
+        const auto dirItRes = mpc_fs::make_directory_iterator(directToDiskRecordingsDirectory);
+        if (!dirItRes) {
+            [alertController addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+            [self.rootViewController presentViewController:alertController animated:YES completion:nil];
+            return;
+        }
+
+        for (auto entry = *dirItRes; entry != mpc_fs::directory_end(); ++entry) {
+            if (entry->is_directory()) {
+                const auto entryPath = entry->path();
                 NSString *dirName = [NSString stringWithUTF8String:entryPath.filename().string().c_str()];
                 [alertController addAction:[UIAlertAction actionWithTitle:dirName style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull /* action */) {
                     [self createRecordingZip:entryPath fileURLsArray:fileURLsArray];

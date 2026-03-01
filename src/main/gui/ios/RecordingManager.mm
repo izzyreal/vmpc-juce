@@ -20,6 +20,17 @@
     NSFileManager *fileManager;
 }
 
+- (void)showRecordingLoadErrorAlert {
+    UIAlertController *alert =
+        [UIAlertController alertControllerWithTitle:@"Could Not Load Recordings"
+                                            message:@"Storage access failed while reading the recordings directory."
+                                     preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"OK"
+                                              style:UIAlertActionStyleDefault
+                                            handler:nil]];
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.directoryPaths = [NSMutableArray new];
@@ -60,15 +71,21 @@
     [self.directoryPaths removeAllObjects];
     int yPosition = 20;
     int tag = 0;
-    for (auto& p : mpc_fs::directory_iterator(self.mpc->paths->getDocuments()->recordingsPath())) {
-        NSString *directoryPath = [NSString stringWithUTF8String:p.path().c_str()];
+    const auto dirItRes = mpc_fs::make_directory_iterator(self.mpc->paths->getDocuments()->recordingsPath());
+    if (!dirItRes) {
+        [self showRecordingLoadErrorAlert];
+        return;
+    }
+
+    for (auto p = *dirItRes; p != mpc_fs::directory_end(); ++p) {
+        NSString *directoryPath = [NSString stringWithUTF8String:p->path().c_str()];
         [self.directoryPaths addObject:directoryPath];
 
         UIView *dirView = [[UIView alloc] initWithFrame:CGRectMake(0, yPosition, scrollViewFrame.size.width, 40)];
         [self.scrollView addSubview:dirView];
 
         UILabel *dirLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 10, labelMaxWidth, 20)];
-        dirLabel.text = [NSString stringWithUTF8String:p.path().filename().string().c_str()];
+        dirLabel.text = [NSString stringWithUTF8String:p->path().filename().string().c_str()];
         dirLabel.lineBreakMode = NSLineBreakByTruncatingTail;
         [dirView addSubview:dirLabel];
 

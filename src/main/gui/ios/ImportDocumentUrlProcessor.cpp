@@ -5,6 +5,7 @@
 #include "ImportDocumentUrlProcessor.hpp"
 
 #include "Mpc.hpp"
+#include <Logger.hpp>
 #include "disk/AbstractDisk.hpp"
 #include "disk/MpcFile.hpp"
 
@@ -20,7 +21,7 @@ bool ImportDocumentUrlProcessor::destinationExists(const char *filename,
 {
     auto newFilePath =
         mpc_fs::path(destinationDir()).append(relativePath).append(filename);
-    return mpc_fs::exists(newFilePath);
+    return mpc_fs::exists(newFilePath).value_or(false);
 }
 
 std::shared_ptr<std::ostream>
@@ -28,10 +29,23 @@ ImportDocumentUrlProcessor::openOutputStream(const char *filename,
                                              const char *relativePath)
 {
     auto newFileDir = mpc_fs::path(destinationDir()).append(relativePath);
-    mpc_fs::create_directories(newFileDir);
+    const auto createDirectoriesRes = mpc_fs::create_directories(newFileDir);
+    if (!createDirectoriesRes)
+    {
+        MLOG("ImportDocumentUrlProcessor: Failed to create directory '" +
+             newFileDir.string() + "'");
+        return {};
+    }
+
     auto newFilePath = newFileDir.append(filename);
     mpc::disk::MpcFile newFile(newFilePath);
-    return newFile.getOutputStream();
+    auto outputStream = newFile.getOutputStream();
+    if (!outputStream)
+    {
+        MLOG("ImportDocumentUrlProcessor: Failed to open output stream for '" +
+             newFilePath.string() + "'");
+    }
+    return outputStream;
 }
 
 void ImportDocumentUrlProcessor::initFiles()

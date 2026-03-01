@@ -101,6 +101,26 @@
   return shouldOverwrite;
 }
 
+- (void)showImportFailedAlert:(NSString*)fileName {
+  NSString* msg = [NSString stringWithFormat:@"Could not import %@.", fileName];
+
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    [self setAlert:[UIAlertController alertControllerWithTitle:@"Import failed"
+                                                       message:msg
+                                                preferredStyle:UIAlertControllerStyleAlert]];
+
+    UIAlertAction* okAction = [UIAlertAction actionWithTitle:@"OK"
+                                                      style:UIAlertActionStyleDefault
+                                                    handler:^(UIAlertAction*) { _alert = nil; }];
+    [_alert addAction:okAction];
+    [[self controller] presentViewController:_alert animated:NO completion:nil];
+  });
+
+  while (_alert) {
+    usleep(100000);
+  }
+}
+
 - (void)handleFile:(NSURL*)url relativeDir:(NSString*)relativeDir {
   NSArray<NSString*>* allowedExtensions = @[@"wav",@"snd",@"aps",@"pgm",@"all",@"mid"];
   
@@ -140,6 +160,10 @@
   auto bytesAvailable = static_cast<unsigned long>(data.length);
   unsigned long readPos = 0;
   auto oStream = _urlProcessor->openOutputStream(filename.UTF8String, relativeDir.UTF8String);
+  if (!oStream) {
+    [self showImportFailedAlert:filename];
+    return;
+  }
   
   while (bytesAvailable > 0)
   {
