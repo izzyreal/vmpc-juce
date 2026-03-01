@@ -141,6 +141,8 @@ if (IOS)
         FORMATS AUv3 Standalone)
 else()
     set(NON_IOS_SPECIFIC_SETTINGS
+        HARDENED_RUNTIME_ENABLED TRUE
+        HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.bluetooth
         VST3_CATEGORIES Instrument Drum OnlyRT Sampler Stereo
         VST_NUM_MIDI_INS 1
         VST_NUM_MIDI_OUTS 1
@@ -164,11 +166,16 @@ juce_add_plugin(vmpc2000xl
     MICROPHONE_PERMISSION_TEXT "Allow VMPC2000XL to record from the microphone?"
     BLUETOOTH_PERMISSION_ENABLED TRUE
     BLUETOOTH_PERMISSION_TEXT "This enables VMPC2000XL to use Bluetooth MIDI devices"
-    HARDENED_RUNTIME_ENABLED TRUE
-    HARDENED_RUNTIME_OPTIONS com.apple.security.device.audio-input com.apple.security.device.bluetooth
     PRODUCT_NAME "VMPC2000XL"
     ${IOS_SPECIFIC_SETTINGS}
     ${NON_IOS_SPECIFIC_SETTINGS})
+
+if (IOS)
+    # "Designed for iPad on Mac" launch requires the embedded AUv3 appex to be
+    # signed when copied into the standalone app bundle.
+    set_target_properties(vmpc2000xl_Standalone PROPERTIES
+        XCODE_EMBED_APP_EXTENSIONS_CODE_SIGN_ON_COPY "YES")
+endif()
 
 if (IOS)
     function(add_dsym target)
