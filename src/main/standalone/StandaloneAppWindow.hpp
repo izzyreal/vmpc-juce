@@ -371,105 +371,6 @@ namespace vmpc_juce::standalone
         std::unique_ptr<FileChooser> stateFileChooser;
 
     private:
-        /*  This class can be used to ensure that audio callbacks use buffers
-           with a predictable maximum size.
-
-            On some platforms (such as iOS 10), the expected buffer size
-           reported in audioDeviceAboutToStart may be smaller than the blocks
-           passed to audioDeviceIOCallbackWithContext. This can lead to
-           out-of-bounds reads if the render callback depends on additional
-           buffers which were initialised using the smaller size.
-
-            As a workaround, this class will ensure that the render callback
-           will only ever be called with a block with a length less than or
-           equal to the expected block size.
-        */
-        class CallbackMaxSizeEnforcer final : public AudioIODeviceCallback
-        {
-        public:
-            explicit CallbackMaxSizeEnforcer(AudioIODeviceCallback &callbackIn)
-                : inner(callbackIn)
-            {
-            }
-
-            void audioDeviceAboutToStart(AudioIODevice *device) override
-            {
-                maximumSize = device->getCurrentBufferSizeSamples();
-                storedInputChannels.resize(static_cast<size_t>(
-                    device->getActiveInputChannels().countNumberOfSetBits()));
-                storedOutputChannels.resize(static_cast<size_t>(
-                    device->getActiveOutputChannels().countNumberOfSetBits()));
-
-                inner.audioDeviceAboutToStart(device);
-            }
-
-            void audioDeviceIOCallbackWithContext(
-                const float *const *inputChannelData,
-                const int numInputChannels, float *const *outputChannelData,
-                const int numOutputChannels, const int numSamples,
-                const AudioIODeviceCallbackContext &context) override
-            {
-                jassertquiet(static_cast<int>(storedInputChannels.size()) ==
-                             numInputChannels);
-                jassertquiet(static_cast<int>(storedOutputChannels.size()) ==
-                             numOutputChannels);
-
-                int position = 0;
-
-                while (position < numSamples)
-                {
-                    const auto blockLength =
-                        jmin(maximumSize, numSamples - position);
-
-                    initChannelPointers(inputChannelData, storedInputChannels,
-                                        position);
-                    initChannelPointers(outputChannelData, storedOutputChannels,
-                                        position);
-
-                    inner.audioDeviceIOCallbackWithContext(
-                        storedInputChannels.data(),
-                        static_cast<int>(storedInputChannels.size()),
-                        storedOutputChannels.data(),
-                        static_cast<int>(storedOutputChannels.size()),
-                        blockLength, context);
-
-                    position += blockLength;
-                }
-            }
-
-            void audioDeviceStopped() override
-            {
-                inner.audioDeviceStopped();
-            }
-
-        private:
-            struct GetChannelWithOffset
-            {
-                int offset;
-
-                template <typename Ptr>
-                auto operator()(Ptr ptr) const noexcept -> Ptr
-                {
-                    return ptr + offset;
-                }
-            };
-
-            template <typename Ptr, typename Vector>
-            void initChannelPointers(Ptr &&source, Vector &&target,
-                                     const int offset)
-            {
-                std::transform(source, source + target.size(), target.begin(),
-                               GetChannelWithOffset{offset});
-            }
-
-            AudioIODeviceCallback &inner;
-            int maximumSize = 0;
-            std::vector<const float *> storedInputChannels;
-            std::vector<float *> storedOutputChannels;
-        };
-
-        CallbackMaxSizeEnforcer maxSizeEnforcer{*this};
-
         //==============================================================================
         void audioDeviceIOCallbackWithContext(
             const float *const *inputChannelData, const int numInputChannels,
@@ -506,7 +407,7 @@ namespace vmpc_juce::standalone
             const String &preferredDefaultDeviceName,
             const AudioDeviceManager::AudioDeviceSetup *preferredSetupOptions)
         {
-            deviceManager.addAudioCallback(&maxSizeEnforcer);
+            deviceManager.addAudioCallback(this);
             deviceManager.addMidiInputDeviceCallback({}, &player);
 
             reloadAudioDeviceState(enableAudioInput, preferredDefaultDeviceName,
@@ -518,7 +419,7 @@ namespace vmpc_juce::standalone
             saveAudioDeviceState();
 
             deviceManager.removeMidiInputDeviceCallback({}, &player);
-            deviceManager.removeAudioCallback(&maxSizeEnforcer);
+            deviceManager.removeAudioCallback(this);
         }
 
         void timerCallback() override

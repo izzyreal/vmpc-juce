@@ -37,14 +37,121 @@ bool AudioDeviceManager::AudioDeviceSetup::operator!=(
 }
 
 class AudioDeviceManager::CallbackHandler final
-    : public juce::AudioIODeviceCallback,
-      public juce::MidiInputCallback,
-      public juce::AudioIODeviceType::Listener
+    : private juce::MidiInputCallback,
+      private juce::AudioIODeviceType::Listener,
+      private juce::AudioIODeviceCallback
 {
 public:
     explicit CallbackHandler(AudioDeviceManager &adm) noexcept : owner(adm) {}
+    juce::MidiInputCallback *getMidiInputCallback() { return this; }
+    juce::AudioIODeviceType::Listener *getAudioIODeviceTypeListener()
+    {
+        return this;
+    }
+    juce::AudioIODeviceCallback *getAudioIODeviceCallback()
+    {
+        return &enforcer;
+    }
 
 private:
+    /*  This class is used to ensure that audio callbacks use buffers with a
+        predictable maximum size.
+
+        On some platforms (such as iOS 10), the expected buffer size reported
+        in audioDeviceAboutToStart may be smaller than the blocks passed to
+        audioDeviceIOCallbackWithContext. This can lead to out-of-bounds reads
+        if the render callback depends on additional buffers which were
+        initialised using the smaller size.
+
+        As a workaround, this class will ensure that the render callback will
+        only ever be called with a block with a length less than or equal to
+        the expected block size.
+    */
+    class CallbackMaxSizeEnforcer final : public juce::AudioIODeviceCallback
+    {
+    public:
+        explicit CallbackMaxSizeEnforcer(
+            juce::AudioIODeviceCallback &callbackIn)
+            : inner(callbackIn)
+        {
+        }
+
+        void audioDeviceAboutToStart(juce::AudioIODevice *device) override
+        {
+            maximumSize = device->getCurrentBufferSizeSamples();
+            storedInputChannels.resize(static_cast<size_t>(
+                device->getActiveInputChannels().countNumberOfSetBits()));
+            storedOutputChannels.resize(static_cast<size_t>(
+                device->getActiveOutputChannels().countNumberOfSetBits()));
+
+            inner.audioDeviceAboutToStart(device);
+        }
+
+        void audioDeviceIOCallbackWithContext(
+            const float *const *inputChannelData,
+            [[maybe_unused]] int numInputChannels,
+            float *const *outputChannelData,
+            [[maybe_unused]] int numOutputChannels, const int numSamples,
+            const juce::AudioIODeviceCallbackContext &context) override
+        {
+            jassert(static_cast<int>(storedInputChannels.size()) ==
+                    numInputChannels);
+            jassert(static_cast<int>(storedOutputChannels.size()) ==
+                    numOutputChannels);
+
+            int position = 0;
+
+            while (position < numSamples)
+            {
+                const auto blockLength = juce::jmin(maximumSize,
+                                                    numSamples - position);
+
+                initChannelPointers(inputChannelData, storedInputChannels,
+                                    position);
+                initChannelPointers(outputChannelData, storedOutputChannels,
+                                    position);
+
+                inner.audioDeviceIOCallbackWithContext(
+                    storedInputChannels.data(),
+                    static_cast<int>(storedInputChannels.size()),
+                    storedOutputChannels.data(),
+                    static_cast<int>(storedOutputChannels.size()), blockLength,
+                    context);
+
+                position += blockLength;
+            }
+        }
+
+        void audioDeviceStopped() override
+        {
+            inner.audioDeviceStopped();
+        }
+
+    private:
+        struct GetChannelWithOffset
+        {
+            int offset;
+
+            template <typename Ptr>
+            auto operator()(Ptr ptr) const noexcept -> Ptr
+            {
+                return ptr + offset;
+            }
+        };
+
+        template <typename Ptr, typename Vector>
+        void initChannelPointers(Ptr &&source, Vector &&target, int offset)
+        {
+            std::transform(source, source + target.size(), target.begin(),
+                           GetChannelWithOffset{offset});
+        }
+
+        juce::AudioIODeviceCallback &inner;
+        int maximumSize = 0;
+        std::vector<const float *> storedInputChannels;
+        std::vector<float *> storedOutputChannels;
+    };
+
     void audioDeviceIOCallbackWithContext(
         const float *const *ins, const int numIns, float *const *outs,
         const int numOuts, const int numSamples,
@@ -81,6 +188,7 @@ private:
     }
 
     AudioDeviceManager &owner;
+    CallbackMaxSizeEnforcer enforcer{*this};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CallbackHandler)
 };
@@ -275,7 +383,8 @@ void AudioDeviceManager::addAudioDeviceType(
         availableDeviceTypes.add(newDeviceType.release());
         lastDeviceTypeConfigs.add(new AudioDeviceSetup());
 
-        availableDeviceTypes.getLast()->addListener(callbackHandler.get());
+        availableDeviceTypes.getLast()->addListener(
+            callbackHandler->getAudioIODeviceTypeListener());
     }
 }
 
@@ -291,7 +400,8 @@ void AudioDeviceManager::removeAudioDeviceType(
         if (const auto removed = std::unique_ptr<juce::AudioIODeviceType>(
                 availableDeviceTypes.removeAndReturn(index)))
         {
-            removed->removeListener(callbackHandler.get());
+            removed->removeListener(
+                callbackHandler->getAudioIODeviceTypeListener());
             lastDeviceTypeConfigs.remove(index, true);
         }
     }
@@ -960,7 +1070,7 @@ AudioDeviceManager::setAudioDeviceSetup(const AudioDeviceSetup &newSetup,
     {
         currentDeviceType = currentAudioDevice->getTypeName();
 
-        currentAudioDevice->start(callbackHandler.get());
+        currentAudioDevice->start(callbackHandler->getAudioIODeviceCallback());
 
         error = currentAudioDevice->getLastError();
     }
@@ -1336,7 +1446,7 @@ void AudioDeviceManager::setMidiInputDeviceEnabled(
         if (enabled)
         {
             if (auto midiIn = juce::MidiInput::openDevice(
-                    identifier, callbackHandler.get()))
+                    identifier, callbackHandler->getMidiInputCallback()))
             {
                 enabledMidiInputs.push_back(std::move(midiIn));
                 enabledMidiInputs.back()->start();
