@@ -187,7 +187,7 @@ if (IOS)
     endfunction()
 
     add_dsym(vmpc2000xl_Standalone)
-    add_dsym(vmpc2000xl_AUv3)
+    #add_dsym(vmpc2000xl_AUv3)
 endif()
 
 set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/src/main")
@@ -243,6 +243,9 @@ endif()
 
 if (IOS)
   target_link_libraries(vmpc2000xl PRIVATE miniz)
+  set_target_properties(vmpc2000xl_Standalone PROPERTIES
+    XCODE_EXPLICIT_FILE_TYPE "wrapper.application"
+  )
 endif()
 
 target_link_libraries(vmpc2000xl
