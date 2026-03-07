@@ -742,6 +742,61 @@ pipelines:
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
 
+          - run: |
+              VERSION="$(head -n 1 dist/release-version.txt | tr -d '[:space:]')"
+              TAG="vmpc-${VERSION}"
+              test -n "$VERSION"
+
+              WORKDIR="$(mktemp -d)"
+              cleanup() {
+                rm -rf "$WORKDIR"
+              }
+              trap cleanup EXIT INT TERM
+
+              tag_repo() {
+                REPO="$1"
+                REF="$2"
+                DIR="$3"
+
+                rm -rf "$WORKDIR/$DIR"
+                mkdir -p "$WORKDIR/$DIR"
+
+                git -C "$WORKDIR/$DIR" init -q
+                git -C "$WORKDIR/$DIR" config user.name "ciwi-agent"
+                git -C "$WORKDIR/$DIR" config user.email "ciwi-agent@local"
+                git -C "$WORKDIR/$DIR" remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO}.git"
+                git -C "$WORKDIR/$DIR" fetch -q --depth 1 origin "$REF"
+                TARGET_COMMIT="$(git -C "$WORKDIR/$DIR" rev-parse FETCH_HEAD)"
+
+                REMOTE_TAG_COMMIT="$(git -C "$WORKDIR/$DIR" ls-remote --tags origin "refs/tags/$TAG" | awk '{print $1}' | tail -n 1)"
+                if [ -n "$REMOTE_TAG_COMMIT" ]; then
+                  if [ "$REMOTE_TAG_COMMIT" = "$TARGET_COMMIT" ]; then
+                    echo "tag already exists for ${REPO}: ${TAG} -> ${TARGET_COMMIT}"
+                    return 0
+                  fi
+                  echo "tag already exists for ${REPO} but points elsewhere: ${TAG} -> ${REMOTE_TAG_COMMIT} (expected ${TARGET_COMMIT})"
+                  return 1
+                fi
+
+                git -C "$WORKDIR/$DIR" tag -a "$TAG" -m "${REPO} ${TAG}" "$TARGET_COMMIT"
+                git -C "$WORKDIR/$DIR" push -q origin "refs/tags/$TAG"
+              }
+
+              tag_repo "izzyreal/mpc" "master" "mpc"
+              tag_repo "izzyreal/JUCE" "7.0.9-vmpc" "JUCE"
+              tag_repo "izzyreal/akaifat" "main" "akaifat"
+              tag_repo "izzyreal/juce-raw-keyboard-input-module" "external-focus-provider" "juce-raw-keyboard-input-module"
+            skip_dry_run: true
+            vault:
+              connection: home-vault
+              secrets:
+                - name: github-secret
+                  mount: kv
+                  path: gh
+                  key: token
+            env:
+              GITHUB_TOKEN: "{{ secret.github-secret }}"
+
 pipeline_chains:
   - id: build-codesign-package-release
     pipelines:
