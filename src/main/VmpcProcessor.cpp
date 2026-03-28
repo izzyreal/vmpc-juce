@@ -2,6 +2,9 @@
 
 #include "build_info/VmpcJuceBuildInfo.hpp"
 
+#include "RequiredResourcesMissingEditor.hpp"
+#include "VmpcJuceRequiredResourceIntegrity.hpp"
+
 #include "VmpcEditor.hpp"
 #include "JuceToMpcMidiEventConvertor.hpp"
 #include "MpcToJuceMidiEventConvertor.hpp"
@@ -15,6 +18,7 @@
 
 #include <AutoSave.hpp>
 #include <Logger.hpp>
+#include <RequiredResourceIntegrity.hpp>
 
 #include <engine/EngineHost.hpp>
 #include <engine/audio/server/NonRealTimeAudioServer.hpp>
@@ -55,6 +59,40 @@ using namespace mpc::disk;
 
 using namespace vmpc_juce;
 
+namespace
+{
+std::string buildRequiredResourcesFailureMessage(
+    const std::vector<mpc::MissingRequiredResource> &mpcMissing,
+    const std::vector<vmpc_juce::MissingRequiredResource> &vmpcMissing)
+{
+    std::string message =
+        "Required file(s) missing. Reinstall VMPC2000XL, and if the problem "
+        "persists, file a bug report.\n\n";
+
+    for (const auto &entry : mpcMissing)
+    {
+        message += "mpc: " + entry.logicalPath;
+        if (!entry.resolvedPath.empty())
+        {
+            message += " -> " + entry.resolvedPath;
+        }
+        message += "\n";
+    }
+
+    for (const auto &entry : vmpcMissing)
+    {
+        message += "vmpc-juce: " + entry.logicalPath;
+        if (!entry.resolvedPath.empty())
+        {
+            message += " -> " + entry.resolvedPath;
+        }
+        message += "\n";
+    }
+
+    return message;
+}
+} // namespace
+
 VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
 {
     midiOutputBuffer.resize(512);
@@ -85,6 +123,19 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
         timeString +
         "\n"
         "------------------------------------------------------------\n");
+
+    const auto missingMpcResources = mpc::RequiredResourceIntegrity::check();
+    const auto missingVmpcResources =
+        vmpc_juce::VmpcJuceRequiredResourceIntegrity::check();
+    if (!missingMpcResources.empty() || !missingVmpcResources.empty())
+    {
+        requiredResourcesAvailable = false;
+        requiredResourcesFailureMessage = buildRequiredResourcesFailureMessage(
+            missingMpcResources, missingVmpcResources);
+        MLOG(requiredResourcesFailureMessage);
+        return;
+    }
+
     mpc.init();
 
     if (juce::PluginHostType::jucePlugInClientCurrentWrapperType !=
@@ -112,7 +163,7 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
 
 VmpcProcessor::~VmpcProcessor()
 {
-    if (juce::JUCEApplication::isStandaloneApp())
+    if (requiredResourcesAvailable && juce::JUCEApplication::isStandaloneApp())
     {
         const auto autosaveDir = mpc.paths->getDocuments()->autoSavePath();
         const auto saveTarget =
@@ -191,6 +242,11 @@ void VmpcProcessor::changeProgramName(int /* index */,
 void VmpcProcessor::prepareToPlay(const double sampleRate,
                                   const int samplesPerBlock)
 {
+    if (!requiredResourcesAvailable)
+    {
+        return;
+    }
+
     const auto engineHost = mpc.getEngineHost();
     const auto server = engineHost->getAudioServer();
     server->setSampleRate(static_cast<int>(sampleRate));
@@ -580,6 +636,13 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
                                  juce::MidiBuffer &midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
+    midiMessages.clear();
+
+    if (!requiredResourcesAvailable)
+    {
+        buffer.clear();
+        return;
+    }
 
     const int totalNumInputChannels = getTotalNumInputChannels();
     const int totalNumOutputChannels = getTotalNumOutputChannels();
@@ -717,6 +780,12 @@ bool VmpcProcessor::hasEditor() const
 
 juce::AudioProcessorEditor *VmpcProcessor::createEditor()
 {
+    if (!requiredResourcesAvailable)
+    {
+        return new RequiredResourcesMissingEditor(
+            *this, requiredResourcesFailureMessage);
+    }
+
     mpc.getLayeredScreen()->setDirty();
     return new VmpcEditor(*this);
 }
@@ -733,6 +802,12 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
     }
 
     if (juce::JUCEApplication::isStandaloneApp())
+    {
+        copyXmlToBinary(root, destData);
+        return;
+    }
+
+    if (!requiredResourcesAvailable)
     {
         copyXmlToBinary(root, destData);
         return;
@@ -795,6 +870,11 @@ void VmpcProcessor::setStateInformation(const void *data, const int sizeInBytes)
             lastUIHeight =
                 juce_ui->getIntAttribute("vector_ui_height", lastUIHeight);
         }
+        return;
+    }
+
+    if (!requiredResourcesAvailable)
+    {
         return;
     }
 
@@ -861,6 +941,16 @@ void VmpcProcessor::setStateInformation(const void *data, const int sizeInBytes)
             mpc, zipTarget,
             headless || !juce::JUCEApplication::isStandaloneApp());
     }
+}
+
+bool VmpcProcessor::hasRequiredResources() const
+{
+    return requiredResourcesAvailable;
+}
+
+const std::string &VmpcProcessor::getRequiredResourcesFailureMessage() const
+{
+    return requiredResourcesFailureMessage;
 }
 
 void VmpcProcessor::logActualBusLayout()

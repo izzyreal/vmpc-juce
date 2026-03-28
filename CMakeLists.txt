@@ -196,6 +196,7 @@ set(_src_root_path "${CMAKE_CURRENT_SOURCE_DIR}/src/main")
 
 target_include_directories(vmpc2000xl PUBLIC
   ${_src_root_path}
+  ${CMAKE_CURRENT_BINARY_DIR}/generated
   ${mpc_SOURCE_DIR}/src/main
 )
 
@@ -274,6 +275,7 @@ if (VMPC_BUILD_TESTS)
 
   target_include_directories(vmpc-juce-tests PRIVATE
     ${_src_root_path}
+    ${CMAKE_CURRENT_BINARY_DIR}/generated
     ${mpc_SOURCE_DIR}/src/main
   )
 

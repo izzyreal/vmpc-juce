@@ -47,6 +47,8 @@ namespace vmpc_juce
         void setStateInformation(const void *data, int sizeInBytes) override;
 
         int lastUIWidth = 0, lastUIHeight = 0;
+        bool hasRequiredResources() const;
+        const std::string &getRequiredResourcesFailureMessage() const;
 
     private:
         void processMidiIn(const juce::MidiBuffer &midiMessages) const;
@@ -80,6 +82,8 @@ namespace vmpc_juce
         void logActualBusLayout();
 
         std::vector<mpc::client::event::ClientMidiEvent> midiOutputBuffer;
+        bool requiredResourcesAvailable = true;
+        std::string requiredResourcesFailureMessage;
 
     public:
         bool shouldShowDisclaimer = true;

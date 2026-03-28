@@ -2,7 +2,31 @@ include(cmake/CMakeRC.cmake)
 
 set(_vmpc_juce_resources_root ${CMAKE_SOURCE_DIR}/resources)
 
+function(_generate_vmpc_juce_required_resource_manifest)
+  file(GLOB_RECURSE VMPC_JUCE_REQUIRED_RESOURCES "${_vmpc_juce_resources_root}/*")
+  list(FILTER VMPC_JUCE_REQUIRED_RESOURCES EXCLUDE REGEX "\\.DS_Store$")
+  list(SORT VMPC_JUCE_REQUIRED_RESOURCES)
+
+  set(_generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
+  file(MAKE_DIRECTORY "${_generated_dir}")
+
+  set(_header_path "${_generated_dir}/VmpcJuceRequiredResources.hpp")
+  set(_header_content "#pragma once\n\n#include <array>\n#include <string_view>\n\nnamespace vmpc_juce::required_resources\n{\n")
+  list(LENGTH VMPC_JUCE_REQUIRED_RESOURCES _required_count)
+  string(APPEND _header_content
+         "inline constexpr std::array<std::string_view, ${_required_count}> paths{\n")
+
+  foreach(_resource IN LISTS VMPC_JUCE_REQUIRED_RESOURCES)
+    file(RELATIVE_PATH _relative_path "${_vmpc_juce_resources_root}" "${_resource}")
+    string(APPEND _header_content "    \"${_relative_path}\",\n")
+  endforeach()
+
+  string(APPEND _header_content "};\n}\n")
+  file(WRITE "${_header_path}" "${_header_content}")
+endfunction()
+
 function(_bundle_vmpc_juce_resources _target_name)
+  _generate_vmpc_juce_required_resource_manifest()
   set(_mpc_resources_root ${CMAKE_SOURCE_DIR}/editables/mpc/resources)
   if (DEFINED mpc_SOURCE_DIR AND NOT "${mpc_SOURCE_DIR}" STREQUAL "")
     set(_mpc_resources_root ${mpc_SOURCE_DIR}/resources)

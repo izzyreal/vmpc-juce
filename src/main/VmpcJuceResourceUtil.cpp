@@ -11,12 +11,38 @@ CMRC_DECLARE(vmpcjuce);
 
 using namespace vmpc_juce;
 
+std::string VmpcJuceResourceUtil::resolveResourcePath(const std::string &path)
+{
+#ifdef MAC_BUNDLE_RESOURCES
+    return mpc::MacBundleResources::getResourcePath(path);
+#else
+    return path;
+#endif
+}
+
 std::vector<char> VmpcJuceResourceUtil::getResourceData(const std::string &path)
 {
 #ifdef MAC_BUNDLE_RESOURCES
     return getResourceDataFromMacBundleResources(path);
 #else
     return getResourceDataFromInMemoryFS(path);
+#endif
+}
+
+bool VmpcJuceResourceUtil::resourceExists(const std::string &path)
+{
+#ifdef MAC_BUNDLE_RESOURCES
+    return mpc_fs::exists(resolveResourcePath(path)).value_or(false);
+#else
+    try
+    {
+        (void) cmrc::vmpcjuce::get_filesystem().open(path.c_str());
+        return true;
+    }
+    catch (...)
+    {
+        return false;
+    }
 #endif
 }
 
