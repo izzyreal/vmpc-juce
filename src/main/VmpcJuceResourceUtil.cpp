@@ -41,7 +41,7 @@ std::vector<char> VmpcJuceResourceUtil::getResourceDataFromMacBundleResources(
     const std::string &path)
 {
     const auto resource_path = mpc::MacBundleResources::getResourcePath(path);
-    return get_file_data(resource_path);
+    return get_file_data(resource_path).value_or(std::vector<char>{});
 }
 #else
 

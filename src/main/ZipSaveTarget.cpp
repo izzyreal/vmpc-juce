@@ -32,8 +32,9 @@ ZipSaveTarget::ZipSaveTarget(const void *data, size_t size)
     }
 }
 
-void ZipSaveTarget::setFileData(const mpc_fs::path &path,
-                                const std::vector<char> &data)
+mpc_fs::result<void>
+ZipSaveTarget::setFileData(const mpc_fs::path &path,
+                           const std::vector<char> &data)
 {
     const auto key = path.string();
     if (data.empty())
@@ -44,30 +45,37 @@ void ZipSaveTarget::setFileData(const mpc_fs::path &path,
     {
         files[key] = std::vector<char>(data.begin(), data.end());
     }
+    return {};
 }
 
-std::vector<char> ZipSaveTarget::getFileData(const mpc_fs::path &path) const
+mpc_fs::result<std::vector<char>>
+ZipSaveTarget::getFileData(const mpc_fs::path &path) const
 {
     const auto key = path.string();
     auto it = files.find(key);
     if (it == files.end())
     {
-        return {};
+        return tl::unexpected(mpc_fs::make_error(
+            "zip_get_file_data", path,
+            std::make_error_code(std::errc::no_such_file_or_directory)));
     }
     return it->second;
 }
 
-bool ZipSaveTarget::exists(const mpc_fs::path &path) const
+mpc_fs::result<bool> ZipSaveTarget::exists(const mpc_fs::path &path) const
 {
     return files.find(path.string()) != files.end();
 }
 
-std::uintmax_t ZipSaveTarget::fileSize(const mpc_fs::path &path) const
+mpc_fs::result<std::uintmax_t>
+ZipSaveTarget::fileSize(const mpc_fs::path &path) const
 {
     auto it = files.find(path.string());
     if (it == files.end())
     {
-        return 0;
+        return tl::unexpected(mpc_fs::make_error(
+            "zip_file_size", path,
+            std::make_error_code(std::errc::no_such_file_or_directory)));
     }
     return it->second.size();
 }
