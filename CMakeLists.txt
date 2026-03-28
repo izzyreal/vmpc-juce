@@ -69,6 +69,8 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
+option(VMPC_BUILD_TESTS "Build vmpc-juce integration tests" ON)
+
 set(VMPC_JUCE_REPO "https://github.com/izzyreal/JUCE.git")
 set(VMPC_JUCE_REF "7.0.9-vmpc")
 set(VMPC_MELATONIN_BLUR_REPO "https://github.com/sudara/melatonin_blur.git")
@@ -260,7 +262,46 @@ target_link_libraries(vmpc2000xl
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags)
 
+if (VMPC_BUILD_TESTS)
+  file(
+    GLOB_RECURSE _vmpc_test_sources
+    LIST_DIRECTORIES false
+    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "src/test/*.cpp"
+  )
+
+  add_executable(vmpc-juce-tests ${_vmpc_test_sources})
+
+  target_include_directories(vmpc-juce-tests PRIVATE
+    ${_src_root_path}
+    ${mpc_SOURCE_DIR}/src/main
+  )
+
+  target_link_libraries(vmpc-juce-tests
+    PRIVATE
+      Catch2::Catch2WithMain
+      juce::juce_gui_basics
+      juce::juce_core
+      mpc
+  )
+
+  target_compile_definitions(vmpc-juce-tests
+    PRIVATE
+      JUCE_WEB_BROWSER=0
+      JUCE_USE_CURL=0
+  )
+
+  target_sources(vmpc-juce-tests PRIVATE
+    src/main/ZipSaveTarget.cpp
+    src/main/VmpcJuceResourceUtil.cpp
+  )
+endif()
+
 _bundle_vmpc_juce_resources(vmpc2000xl)
+
+if (VMPC_BUILD_TESTS AND TARGET vmpcjuce::rc)
+  target_link_libraries(vmpc-juce-tests PRIVATE vmpcjuce::rc)
+endif()
 
 if (APPLE)
   execute_process(

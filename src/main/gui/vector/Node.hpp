@@ -21,24 +21,24 @@ namespace vmpc_juce::gui::vector
         std::string node_type;
         std::string svg;
         std::vector<node> children;
-        float margin;
+        float margin = 0.f;
         std::string label;
         std::string label_style;
         std::string direction;
-        float flex_grow;
+        float flex_grow = 0.f;
         std::string align_items;
         std::vector<float> margins;
         std::string justify_items;
         std::string width;
         std::string label_text_to_calculate_width;
-        float shadow_size;
-        float shadow_darkness;
-        bool hide_svg;
-        bool is_inner_shadow;
-        float magic_multiplier;
+        float shadow_size = 0.f;
+        float shadow_darkness = 0.f;
+        bool hide_svg = false;
+        bool is_inner_shadow = false;
+        float magic_multiplier = 0.f;
         std::string hardware_label;
         std::string svg_placement;
-        float font_scale;
+        float font_scale = 0.f;
         std::string font;
 
         // Should only be specified for the root node.
@@ -50,8 +50,8 @@ namespace vmpc_juce::gui::vector
         // between 300 to 1000 to affect such global aesthetics.
         //
         // The root window's aspect ratio is base_width / base_height.
-        int base_width;
-        int base_height;
+        int base_width = 0;
+        int base_height = 0;
 
         // grid
         std::vector<uint16_t> row_fractions;
@@ -60,20 +60,20 @@ namespace vmpc_juce::gui::vector
         // grid leaf item
         std::vector<uint8_t> area;
 
-        juce::Component *svg_component;
-        juce::Component *label_component;
-        juce::Component *grid_wrapper_component;
-        juce::Component *flex_box_wrapper_component;
-        juce::Component *svg_with_label_grid_component;
-        juce::Component *line_flanked_label_component;
-        juce::Component *j_or_l_shape_component;
-        juce::Component *rectangle_component;
-        juce::Component *num_key_component;
-        juce::Component *slider_border_component;
-        juce::Component *slider_component;
-        juce::Component *data_wheel_component;
-        juce::Component *lcd_component;
-        juce::Component *led_component;
+        juce::Component *svg_component = nullptr;
+        juce::Component *label_component = nullptr;
+        juce::Component *grid_wrapper_component = nullptr;
+        juce::Component *flex_box_wrapper_component = nullptr;
+        juce::Component *svg_with_label_grid_component = nullptr;
+        juce::Component *line_flanked_label_component = nullptr;
+        juce::Component *j_or_l_shape_component = nullptr;
+        juce::Component *rectangle_component = nullptr;
+        juce::Component *num_key_component = nullptr;
+        juce::Component *slider_border_component = nullptr;
+        juce::Component *slider_component = nullptr;
+        juce::Component *data_wheel_component = nullptr;
+        juce::Component *lcd_component = nullptr;
+        juce::Component *led_component = nullptr;
     };
 
     static void from_json(const nlohmann::json &j, node &n)

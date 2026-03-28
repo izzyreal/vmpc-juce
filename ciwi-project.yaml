@@ -32,7 +32,9 @@ pipelines:
         timeout_seconds: 2700
         artifacts:
           - dist/result-junit.xml
+          - dist/result-junit-vmpc-juce.xml
           - dist/mpc-tests-linux-amd64
+          - dist/vmpc-juce-tests-linux-amd64
           - dist/version-linux-amd64.txt
           - dist/VMPC2000XL-linux-amd64-Standalone
           - dist/VMPC2000XL-linux-amd64-VST3.vst3/**
@@ -48,10 +50,10 @@ pipelines:
           - run: mkdir -p "$CCACHE_DIR"
           - run: mkdir -p /tmp/vmpc2000xl_documents
           - run: if command -v ccache >/dev/null 2>&1; then ccache --zero-stats; else echo "ccache not found in container"; fi
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content cmake -B build -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content cmake -B build -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
-          - run: cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests
+          - run: cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests vmpc-juce-tests
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
           - run: if command -v ccache >/dev/null 2>&1; then ccache --show-stats; else echo "ccache not found in container"; fi
@@ -60,7 +62,13 @@ pipelines:
               command: ./build/_deps/mpc-build/Release/mpc-tests --reporter JUnit::out=dist/result-junit.xml
               format: junit-xml
               report: dist/result-junit.xml
+          - test:
+              name: vmpc-juce-tests
+              command: ./build/Release/vmpc-juce-tests --reporter JUnit::out=dist/result-junit-vmpc-juce.xml
+              format: junit-xml
+              report: dist/result-junit-vmpc-juce.xml
           - run: cp build/_deps/mpc-build/Release/mpc-tests dist/mpc-tests-linux-amd64
+          - run: cp build/Release/vmpc-juce-tests dist/vmpc-juce-tests-linux-amd64
           - run: cp build/version.txt dist/version-linux-amd64.txt
           - run: cp build/vmpc2000xl_artefacts/Release/Standalone/VMPC2000XL dist/VMPC2000XL-linux-amd64-Standalone
           - run: cp -R build/vmpc2000xl_artefacts/Release/VST3/VMPC2000XL.vst3 dist/VMPC2000XL-linux-amd64-VST3.vst3
@@ -80,6 +88,7 @@ pipelines:
             xcodebuild: "*"
         timeout_seconds: 2700
         artifacts:
+          - dist/result-junit-vmpc-juce.xml
           - dist/VMPC2000XL-macos-universal-Standalone.app/**
           - dist/VMPC2000XL-macos-universal-AU.component/**
           - dist/VMPC2000XL-macos-universal-VST3.vst3/**
@@ -96,7 +105,7 @@ pipelines:
           - run: rm -rf "$VMPC2000XL_DOCUMENTS_PATH" && mkdir -p "$VMPC2000XL_DOCUMENTS_PATH"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -destination "generic/platform=macOS,name=Any Mac" -configuration Release
@@ -114,11 +123,19 @@ pipelines:
           - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme mpc-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
+          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc-juce-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - test:
               name: mpc-tests
               command: ./build/_deps/mpc-build/Release/mpc-tests.app/Contents/MacOS/mpc-tests --reporter JUnit::out=build/result-junit.xml
               format: junit-xml
               report: build/result-junit.xml
+          - test:
+              name: vmpc-juce-tests
+              command: ./build/Release/vmpc-juce-tests --reporter JUnit::out=dist/result-junit-vmpc-juce.xml
+              format: junit-xml
+              report: dist/result-junit-vmpc-juce.xml
           - run: cp -R build/vmpc2000xl_artefacts/Release/Standalone/VMPC2000XL.app dist/VMPC2000XL-macos-universal-Standalone.app
           - run: cp -R build/vmpc2000xl_artefacts/Release/AU/VMPC2000XL.component dist/VMPC2000XL-macos-universal-AU.component
           - run: cp -R build/vmpc2000xl_artefacts/Release/VST3/VMPC2000XL.vst3 dist/VMPC2000XL-macos-universal-VST3.vst3
@@ -149,7 +166,7 @@ pipelines:
           - run: mkdir -p dist
           - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
           - run: rm -rf build
-          - run: cmake -Wno-dev -B build -G "Xcode" -DCMAKE_SYSTEM_NAME=iOS -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - run: cmake -Wno-dev -B build -G "Xcode" -DCMAKE_SYSTEM_NAME=iOS -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
           - run: cd build && xcodebuild -project vmpc2000xl.xcodeproj build -target vmpc2000xl_Standalone -parallelizeTargets -configuration RelWithDebInfo -allowProvisioningUpdates
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
@@ -173,6 +190,7 @@ pipelines:
         timeout_seconds: 2700
         artifacts:
           - dist/mpc-tests-windows10-amd64.exe
+          - dist/vmpc-juce-tests-windows10-amd64.exe
           - dist/version-windows10-amd64.txt
           - dist/VMPC2000XL-windows10-amd64-Standalone.exe
           - dist/VMPC2000XL-windows10-amd64-VST3.vst3/**
@@ -184,8 +202,8 @@ pipelines:
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%") || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All mpc-tests
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%") || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All mpc-tests vmpc-juce-tests
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
@@ -194,7 +212,13 @@ pipelines:
               command: build\_deps\mpc-build\Release\mpc-tests.exe --reporter JUnit::out=build\result-junit.xml
               format: junit-xml
               report: build/result-junit.xml
+          - test:
+              name: vmpc-juce-tests
+              command: build\Release\vmpc-juce-tests.exe --reporter JUnit::out=build\result-junit-vmpc-juce.xml
+              format: junit-xml
+              report: build/result-junit-vmpc-juce.xml
           - run: copy /Y build\_deps\mpc-build\Release\mpc-tests.exe dist\mpc-tests-windows10-amd64.exe
+          - run: copy /Y build\Release\vmpc-juce-tests.exe dist\vmpc-juce-tests-windows10-amd64.exe
           - run: copy /Y build\version.txt dist\version-windows10-amd64.txt
           - run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows10-amd64-Standalone.exe
           - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows10-amd64-VST3.vst3
@@ -223,7 +247,7 @@ pipelines:
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 18 2026" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%") || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 18 2026" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%") || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
@@ -256,7 +280,7 @@ pipelines:
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
@@ -289,7 +313,7 @@ pipelines:
           - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
           - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
           - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
+          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
           - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents

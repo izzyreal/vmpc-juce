@@ -27,6 +27,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include <stdexcept>
 #include <tuple>
 
 #ifdef __APPLE__
@@ -34,6 +35,19 @@
 #endif
 
 using namespace vmpc_juce::gui::vector;
+
+namespace
+{
+node makeFallbackRootNode()
+{
+    node result;
+    result.node_type = "flex_box";
+    result.direction = "column";
+    result.base_width = 1280;
+    result.base_height = 720;
+    return result;
+}
+}
 
 View::View(mpc::Mpc &mpcToUse,
            const std::function<void()> &showAudioSettingsDialog,
@@ -179,9 +193,28 @@ View::View(mpc::Mpc &mpcToUse,
 
     const auto jsonFileData =
         VmpcJuceResourceUtil::getResourceData("json/" + layoutName + ".json");
-    const nlohmann::json data = nlohmann::json::parse(jsonFileData);
+    try
+    {
+        if (jsonFileData.empty())
+        {
+            throw std::runtime_error("layout resource is empty");
+        }
 
-    view_root = data.get<node>();
+        const nlohmann::json data = nlohmann::json::parse(jsonFileData);
+        view_root = data.get<node>();
+    }
+    catch (const std::exception &e)
+    {
+        MLOG("Vector view failed to load layout '" + layoutName +
+             "': " + std::string(e.what()));
+        view_root = makeFallbackRootNode();
+    }
+    catch (...)
+    {
+        MLOG("Vector view failed to load layout '" + layoutName +
+             "': unknown error");
+        view_root = makeFallbackRootNode();
+    }
 
     base_width = view_root.base_width;
     base_height = view_root.base_height;

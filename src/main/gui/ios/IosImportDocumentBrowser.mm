@@ -4,6 +4,8 @@
 
 #include "ImportDocumentUrlProcessor.hpp"
 
+#include <Logger.hpp>
+
 #include <CoreServices/UTCoreTypes.h>
 #include <UIKit/UIKit.h>
 
@@ -145,11 +147,18 @@
   }
   
   __block NSData *data = nil;
+  __block NSError *readError = nil;
   
   NSFileCoordinator *coordinator = [[NSFileCoordinator alloc] initWithFilePresenter:nil];
-  [coordinator coordinateReadingItemAtURL:url options:0 error:nil byAccessor:^(NSURL *newURL) {
+  [coordinator coordinateReadingItemAtURL:url options:0 error:&readError byAccessor:^(NSURL *newURL) {
     data = [NSData dataWithContentsOfURL:newURL];
   }];
+
+  if (readError != nil || data == nil) {
+    MLOG("iOS import failed to read '" + std::string(filename.UTF8String) + "'");
+    [self showImportFailedAlert:filename];
+    return;
+  }
   
   const long BUFFER_LEN = 1024;
   
@@ -171,6 +180,11 @@
     
     [data getBytes:&buffer range:NSMakeRange(readPos, bytesToWrite)];
     oStream->write(reinterpret_cast<char*>(buffer), static_cast<std::streamsize>(bytesToWrite));
+    if (!(*oStream)) {
+      MLOG("iOS import failed while writing '" + std::string(filename.UTF8String) + "'");
+      [self showImportFailedAlert:filename];
+      return;
+    }
     
     auto progress = readPos / (float) data.length;
     
