@@ -8,7 +8,7 @@
 
 #include "Mpc.hpp"
 
-@interface RecordingsViewController : UIViewController
+@interface RecordingsViewController : UIViewController <AVAudioPlayerDelegate>
 @property (nonatomic) mpc::Mpc *mpc;
 @property (nonatomic, strong) UIButton *currentlyPlayingButton;
 @property (nonatomic, strong) UIScrollView *scrollView;
@@ -162,6 +162,7 @@
         NSURL *fileURL = [NSURL fileURLWithPath:wavFilePath];
         audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:fileURL error:&error];
         if (audioPlayer) {
+            audioPlayer.delegate = self;
             [audioPlayer play];
             [sender setTitle:@"⏹️" forState:UIControlStateNormal];
             self.currentlyPlayingButton = sender;
@@ -175,8 +176,21 @@
     if (audioPlayer.isPlaying) {
         [audioPlayer stop];
     }
+    audioPlayer.delegate = nil;
+    audioPlayer = nil;
     [self.currentlyPlayingButton setTitle:@"▶️" forState:UIControlStateNormal];
     self.currentlyPlayingButton = nil;
+}
+
+- (void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag {
+    if (player != audioPlayer) {
+        return;
+    }
+
+    [self.currentlyPlayingButton setTitle:@"▶️" forState:UIControlStateNormal];
+    self.currentlyPlayingButton = nil;
+    audioPlayer.delegate = nil;
+    audioPlayer = nil;
 }
 
 - (void)deleteRecording:(UIButton *)sender {
