@@ -4,24 +4,28 @@
 
 #include "ImportDocumentUrlProcessor.hpp"
 
+#include "FileIoPolicy.hpp"
 #include "Mpc.hpp"
 #include <Logger.hpp>
 #include "disk/AbstractDisk.hpp"
 #include "disk/MpcFile.hpp"
 
 using namespace vmpc_juce::gui::ios;
+using namespace mpc::file_io;
 
 std::string ImportDocumentUrlProcessor::destinationDir()
 {
     return mpc->getDisk()->getAbsolutePath();
 }
 
-bool ImportDocumentUrlProcessor::destinationExists(const char *filename,
-                                                   const char *relativePath)
+std::optional<bool>
+ImportDocumentUrlProcessor::destinationExists(const char *filename,
+                                              const char *relativePath)
 {
     auto newFilePath =
         mpc_fs::path(destinationDir()).append(relativePath).append(filename);
-    return mpc_fs::exists(newFilePath).value_or(false);
+    return value(mpc_fs::exists(newFilePath), FailurePolicy::Required,
+                 "iOS import destination inspection");
 }
 
 std::shared_ptr<std::ostream>
@@ -29,11 +33,9 @@ ImportDocumentUrlProcessor::openOutputStream(const char *filename,
                                              const char *relativePath)
 {
     auto newFileDir = mpc_fs::path(destinationDir()).append(relativePath);
-    const auto createDirectoriesRes = mpc_fs::create_directories(newFileDir);
-    if (!createDirectoriesRes)
+    if (!success(mpc_fs::create_directories(newFileDir),
+                 FailurePolicy::Required, "iOS import destination creation"))
     {
-        MLOG("ImportDocumentUrlProcessor: Failed to create directory '" +
-             newFileDir.string() + "'");
         return {};
     }
 
@@ -42,7 +44,7 @@ ImportDocumentUrlProcessor::openOutputStream(const char *filename,
     auto outputStream = newFile.getOutputStream();
     if (!outputStream)
     {
-        MLOG("ImportDocumentUrlProcessor: Failed to open output stream for '" +
+        MLOG("Required file I/O failed during iOS import destination open for '" +
              newFilePath.string() + "'");
     }
     return outputStream;

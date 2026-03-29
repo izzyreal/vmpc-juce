@@ -7,6 +7,7 @@
 #include <CoreServices/UTCoreTypes.h>
 #include <UIKit/UIKit.h>
 
+#include "Logger.hpp"
 #include "Mpc.hpp"
 #include "sampler/Sampler.hpp"
 #include "file/aps/ApsParser.hpp"
@@ -20,6 +21,48 @@
 
 @implementation UIWindow (WithExportActivityView)
 
+- (void)showShareFailedAlert:(NSString *)message {
+    UIAlertController *alertController =
+        [UIAlertController alertControllerWithTitle:@"Share failed"
+                                            message:message
+                                     preferredStyle:UIAlertControllerStyleAlert];
+    [alertController addAction:[UIAlertAction actionWithTitle:@"OK"
+                                                        style:UIAlertActionStyleDefault
+                                                      handler:nil]];
+    [self.rootViewController presentViewController:alertController
+                                          animated:YES
+                                        completion:nil];
+}
+
+- (void)removeTemporaryURLs:(NSArray<NSURL *> *)fileURLsArray {
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    for (NSURL *url in fileURLsArray) {
+        NSError *error = nil;
+        if (![fileManager removeItemAtURL:url error:&error] &&
+            error != nil &&
+            error.code != NSFileNoSuchFileError) {
+            MLOG("iOS share cleanup failed for '" +
+                 std::string(url.path.UTF8String) + "'");
+        }
+    }
+}
+
+- (BOOL)writeData:(NSData *)data
+            toURL:(NSURL *)fileURL
+      description:(NSString *)description
+         produced:(NSMutableArray<NSURL *> *)fileURLsArray {
+    if ([data writeToURL:fileURL atomically:YES]) {
+        [fileURLsArray addObject:fileURL];
+        return YES;
+    }
+
+    MLOG("Required file I/O failed during iOS share export write for '" +
+         std::string(fileURL.path.UTF8String) + "'");
+    [self removeTemporaryURLs:fileURLsArray];
+    [self showShareFailedAlert:[NSString stringWithFormat:@"Could not write %@.", description]];
+    return NO;
+}
+
 - (NSMutableArray<NSURL *> *)writeApsAllAndSnd:(mpc::Mpc *)mpc {
     
     NSURL *tempDirectoryURL = [NSURL fileURLWithPath:NSTemporaryDirectory() isDirectory:YES];
@@ -28,12 +71,12 @@
     const std::vector<char>& apsData = mpc::file::aps::ApsParser(*mpc, "ALL_PGMS").saveBytes;
     NSData *data = [NSData dataWithBytes:apsData.data() length:apsData.size()];
     NSURL *apsDataFileURL = [tempDirectoryURL URLByAppendingPathComponent:@"ALL_PGMS.APS"];
-    if ([data writeToURL:apsDataFileURL atomically:YES]) { [fileURLsArray addObject:apsDataFileURL]; }
+    if (![self writeData:data toURL:apsDataFileURL description:@"ALL_PGMS.APS" produced:fileURLsArray]) { return nil; }
 
     const std::vector<char>& allData = mpc::file::all::AllParser(*mpc).saveBytes;
     data = [NSData dataWithBytes:allData.data() length:allData.size()];
     NSURL *allDataFileURL = [tempDirectoryURL URLByAppendingPathComponent:@"ALL_SEQS.ALL"];
-    if ([data writeToURL:allDataFileURL atomically:YES]) { [fileURLsArray addObject:allDataFileURL]; }
+    if (![self writeData:data toURL:allDataFileURL description:@"ALL_SEQS.ALL" produced:fileURLsArray]) { return nil; }
 
     for (auto& sound : mpc->getSampler()->getSounds()) {
         mpc::file::sndwriter::SndWriter sndWriter(sound.get());
@@ -45,15 +88,14 @@
         NSString *uppercasedSoundName = [soundNameNSString uppercaseString];
         NSString *sndFileName = [NSString stringWithFormat:@"%@.SND", uppercasedSoundName];
         NSURL *sndDataFileURL = [tempDirectoryURL URLByAppendingPathComponent:sndFileName];
-        if ([data writeToURL:sndDataFileURL atomically:YES]) { [fileURLsArray addObject:sndDataFileURL]; }
+        if (![self writeData:data toURL:sndDataFileURL description:sndFileName produced:fileURLsArray]) { return nil; }
     }
     
     return fileURLsArray;
 }
 
-- (void)createDirectoryZip:(const std::string &)selectedFilePath
-          currentDirectory:(const std::string &)currentDirectory
-             fileURLsArray:(NSMutableArray<NSURL *> *)fileURLsArray {
+- (NSURL *)createDirectoryZip:(const std::string &)selectedFilePath
+             currentDirectory:(const std::string &)currentDirectory {
 
     NSURL *tempDirectoryURL = [NSURL fileURLWithPath:NSTemporaryDirectory() isDirectory:YES];
     NSString *zipFileName = [[NSString stringWithUTF8String:selectedFilePath.c_str()] lastPathComponent];
@@ -65,41 +107,58 @@
     mz_bool status = mz_zip_writer_init_file(&zip_archive, zipFilePath.UTF8String, 0);
 
     if (!status) {
-        NSLog(@"Failed to open zip archive for writing");
-        return;
+        MLOG("Required file I/O failed during iOS directory share zip initialization for '" +
+             selectedFilePath + "'");
+        [self showShareFailedAlert:@"Could not create zip archive."];
+        return nil;
     }
 
     const auto recursiveDirItRes = mpc_fs::make_recursive_directory_iterator(selectedFilePath);
     if (!recursiveDirItRes) {
+        MLOG("Required file I/O failed during iOS directory share enumeration for '" +
+             selectedFilePath + "'");
         mz_zip_writer_end(&zip_archive);
-        return;
+        [self showShareFailedAlert:@"Could not enumerate selected directory."];
+        return nil;
     }
 
     for (auto entry = *recursiveDirItRes; entry != mpc_fs::recursive_directory_end(); ++entry) {
         if (!entry->is_directory()) {
             const auto relativePathRes = mpc_fs::relative(entry->path(), currentDirectory);
             if (!relativePathRes) {
-                continue;
+                MLOG("Required file I/O failed during iOS directory share relative-path resolution for '" +
+                     entry->path().string() + "'");
+                mz_zip_writer_end(&zip_archive);
+                [self showShareFailedAlert:@"Could not prepare selected directory for sharing."];
+                return nil;
             }
             std::string relativePath = relativePathRes->string();
             mz_bool file_added = mz_zip_writer_add_file(&zip_archive, relativePath.c_str(), entry->path().c_str(), "", 0, MZ_BEST_COMPRESSION);
             if (!file_added) {
-                NSLog(@"Failed to add file to zip archive: %s", entry->path().c_str());
+                MLOG("Required file I/O failed during iOS directory share zip write for '" +
+                     entry->path().string() + "'");
                 mz_zip_writer_end(&zip_archive);
-                return;
+                [self showShareFailedAlert:@"Could not add a file to the zip archive."];
+                return nil;
             }
         }
     }
 
-    mz_zip_writer_finalize_archive(&zip_archive);
+    if (!mz_zip_writer_finalize_archive(&zip_archive)) {
+        MLOG("Required file I/O failed during iOS directory share zip finalization for '" +
+             selectedFilePath + "'");
+        mz_zip_writer_end(&zip_archive);
+        [self showShareFailedAlert:@"Could not finalize zip archive."];
+        return nil;
+    }
     mz_zip_writer_end(&zip_archive);
 
-    [fileURLsArray addObject:zipFileURL];
+    return zipFileURL;
 }
 
 #include "miniz.h"
 
-- (void)createRecordingZip:(mpc_fs::path)dirPath fileURLsArray:(NSMutableArray<NSURL *> *)fileURLsArray {
+- (NSURL *)createRecordingZip:(mpc_fs::path)dirPath {
 
     mz_zip_archive zipArchive;
     memset(&zipArchive, 0, sizeof(zipArchive));
@@ -112,31 +171,47 @@
     mz_bool status = mz_zip_writer_init_file(&zipArchive, zipFilePath.UTF8String, 0);
 
     if (!status) {
-        NSLog(@"Failed to initialize zip file");
-        return;
+        MLOG("Required file I/O failed during iOS recording share zip initialization for '" +
+             dirPath.string() + "'");
+        [self showShareFailedAlert:@"Could not create recording zip archive."];
+        return nil;
     }
 
     const auto dirItRes = mpc_fs::make_directory_iterator(dirPath);
     if (!dirItRes) {
+        MLOG("Required file I/O failed during iOS recording share enumeration for '" +
+             dirPath.string() + "'");
         mz_zip_writer_end(&zipArchive);
-        return;
+        [self showShareFailedAlert:@"Could not enumerate recording directory."];
+        return nil;
     }
 
     for (auto entry = *dirItRes; entry != mpc_fs::directory_end(); ++entry) {
         if (!entry->is_directory()) {
             std::string filePath = entry->path().string();
-            mz_zip_writer_add_file(&zipArchive, entry->path().filename().string().c_str(), filePath.c_str(), "", 0, MZ_BEST_COMPRESSION);
+            if (!mz_zip_writer_add_file(&zipArchive,
+                                        entry->path().filename().string().c_str(),
+                                        filePath.c_str(), "", 0,
+                                        MZ_BEST_COMPRESSION)) {
+                MLOG("Required file I/O failed during iOS recording share zip write for '" +
+                     entry->path().string() + "'");
+                mz_zip_writer_end(&zipArchive);
+                [self showShareFailedAlert:@"Could not add a recording file to the zip archive."];
+                return nil;
+            }
         }
     }
 
-    mz_zip_writer_finalize_archive(&zipArchive);
+    if (!mz_zip_writer_finalize_archive(&zipArchive)) {
+        MLOG("Required file I/O failed during iOS recording share zip finalization for '" +
+             dirPath.string() + "'");
+        mz_zip_writer_end(&zipArchive);
+        [self showShareFailedAlert:@"Could not finalize recording zip archive."];
+        return nil;
+    }
     mz_zip_writer_end(&zipArchive);
 
-    if (status) {
-        [fileURLsArray addObject:zipFileURL];
-    } else {
-        NSLog(@"Failed to create zip file");
-    }
+    return zipFileURL;
 }
 
 - (NSMutableArray<NSURL *> *)getSelectedFileOrDirectory:(mpc::Mpc *)mpc {
@@ -148,7 +223,12 @@
     NSMutableArray<NSURL *> *fileURLsArray = [NSMutableArray array];
 
     if (isDirectory) {
-        [self createDirectoryZip:selectedFilePath currentDirectory:currentDirectory fileURLsArray:fileURLsArray];
+        NSURL *zipFileURL =
+            [self createDirectoryZip:selectedFilePath currentDirectory:currentDirectory];
+        if (zipFileURL == nil) {
+            return nil;
+        }
+        [fileURLsArray addObject:zipFileURL];
     } else {
         NSString *filePath = [NSString stringWithUTF8String:selectedFilePath.c_str()];
         [fileURLsArray addObject:[NSURL fileURLWithPath:filePath]];
@@ -161,6 +241,9 @@
     return [UIAlertAction actionWithTitle:@"Share APS, SNDs and ALL of current project" style:UIAlertActionStyleDefault
                                   handler:^(UIAlertAction * _Nonnull /* action */) {
         NSMutableArray<NSURL *> *generatedFileURLs = [self writeApsAllAndSnd:mpc];
+        if (generatedFileURLs == nil || generatedFileURLs.count == 0) {
+            return;
+        }
         [fileURLsArray addObjectsFromArray:generatedFileURLs];
 
         const bool shouldCleanUpAfter = true;
@@ -180,6 +263,9 @@
     return [UIAlertAction actionWithTitle:title style:UIAlertActionStyleDefault
                                   handler:^(UIAlertAction * _Nonnull /* action */) {
         NSMutableArray<NSURL *> *generatedFileURLs = [self getSelectedFileOrDirectory:mpc];
+        if (generatedFileURLs == nil || generatedFileURLs.count == 0) {
+            return;
+        }
         [fileURLsArray addObjectsFromArray:generatedFileURLs];
         
         const bool shouldCleanUpAfter = isDirectory;
@@ -197,8 +283,9 @@
 
         const auto dirItRes = mpc_fs::make_directory_iterator(directToDiskRecordingsDirectory);
         if (!dirItRes) {
-            [alertController addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
-            [self.rootViewController presentViewController:alertController animated:YES completion:nil];
+            MLOG("Required file I/O failed during iOS recording share directory enumeration for '" +
+                 directToDiskRecordingsDirectory.string() + "'");
+            [self showShareFailedAlert:@"Could not inspect the Direct to Disk recordings directory."];
             return;
         }
 
@@ -207,7 +294,11 @@
                 const auto entryPath = entry->path();
                 NSString *dirName = [NSString stringWithUTF8String:entryPath.filename().string().c_str()];
                 [alertController addAction:[UIAlertAction actionWithTitle:dirName style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull /* action */) {
-                    [self createRecordingZip:entryPath fileURLsArray:fileURLsArray];
+                    NSURL *zipFileURL = [self createRecordingZip:entryPath];
+                    if (zipFileURL == nil) {
+                        return;
+                    }
+                    [fileURLsArray addObject:zipFileURL];
                     const bool shouldCleanUpAfter = true;
                     [self openActivityView:fileURLsArray shouldCleanUpAfter:shouldCleanUpAfter];
                 }]];
@@ -314,6 +405,11 @@
         if ([fileManager fileExistsAtPath:url.path]) {
             [itemsToShare addObject:url];
         }
+    }
+
+    if (itemsToShare.count == 0) {
+        [self showShareFailedAlert:@"Could not prepare any files for sharing."];
+        return;
     }
 
     UIActivityViewController *activityViewController = [self createActivityViewController:itemsToShare shouldCleanUpAfter:shouldCleanUpAfter];

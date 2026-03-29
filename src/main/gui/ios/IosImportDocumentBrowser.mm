@@ -133,7 +133,15 @@
   
   auto filename = [url lastPathComponent];
 
-  if (_urlProcessor->destinationExists(filename.UTF8String, relativeDir.UTF8String))
+  const auto destinationExists =
+      _urlProcessor->destinationExists(filename.UTF8String, relativeDir.UTF8String);
+  if (!destinationExists)
+  {
+    [self showImportFailedAlert:filename];
+    return;
+  }
+
+  if (*destinationExists)
   {
     NSString* relativeFileName = [NSString stringWithFormat:@"%@%@", relativeDir, filename];
     

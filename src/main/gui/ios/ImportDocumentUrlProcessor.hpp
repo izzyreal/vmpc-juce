@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <fstream>
+#include <optional>
 #include <string>
 
 namespace mpc
@@ -19,7 +20,8 @@ namespace vmpc_juce::gui::ios
 
     public:
         mpc::Mpc *mpc;
-        bool destinationExists(const char *filename, const char *relativePath);
+        std::optional<bool> destinationExists(const char *filename,
+                                              const char *relativePath);
         std::shared_ptr<std::ostream>
         openOutputStream(const char *filename, const char *relativePath);
         void initFiles();
