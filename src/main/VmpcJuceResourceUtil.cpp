@@ -2,6 +2,7 @@
 
 #ifdef MAC_BUNDLE_RESOURCES
 #include "MacBundleResources.hpp"
+#include "Logger.hpp"
 #include "mpc_fs.hpp"
 #else
 #include <cmrc/cmrc.hpp>
@@ -32,7 +33,16 @@ std::vector<char> VmpcJuceResourceUtil::getResourceData(const std::string &path)
 bool VmpcJuceResourceUtil::resourceExists(const std::string &path)
 {
 #ifdef MAC_BUNDLE_RESOURCES
-    return mpc_fs::exists(resolveResourcePath(path)).value_or(false);
+    const auto resolvedPath = resolveResourcePath(path);
+    const auto existsRes = mpc_fs::exists(resolvedPath);
+    if (!existsRes)
+    {
+        MLOG("Failed to inspect VMPC resource '" + path + "' at '" +
+             resolvedPath + "': " + existsRes.error().message);
+        return false;
+    }
+
+    return *existsRes;
 #else
     try
     {
@@ -67,7 +77,15 @@ std::vector<char> VmpcJuceResourceUtil::getResourceDataFromMacBundleResources(
     const std::string &path)
 {
     const auto resource_path = mpc::MacBundleResources::getResourcePath(path);
-    return get_file_data(resource_path).value_or(std::vector<char>{});
+    const auto dataRes = get_file_data(resource_path);
+    if (!dataRes)
+    {
+        MLOG("Failed to read VMPC resource '" + path + "' from '" +
+             resource_path + "': " + dataRes.error().message);
+        return {};
+    }
+
+    return *dataRes;
 }
 #else
 
