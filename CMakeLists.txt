@@ -115,6 +115,9 @@ FetchContent_MakeAvailable(miniz)
 endif()
 endif()
 
+message(STATUS "Resolving json...")
+FetchContent_MakeAvailable(json)
+
 message(STATUS "Resolving mpc...")
 FetchContent_MakeAvailable(mpc)
 
@@ -126,9 +129,6 @@ FetchContent_MakeAvailable(juce-raw-keyboard-input-module)
 
 message(STATUS "Resolving melatonin_blur...")
 FetchContent_MakeAvailable(melatonin_blur)
-
-message(STATUS "Resolving json...")
-FetchContent_MakeAvailable(json)
 
 if (IOS)
     set(IOS_SPECIFIC_SETTINGS
