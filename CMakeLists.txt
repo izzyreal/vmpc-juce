@@ -92,11 +92,11 @@ fetchcontent_declare_cached_git(JUCE "JUCE" "${CMAKE_SOURCE_DIR}/editables/JUCE"
   GIT_SHALLOW    ON
 )
 
-fetchcontent_declare_cached_git(melatonin_blur "melatonin_blur" "${CMAKE_CURRENT_BINARY_DIR}/melatonin_blur" "${VMPC_MELATONIN_BLUR_REPO}" "${VMPC_MELATONIN_BLUR_REF}")
+fetchcontent_declare_cached_git(melatonin_blur "melatonin_blur" "${CMAKE_SOURCE_DIR}/deps/melatonin_blur" "${VMPC_MELATONIN_BLUR_REPO}" "${VMPC_MELATONIN_BLUR_REF}")
 
 fetchcontent_declare_cached_git(juce-raw-keyboard-input-module "juce-raw-keyboard-input-module" "${CMAKE_SOURCE_DIR}/editables/juce-raw-keyboard-input-module" "${VMPC_RAW_KBD_REPO}" "${VMPC_RAW_KBD_REF}")
 
-fetchcontent_declare_cached_url(json "json-src" "${CMAKE_CURRENT_BINARY_DIR}/json-src" "https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz"
+fetchcontent_declare_cached_url(json "json-src" "${CMAKE_SOURCE_DIR}/deps/json" "https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz"
   DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 
 fetchcontent_declare_cached_git(mpc "mpc" "${CMAKE_SOURCE_DIR}/editables/mpc" "${VMPC_MPC_REPO}" "${VMPC_MPC_REF}")
@@ -117,6 +117,10 @@ endif()
 
 message(STATUS "Resolving json...")
 FetchContent_MakeAvailable(json)
+if(TARGET nlohmann_json::nlohmann_json AND NOT TARGET nlohmann_json)
+  add_library(nlohmann_json INTERFACE IMPORTED)
+  set_property(TARGET nlohmann_json PROPERTY INTERFACE_LINK_LIBRARIES nlohmann_json::nlohmann_json)
+endif()
 
 message(STATUS "Resolving mpc...")
 FetchContent_MakeAvailable(mpc)
@@ -327,7 +331,7 @@ if(MSVC)
 endif()
 
 if(GIT_FOUND)
-  if (EXISTS ${CMAKE_SOURCE_DIR}/editables/mpc)
+  if (EXISTS ${CMAKE_SOURCE_DIR}/editables/mpc/.git)
     execute_process(COMMAND ${GIT_EXECUTABLE} remote set-url --push origin git@github.com:izzyreal/mpc
                     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/editables/mpc
                     RESULT_VARIABLE GIT_REMOTE_RESULT)
