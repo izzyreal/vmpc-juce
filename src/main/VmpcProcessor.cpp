@@ -636,10 +636,10 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
                                  juce::MidiBuffer &midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
-    midiMessages.clear();
 
     if (!requiredResourcesAvailable)
     {
+        midiMessages.clear();
         buffer.clear();
         return;
     }
