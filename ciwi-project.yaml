@@ -89,9 +89,9 @@ pipelines:
             docker: "*"
           container:
             tools:
+              ccache: "*"
               cmake: "*"
               ninja: "*"
-              tar: "*"
         timeout_seconds: 2700
         caches: *build_caches
         steps:
@@ -101,7 +101,7 @@ pipelines:
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
           - run: cmake --build build-offline-src --config Release --target package_source
-          - run: mkdir -p offline-check && tar -xf build-offline-src/vmpc2000xl-*-Source.tar.gz -C offline-check
+          - run: mkdir -p offline-check && (cd offline-check && cmake -E tar xzf ../build-offline-src/vmpc2000xl-*-Source.tar.gz)
           - run: SOURCE_DIR="$(find offline-check -mindepth 1 -maxdepth 1 -type d | head -n 1)" && test -n "$SOURCE_DIR" && cmake -S "$SOURCE_DIR" -B "$SOURCE_DIR/build" -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_FULLY_DISCONNECTED=ON
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
