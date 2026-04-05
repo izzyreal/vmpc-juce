@@ -74,6 +74,41 @@ pipelines:
           - run: cp -R build/vmpc2000xl_artefacts/Release/VST3/VMPC2000XL.vst3 dist/VMPC2000XL-linux-amd64-VST3.vst3
           - run: cp -R build/vmpc2000xl_artefacts/Release/LV2/VMPC2000XL.lv2 dist/VMPC2000XL-linux-amd64-LV2.lv2
 
+      - id: linux-offline-build-check
+        runs_on:
+          executor: script
+          shell: posix
+          os: linux
+          arch: amd64
+          container_image: ubuntu-vmpc
+          container_devices: /dev/snd
+          container_groups: audio
+        requires:
+          tools:
+            git: "*"
+            docker: "*"
+          container:
+            tools:
+              cmake: "*"
+              ninja: "*"
+              tar: "*"
+        timeout_seconds: 2700
+        caches: *build_caches
+        steps:
+          - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - run: mkdir -p /tmp/vmpc2000xl_documents
+          - run: cmake -S . -B build-offline-src -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
+          - run: cmake --build build-offline-src --config Release --target package_source
+          - run: mkdir -p offline-check && tar -xf build-offline-src/vmpc2000xl-*-Source.tar.gz -C offline-check
+          - run: SOURCE_DIR="$(find offline-check -mindepth 1 -maxdepth 1 -type d | head -n 1)" && test -n "$SOURCE_DIR" && cmake -S "$SOURCE_DIR" -B "$SOURCE_DIR/build" -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_FULLY_DISCONNECTED=ON
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
+          - run: SOURCE_DIR="$(find offline-check -mindepth 1 -maxdepth 1 -type d | head -n 1)" && test -n "$SOURCE_DIR" && cmake --build "$SOURCE_DIR/build" --config Release --target vmpc2000xl_All
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
+
       - id: macos-universal
         runs_on:
           executor: script
