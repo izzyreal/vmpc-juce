@@ -95,9 +95,9 @@ pipelines:
         timeout_seconds: 2700
         caches: *build_caches
         steps:
-          - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
           - run: mkdir -p /tmp/vmpc2000xl_documents
-          - run: cmake -S . -B build-offline-src -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - run: rm -rf editables/JUCE editables/mpc editables/juce-raw-keyboard-input-module deps/json deps/melatonin_blur build-offline-src offline-check
+          - run: cmake -S . -B build-offline-src -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
           - run: cmake --build build-offline-src --config Release --target package_source
