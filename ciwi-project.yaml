@@ -723,7 +723,7 @@ pipelines:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
           - run: VERSION="$(cat dist/version-windows10-amd64.txt | tr -d '\r\n')" && test -n "$VERSION" && echo "$VERSION" > dist/release-version.txt
             skip_dry_run: true
-          - run: TAG="v$(cat dist/release-version.txt)" && if ! gh release view "$TAG" --repo izzyreal/vmpc-juce >/dev/null 2>&1; then gh release create "$TAG" --repo izzyreal/vmpc-juce --title "VMPC2000XL $TAG" --notes "Release $TAG"; fi
+          - run: TAG="v$(cat dist/release-version.txt)" && if ! gh release view "$TAG" --repo izzyreal/vmpc-juce >/dev/null 2>&1; then gh release create "$TAG" --target "$CIWI_PIPELINE_SOURCE_REF" --repo izzyreal/vmpc-juce --title "VMPC2000XL $TAG" --notes "Release $TAG"; fi
             skip_dry_run: true
             vault:
               connection: home-vault
