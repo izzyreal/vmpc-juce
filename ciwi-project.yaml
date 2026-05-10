@@ -716,6 +716,45 @@ pipelines:
               report: dist/result-junit-vmpc-juce.xml
           - run: cp build/version.txt dist/version-macos-universal.txt
           - run: ccache --dir "$CCACHE_DIR" --show-stats
+  - id: ios
+    trigger: manual
+    vcs_source:
+      repo: https://github.com/izzyreal/vmpc-juce.git
+    versioning:
+      file: VERSION
+      tag_prefix: v
+    jobs:
+      - id: ios-archive
+        runs_on:
+          executor: script
+          shell: posix
+          os: darwin
+          arch: arm64
+        requires:
+          tools:
+            git: "*"
+            cmake: "*"
+            xcodebuild: "*"
+        timeout_seconds: 2700
+        artifacts:
+          - dist/version-ios.txt
+          - dist/vmpc2000xl_StandaloneAndAUv3.xcarchive/**
+          - dist/ExportOptions.plist
+        caches: *build_caches
+        steps:
+          - run: mkdir -p dist
+          - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - run: rm -rf build
+          - run: cmake -Wno-dev -B build -G "Xcode" -DCMAKE_SYSTEM_NAME=iOS -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - run: cd build && xcodebuild -project vmpc2000xl.xcodeproj build -target vmpc2000xl_Standalone -parallelizeTargets -configuration RelWithDebInfo -allowProvisioningUpdates
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
+          - run: cd build && xcodebuild -project vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -allowProvisioningUpdates -sdk iphoneos -configuration RelWithDebInfo archive -archivePath "./vmpc2000xl_StandaloneAndAUv3.xcarchive"
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
+          - run: cp build/version.txt dist/version-ios.txt
+          - run: cp ExportOptions.plist dist/ExportOptions.plist
+          - run: cp -R build/vmpc2000xl_StandaloneAndAUv3.xcarchive dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
   - id: release-ios
     trigger: manual
     depends_on:
