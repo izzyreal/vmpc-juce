@@ -33,9 +33,11 @@ ImportDocumentUrlProcessor::openOutputStream(const char *filename,
                                              const char *relativePath)
 {
     auto newFileDir = mpc_fs::path(destinationDir()).append(relativePath);
-    if (!success(mpc_fs::create_directories(newFileDir),
-                 FailurePolicy::Required, "iOS import destination creation"))
+    const auto createDirectoriesRes = mpc_fs::create_directories(newFileDir);
+    if (!createDirectoriesRes)
     {
+        logFailure(FailurePolicy::Required, "iOS import destination creation",
+                   createDirectoriesRes.error());
         return {};
     }
 
