@@ -41,6 +41,7 @@
 
 #include <lcdgui/screens/SyncScreen.hpp>
 #include <lcdgui/screens/window/DirectoryScreen.hpp>
+#include <lcdgui/screens/dialog/MetronomeSoundScreen.hpp>
 #include <lcdgui/screens/MixerSetupScreen.hpp>
 
 #include <juce_audio_basics/juce_audio_basics.h>
@@ -1306,6 +1307,19 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
     // We always render STEREO L/R
     insertValue(0);
     insertValue(1);
+
+    const auto metronomeSoundScreen =
+        mpc.screens->get<ScreenId::MetronomeSoundScreen>();
+
+    if (metronomeSoundScreen->getSound() == 0)
+    {
+        const auto output = metronomeSoundScreen->getOutput();
+
+        if (output > 0)
+        {
+            insertValue(static_cast<int8_t>(output + 1));
+        }
+    }
 
     const auto snapshot = mpc.getPerformanceManager().lock()->getSnapshot();
     const auto mixerSetupScreen =
