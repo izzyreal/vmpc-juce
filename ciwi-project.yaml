@@ -222,7 +222,7 @@ pipelines:
             git: "*"
             cmake: "*"
             ccache: "*"
-        timeout_seconds: 2700
+        timeout_seconds: 3600
         artifacts:
           - dist/mpc-tests-windows10-amd64.exe
           - dist/vmpc-juce-tests-windows10-amd64.exe
@@ -269,7 +269,7 @@ pipelines:
             git: "*"
             cmake: "*"
             ccache: "*"
-        timeout_seconds: 2700
+        timeout_seconds: 3600
         artifacts:
           - dist/version-windows10-x86.txt
           - dist/VMPC2000XL-windows10-x86-Standalone.exe
@@ -302,7 +302,7 @@ pipelines:
             git: "*"
             cmake: "*"
             ccache: "*"
-        timeout_seconds: 2700
+        timeout_seconds: 3600
         artifacts:
           - dist/version-windows7-amd64.txt
           - dist/VMPC2000XL-windows7-amd64-Standalone.exe
@@ -335,7 +335,7 @@ pipelines:
             git: "*"
             cmake: "*"
             ccache: "*"
-        timeout_seconds: 2700
+        timeout_seconds: 3600
         artifacts:
           - dist/version-windows7-x86.txt
           - dist/VMPC2000XL-windows7-x86-Standalone.exe
