@@ -111,6 +111,16 @@ namespace vmpc_juce::gui::vector
             return getDrawablePathWithin(getLocalBounds().toFloat());
         }
 
+        virtual float getShadowSizeMultiplier() const
+        {
+            return 1.f;
+        }
+
+        virtual float getShadowDarknessMultiplier() const
+        {
+            return 1.f;
+        }
+
         void paint(juce::Graphics &g) override
         {
             // g.fillAll(randomColor);

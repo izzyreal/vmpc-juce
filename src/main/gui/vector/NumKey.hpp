@@ -7,6 +7,7 @@
 #include "SvgComponent.hpp"
 #include "KeyComponent.hpp"
 #include "RectangleLabel.hpp"
+#include "hardware/Component.hpp"
 
 namespace vmpc_juce::gui::vector
 {
@@ -18,6 +19,7 @@ namespace vmpc_juce::gui::vector
                const std::string topLabelToUse,
                const std::string bottomLabelToUse, std::string svgPath,
                std::string keyHoleSvgPath, std::string keyButtonSvgPath,
+               const std::shared_ptr<mpc::hardware::Button> &trackedButton,
                juce::Component *commonParentWithShadow, const float shadowSize,
                const std::function<juce::Font &()> &getMainFontScaled)
         {
@@ -31,8 +33,8 @@ namespace vmpc_juce::gui::vector
             if (!keyHoleSvgPath.empty() && !keyButtonSvgPath.empty())
             {
                 svgComponent = new KeyComponent(
-                    keyHoleSvgPath, keyButtonSvgPath, commonParentWithShadow,
-                    shadowSize, getScaleToUse);
+                    keyHoleSvgPath, keyButtonSvgPath, trackedButton,
+                    commonParentWithShadow, shadowSize, getScaleToUse);
                 shadowSvgComponent = dynamic_cast<SvgComponent *>(svgComponent);
             }
             else

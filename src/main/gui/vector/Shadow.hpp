@@ -15,30 +15,26 @@ namespace vmpc_juce::gui::vector
     public:
         Shadow(const std::function<float()> &getScaleToUse,
                const std::function<juce::Path()> getPathToUse,
+               const std::function<float()> getShadowSizeMultiplierToUse,
+               const std::function<float()> getShadowDarknessMultiplierToUse,
                const float shadowSizeToUse, const float shadowDarknessToUse,
                const bool isInnerToUse)
-            : getPath(getPathToUse), getScale(getScaleToUse),
+            : getPath(getPathToUse),
+              getShadowSizeMultiplier(getShadowSizeMultiplierToUse),
+              getShadowDarknessMultiplier(getShadowDarknessMultiplierToUse),
+              getScale(getScaleToUse),
               shadowSize(shadowSizeToUse), shadowDarkness(shadowDarknessToUse),
               isInner(isInnerToUse)
         {
             setInterceptsMouseClicks(false, false);
-
-            if (isInner)
-            {
-                innerShadow.setColor(
-                    juce::Colours::black.withAlpha(shadowDarkness));
-            }
-            else
-            {
-                dropShadow.setColor(
-                    juce::Colours::black.withAlpha(shadowDarkness));
-            }
         }
 
         void paint(juce::Graphics &g) override
         {
             auto scale = getScale();
-            auto radius = scale * shadowSize;
+            auto radius = scale * shadowSize * getShadowSizeMultiplier();
+            const auto effectiveDarkness =
+                shadowDarkness * getShadowDarknessMultiplier();
             juce::Point<float> offset = {1.f * scale * shadowSize,
                                          0.1f * scale * shadowSize};
             auto path = getPath();
@@ -51,12 +47,16 @@ namespace vmpc_juce::gui::vector
 
             if (isInner)
             {
+                innerShadow.setColor(
+                    juce::Colours::black.withAlpha(effectiveDarkness));
                 innerShadow.setRadius(radius);
                 innerShadow.setOffset(offset.withY(offset.getY() * 4));
                 innerShadow.render(g, path);
             }
             else
             {
+                dropShadow.setColor(
+                    juce::Colours::black.withAlpha(effectiveDarkness));
                 dropShadow.setRadius(radius);
                 dropShadow.setOffset(offset);
                 dropShadow.render(g, path);
@@ -67,6 +67,8 @@ namespace vmpc_juce::gui::vector
         melatonin::InnerShadow innerShadow;
         melatonin::DropShadow dropShadow;
         const std::function<juce::Path()> getPath;
+        const std::function<float()> getShadowSizeMultiplier;
+        const std::function<float()> getShadowDarknessMultiplier;
         const std::function<float()> &getScale;
         const float shadowSize;
         const float shadowDarkness;

@@ -55,10 +55,19 @@ static void addShadow(const node &n, const std::function<float()> &getScale,
     {
         return svgComponent->getShadowPath();
     };
+    const auto getShadowSizeMultiplier = [svgComponent]() -> float
+    {
+        return svgComponent->getShadowSizeMultiplier();
+    };
+    const auto getShadowDarknessMultiplier = [svgComponent]() -> float
+    {
+        return svgComponent->getShadowDarknessMultiplier();
+    };
 
     const auto shadowDarkness =
         n.shadow_darkness > 0.f ? n.shadow_darkness : 0.4f;
-    auto shadow = new Shadow(getScale, getShadowPath, n.shadow_size,
+    auto shadow = new Shadow(getScale, getShadowPath, getShadowSizeMultiplier,
+                             getShadowDarknessMultiplier, n.shadow_size,
                              shadowDarkness, n.is_inner_shadow);
     svgComponent->shadow = shadow;
     components.push_back(shadow);
@@ -66,13 +75,27 @@ static void addShadow(const node &n, const std::function<float()> &getScale,
 }
 
 static juce::Component *createSvgLikeComponent(
-    const node &n, juce::Component *parent,
+    mpc::Mpc &mpc, const node &n, juce::Component *parent,
     const std::function<float()> &getScale)
 {
     if (!n.key_hole_svg.empty() && !n.key_button_svg.empty())
     {
-        return new KeyComponent(n.key_hole_svg, n.key_button_svg, parent,
-                                n.shadow_size, getScale);
+        std::shared_ptr<mpc::hardware::Button> trackedButton;
+
+        if (!n.hardware_label.empty())
+        {
+            const auto componentIdIt =
+                mpc::hardware::componentLabelToId.find(n.hardware_label);
+
+            if (componentIdIt != mpc::hardware::componentLabelToId.end() &&
+                mpc::hardware::isButtonId(componentIdIt->second))
+            {
+                trackedButton = mpc.getHardware()->getButton(componentIdIt->second);
+            }
+        }
+
+        return new KeyComponent(n.key_hole_svg, n.key_button_svg, trackedButton,
+                                parent, n.shadow_size, getScale);
     }
 
     return new SvgComponent({n.svg}, parent, n.shadow_size, getScale,
@@ -195,7 +218,18 @@ void ViewUtil::createComponent(
 
         const auto numKey =
             new NumKey(getScale, topLabel, bottomLabel, n.svg, n.key_hole_svg,
-                       n.key_button_svg, parent, n.shadow_size,
+                       n.key_button_svg,
+                       !n.hardware_label.empty() &&
+                               mpc::hardware::componentLabelToId.count(
+                                   n.hardware_label) > 0 &&
+                               mpc::hardware::isButtonId(
+                                   mpc::hardware::componentLabelToId.at(
+                                       n.hardware_label))
+                           ? mpc.getHardware()->getButton(
+                                 mpc::hardware::componentLabelToId.at(
+                                     n.hardware_label))
+                           : nullptr,
+                       parent, n.shadow_size,
                        getMainFontScaled);
         addShadow(n, getScale, numKey->getSvgComponent(), parent, components);
         components.push_back(numKey);
@@ -271,7 +305,7 @@ void ViewUtil::createComponent(
     }
     else if (!n.svg.empty() && n.label.empty())
     {
-        auto svgComponent = createSvgLikeComponent(n, parent, getScale);
+        auto svgComponent = createSvgLikeComponent(mpc, n, parent, getScale);
         components.push_back(svgComponent);
         addShadow(n, getScale, getShadowSvgComponent(svgComponent), parent,
                   components);
@@ -316,7 +350,7 @@ void ViewUtil::createComponent(
         }
         else
         {
-            svgLikeComponent = createSvgLikeComponent(n, parent, getScale);
+            svgLikeComponent = createSvgLikeComponent(mpc, n, parent, getScale);
         }
 
         n.svg_component = svgLikeComponent;
