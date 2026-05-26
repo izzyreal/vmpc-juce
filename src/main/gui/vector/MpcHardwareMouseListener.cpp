@@ -1,6 +1,7 @@
 #include "MpcHardwareMouseListener.hpp"
 
 #include "gui/vector/MpcInputUtil.hpp"
+#include "gui/vector/SvgComponent.hpp"
 #include "gui/vector/TooltipOverlay.hpp"
 #include "utils/ComponentUtils.hpp"
 
@@ -13,6 +14,46 @@
 
 using namespace vmpc_juce::gui::vector;
 using namespace mpc::hardware;
+
+namespace
+{
+    SvgComponent *findSvgComponentRecursive(juce::Component *component)
+    {
+        if (component == nullptr)
+        {
+            return nullptr;
+        }
+
+        if (auto *svgComponent = dynamic_cast<SvgComponent *>(component))
+        {
+            return svgComponent;
+        }
+
+        for (auto *child : component->getChildren())
+        {
+            if (auto *svgComponent = findSvgComponentRecursive(child))
+            {
+                return svgComponent;
+            }
+        }
+
+        return nullptr;
+    }
+
+    SvgComponent *findSvgComponentForMouseEvent(const juce::MouseEvent &e)
+    {
+        for (auto *component = e.eventComponent; component != nullptr;
+             component = component->getParentComponent())
+        {
+            if (auto *svgComponent = findSvgComponentRecursive(component))
+            {
+                return svgComponent;
+            }
+        }
+
+        return nullptr;
+    }
+} // namespace
 
 bool MpcHardwareMouseListener::showKeyTooltipUponNextClick = false;
 
@@ -106,6 +147,11 @@ void MpcHardwareMouseListener::mouseDown(const juce::MouseEvent &e)
 
     previousDragY[e.source.getIndex()] = e.position.getY();
 
+    if (auto *svgComponent = findSvgComponentForMouseEvent(e))
+    {
+        svgComponent->setPressedAppearanceEnabled(true);
+    }
+
     const auto gestureType = e.getNumberOfClicks() >= 2
                                  ? GestureEvent::Type::REPEAT
                                  : GestureEvent::Type::BEGIN;
@@ -129,6 +175,11 @@ void MpcHardwareMouseListener::mouseDoubleClick(const juce::MouseEvent &)
 
 void MpcHardwareMouseListener::mouseUp(const juce::MouseEvent &e)
 {
+    if (auto *svgComponent = findSvgComponentForMouseEvent(e))
+    {
+        svgComponent->setPressedAppearanceEnabled(false);
+    }
+
     if (const auto hostInputEvent = makeAbsoluteGestureFromMouse(
             e, label, mpc::input::GestureEvent::Type::END, std::nullopt);
         hostInputEvent)

@@ -5,9 +5,11 @@
 #include <juce_core/juce_core.h>
 
 #include "ViewUtil.hpp"
+#include "Shadow.hpp"
 #include "VmpcJuceResourceUtil.hpp"
 
 #include <map>
+#include <optional>
 
 namespace vmpc_juce::gui::vector
 {
@@ -142,6 +144,71 @@ namespace vmpc_juce::gui::vector
 
         juce::Component *shadow = nullptr;
 
+        void setPressedShadowOffsetFactor(const float newFactor)
+        {
+            pressedShadowOffsetFactor = newFactor;
+        }
+
+        bool hasSvgPath(const std::string &svgPath) const
+        {
+            return drawables.find(svgPath) != drawables.end();
+        }
+
+        bool ensureSvgPathLoaded(const std::string &svgPath)
+        {
+            if (hasSvgPath(svgPath))
+            {
+                return drawables[svgPath] != nullptr;
+            }
+
+            drawables[svgPath] = createDrawable(svgPath);
+            return drawables[svgPath] != nullptr;
+        }
+
+        bool setPressedAppearanceEnabled(const bool enabled)
+        {
+            if (enabled)
+            {
+                if (pressedBaseDrawable.has_value())
+                {
+                    return true;
+                }
+
+                const auto pressedPath =
+                    getPressedVariantPath(currentDrawable);
+
+                if (!pressedPath.has_value() ||
+                    !ensureSvgPathLoaded(*pressedPath))
+                {
+                    return false;
+                }
+
+                pressedBaseDrawable = currentDrawable;
+                setSvgPath(*pressedPath);
+                if (auto *dropShadow = dynamic_cast<Shadow *>(shadow))
+                {
+                    dropShadow->setPressed(true);
+                }
+                syncShadowSiblingSizeAndPosition();
+                return true;
+            }
+
+            if (!pressedBaseDrawable.has_value())
+            {
+                return false;
+            }
+
+            const auto unpressedPath = *pressedBaseDrawable;
+            pressedBaseDrawable.reset();
+            setSvgPath(unpressedPath);
+            if (auto *dropShadow = dynamic_cast<Shadow *>(shadow))
+            {
+                dropShadow->setPressed(false);
+            }
+            syncShadowSiblingSizeAndPosition();
+            return true;
+        }
+
         void syncShadowSiblingSizeAndPosition()
         {
             if (shadow == nullptr)
@@ -158,6 +225,13 @@ namespace vmpc_juce::gui::vector
             const auto shadowDimensions =
                 ViewUtil::getShadowDimensions(shadowSize, getScale());
             boundsInCommonParent.expand(shadowDimensions.x, shadowDimensions.y);
+
+            if (pressedBaseDrawable.has_value() && pressedShadowOffsetFactor > 0.f)
+            {
+                boundsInCommonParent.translate(
+                    0, static_cast<int>(std::round(getHeight() *
+                                                   pressedShadowOffsetFactor)));
+            }
 
             shadow->setBounds(boundsInCommonParent);
         }
@@ -185,8 +259,23 @@ namespace vmpc_juce::gui::vector
         }
 
     private:
+        static std::optional<std::string>
+        getPressedVariantPath(const std::string &svgPath)
+        {
+            constexpr auto suffix = ".svg";
+            if (svgPath.size() <= 4 ||
+                svgPath.substr(svgPath.size() - 4) != suffix)
+            {
+                return std::nullopt;
+            }
+
+            return svgPath.substr(0, svgPath.size() - 4) + "_pressed.svg";
+        }
+
         std::map<std::string, std::unique_ptr<juce::Drawable>> drawables;
         std::string currentDrawable;
+        std::optional<std::string> pressedBaseDrawable;
+        float pressedShadowOffsetFactor = 0.f;
         juce::Colour randomColor;
         juce::Component *commonParentWithShadow = nullptr;
         juce::ComponentListener *parentSizeAndPositionListener = nullptr;

@@ -31,6 +31,53 @@
 
 using namespace vmpc_juce::gui::vector;
 
+namespace
+{
+    bool isPressableKeySvg(const std::string &svgPath)
+    {
+        return svgPath == "big_key.svg" || svgPath == "big_key_red.svg" ||
+               svgPath == "medium_key.svg" ||
+               svgPath == "medium_key_yellow.svg" ||
+               svgPath == "small_key.svg" ||
+               svgPath == "small_key_blue.svg";
+    }
+
+    float getPressedBottomClipInsetFactor(const std::string &svgPath)
+    {
+        if (svgPath == "medium_key.svg" || svgPath == "medium_key_yellow.svg")
+        {
+            return 0.10f;
+        }
+
+        return 0.12f;
+    }
+
+    void configurePressedKeyShadow(SvgComponent *svgComponent,
+                                   const std::string &svgPath)
+    {
+        if (isPressableKeySvg(svgPath))
+        {
+            svgComponent->setPressedShadowOffsetFactor(0.05f);
+        }
+    }
+
+    void configureButtonShadow(Shadow *shadow, const std::string &svgPath)
+    {
+        if (!isPressableKeySvg(svgPath))
+        {
+            return;
+        }
+
+        shadow->setDropShadowOffset({1.f, 0.f});
+        shadow->setDropShadowYScale(0.95f);
+        shadow->setClipDropShadowToSourceBottomWhenPressed(true);
+        shadow->setPressedBottomClipInsetFactor(
+            getPressedBottomClipInsetFactor(svgPath));
+        shadow->setPressedDropShadowRadiusScale(0.85f);
+        shadow->setPressedDropShadowSpread(-0.5f);
+    }
+} // namespace
+
 float ViewUtil::getLabelHeight(const std::string &text,
                                const std::function<float()> &getScale)
 {
@@ -171,7 +218,12 @@ void ViewUtil::createComponent(
         const auto numKey =
             new NumKey(getScale, topLabel, bottomLabel, n.svg, parent,
                        n.shadow_size, getMainFontScaled);
+        configurePressedKeyShadow(numKey->getSvgComponent(), n.svg);
         addShadow(n, getScale, numKey->getSvgComponent(), parent, components);
+        if (auto *shadow = dynamic_cast<Shadow *>(numKey->getSvgComponent()->shadow))
+        {
+            configureButtonShadow(shadow, n.svg);
+        }
         components.push_back(numKey);
         parent->addAndMakeVisible(numKey);
         n.num_key_component = numKey;
@@ -247,8 +299,13 @@ void ViewUtil::createComponent(
     {
         auto svgComponent = new SvgComponent({n.svg}, parent, n.shadow_size,
                                              getScale, n.svg_placement);
+        configurePressedKeyShadow(svgComponent, n.svg);
         components.push_back(svgComponent);
         addShadow(n, getScale, svgComponent, parent, components);
+        if (auto *shadow = dynamic_cast<Shadow *>(svgComponent->shadow))
+        {
+            configureButtonShadow(shadow, n.svg);
+        }
         parent->addAndMakeVisible(svgComponent);
         n.svg_component = svgComponent;
 
@@ -290,6 +347,7 @@ void ViewUtil::createComponent(
         {
             svgComponent =
                 new SvgComponent({n.svg}, parent, n.shadow_size, getScale);
+            configurePressedKeyShadow(svgComponent, n.svg);
         }
 
         n.svg_component = svgComponent;
@@ -306,6 +364,10 @@ void ViewUtil::createComponent(
             components.push_back(svgWithLabelGrid);
 
             addShadow(n, getScale, svgComponent, parent, components);
+            if (auto *shadow = dynamic_cast<Shadow *>(svgComponent->shadow))
+            {
+                configureButtonShadow(shadow, n.svg);
+            }
 
             parent->addAndMakeVisible(svgWithLabelGrid);
             n.svg_with_label_grid_component = svgWithLabelGrid;
