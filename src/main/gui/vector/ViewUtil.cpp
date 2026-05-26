@@ -4,7 +4,10 @@
 
 #include "GridWrapper.hpp"
 #include "FlexBoxWrapper.hpp"
+#include "AdditionalShadowComponentsProvider.hpp"
 #include "SvgComponent.hpp"
+#include "KeyComponent.hpp"
+#include "CursorKeys.hpp"
 #include "SvgWithLabelGrid.hpp"
 #include "LineFlankedLabel.hpp"
 #include "RectangleLabel.hpp"
@@ -45,7 +48,7 @@ static void addShadow(const node &n, const std::function<float()> &getScale,
                       SvgComponent *svgComponent, juce::Component *parent,
                       std::vector<juce::Component *> &components)
 {
-    if (n.shadow_size == 0.f)
+    if (n.shadow_size == 0.f || svgComponent == nullptr)
     {
         return;
     }
@@ -54,14 +57,100 @@ static void addShadow(const node &n, const std::function<float()> &getScale,
     {
         return svgComponent->getShadowPath();
     };
+    const auto getShadowSizeMultiplier = [svgComponent]() -> float
+    {
+        return svgComponent->getShadowSizeMultiplier();
+    };
+    const auto getShadowDarknessMultiplier = [svgComponent]() -> float
+    {
+        return svgComponent->getShadowDarknessMultiplier();
+    };
 
     const auto shadowDarkness =
         n.shadow_darkness > 0.f ? n.shadow_darkness : 0.4f;
-    auto shadow = new Shadow(getScale, getShadowPath, n.shadow_size,
+    auto shadow = new Shadow(getScale, getShadowPath, getShadowSizeMultiplier,
+                             getShadowDarknessMultiplier, n.shadow_size,
                              shadowDarkness, n.is_inner_shadow);
     svgComponent->shadow = shadow;
     components.push_back(shadow);
     parent->addAndMakeVisible(shadow);
+}
+
+static juce::Component *createSvgLikeComponent(
+    mpc::Mpc &mpc, const node &n, juce::Component *parent,
+    const std::function<float()> &getScale)
+{
+    if (n.node_type == "cursor_keys")
+    {
+        using ComponentId = mpc::hardware::ComponentId;
+        return new CursorKeys(
+            {mpc.getHardware()->getButton(ComponentId::CURSOR_LEFT_OR_DIGIT),
+             mpc.getHardware()->getButton(ComponentId::CURSOR_UP),
+             mpc.getHardware()->getButton(ComponentId::CURSOR_RIGHT_OR_DIGIT),
+             mpc.getHardware()->getButton(ComponentId::CURSOR_DOWN)},
+            parent, getScale, n.shadow_size);
+    }
+
+    if (!n.key_hole_svg.empty() && !n.key_button_svg.empty())
+    {
+        std::shared_ptr<mpc::hardware::Button> trackedButton;
+
+        if (!n.hardware_label.empty())
+        {
+            const auto componentIdIt =
+                mpc::hardware::componentLabelToId.find(n.hardware_label);
+
+            if (componentIdIt != mpc::hardware::componentLabelToId.end() &&
+                mpc::hardware::isButtonId(componentIdIt->second))
+            {
+                trackedButton = mpc.getHardware()->getButton(componentIdIt->second);
+            }
+        }
+
+        return new KeyComponent(n.key_hole_svg, n.key_button_svg, trackedButton,
+                                parent, n.shadow_size, getScale);
+    }
+
+    return new SvgComponent({n.svg}, parent, n.shadow_size, getScale,
+                            n.svg_placement);
+}
+
+static bool hasDecomposedKeySvg(const node &n)
+{
+    return !n.key_hole_svg.empty() && !n.key_button_svg.empty();
+}
+
+static bool hasSvgLikeVisual(const node &n)
+{
+    return !n.svg.empty() || hasDecomposedKeySvg(n);
+}
+
+static SvgComponent *getShadowSvgComponent(juce::Component *component)
+{
+    if (auto svgComponent = dynamic_cast<SvgComponent *>(component))
+    {
+        return svgComponent;
+    }
+
+    return nullptr;
+}
+
+static void addShadows(const node &n, const std::function<float()> &getScale,
+                       juce::Component *component, juce::Component *parent,
+                       std::vector<juce::Component *> &components)
+{
+    if (auto provider =
+            dynamic_cast<AdditionalShadowComponentsProvider *>(component))
+    {
+        for (auto shadowComponent : provider->getAdditionalShadowComponents())
+        {
+            addShadow(n, getScale, shadowComponent, parent, components);
+        }
+        return;
+    }
+
+    addShadow(n, getScale, getShadowSvgComponent(component), parent,
+              components);
 }
 
 void ViewUtil::createComponent(
@@ -169,8 +258,20 @@ void ViewUtil::createComponent(
         }
 
         const auto numKey =
-            new NumKey(getScale, topLabel, bottomLabel, n.svg, parent,
-                       n.shadow_size, getMainFontScaled);
+            new NumKey(getScale, topLabel, bottomLabel, n.key_hole_svg,
+                       n.key_button_svg,
+                       !n.hardware_label.empty() &&
+                               mpc::hardware::componentLabelToId.count(
+                                   n.hardware_label) > 0 &&
+                               mpc::hardware::isButtonId(
+                                   mpc::hardware::componentLabelToId.at(
+                                       n.hardware_label))
+                           ? mpc.getHardware()->getButton(
+                                 mpc::hardware::componentLabelToId.at(
+                                     n.hardware_label))
+                           : nullptr,
+                       parent, n.shadow_size,
+                       getMainFontScaled);
         addShadow(n, getScale, numKey->getSvgComponent(), parent, components);
         components.push_back(numKey);
         parent->addAndMakeVisible(numKey);
@@ -243,12 +344,11 @@ void ViewUtil::createComponent(
         parent->addAndMakeVisible(pad);
         tooltipAnchor = pad;
     }
-    else if (!n.svg.empty() && n.label.empty())
+    else if (hasSvgLikeVisual(n) && n.label.empty())
     {
-        auto svgComponent = new SvgComponent({n.svg}, parent, n.shadow_size,
-                                             getScale, n.svg_placement);
+        auto svgComponent = createSvgLikeComponent(mpc, n, parent, getScale);
         components.push_back(svgComponent);
-        addShadow(n, getScale, svgComponent, parent, components);
+        addShadows(n, getScale, svgComponent, parent, components);
         parent->addAndMakeVisible(svgComponent);
         n.svg_component = svgComponent;
 
@@ -258,7 +358,7 @@ void ViewUtil::createComponent(
         }
         tooltipAnchor = svgComponent;
     }
-    else if (!n.svg.empty() && !n.label.empty())
+    else if (hasSvgLikeVisual(n) && !n.label.empty())
     {
         LabelComponent *labelComponent;
 
@@ -274,25 +374,26 @@ void ViewUtil::createComponent(
                 getScale, n.label, Constants::labelColour, getMainFontScaled);
         }
 
-        SvgComponent *svgComponent;
+        juce::Component *svgLikeComponent = nullptr;
 
         if (n.name == "rec_gain")
         {
-            svgComponent = new Pot(mpc.getHardware()->getRecPot(),
-                                   Pot::PotType::REC_GAIN, parent, getScale);
+            svgLikeComponent = new Pot(mpc.getHardware()->getRecPot(),
+                                       Pot::PotType::REC_GAIN, parent,
+                                       getScale);
         }
         else if (n.name == "main_volume")
         {
-            svgComponent = new Pot(mpc.getHardware()->getVolPot(),
-                                   Pot::PotType::MAIN_VOLUME, parent, getScale);
+            svgLikeComponent = new Pot(mpc.getHardware()->getVolPot(),
+                                       Pot::PotType::MAIN_VOLUME, parent,
+                                       getScale);
         }
         else
         {
-            svgComponent =
-                new SvgComponent({n.svg}, parent, n.shadow_size, getScale);
+            svgLikeComponent = createSvgLikeComponent(mpc, n, parent, getScale);
         }
 
-        n.svg_component = svgComponent;
+        n.svg_component = svgLikeComponent;
         n.label_component = labelComponent;
 
         if (dynamic_cast<GridWrapper *>(parent))
@@ -301,11 +402,11 @@ void ViewUtil::createComponent(
             svgWithLabelGrid->components.push_back(labelComponent);
             svgWithLabelGrid->addAndMakeVisible(labelComponent);
 
-            svgWithLabelGrid->components.push_back(svgComponent);
+            svgWithLabelGrid->components.push_back(svgLikeComponent);
 
             components.push_back(svgWithLabelGrid);
 
-            addShadow(n, getScale, svgComponent, parent, components);
+            addShadows(n, getScale, svgLikeComponent, parent, components);
 
             parent->addAndMakeVisible(svgWithLabelGrid);
             n.svg_with_label_grid_component = svgWithLabelGrid;
@@ -317,13 +418,13 @@ void ViewUtil::createComponent(
         }
         else /* if parent is FlexBoxWrapper */
         {
-            components.push_back(svgComponent);
-            parent->addAndMakeVisible(svgComponent);
+            components.push_back(svgLikeComponent);
+            parent->addAndMakeVisible(svgLikeComponent);
 
             components.push_back(labelComponent);
             parent->addAndMakeVisible(labelComponent);
 
-            tooltipAnchor = svgComponent;
+            tooltipAnchor = svgLikeComponent;
         }
     }
     else if (!n.label.empty())

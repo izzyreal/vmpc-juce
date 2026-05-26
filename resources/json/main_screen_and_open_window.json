@@ -3,19 +3,21 @@
   "type" : "grid",
   "row_fractions" : [ 1 ],
   "column_fractions" : [ 10, 10 ],
-  "shadow_size" : 1,
+  "shadow_size" : 2.0,
   "children" :  [
     {
       "name" : "main_screen",
       "hardware_label" : "main-screen",
-      "svg" : "medium_key.svg",
+      "key_hole_svg" : "medium_key_hole.svg",
+      "key_button_svg" : "medium_key_button.svg",
       "label" : "MAIN SCREEN",
       "area" : [ 1, 1, 1, 1 ]
     },
     {
       "name" : "open_window",
       "hardware_label" : "open-window",
-      "svg" : "medium_key_yellow.svg",
+      "key_hole_svg" : "medium_key_hole.svg",
+      "key_button_svg" : "medium_key_yellow_button.svg",
       "label" : "OPEN WINDOW",
       "area" : [ 1, 2, 1, 2 ]
     }

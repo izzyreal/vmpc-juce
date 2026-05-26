@@ -3,11 +3,27 @@
 #include "FlexBoxWrapper.hpp"
 #include "LabelComponent.hpp"
 #include "SvgComponent.hpp"
+#include "KeyComponent.hpp"
 #include "DataWheel.hpp"
 
 #include <cassert>
 
 using namespace vmpc_juce::gui::vector;
+
+static juce::Rectangle<float> getDrawableBounds(juce::Component *component)
+{
+    if (auto svgComponent = dynamic_cast<SvgComponent *>(component))
+    {
+        return svgComponent->getDrawableBounds();
+    }
+
+    if (auto keyComponent = dynamic_cast<KeyComponent *>(component))
+    {
+        return keyComponent->getDrawableBounds();
+    }
+
+    return {};
+}
 
 GridWrapper::GridWrapper(struct node &myNodeToUse,
                          const std::function<float()> &getScaleToUse)
@@ -93,9 +109,7 @@ static void processChildren(juce::Grid &parent,
             }
             else
             {
-                const auto drawableBounds =
-                    dynamic_cast<SvgComponent *>(component)
-                        ->getDrawableBounds();
+                const auto drawableBounds = getDrawableBounds(component);
 
                 if (!drawableBounds.isEmpty())
                 {

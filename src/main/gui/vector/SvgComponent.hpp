@@ -99,28 +99,26 @@ namespace vmpc_juce::gui::vector
             }
         }
 
-        juce::Rectangle<float> getDrawableBounds()
+        virtual juce::Rectangle<float> getDrawableBounds()
         {
             return drawables[currentDrawable] == nullptr
                        ? juce::Rectangle<float>()
                        : drawables[currentDrawable]->getDrawableBounds();
         }
 
-        juce::Path getShadowPath()
+        virtual juce::Path getShadowPath()
         {
-            if (drawables[currentDrawable] == nullptr)
-            {
-                return juce::Path();
-            }
+            return getDrawablePathWithin(getLocalBounds().toFloat());
+        }
 
-            juce::Path shadowPath =
-                drawables[currentDrawable]->getOutlineAsPath();
-            auto centred =
-                juce::RectanglePlacement(juce::RectanglePlacement::centred);
-            auto transform = centred.getTransformToFit(
-                getDrawableBounds(), getLocalBounds().toFloat());
-            shadowPath.applyTransform(transform);
-            return shadowPath;
+        virtual float getShadowSizeMultiplier() const
+        {
+            return 1.f;
+        }
+
+        virtual float getShadowDarknessMultiplier() const
+        {
+            return 1.f;
         }
 
         void paint(juce::Graphics &g) override
@@ -132,12 +130,7 @@ namespace vmpc_juce::gui::vector
                 return;
             }
 
-            drawables[currentDrawable]->drawWithin(
-                g, getLocalBounds().toFloat(),
-                svgPlacement == "stretched"
-                    ? juce::RectanglePlacement::stretchToFit
-                    : juce::RectanglePlacement::centred,
-                1.0f);
+            drawCurrentDrawableWithin(g, getLocalBounds().toFloat());
         }
 
         juce::Component *shadow = nullptr;
@@ -182,6 +175,47 @@ namespace vmpc_juce::gui::vector
         juce::Drawable *getCurrentDrawable()
         {
             return drawables[currentDrawable].get();
+        }
+
+    public:
+        juce::RectanglePlacement getPlacement() const
+        {
+            return svgPlacement == "stretched"
+                       ? juce::RectanglePlacement(
+                             juce::RectanglePlacement::stretchToFit)
+                       : juce::RectanglePlacement(
+                             juce::RectanglePlacement::centred);
+        }
+
+        juce::AffineTransform
+        getCurrentDrawableTransformWithin(const juce::Rectangle<float> bounds)
+        {
+            return getPlacement().getTransformToFit(getDrawableBounds(), bounds);
+        }
+
+        juce::Path getDrawablePathWithin(const juce::Rectangle<float> bounds)
+        {
+            if (drawables[currentDrawable] == nullptr)
+            {
+                return juce::Path();
+            }
+
+            auto shadowPath = drawables[currentDrawable]->getOutlineAsPath();
+            shadowPath.applyTransform(getCurrentDrawableTransformWithin(bounds));
+            return shadowPath;
+        }
+
+        void drawCurrentDrawableWithin(juce::Graphics &g,
+                                       const juce::Rectangle<float> bounds)
+        {
+            if (drawables[currentDrawable] == nullptr)
+            {
+                g.fillAll(juce::Colours::red);
+                return;
+            }
+
+            drawables[currentDrawable]->drawWithin(g, bounds, getPlacement(),
+                                                   1.0f);
         }
 
     private:

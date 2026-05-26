@@ -42,7 +42,7 @@
       "area" : [ 1, 1, 3, 1 ],
       "row_fractions" : [ 10, 11, 2, 6, 1 ],
       "column_fractions" : [ 1, 1, 1, 1, 1 ],
-      "shadow_size" : 1,
+      "shadow_size" : 2.0,
       "children" : [
         {
           "name" : "go_to_label",
@@ -53,31 +53,36 @@
         {
           "name" : "previous_step_or_event",
           "hardware_label" : "prev-step-or-event",
-          "svg" : "medium_key.svg",
+          "key_hole_svg" : "medium_key_hole.svg",
+          "key_button_svg" : "medium_key_button.svg",
           "area" : [ 2, 1, 2, 1 ]
         },
         {
           "name" : "next_step_or_event",
           "hardware_label" : "next-step-or-event",
-          "svg" : "medium_key.svg",
+          "key_hole_svg" : "medium_key_hole.svg",
+          "key_button_svg" : "medium_key_button.svg",
           "area" : [ 2, 2, 2, 2 ]
         },
         {
           "name" : "go_to",
           "hardware_label" : "go-to",
-          "svg" : "medium_key.svg",
+          "key_hole_svg" : "medium_key_hole.svg",
+          "key_button_svg" : "medium_key_button.svg",
           "area" : [ 2, 3, 2, 3 ]
         },
         {
           "name" : "previous_bar_or_start",
           "hardware_label" : "prev-bar-or-start",
-          "svg" : "medium_key.svg",
+          "key_hole_svg" : "medium_key_hole.svg",
+          "key_button_svg" : "medium_key_button.svg",
           "area" : [ 2, 4, 2, 4 ]
         },
         {
           "name" : "next_bar_or_end",
           "hardware_label" : "next-bar-or-end",
-          "svg" : "medium_key.svg",
+          "key_hole_svg" : "medium_key_hole.svg",
+          "key_button_svg" : "medium_key_button.svg",
           "area" : [ 2, 5, 2, 5 ]
         },
         {
