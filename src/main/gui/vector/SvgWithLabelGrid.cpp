@@ -2,8 +2,24 @@
 
 #include "ViewUtil.hpp"
 #include "SvgComponent.hpp"
+#include "KeyComponent.hpp"
 
 using namespace vmpc_juce::gui::vector;
+
+static juce::Rectangle<float> getDrawableBounds(juce::Component *component)
+{
+    if (auto svgComponent = dynamic_cast<SvgComponent *>(component))
+    {
+        return svgComponent->getDrawableBounds();
+    }
+
+    if (auto keyComponent = dynamic_cast<KeyComponent *>(component))
+    {
+        return keyComponent->getDrawableBounds();
+    }
+
+    return {};
+}
 
 SvgWithLabelGrid::SvgWithLabelGrid(const struct node &myNodeToUse,
                                    const std::function<float()> &getScaleToUse)
@@ -24,8 +40,7 @@ SvgWithLabelGrid::~SvgWithLabelGrid()
 void SvgWithLabelGrid::resized()
 {
     const auto labelHeight = ViewUtil::getLabelHeight(myNode.label, getScale);
-    const auto drawableBounds =
-        dynamic_cast<SvgComponent *>(myNode.svg_component)->getDrawableBounds();
+    const auto drawableBounds = getDrawableBounds(myNode.svg_component);
     const auto scale = getScale();
     const auto svgWidth = drawableBounds.getWidth() * scale;
 

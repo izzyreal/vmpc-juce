@@ -5,6 +5,7 @@
 #include "SimpleLabel.hpp"
 #include "Constants.hpp"
 #include "SvgComponent.hpp"
+#include "KeyComponent.hpp"
 #include "RectangleLabel.hpp"
 
 namespace vmpc_juce::gui::vector
@@ -16,6 +17,7 @@ namespace vmpc_juce::gui::vector
         NumKey(const std::function<float()> &getScaleToUse,
                const std::string topLabelToUse,
                const std::string bottomLabelToUse, std::string svgPath,
+               std::string keyHoleSvgPath, std::string keyButtonSvgPath,
                juce::Component *commonParentWithShadow, const float shadowSize,
                const std::function<juce::Font &()> &getMainFontScaled)
         {
@@ -26,8 +28,20 @@ namespace vmpc_juce::gui::vector
                 getScaleToUse, bottomLabelToUse, bottomLabelToUse,
                 Constants::greyFacePaintColour, Constants::darkLabelColour,
                 0.5f, 5.f, getMainFontScaled, 1.f);
-            svgComponent = new SvgComponent({svgPath}, commonParentWithShadow,
-                                            shadowSize, getScaleToUse);
+            if (!keyHoleSvgPath.empty() && !keyButtonSvgPath.empty())
+            {
+                svgComponent = new KeyComponent(
+                    keyHoleSvgPath, keyButtonSvgPath, commonParentWithShadow,
+                    shadowSize, getScaleToUse);
+                shadowSvgComponent = dynamic_cast<SvgComponent *>(svgComponent);
+            }
+            else
+            {
+                shadowSvgComponent = new SvgComponent(
+                    {svgPath}, commonParentWithShadow, shadowSize,
+                    getScaleToUse);
+                svgComponent = shadowSvgComponent;
+            }
 
             addAndMakeVisible(topLabel);
             addAndMakeVisible(bottomLabel);
@@ -57,13 +71,14 @@ namespace vmpc_juce::gui::vector
 
         SvgComponent *getSvgComponent()
         {
-            return svgComponent;
+            return shadowSvgComponent;
         }
 
     private:
         SimpleLabel *topLabel = nullptr;
         RectangleLabel *bottomLabel = nullptr;
-        SvgComponent *svgComponent = nullptr;
+        juce::Component *svgComponent = nullptr;
+        SvgComponent *shadowSvgComponent = nullptr;
     };
 
 } // namespace vmpc_juce::gui::vector

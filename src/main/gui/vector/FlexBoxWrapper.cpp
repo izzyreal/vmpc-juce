@@ -2,6 +2,7 @@
 
 #include "GridWrapper.hpp"
 #include "SvgComponent.hpp"
+#include "KeyComponent.hpp"
 #include "ViewUtil.hpp"
 #include "LabelComponent.hpp"
 #include "Constants.hpp"
@@ -9,6 +10,21 @@
 #include <cassert>
 
 using namespace vmpc_juce::gui::vector;
+
+static juce::Rectangle<float> getDrawableBounds(juce::Component *component)
+{
+    if (auto svgComponent = dynamic_cast<SvgComponent *>(component))
+    {
+        return svgComponent->getDrawableBounds();
+    }
+
+    if (auto keyComponent = dynamic_cast<KeyComponent *>(component))
+    {
+        return keyComponent->getDrawableBounds();
+    }
+
+    return {};
+}
 
 FlexBoxWrapper::FlexBoxWrapper(struct node &myNodeToUse,
                                const std::function<float()> &getScaleToUse)
@@ -109,9 +125,7 @@ processChildren(juce::FlexBox &parent, const std::vector<node> &children,
         if (c.svg_component != nullptr)
         {
 
-            const auto drawable_bounds =
-                dynamic_cast<SvgComponent *>(c.svg_component)
-                    ->getDrawableBounds();
+            const auto drawable_bounds = getDrawableBounds(c.svg_component);
             const auto minWidth = drawable_bounds.getWidth() * getScale();
             const auto minHeight = drawable_bounds.getHeight() * getScale();
 

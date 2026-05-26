@@ -20,6 +20,8 @@ namespace vmpc_juce::gui::vector
         std::string name;
         std::string node_type;
         std::string svg;
+        std::string key_hole_svg;
+        std::string key_button_svg;
         std::vector<node> children;
         float margin = 0.f;
         std::string label;
@@ -139,6 +141,14 @@ namespace vmpc_juce::gui::vector
             if (j.contains("svg"))
             {
                 j.at("svg").get_to(n.svg);
+            }
+            if (j.contains("key_hole_svg"))
+            {
+                j.at("key_hole_svg").get_to(n.key_hole_svg);
+            }
+            if (j.contains("key_button_svg"))
+            {
+                j.at("key_button_svg").get_to(n.key_button_svg);
             }
             if (j.contains("children"))
             {
