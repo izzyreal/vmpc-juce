@@ -35,12 +35,12 @@ namespace vmpc_juce::gui::vector
 
         float getShadowSizeMultiplier() const override
         {
-            return pressedVisual ? 0.5f : 1.f;
+            return pressedVisual ? 0.8f : 1.f;
         }
 
         float getShadowDarknessMultiplier() const override
         {
-            return pressedVisual ? 0.5f : 1.f;
+            return pressedVisual ? 0.8f : 1.f;
         }
 
         void paint(juce::Graphics &g) override

@@ -6,6 +6,7 @@
 #include "FlexBoxWrapper.hpp"
 #include "SvgComponent.hpp"
 #include "KeyComponent.hpp"
+#include "CursorKeys.hpp"
 #include "SvgWithLabelGrid.hpp"
 #include "LineFlankedLabel.hpp"
 #include "RectangleLabel.hpp"
@@ -78,6 +79,17 @@ static juce::Component *createSvgLikeComponent(
     mpc::Mpc &mpc, const node &n, juce::Component *parent,
     const std::function<float()> &getScale)
 {
+    if (n.node_type == "cursor_keys")
+    {
+        using ComponentId = mpc::hardware::ComponentId;
+        return new CursorKeys(
+            {mpc.getHardware()->getButton(ComponentId::CURSOR_LEFT_OR_DIGIT),
+             mpc.getHardware()->getButton(ComponentId::CURSOR_UP),
+             mpc.getHardware()->getButton(ComponentId::CURSOR_RIGHT_OR_DIGIT),
+             mpc.getHardware()->getButton(ComponentId::CURSOR_DOWN)},
+            parent, getScale, n.shadow_size);
+    }
+
     if (!n.key_hole_svg.empty() && !n.key_button_svg.empty())
     {
         std::shared_ptr<mpc::hardware::Button> trackedButton;
@@ -307,8 +319,11 @@ void ViewUtil::createComponent(
     {
         auto svgComponent = createSvgLikeComponent(mpc, n, parent, getScale);
         components.push_back(svgComponent);
-        addShadow(n, getScale, getShadowSvgComponent(svgComponent), parent,
-                  components);
+        if (n.node_type != "cursor_keys")
+        {
+            addShadow(n, getScale, getShadowSvgComponent(svgComponent), parent,
+                      components);
+        }
         parent->addAndMakeVisible(svgComponent);
         n.svg_component = svgComponent;
 
@@ -366,8 +381,11 @@ void ViewUtil::createComponent(
 
             components.push_back(svgWithLabelGrid);
 
-            addShadow(n, getScale, getShadowSvgComponent(svgLikeComponent),
-                      parent, components);
+            if (n.node_type != "cursor_keys")
+            {
+                addShadow(n, getScale, getShadowSvgComponent(svgLikeComponent),
+                          parent, components);
+            }
 
             parent->addAndMakeVisible(svgWithLabelGrid);
             n.svg_with_label_grid_component = svgWithLabelGrid;
