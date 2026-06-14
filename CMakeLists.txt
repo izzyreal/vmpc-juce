@@ -183,6 +183,12 @@ if (IOS)
         XCODE_EMBED_APP_EXTENSIONS_CODE_SIGN_ON_COPY "YES")
 endif()
 
+if (APPLE AND NOT IOS)
+    set_target_properties(vmpc2000xl_Standalone PROPERTIES
+        SKIP_BUILD_RPATH FALSE
+        BUILD_RPATH "${CMAKE_BINARY_DIR}/_deps/json-schema-validator-build/$<CONFIG>;${CMAKE_BINARY_DIR}/_deps/mpc-build/$<CONFIG>")
+endif()
+
 if (IOS)
     function(add_dsym target)
         set_target_properties(${target} PROPERTIES
