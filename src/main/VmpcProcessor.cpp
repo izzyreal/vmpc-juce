@@ -26,10 +26,6 @@
 #include <audiomidi/DiskRecorder.hpp>
 #include <audiomidi/MidiOutput.hpp>
 
-#include <file/aps/ApsParser.hpp>
-#include <file/sndwriter/SndWriter.hpp>
-#include <file/sndreader/SndReader.hpp>
-
 #include <disk/AbstractDisk.hpp>
 #include <input/HostInputEvent.hpp>
 #include <performance/PerformanceManager.hpp>
@@ -52,10 +48,6 @@
 using namespace mpc::lcdgui;
 using namespace mpc::lcdgui::screens;
 using namespace mpc::lcdgui::screens::window;
-using namespace mpc::file::aps;
-using namespace mpc::file::all;
-using namespace mpc::file::sndwriter;
-using namespace mpc::file::sndreader;
 using namespace mpc::disk;
 
 using namespace vmpc_juce;
