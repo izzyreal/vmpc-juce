@@ -45,3 +45,4 @@ compile_commands.json
 
 # clangd background index for the project
 .cache/clangd/
+build-codex/
