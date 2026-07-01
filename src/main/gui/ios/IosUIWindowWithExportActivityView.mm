@@ -10,9 +10,9 @@
 #include "Logger.hpp"
 #include "Mpc.hpp"
 #include "sampler/Sampler.hpp"
-#include "file/aps/ApsParser.hpp"
-#include "file/all/AllParser.hpp"
-#include "file/sndwriter/SndWriter.hpp"
+#include "file/kaitai/ApsIo.hpp"
+#include "file/kaitai/AllIo.hpp"
+#include "file/kaitai/SndIo.hpp"
 #include "lcdgui/screens/LoadScreen.hpp"
 #include "disk/AbstractDisk.hpp"
 #include "disk/MpcFile.hpp"
@@ -68,19 +68,18 @@
     NSURL *tempDirectoryURL = [NSURL fileURLWithPath:NSTemporaryDirectory() isDirectory:YES];
     NSMutableArray<NSURL *> *fileURLsArray = [NSMutableArray array];
 
-    const std::vector<char>& apsData = mpc::file::aps::ApsParser(*mpc, "ALL_PGMS").saveBytes;
+    const auto apsData = mpc::file::kaitai::ApsIo::save(*mpc, "ALL_PGMS");
     NSData *data = [NSData dataWithBytes:apsData.data() length:apsData.size()];
     NSURL *apsDataFileURL = [tempDirectoryURL URLByAppendingPathComponent:@"ALL_PGMS.APS"];
     if (![self writeData:data toURL:apsDataFileURL description:@"ALL_PGMS.APS" produced:fileURLsArray]) { return nil; }
 
-    const std::vector<char>& allData = mpc::file::all::AllParser(*mpc).saveBytes;
+    const auto allData = mpc::file::kaitai::AllIo::save(*mpc);
     data = [NSData dataWithBytes:allData.data() length:allData.size()];
     NSURL *allDataFileURL = [tempDirectoryURL URLByAppendingPathComponent:@"ALL_SEQS.ALL"];
     if (![self writeData:data toURL:allDataFileURL description:@"ALL_SEQS.ALL" produced:fileURLsArray]) { return nil; }
 
     for (auto& sound : mpc->getSampler()->getSounds()) {
-        mpc::file::sndwriter::SndWriter sndWriter(sound.get());
-        const std::vector<char>& sndData = sndWriter.getSndFileArray();
+        const auto sndData = mpc::file::kaitai::SndIo::saveSound(*sound);
         
         data = [NSData dataWithBytes:sndData.data() length:sndData.size()];
         std::string soundName = sound->getName();
