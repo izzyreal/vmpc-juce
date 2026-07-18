@@ -646,9 +646,9 @@ pipelines:
           - run: cp dist/VMPC2000XL-linux-amd64-Standalone dist/stage/Standalone/VMPC2000XL && chmod +x dist/stage/Standalone/VMPC2000XL
           - run: cp -R dist/VMPC2000XL-linux-amd64-VST3.vst3 dist/stage/VST3/VMPC2000XL.vst3
           - run: cp -R dist/VMPC2000XL-linux-amd64-LV2.lv2 dist/stage/LV2/VMPC2000XL.lv2
-          - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/Standalone && zip -v "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-Standalone.zip" ./VMPC2000XL)
-          - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/VST3 && zip -v -r "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-VST3.zip" ./VMPC2000XL.vst3)
-          - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/LV2 && zip -v -r "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-LV2.zip" ./VMPC2000XL.lv2)
+          - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/Standalone && zip -v "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-Standalone-v${VERSION}.zip" ./VMPC2000XL)
+          - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/VST3 && zip -v -r "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-VST3-v${VERSION}.zip" ./VMPC2000XL.vst3)
+          - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/LV2 && zip -v -r "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-LV2-v${VERSION}.zip" ./VMPC2000XL.lv2)
           - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && cp dist/${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-*.zip dist/
   - id: macos-validate
     trigger: manual
@@ -893,7 +893,7 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-Standalone.zip --repo izzyreal/vmpc-juce --clobber
+          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-Standalone-v$(cat dist/release-version.txt).zip --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
             vault:
               connection: home-vault
@@ -904,7 +904,7 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-VST3.zip --repo izzyreal/vmpc-juce --clobber
+          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-VST3-v$(cat dist/release-version.txt).zip --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
             vault:
               connection: home-vault
@@ -915,7 +915,7 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-LV2.zip --repo izzyreal/vmpc-juce --clobber
+          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-LV2-v$(cat dist/release-version.txt).zip --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
             vault:
               connection: home-vault
