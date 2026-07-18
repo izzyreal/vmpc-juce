@@ -72,11 +72,13 @@ namespace vmpc_juce::gui::vector
         void loadFile(const juce::String &path, bool shouldBeConverted);
         std::function<float()> getScale;
         bool mutatedSinceLastPaint = false;
+        bool pressedPadSvgVisible = false;
         int fadeFrameCounter = 0;
         const int fadeRepaintInterval = 5;
 
         std::optional<Press> &pressFor(PressType type);
         void processDecay(std::optional<Press> &press, bool isPrimary);
+        void updatePressedPadSvg();
 
     public:
         void registerPress(PressType, mpc::ProgramPadIndex, mpc::Velocity);

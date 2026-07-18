@@ -331,6 +331,20 @@ void Pad::processDecay(std::optional<Press> &press, const bool isPrimary)
     }
 }
 
+void Pad::updatePressedPadSvg()
+{
+    const bool shouldShowPressedPadSvg = primaryPress.has_value();
+
+    if (pressedPadSvgVisible == shouldShowPressedPadSvg)
+    {
+        return;
+    }
+
+    pressedPadSvgVisible = shouldShowPressedPadSvg;
+    setSvgPath(pressedPadSvgVisible ? "pressed_pad.svg" : "pad.svg");
+    mutatedSinceLastPaint = true;
+}
+
 void Pad::padTimerCallback()
 {
     const float oldAlpha = glowSvg->getAlpha();
@@ -339,6 +353,7 @@ void Pad::padTimerCallback()
     processDecay(primaryPress, true);
     processDecay(secondaryPress, false);
     processDecay(tertiaryPress, false);
+    updatePressedPadSvg();
 
     if (primaryPress)
     {
