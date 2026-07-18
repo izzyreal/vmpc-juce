@@ -45,34 +45,50 @@ pipelines:
           - id: ccache
             env: CCACHE_DIR
         steps:
-          - run: mkdir -p dist
-          - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
-          - run: mkdir -p "$CCACHE_DIR"
-          - run: mkdir -p /tmp/vmpc2000xl_documents
-          - run: if command -v ccache >/dev/null 2>&1; then ccache --zero-stats; else echo "ccache not found in container"; fi
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content cmake -B build -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - name: Prepare dist
+            run: mkdir -p dist
+          - name: Prepare FetchContent cache
+            run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - name: Prepare ccache
+            run: mkdir -p "$CCACHE_DIR"
+          - name: Prepare document directory
+            run: mkdir -p /tmp/vmpc2000xl_documents
+          - name: Reset ccache stats
+            run: if command -v ccache >/dev/null 2>&1; then ccache --zero-stats; else echo "ccache not found in container"; fi
+          - name: Configure CMake
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content cmake -B build -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
-          - run: cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests vmpc-juce-tests
+          - name: Build Ninja targets
+            run: cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests vmpc-juce-tests
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
-          - run: if command -v ccache >/dev/null 2>&1; then ccache --show-stats; else echo "ccache not found in container"; fi
-          - test:
+          - name: Show ccache stats
+            run: if command -v ccache >/dev/null 2>&1; then ccache --show-stats; else echo "ccache not found in container"; fi
+          - name: Run Mpc Tests
+            test:
               name: mpc-tests
               command: ./build/_deps/mpc-build/Release/mpc-tests --reporter JUnit::out=dist/result-junit.xml
               format: junit-xml
               report: dist/result-junit.xml
-          - test:
+          - name: Run Vmpc Juce Tests
+            test:
               name: vmpc-juce-tests
               command: ./build/Release/vmpc-juce-tests --reporter JUnit::out=dist/result-junit-vmpc-juce.xml
               format: junit-xml
               report: dist/result-junit-vmpc-juce.xml
-          - run: cp build/_deps/mpc-build/Release/mpc-tests dist/mpc-tests-linux-amd64
-          - run: cp build/Release/vmpc-juce-tests dist/vmpc-juce-tests-linux-amd64
-          - run: cp build/version.txt dist/version-linux-amd64.txt
-          - run: cp build/vmpc2000xl_artefacts/Release/Standalone/VMPC2000XL dist/VMPC2000XL-linux-amd64-Standalone
-          - run: cp -R build/vmpc2000xl_artefacts/Release/VST3/VMPC2000XL.vst3 dist/VMPC2000XL-linux-amd64-VST3.vst3
-          - run: cp -R build/vmpc2000xl_artefacts/Release/LV2/VMPC2000XL.lv2 dist/VMPC2000XL-linux-amd64-LV2.lv2
+          - name: Copy test binary
+            run: cp build/_deps/mpc-build/Release/mpc-tests dist/mpc-tests-linux-amd64
+          - name: Copy test binary
+            run: cp build/Release/vmpc-juce-tests dist/vmpc-juce-tests-linux-amd64
+          - name: Copy version file
+            run: cp build/version.txt dist/version-linux-amd64.txt
+          - name: Copy standalone binary
+            run: cp build/vmpc2000xl_artefacts/Release/Standalone/VMPC2000XL dist/VMPC2000XL-linux-amd64-Standalone
+          - name: Copy VST3 plugin
+            run: cp -R build/vmpc2000xl_artefacts/Release/VST3/VMPC2000XL.vst3 dist/VMPC2000XL-linux-amd64-VST3.vst3
+          - name: Copy LV2 plugin
+            run: cp -R build/vmpc2000xl_artefacts/Release/LV2/VMPC2000XL.lv2 dist/VMPC2000XL-linux-amd64-LV2.lv2
 
       - id: linux-offline-build-check
         runs_on:
@@ -95,17 +111,24 @@ pipelines:
         timeout_seconds: 2700
         caches: *build_caches
         steps:
-          - run: mkdir -p /tmp/vmpc2000xl_documents
-          - run: rm -rf editables/JUCE editables/mpc editables/juce-raw-keyboard-input-module deps/json deps/melatonin_blur build-offline-src offline-check
-          - run: cmake -S . -B build-offline-src -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF
+          - name: Prepare document directory
+            run: mkdir -p /tmp/vmpc2000xl_documents
+          - name: Clean dependency check
+            run: rm -rf editables/JUCE editables/mpc editables/juce-raw-keyboard-input-module deps/json deps/melatonin_blur build-offline-src offline-check
+          - name: Configure CMake
+            run: cmake -S . -B build-offline-src -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
-          - run: cmake --build build-offline-src --config Release --target package_source
-          - run: mkdir -p offline-check && (cd offline-check && cmake -E tar xzf ../build-offline-src/vmpc2000xl-*-Source.tar.gz)
-          - run: SOURCE_DIR="$(find offline-check -mindepth 1 -maxdepth 1 -type d | head -n 1)" && test -n "$SOURCE_DIR" && cmake -S "$SOURCE_DIR" -B "$SOURCE_DIR/build" -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_FULLY_DISCONNECTED=ON
+          - name: Build CMake targets
+            run: cmake --build build-offline-src --config Release --target package_source
+          - name: Extract source archive
+            run: mkdir -p offline-check && (cd offline-check && cmake -E tar xzf ../build-offline-src/vmpc2000xl-*-Source.tar.gz)
+          - name: Configure CMake
+            run: SOURCE_DIR="$(find offline-check -mindepth 1 -maxdepth 1 -type d | head -n 1)" && test -n "$SOURCE_DIR" && cmake -S "$SOURCE_DIR" -B "$SOURCE_DIR/build" -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_FULLY_DISCONNECTED=ON
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
-          - run: SOURCE_DIR="$(find offline-check -mindepth 1 -maxdepth 1 -type d | head -n 1)" && test -n "$SOURCE_DIR" && cmake --build "$SOURCE_DIR/build" --config Release --target vmpc2000xl_All
+          - name: Build CMake targets
+            run: SOURCE_DIR="$(find offline-check -mindepth 1 -maxdepth 1 -type d | head -n 1)" && test -n "$SOURCE_DIR" && cmake --build "$SOURCE_DIR/build" --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
 
@@ -133,52 +156,74 @@ pipelines:
           - dist/AUv3Entitlements.plist
         caches: *build_caches
         steps:
-          - run: mkdir -p dist
-          - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
-          - run: mkdir -p "$CCACHE_DIR"
-          - run: ccache --dir "$CCACHE_DIR" --zero-stats
-          - run: rm -rf "$VMPC2000XL_DOCUMENTS_PATH" && mkdir -p "$VMPC2000XL_DOCUMENTS_PATH"
+          - name: Prepare dist
+            run: mkdir -p dist
+          - name: Prepare FetchContent cache
+            run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - name: Prepare ccache
+            run: mkdir -p "$CCACHE_DIR"
+          - name: Reset ccache stats
+            run: ccache --dir "$CCACHE_DIR" --zero-stats
+          - name: Prepare document directory
+            run: rm -rf "$VMPC2000XL_DOCUMENTS_PATH" && mkdir -p "$VMPC2000XL_DOCUMENTS_PATH"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - name: Configure CMake
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - name: Copy standalone binary
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_AU -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - name: Build AU plugin
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_AU -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_VST3 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - name: Build VST3 plugin
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_VST3 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_LV2 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - name: Build LV2 plugin
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_LV2 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme mpc-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - name: Build mpc tests
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme mpc-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc-juce-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - name: Build vmpc juce tests
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc-juce-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - test:
+          - name: Run Mpc Tests
+            test:
               name: mpc-tests
               command: ./build/_deps/mpc-build/Release/mpc-tests.app/Contents/MacOS/mpc-tests --reporter JUnit::out=build/result-junit.xml
               format: junit-xml
               report: build/result-junit.xml
-          - test:
+          - name: Run Vmpc Juce Tests
+            test:
               name: vmpc-juce-tests
               command: ./build/Release/vmpc-juce-tests --reporter JUnit::out=dist/result-junit-vmpc-juce.xml
               format: junit-xml
               report: dist/result-junit-vmpc-juce.xml
-          - run: cp -R build/vmpc2000xl_artefacts/Release/Standalone/VMPC2000XL.app dist/VMPC2000XL-macos-universal-Standalone.app
-          - run: cp -R build/vmpc2000xl_artefacts/Release/AU/VMPC2000XL.component dist/VMPC2000XL-macos-universal-AU.component
-          - run: cp -R build/vmpc2000xl_artefacts/Release/VST3/VMPC2000XL.vst3 dist/VMPC2000XL-macos-universal-VST3.vst3
-          - run: cp -R build/vmpc2000xl_artefacts/Release/LV2/VMPC2000XL.lv2 dist/VMPC2000XL-macos-universal-LV2.lv2
-          - run: cp build/version.txt dist/version-macos-universal.txt
-          - run: cp build/build/vmpc2000xl_Standalone.build/Release/DerivedSources/Entitlements.plist dist/StandaloneEntitlements.plist
-          - run: cp build/build/vmpc2000xl_AUv3.build/Release/DerivedSources/Entitlements.plist dist/AUv3Entitlements.plist
-          - run: ccache --dir "$CCACHE_DIR" --show-stats
+          - name: Copy app bundle
+            run: cp -R build/vmpc2000xl_artefacts/Release/Standalone/VMPC2000XL.app dist/VMPC2000XL-macos-universal-Standalone.app
+          - name: Copy AU component
+            run: cp -R build/vmpc2000xl_artefacts/Release/AU/VMPC2000XL.component dist/VMPC2000XL-macos-universal-AU.component
+          - name: Copy VST3 plugin
+            run: cp -R build/vmpc2000xl_artefacts/Release/VST3/VMPC2000XL.vst3 dist/VMPC2000XL-macos-universal-VST3.vst3
+          - name: Copy LV2 plugin
+            run: cp -R build/vmpc2000xl_artefacts/Release/LV2/VMPC2000XL.lv2 dist/VMPC2000XL-macos-universal-LV2.lv2
+          - name: Copy version file
+            run: cp build/version.txt dist/version-macos-universal.txt
+          - name: Copy Standalone entitlements
+            run: cp build/build/vmpc2000xl_Standalone.build/Release/DerivedSources/Entitlements.plist dist/StandaloneEntitlements.plist
+          - name: Copy AUv3 entitlements
+            run: cp build/build/vmpc2000xl_AUv3.build/Release/DerivedSources/Entitlements.plist dist/AUv3Entitlements.plist
+          - name: Show ccache stats
+            run: ccache --dir "$CCACHE_DIR" --show-stats
 
       - id: ios
         runs_on:
@@ -198,19 +243,28 @@ pipelines:
           - dist/ExportOptions.plist
         caches: *build_caches
         steps:
-          - run: mkdir -p dist
-          - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
-          - run: rm -rf build
-          - run: cmake -Wno-dev -B build -G "Xcode" -DCMAKE_SYSTEM_NAME=iOS -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
-          - run: cd build && xcodebuild -project vmpc2000xl.xcodeproj build -target vmpc2000xl_Standalone -parallelizeTargets -configuration RelWithDebInfo -allowProvisioningUpdates
+          - name: Prepare dist
+            run: mkdir -p dist
+          - name: Prepare FetchContent cache
+            run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - name: Clean build directory
+            run: rm -rf build
+          - name: Configure CMake
+            run: cmake -Wno-dev -B build -G "Xcode" -DCMAKE_SYSTEM_NAME=iOS -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - name: Build Standalone
+            run: cd build && xcodebuild -project vmpc2000xl.xcodeproj build -target vmpc2000xl_Standalone -parallelizeTargets -configuration RelWithDebInfo -allowProvisioningUpdates
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: cd build && xcodebuild -project vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -allowProvisioningUpdates -sdk iphoneos -configuration RelWithDebInfo archive -archivePath "./vmpc2000xl_StandaloneAndAUv3.xcarchive"
+          - name: Build Standalone
+            run: cd build && xcodebuild -project vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -allowProvisioningUpdates -sdk iphoneos -configuration RelWithDebInfo archive -archivePath "./vmpc2000xl_StandaloneAndAUv3.xcarchive"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: cp build/version.txt dist/version-ios.txt
-          - run: cp ExportOptions.plist dist/ExportOptions.plist
-          - run: cp -R build/vmpc2000xl_StandaloneAndAUv3.xcarchive dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
+          - name: Copy version file
+            run: cp build/version.txt dist/version-ios.txt
+          - name: Copy export options
+            run: cp ExportOptions.plist dist/ExportOptions.plist
+          - name: Copy iOS archive
+            run: cp -R build/vmpc2000xl_StandaloneAndAUv3.xcarchive dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
 
       - id: windows10-amd64
         runs_on:
@@ -232,32 +286,48 @@ pipelines:
           - dist/VMPC2000XL-windows10-amd64-LV2.lv2/**
         caches: *build_caches
         steps:
-          - run: if exist build rmdir /s /q build
-          - run: if not exist dist mkdir dist
-          - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
-          - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
-          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%") || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All mpc-tests vmpc-juce-tests
+          - name: Clean build directory
+            run: if exist build rmdir /s /q build
+          - name: Prepare dist
+            run: if not exist dist mkdir dist
+          - name: Prepare FetchContent cache
+            run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - name: Prepare ccache
+            run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
+          - name: Reset ccache stats
+            run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
+          - name: Configure CMake
+            run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%") || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
+          - name: Build CMake targets
+            run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All mpc-tests vmpc-juce-tests
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
-          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
-          - test:
+          - name: Show ccache stats
+            run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
+          - name: Run Mpc Tests
+            test:
               name: mpc-tests
               command: build\_deps\mpc-build\Release\mpc-tests.exe --reporter JUnit::out=build\result-junit.xml
               format: junit-xml
               report: build/result-junit.xml
-          - test:
+          - name: Run Vmpc Juce Tests
+            test:
               name: vmpc-juce-tests
               command: build\Release\vmpc-juce-tests.exe --reporter JUnit::out=build\result-junit-vmpc-juce.xml
               format: junit-xml
               report: build/result-junit-vmpc-juce.xml
-          - run: copy /Y build\_deps\mpc-build\Release\mpc-tests.exe dist\mpc-tests-windows10-amd64.exe
-          - run: copy /Y build\Release\vmpc-juce-tests.exe dist\vmpc-juce-tests-windows10-amd64.exe
-          - run: copy /Y build\version.txt dist\version-windows10-amd64.txt
-          - run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows10-amd64-Standalone.exe
-          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows10-amd64-VST3.vst3
-          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows10-amd64-LV2.lv2
+          - name: Copy test binary
+            run: copy /Y build\_deps\mpc-build\Release\mpc-tests.exe dist\mpc-tests-windows10-amd64.exe
+          - name: Copy test binary
+            run: copy /Y build\Release\vmpc-juce-tests.exe dist\vmpc-juce-tests-windows10-amd64.exe
+          - name: Copy version file
+            run: copy /Y build\version.txt dist\version-windows10-amd64.txt
+          - name: Copy standalone binary
+            run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows10-amd64-Standalone.exe
+          - name: Copy VST3 plugin
+            run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows10-amd64-VST3.vst3
+          - name: Copy LV2 plugin
+            run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows10-amd64-LV2.lv2
 
       - id: windows10-x86
         runs_on:
@@ -277,20 +347,32 @@ pipelines:
           - dist/VMPC2000XL-windows10-x86-LV2.lv2/**
         caches: *build_caches
         steps:
-          - run: if exist build rmdir /s /q build
-          - run: if not exist dist mkdir dist
-          - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
-          - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
-          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 18 2026" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%") || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
+          - name: Clean build directory
+            run: if exist build rmdir /s /q build
+          - name: Prepare dist
+            run: if not exist dist mkdir dist
+          - name: Prepare FetchContent cache
+            run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - name: Prepare ccache
+            run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
+          - name: Reset ccache stats
+            run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
+          - name: Configure CMake
+            run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 18 2026" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%") || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A Win32 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
+          - name: Build CMake targets
+            run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
-          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
-          - run: copy /Y build\version.txt dist\version-windows10-x86.txt
-          - run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows10-x86-Standalone.exe
-          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows10-x86-VST3.vst3
-          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows10-x86-LV2.lv2
+          - name: Show ccache stats
+            run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
+          - name: Copy version file
+            run: copy /Y build\version.txt dist\version-windows10-x86.txt
+          - name: Copy standalone binary
+            run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows10-x86-Standalone.exe
+          - name: Copy VST3 plugin
+            run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows10-x86-VST3.vst3
+          - name: Copy LV2 plugin
+            run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows10-x86-LV2.lv2
 
       - id: windows7-amd64
         runs_on:
@@ -310,20 +392,32 @@ pipelines:
           - dist/VMPC2000XL-windows7-amd64-LV2.lv2/**
         caches: *build_caches
         steps:
-          - run: if exist build rmdir /s /q build
-          - run: if not exist dist mkdir dist
-          - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
-          - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
-          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
+          - name: Clean build directory
+            run: if exist build rmdir /s /q build
+          - name: Prepare dist
+            run: if not exist dist mkdir dist
+          - name: Prepare FetchContent cache
+            run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - name: Prepare ccache
+            run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
+          - name: Reset ccache stats
+            run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
+          - name: Configure CMake
+            run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
+          - name: Build CMake targets
+            run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
-          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
-          - run: copy /Y build\version.txt dist\version-windows7-amd64.txt
-          - run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows7-amd64-Standalone.exe
-          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows7-amd64-VST3.vst3
-          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows7-amd64-LV2.lv2
+          - name: Show ccache stats
+            run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
+          - name: Copy version file
+            run: copy /Y build\version.txt dist\version-windows7-amd64.txt
+          - name: Copy standalone binary
+            run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows7-amd64-Standalone.exe
+          - name: Copy VST3 plugin
+            run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows7-amd64-VST3.vst3
+          - name: Copy LV2 plugin
+            run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows7-amd64-LV2.lv2
 
       - id: windows7-x86
         runs_on:
@@ -343,20 +437,32 @@ pipelines:
           - dist/VMPC2000XL-windows7-x86-LV2.lv2/**
         caches: *build_caches
         steps:
-          - run: if exist build rmdir /s /q build
-          - run: if not exist dist mkdir dist
-          - run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
-          - run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
-          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
-          - run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
+          - name: Clean build directory
+            run: if exist build rmdir /s /q build
+          - name: Prepare dist
+            run: if not exist dist mkdir dist
+          - name: Prepare FetchContent cache
+            run: if not exist "%CIWI_FETCHCONTENT_SOURCES_DIR%" mkdir "%CIWI_FETCHCONTENT_SOURCES_DIR%"
+          - name: Prepare ccache
+            run: if not exist "%CCACHE_DIR%" mkdir "%CCACHE_DIR%"
+          - name: Reset ccache stats
+            run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --zero-stats'
+          - name: Configure CMake
+            run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && (cmake -S . -B build -G "Visual Studio 17 2022" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%" || ((if exist build rmdir /s /q build) & cmake -S . -B build -G "Visual Studio 16 2019" -A Win32 -DVMPC2000XL_WIN7=1 -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="%CIWI_FETCHCONTENT_SOURCES_DIR%"))
+          - name: Build CMake targets
+            run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
-          - run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
-          - run: copy /Y build\version.txt dist\version-windows7-x86.txt
-          - run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows7-x86-Standalone.exe
-          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows7-x86-VST3.vst3
-          - run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows7-x86-LV2.lv2
+          - name: Show ccache stats
+            run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
+          - name: Copy version file
+            run: copy /Y build\version.txt dist\version-windows7-x86.txt
+          - name: Copy standalone binary
+            run: copy /Y build\vmpc2000xl_artefacts\Release\Standalone\VMPC2000XL.exe dist\VMPC2000XL-windows7-x86-Standalone.exe
+          - name: Copy VST3 plugin
+            run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows7-x86-VST3.vst3
+          - name: Copy LV2 plugin
+            run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows7-x86-LV2.lv2
 
   - id: codesign-macos
     trigger: manual
@@ -378,7 +484,8 @@ pipelines:
           - dist/codesigned-macos/**
           - dist/version-macos-universal.txt
         steps:
-          - run: test -n "$DEV_IDENTITY_APP"
+          - name: Check credentials
+            run: test -n "$DEV_IDENTITY_APP"
             vault:
               connection: home-vault
               secrets:
@@ -388,16 +495,26 @@ pipelines:
                   key: dev-identity-app
             env:
               DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
-          - run: rm -rf binaries && mkdir -p binaries/Standalone binaries/AU binaries/VST3 binaries/LV2 binaries/StandaloneEntitlements binaries/AUv3Entitlements
-          - run: cp -R dist/VMPC2000XL-macos-universal-Standalone.app binaries/Standalone/VMPC2000XL.app
-          - run: cp -R dist/VMPC2000XL-macos-universal-AU.component binaries/AU/VMPC2000XL.component
-          - run: cp -R dist/VMPC2000XL-macos-universal-VST3.vst3 binaries/VST3/VMPC2000XL.vst3
-          - run: cp -R dist/VMPC2000XL-macos-universal-LV2.lv2 binaries/LV2/VMPC2000XL.lv2
-          - run: cp dist/StandaloneEntitlements.plist binaries/StandaloneEntitlements/Entitlements.plist
-          - run: cp dist/AUv3Entitlements.plist binaries/AUv3Entitlements/Entitlements.plist
-          - run: /usr/libexec/PlistBuddy -c 'Delete :com.apple.security.get-task-allow' ./binaries/StandaloneEntitlements/Entitlements.plist || true
-          - run: /usr/libexec/PlistBuddy -c 'Delete :com.apple.security.get-task-allow' ./binaries/AUv3Entitlements/Entitlements.plist || true
-          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/Standalone/VMPC2000XL.app/Contents/PlugIns/VMPC2000XL.appex --entitlements ./binaries/AUv3Entitlements/Entitlements.plist --deep --strict --options=runtime --timestamp
+          - name: Prepare staging directories
+            run: rm -rf binaries && mkdir -p binaries/Standalone binaries/AU binaries/VST3 binaries/LV2 binaries/StandaloneEntitlements binaries/AUv3Entitlements
+          - name: Copy app bundle
+            run: cp -R dist/VMPC2000XL-macos-universal-Standalone.app binaries/Standalone/VMPC2000XL.app
+          - name: Copy AU component
+            run: cp -R dist/VMPC2000XL-macos-universal-AU.component binaries/AU/VMPC2000XL.component
+          - name: Copy VST3 plugin
+            run: cp -R dist/VMPC2000XL-macos-universal-VST3.vst3 binaries/VST3/VMPC2000XL.vst3
+          - name: Copy LV2 plugin
+            run: cp -R dist/VMPC2000XL-macos-universal-LV2.lv2 binaries/LV2/VMPC2000XL.lv2
+          - name: Copy Standalone entitlements
+            run: cp dist/StandaloneEntitlements.plist binaries/StandaloneEntitlements/Entitlements.plist
+          - name: Copy AUv3 entitlements
+            run: cp dist/AUv3Entitlements.plist binaries/AUv3Entitlements/Entitlements.plist
+          - name: Copy Standalone entitlements
+            run: /usr/libexec/PlistBuddy -c 'Delete :com.apple.security.get-task-allow' ./binaries/StandaloneEntitlements/Entitlements.plist || true
+          - name: Copy AUv3 entitlements
+            run: /usr/libexec/PlistBuddy -c 'Delete :com.apple.security.get-task-allow' ./binaries/AUv3Entitlements/Entitlements.plist || true
+          - name: Copy AUv3 entitlements
+            run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/Standalone/VMPC2000XL.app/Contents/PlugIns/VMPC2000XL.appex --entitlements ./binaries/AUv3Entitlements/Entitlements.plist --deep --strict --options=runtime --timestamp
             vault:
               connection: home-vault
               secrets:
@@ -407,7 +524,8 @@ pipelines:
                   key: dev-identity-app
             env:
               DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
-          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/Standalone/VMPC2000XL.app --entitlements ./binaries/StandaloneEntitlements/Entitlements.plist --strict --options=runtime --timestamp
+          - name: Copy Standalone entitlements
+            run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/Standalone/VMPC2000XL.app --entitlements ./binaries/StandaloneEntitlements/Entitlements.plist --strict --options=runtime --timestamp
             vault:
               connection: home-vault
               secrets:
@@ -417,7 +535,8 @@ pipelines:
                   key: dev-identity-app
             env:
               DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
-          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/AU/VMPC2000XL.component --deep --strict --options=runtime --timestamp
+          - name: Copy AU component
+            run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/AU/VMPC2000XL.component --deep --strict --options=runtime --timestamp
             vault:
               connection: home-vault
               secrets:
@@ -427,7 +546,8 @@ pipelines:
                   key: dev-identity-app
             env:
               DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
-          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/VST3/VMPC2000XL.vst3 --deep --strict --options=runtime --timestamp
+          - name: Copy VST3 plugin
+            run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/VST3/VMPC2000XL.vst3 --deep --strict --options=runtime --timestamp
             vault:
               connection: home-vault
               secrets:
@@ -437,7 +557,8 @@ pipelines:
                   key: dev-identity-app
             env:
               DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
-          - run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/LV2/VMPC2000XL.lv2/libVMPC2000XL.so --strict --timestamp
+          - name: Copy LV2 plugin
+            run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/LV2/VMPC2000XL.lv2/libVMPC2000XL.so --strict --timestamp
             vault:
               connection: home-vault
               secrets:
@@ -447,11 +568,16 @@ pipelines:
                   key: dev-identity-app
             env:
               DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
-          - run: rm -rf dist/codesigned-macos && mkdir -p dist/codesigned-macos
-          - run: cp -R binaries/Standalone/VMPC2000XL.app dist/codesigned-macos/VMPC2000XL.app
-          - run: cp -R binaries/AU/VMPC2000XL.component dist/codesigned-macos/VMPC2000XL.component
-          - run: cp -R binaries/VST3/VMPC2000XL.vst3 dist/codesigned-macos/VMPC2000XL.vst3
-          - run: cp -R binaries/LV2/VMPC2000XL.lv2 dist/codesigned-macos/VMPC2000XL.lv2
+          - name: Prepare codesign output
+            run: rm -rf dist/codesigned-macos && mkdir -p dist/codesigned-macos
+          - name: Copy app bundle
+            run: cp -R binaries/Standalone/VMPC2000XL.app dist/codesigned-macos/VMPC2000XL.app
+          - name: Copy AU component
+            run: cp -R binaries/AU/VMPC2000XL.component dist/codesigned-macos/VMPC2000XL.component
+          - name: Copy VST3 plugin
+            run: cp -R binaries/VST3/VMPC2000XL.vst3 dist/codesigned-macos/VMPC2000XL.vst3
+          - name: Copy LV2 plugin
+            run: cp -R binaries/LV2/VMPC2000XL.lv2 dist/codesigned-macos/VMPC2000XL.lv2
 
   - id: package-macos
     trigger: manual
@@ -478,7 +604,8 @@ pipelines:
         artifacts:
           - dist/VMPC2000XL-Installer-Intel-M1-v*.pkg
         steps:
-          - run: test -n "$GITHUB_TOKEN" && test -n "$DEV_IDENTITY_INSTALLER" && test -n "$NOTARYTOOL_PASSWORD" && test -n "$APPLE_TEAM_ID" && test -n "$APPLE_ID"
+          - name: Check credentials
+            run: test -n "$GITHUB_TOKEN" && test -n "$DEV_IDENTITY_INSTALLER" && test -n "$NOTARYTOOL_PASSWORD" && test -n "$APPLE_TEAM_ID" && test -n "$APPLE_ID"
             vault:
               connection: home-vault
               secrets:
@@ -508,15 +635,24 @@ pipelines:
               NOTARYTOOL_PASSWORD: "{{ secret.notarytool-password }}"
               APPLE_TEAM_ID: "{{ secret.apple-team-id }}"
               APPLE_ID: "{{ secret.apple-id }}"
-          - run: rm -rf binaries && mkdir -p binaries/Standalone binaries/AU binaries/VST3 binaries/LV2
-          - run: cp -R dist/codesigned-macos/VMPC2000XL.app binaries/Standalone/VMPC2000XL.app
-          - run: cp -R dist/codesigned-macos/VMPC2000XL.component binaries/AU/VMPC2000XL.component
-          - run: cp -R dist/codesigned-macos/VMPC2000XL.vst3 binaries/VST3/VMPC2000XL.vst3
-          - run: cp -R dist/codesigned-macos/VMPC2000XL.lv2 binaries/LV2/VMPC2000XL.lv2
-          - run: VERSION="$([ -f dist/version-macos-universal.txt ] && cat dist/version-macos-universal.txt | tr -d '\r\n' || /usr/libexec/PlistBuddy -c 'print :CFBundleVersion' binaries/Standalone/VMPC2000XL.app/Contents/Info.plist)" && test -n "$VERSION" && echo "$VERSION" > dist/version-macos-installer.txt
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && packagesutil set package-1 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-2 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-3 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-4 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && sed -i '' "s#<string>VMPC2000XL .*</string>#<string>VMPC2000XL ${VERSION}</string>#g" ./mac/VMPC2000XL.pkgproj
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && git commit -am "Bump Packages project versions to ${VERSION}" && git push "https://izzyreal:${GITHUB_TOKEN}@github.com/izzyreal/vmpc-installer-scripts" HEAD:master
+          - name: Prepare staging directories
+            run: rm -rf binaries && mkdir -p binaries/Standalone binaries/AU binaries/VST3 binaries/LV2
+          - name: Copy app bundle
+            run: cp -R dist/codesigned-macos/VMPC2000XL.app binaries/Standalone/VMPC2000XL.app
+          - name: Copy AU component
+            run: cp -R dist/codesigned-macos/VMPC2000XL.component binaries/AU/VMPC2000XL.component
+          - name: Copy VST3 plugin
+            run: cp -R dist/codesigned-macos/VMPC2000XL.vst3 binaries/VST3/VMPC2000XL.vst3
+          - name: Copy LV2 plugin
+            run: cp -R dist/codesigned-macos/VMPC2000XL.lv2 binaries/LV2/VMPC2000XL.lv2
+          - name: Copy app bundle
+            run: VERSION="$([ -f dist/version-macos-universal.txt ] && cat dist/version-macos-universal.txt | tr -d '\r\n' || /usr/libexec/PlistBuddy -c 'print :CFBundleVersion' binaries/Standalone/VMPC2000XL.app/Contents/Info.plist)" && test -n "$VERSION" && echo "$VERSION" > dist/version-macos-installer.txt
+          - name: Update package versions
+            run: VERSION="$(cat dist/version-macos-installer.txt)" && packagesutil set package-1 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-2 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-3 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-4 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj
+          - name: Update package metadata
+            run: VERSION="$(cat dist/version-macos-installer.txt)" && sed -i '' "s#<string>VMPC2000XL .*</string>#<string>VMPC2000XL ${VERSION}</string>#g" ./mac/VMPC2000XL.pkgproj
+          - name: Commit package metadata
+            run: VERSION="$(cat dist/version-macos-installer.txt)" && git commit -am "Bump Packages project versions to ${VERSION}" && git push "https://izzyreal:${GITHUB_TOKEN}@github.com/izzyreal/vmpc-installer-scripts" HEAD:master
             skip_dry_run: true
             vault:
               connection: home-vault
@@ -527,11 +663,16 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && mkdir -p dist/${VERSION}/mac
-          - run: chmod +x ./binaries/Standalone/VMPC2000XL.app/Contents/MacOS/VMPC2000XL && chmod +x ./binaries/Standalone/VMPC2000XL.app/Contents/PlugIns/VMPC2000XL.appex/Contents/MacOS/VMPC2000XL
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && packagesbuild --build-folder "$PWD/dist/${VERSION}/mac" ./mac/VMPC2000XL.pkgproj
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && mv "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg"
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && productsign --sign "$DEV_IDENTITY_INSTALLER" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
+          - name: Prepare installer output
+            run: VERSION="$(cat dist/version-macos-installer.txt)" && mkdir -p dist/${VERSION}/mac
+          - name: Fix executable bits
+            run: chmod +x ./binaries/Standalone/VMPC2000XL.app/Contents/MacOS/VMPC2000XL && chmod +x ./binaries/Standalone/VMPC2000XL.app/Contents/PlugIns/VMPC2000XL.appex/Contents/MacOS/VMPC2000XL
+          - name: Build Packages installer
+            run: VERSION="$(cat dist/version-macos-installer.txt)" && packagesbuild --build-folder "$PWD/dist/${VERSION}/mac" ./mac/VMPC2000XL.pkgproj
+          - name: Prepare unsigned installer package
+            run: VERSION="$(cat dist/version-macos-installer.txt)" && mv "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg"
+          - name: Sign installer package
+            run: VERSION="$(cat dist/version-macos-installer.txt)" && productsign --sign "$DEV_IDENTITY_INSTALLER" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg" "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
             vault:
               connection: home-vault
               secrets:
@@ -541,7 +682,8 @@ pipelines:
                   key: dev-identity-installer
             env:
               DEV_IDENTITY_INSTALLER: "{{ secret.dev-identity-installer }}"
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && RESULT_JSON="$PWD/dist/${VERSION}/mac/notary-result.json" && xcrun notarytool submit "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" --apple-id "$APPLE_ID" --password "$NOTARYTOOL_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait --output-format json > "$RESULT_JSON" && STATUS="$(plutil -extract status raw -o - "$RESULT_JSON")" && SUBMISSION_ID="$(plutil -extract id raw -o - "$RESULT_JSON")" && if [ "$STATUS" != "Accepted" ]; then echo "notarytool status=${STATUS} submission_id=${SUBMISSION_ID}"; xcrun notarytool log "$SUBMISSION_ID" --apple-id "$APPLE_ID" --password "$NOTARYTOOL_PASSWORD" --team-id "$APPLE_TEAM_ID"; exit 1; fi
+          - name: Submit notarization
+            run: VERSION="$(cat dist/version-macos-installer.txt)" && RESULT_JSON="$PWD/dist/${VERSION}/mac/notary-result.json" && xcrun notarytool submit "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" --apple-id "$APPLE_ID" --password "$NOTARYTOOL_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait --output-format json > "$RESULT_JSON" && STATUS="$(plutil -extract status raw -o - "$RESULT_JSON")" && SUBMISSION_ID="$(plutil -extract id raw -o - "$RESULT_JSON")" && if [ "$STATUS" != "Accepted" ]; then echo "notarytool status=${STATUS} submission_id=${SUBMISSION_ID}"; xcrun notarytool log "$SUBMISSION_ID" --apple-id "$APPLE_ID" --password "$NOTARYTOOL_PASSWORD" --team-id "$APPLE_TEAM_ID"; exit 1; fi
             vault:
               connection: home-vault
               secrets:
@@ -562,9 +704,11 @@ pipelines:
               APPLE_TEAM_ID: "{{ secret.apple-team-id }}"
               APPLE_ID: "{{ secret.apple-id }}"
             skip_dry_run: true
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun stapler staple "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
+          - name: Staple notarization
+            run: VERSION="$(cat dist/version-macos-installer.txt)" && xcrun stapler staple "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg"
             skip_dry_run: true
-          - run: VERSION="$(cat dist/version-macos-installer.txt)" && mv "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "dist/VMPC2000XL-Installer-Intel-M1-v${VERSION}.pkg" && rm -f "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg"
+          - name: Copy signed installer package
+            run: VERSION="$(cat dist/version-macos-installer.txt)" && mv "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1.pkg" "dist/VMPC2000XL-Installer-Intel-M1-v${VERSION}.pkg" && rm -f "$PWD/dist/${VERSION}/mac/VMPC2000XL-Installer-Intel-M1-unsigned.pkg"
 
   - id: package-windows
     trigger: manual
@@ -587,16 +731,26 @@ pipelines:
           - dist/VMPC2000XL-Installer-Win10-x86_64-v*.exe
           - dist/version-windows10-amd64.txt
         steps:
-          - run: if (-not (Test-Path dist)) { New-Item -ItemType Directory -Path dist | Out-Null }
-          - run: if (Test-Path binaries) { Remove-Item -Recurse -Force binaries }
-          - run: New-Item -ItemType Directory -Path binaries\win32\Standalone,binaries\win32\VST3,binaries\win32\LV2,binaries\win64\Standalone,binaries\win64\VST3,binaries\win64\LV2 | Out-Null
-          - run: Copy-Item -Force dist\VMPC2000XL-windows10-x86-Standalone.exe binaries\win32\Standalone\VMPC2000XL.exe
-          - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-x86-VST3.vst3 binaries\win32\VST3\VMPC2000XL.vst3
-          - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-x86-LV2.lv2 binaries\win32\LV2\VMPC2000XL.lv2
-          - run: Copy-Item -Force dist\VMPC2000XL-windows10-amd64-Standalone.exe binaries\win64\Standalone\VMPC2000XL.exe
-          - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-amd64-VST3.vst3 binaries\win64\VST3\VMPC2000XL.vst3
-          - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-amd64-LV2.lv2 binaries\win64\LV2\VMPC2000XL.lv2
-          - run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe"; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe" "dist\VMPC2000XL-Installer-Win10-x86_64-v$($env:VERSION_IN_EXECUTABLE).exe"
+          - name: If ( Not (Test Path Dist)) { New Item ItemType
+            run: if (-not (Test-Path dist)) { New-Item -ItemType Directory -Path dist | Out-Null }
+          - name: If (Test Path Binaries) { Remove Item Recurse
+            run: if (Test-Path binaries) { Remove-Item -Recurse -Force binaries }
+          - name: Prepare staging directories
+            run: New-Item -ItemType Directory -Path binaries\win32\Standalone,binaries\win32\VST3,binaries\win32\LV2,binaries\win64\Standalone,binaries\win64\VST3,binaries\win64\LV2 | Out-Null
+          - name: Copy standalone binary
+            run: Copy-Item -Force dist\VMPC2000XL-windows10-x86-Standalone.exe binaries\win32\Standalone\VMPC2000XL.exe
+          - name: Copy VST3 plugin
+            run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-x86-VST3.vst3 binaries\win32\VST3\VMPC2000XL.vst3
+          - name: Copy LV2 plugin
+            run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-x86-LV2.lv2 binaries\win32\LV2\VMPC2000XL.lv2
+          - name: Copy standalone binary
+            run: Copy-Item -Force dist\VMPC2000XL-windows10-amd64-Standalone.exe binaries\win64\Standalone\VMPC2000XL.exe
+          - name: Copy VST3 plugin
+            run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-amd64-VST3.vst3 binaries\win64\VST3\VMPC2000XL.vst3
+          - name: Copy LV2 plugin
+            run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-amd64-LV2.lv2 binaries\win64\LV2\VMPC2000XL.lv2
+          - name: Copy VST3 plugin
+            run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe"; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe" "dist\VMPC2000XL-Installer-Win10-x86_64-v$($env:VERSION_IN_EXECUTABLE).exe"
 
       - id: windows7-installer
         runs_on:
@@ -612,16 +766,26 @@ pipelines:
           - dist/VMPC2000XL-Installer-Win7-x86_64-v*.exe
           - dist/version-windows10-amd64.txt
         steps:
-          - run: if (-not (Test-Path dist)) { New-Item -ItemType Directory -Path dist | Out-Null }
-          - run: if (Test-Path binaries) { Remove-Item -Recurse -Force binaries }
-          - run: New-Item -ItemType Directory -Path binaries\win32\Standalone,binaries\win32\VST3,binaries\win32\LV2,binaries\win64\Standalone,binaries\win64\VST3,binaries\win64\LV2 | Out-Null
-          - run: Copy-Item -Force dist\VMPC2000XL-windows7-x86-Standalone.exe binaries\win32\Standalone\VMPC2000XL.exe
-          - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-x86-VST3.vst3 binaries\win32\VST3\VMPC2000XL.vst3
-          - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-x86-LV2.lv2 binaries\win32\LV2\VMPC2000XL.lv2
-          - run: Copy-Item -Force dist\VMPC2000XL-windows7-amd64-Standalone.exe binaries\win64\Standalone\VMPC2000XL.exe
-          - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-amd64-VST3.vst3 binaries\win64\VST3\VMPC2000XL.vst3
-          - run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-amd64-LV2.lv2 binaries\win64\LV2\VMPC2000XL.lv2
-          - run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe"; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe" "dist\VMPC2000XL-Installer-Win7-x86_64-v$($env:VERSION_IN_EXECUTABLE).exe"
+          - name: If ( Not (Test Path Dist)) { New Item ItemType
+            run: if (-not (Test-Path dist)) { New-Item -ItemType Directory -Path dist | Out-Null }
+          - name: If (Test Path Binaries) { Remove Item Recurse
+            run: if (Test-Path binaries) { Remove-Item -Recurse -Force binaries }
+          - name: Prepare staging directories
+            run: New-Item -ItemType Directory -Path binaries\win32\Standalone,binaries\win32\VST3,binaries\win32\LV2,binaries\win64\Standalone,binaries\win64\VST3,binaries\win64\LV2 | Out-Null
+          - name: Copy standalone binary
+            run: Copy-Item -Force dist\VMPC2000XL-windows7-x86-Standalone.exe binaries\win32\Standalone\VMPC2000XL.exe
+          - name: Copy VST3 plugin
+            run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-x86-VST3.vst3 binaries\win32\VST3\VMPC2000XL.vst3
+          - name: Copy LV2 plugin
+            run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-x86-LV2.lv2 binaries\win32\LV2\VMPC2000XL.lv2
+          - name: Copy standalone binary
+            run: Copy-Item -Force dist\VMPC2000XL-windows7-amd64-Standalone.exe binaries\win64\Standalone\VMPC2000XL.exe
+          - name: Copy VST3 plugin
+            run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-amd64-VST3.vst3 binaries\win64\VST3\VMPC2000XL.vst3
+          - name: Copy LV2 plugin
+            run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-amd64-LV2.lv2 binaries\win64\LV2\VMPC2000XL.lv2
+          - name: Copy VST3 plugin
+            run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe"; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe" "dist\VMPC2000XL-Installer-Win7-x86_64-v$($env:VERSION_IN_EXECUTABLE).exe"
 
   - id: package-linux
     trigger: manual
@@ -641,15 +805,24 @@ pipelines:
         artifacts:
           - dist/VMPC2000XL-Ubuntu20-x86_64-*.zip
         steps:
-          - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && test -n "$VERSION" && mkdir -p dist/${VERSION}/ubuntu
-          - run: mkdir -p dist/stage/Standalone dist/stage/VST3 dist/stage/LV2
-          - run: cp dist/VMPC2000XL-linux-amd64-Standalone dist/stage/Standalone/VMPC2000XL && chmod +x dist/stage/Standalone/VMPC2000XL
-          - run: cp -R dist/VMPC2000XL-linux-amd64-VST3.vst3 dist/stage/VST3/VMPC2000XL.vst3
-          - run: cp -R dist/VMPC2000XL-linux-amd64-LV2.lv2 dist/stage/LV2/VMPC2000XL.lv2
-          - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/Standalone && zip -v "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-Standalone-v${VERSION}.zip" ./VMPC2000XL)
-          - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/VST3 && zip -v -r "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-VST3-v${VERSION}.zip" ./VMPC2000XL.vst3)
-          - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/LV2 && zip -v -r "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-LV2-v${VERSION}.zip" ./VMPC2000XL.lv2)
-          - run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && cp dist/${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-*.zip dist/
+          - name: Prepare Linux package
+            run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && test -n "$VERSION" && mkdir -p dist/${VERSION}/ubuntu
+          - name: Prepare dist
+            run: mkdir -p dist/stage/Standalone dist/stage/VST3 dist/stage/LV2
+          - name: Fix executable bits
+            run: cp dist/VMPC2000XL-linux-amd64-Standalone dist/stage/Standalone/VMPC2000XL && chmod +x dist/stage/Standalone/VMPC2000XL
+          - name: Copy VST3 plugin
+            run: cp -R dist/VMPC2000XL-linux-amd64-VST3.vst3 dist/stage/VST3/VMPC2000XL.vst3
+          - name: Copy LV2 plugin
+            run: cp -R dist/VMPC2000XL-linux-amd64-LV2.lv2 dist/stage/LV2/VMPC2000XL.lv2
+          - name: Package standalone zip
+            run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/Standalone && zip -v "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-Standalone-v${VERSION}.zip" ./VMPC2000XL)
+          - name: Package VST3 zip
+            run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/VST3 && zip -v -r "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-VST3-v${VERSION}.zip" ./VMPC2000XL.vst3)
+          - name: Package LV2 zip
+            run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/LV2 && zip -v -r "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-LV2-v${VERSION}.zip" ./VMPC2000XL.lv2)
+          - name: Copy Linux packages
+            run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && cp dist/${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-*.zip dist/
   - id: macos-validate
     trigger: manual
     vcs_source:
@@ -676,46 +849,62 @@ pipelines:
           - dist/version-macos-universal.txt
         caches: *build_caches
         steps:
-          - run: mkdir -p dist
-          - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
-          - run: mkdir -p "$CCACHE_DIR"
-          - run: ccache --dir "$CCACHE_DIR" --zero-stats
-          - run: rm -rf "$VMPC2000XL_DOCUMENTS_PATH" && mkdir -p "$VMPC2000XL_DOCUMENTS_PATH"
+          - name: Prepare dist
+            run: mkdir -p dist
+          - name: Prepare FetchContent cache
+            run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - name: Prepare ccache
+            run: mkdir -p "$CCACHE_DIR"
+          - name: Reset ccache stats
+            run: ccache --dir "$CCACHE_DIR" --zero-stats
+          - name: Prepare document directory
+            run: rm -rf "$VMPC2000XL_DOCUMENTS_PATH" && mkdir -p "$VMPC2000XL_DOCUMENTS_PATH"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - name: Configure CMake
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - name: Copy standalone binary
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_AU -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - name: Build AU plugin
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_AU -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_VST3 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - name: Build VST3 plugin
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_VST3 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_LV2 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - name: Build LV2 plugin
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_LV2 -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme mpc-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - name: Build mpc tests
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme mpc-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc-juce-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+          - name: Build vmpc juce tests
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc-juce-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - test:
+          - name: Run Mpc Tests
+            test:
               name: mpc-tests
               command: ./build/_deps/mpc-build/Release/mpc-tests.app/Contents/MacOS/mpc-tests --reporter JUnit::out=build/result-junit.xml
               format: junit-xml
               report: build/result-junit.xml
-          - test:
+          - name: Run Vmpc Juce Tests
+            test:
               name: vmpc-juce-tests
               command: ./build/Release/vmpc-juce-tests --reporter JUnit::out=dist/result-junit-vmpc-juce.xml
               format: junit-xml
               report: dist/result-junit-vmpc-juce.xml
-          - run: cp build/version.txt dist/version-macos-universal.txt
-          - run: ccache --dir "$CCACHE_DIR" --show-stats
+          - name: Copy version file
+            run: cp build/version.txt dist/version-macos-universal.txt
+          - name: Show ccache stats
+            run: ccache --dir "$CCACHE_DIR" --show-stats
   - id: ios
     trigger: manual
     vcs_source:
@@ -742,19 +931,28 @@ pipelines:
           - dist/ExportOptions.plist
         caches: *build_caches
         steps:
-          - run: mkdir -p dist
-          - run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
-          - run: rm -rf build
-          - run: cmake -Wno-dev -B build -G "Xcode" -DCMAKE_SYSTEM_NAME=iOS -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
-          - run: cd build && xcodebuild -project vmpc2000xl.xcodeproj build -target vmpc2000xl_Standalone -parallelizeTargets -configuration RelWithDebInfo -allowProvisioningUpdates
+          - name: Prepare dist
+            run: mkdir -p dist
+          - name: Prepare FetchContent cache
+            run: mkdir -p "$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - name: Clean build directory
+            run: rm -rf build
+          - name: Configure CMake
+            run: cmake -Wno-dev -B build -G "Xcode" -DCMAKE_SYSTEM_NAME=iOS -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
+          - name: Build Standalone
+            run: cd build && xcodebuild -project vmpc2000xl.xcodeproj build -target vmpc2000xl_Standalone -parallelizeTargets -configuration RelWithDebInfo -allowProvisioningUpdates
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: cd build && xcodebuild -project vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -allowProvisioningUpdates -sdk iphoneos -configuration RelWithDebInfo archive -archivePath "./vmpc2000xl_StandaloneAndAUv3.xcarchive"
+          - name: Build Standalone
+            run: cd build && xcodebuild -project vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -allowProvisioningUpdates -sdk iphoneos -configuration RelWithDebInfo archive -archivePath "./vmpc2000xl_StandaloneAndAUv3.xcarchive"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - run: cp build/version.txt dist/version-ios.txt
-          - run: cp ExportOptions.plist dist/ExportOptions.plist
-          - run: cp -R build/vmpc2000xl_StandaloneAndAUv3.xcarchive dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
+          - name: Copy version file
+            run: cp build/version.txt dist/version-ios.txt
+          - name: Copy export options
+            run: cp ExportOptions.plist dist/ExportOptions.plist
+          - name: Copy iOS archive
+            run: cp -R build/vmpc2000xl_StandaloneAndAUv3.xcarchive dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
   - id: release-ios
     trigger: manual
     depends_on:
@@ -771,11 +969,16 @@ pipelines:
             xcodebuild: "*"
         timeout_seconds: 2700
         steps:
-          - run: test -d dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
-          - run: rm -rf build/vmpc2000xl_StandaloneAndAUv3.xcarchive
-          - run: mkdir -p build
-          - run: cp -R dist/vmpc2000xl_StandaloneAndAUv3.xcarchive build/vmpc2000xl_StandaloneAndAUv3.xcarchive
-          - run: cd build && xcodebuild -exportArchive -archivePath ./vmpc2000xl_StandaloneAndAUv3.xcarchive -exportOptionsPlist ../dist/ExportOptions.plist -exportPath "./" -allowProvisioningUpdates
+          - name: Check artifact
+            run: test -d dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
+          - name: Clean build directory
+            run: rm -rf build/vmpc2000xl_StandaloneAndAUv3.xcarchive
+          - name: Prepare build directory
+            run: mkdir -p build
+          - name: Copy iOS archive
+            run: cp -R dist/vmpc2000xl_StandaloneAndAUv3.xcarchive build/vmpc2000xl_StandaloneAndAUv3.xcarchive
+          - name: Build Standalone
+            run: cd build && xcodebuild -exportArchive -archivePath ./vmpc2000xl_StandaloneAndAUv3.xcarchive -exportOptionsPlist ../dist/ExportOptions.plist -exportPath "./" -allowProvisioningUpdates
             skip_dry_run: true
 
   - id: release-ios-gated
@@ -795,11 +998,16 @@ pipelines:
             xcodebuild: "*"
         timeout_seconds: 2700
         steps:
-          - run: test -d dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
-          - run: rm -rf build/vmpc2000xl_StandaloneAndAUv3.xcarchive
-          - run: mkdir -p build
-          - run: cp -R dist/vmpc2000xl_StandaloneAndAUv3.xcarchive build/vmpc2000xl_StandaloneAndAUv3.xcarchive
-          - run: cd build && xcodebuild -exportArchive -archivePath ./vmpc2000xl_StandaloneAndAUv3.xcarchive -exportOptionsPlist ../dist/ExportOptions.plist -exportPath "./" -allowProvisioningUpdates
+          - name: Check artifact
+            run: test -d dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
+          - name: Clean build directory
+            run: rm -rf build/vmpc2000xl_StandaloneAndAUv3.xcarchive
+          - name: Prepare build directory
+            run: mkdir -p build
+          - name: Copy iOS archive
+            run: cp -R dist/vmpc2000xl_StandaloneAndAUv3.xcarchive build/vmpc2000xl_StandaloneAndAUv3.xcarchive
+          - name: Build Standalone
+            run: cd build && xcodebuild -exportArchive -archivePath ./vmpc2000xl_StandaloneAndAUv3.xcarchive -exportOptionsPlist ../dist/ExportOptions.plist -exportPath "./" -allowProvisioningUpdates
             skip_dry_run: true
 
   - id: release-github
@@ -836,7 +1044,8 @@ pipelines:
             git: "*"
         timeout_seconds: 1200
         steps:
-          - run: test -n "$GITHUB_TOKEN"
+          - name: Check credentials
+            run: test -n "$GITHUB_TOKEN"
             skip_dry_run: true
             vault:
               connection: home-vault
@@ -847,20 +1056,11 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - run: VERSION="$(cat dist/version-windows10-amd64.txt | tr -d '\r\n')" && test -n "$VERSION" && echo "$VERSION" > dist/release-version.txt
+          - name: Write release version
+            run: VERSION="$(cat dist/version-windows10-amd64.txt | tr -d '\r\n')" && test -n "$VERSION" && echo "$VERSION" > dist/release-version.txt
             skip_dry_run: true
-          - run: TAG="v$(cat dist/release-version.txt)" && if ! gh release view "$TAG" --repo izzyreal/vmpc-juce >/dev/null 2>&1; then gh release create "$TAG" --target "$CIWI_PIPELINE_SOURCE_REF" --repo izzyreal/vmpc-juce --title "VMPC2000XL $TAG" --notes "Release $TAG"; fi
-            skip_dry_run: true
-            vault:
-              connection: home-vault
-              secrets:
-                - name: github-secret
-                  mount: kv
-                  path: gh
-                  key: token
-            env:
-              GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Win7-x86_64-v$(cat dist/release-version.txt).exe --repo izzyreal/vmpc-juce --clobber
+          - name: Create GitHub release
+            run: TAG="v$(cat dist/release-version.txt)" && if ! gh release view "$TAG" --repo izzyreal/vmpc-juce >/dev/null 2>&1; then gh release create "$TAG" --target "$CIWI_PIPELINE_SOURCE_REF" --repo izzyreal/vmpc-juce --title "VMPC2000XL $TAG" --notes "Release $TAG"; fi
             skip_dry_run: true
             vault:
               connection: home-vault
@@ -871,7 +1071,8 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Win10-x86_64-v$(cat dist/release-version.txt).exe --repo izzyreal/vmpc-juce --clobber
+          - name: Upload release assets
+            run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Win7-x86_64-v$(cat dist/release-version.txt).exe --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
             vault:
               connection: home-vault
@@ -882,7 +1083,8 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Intel-M1-v$(cat dist/release-version.txt).pkg --repo izzyreal/vmpc-juce --clobber
+          - name: Upload release assets
+            run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Win10-x86_64-v$(cat dist/release-version.txt).exe --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
             vault:
               connection: home-vault
@@ -893,7 +1095,8 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-Standalone-v$(cat dist/release-version.txt).zip --repo izzyreal/vmpc-juce --clobber
+          - name: Upload release assets
+            run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Intel-M1-v$(cat dist/release-version.txt).pkg --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
             vault:
               connection: home-vault
@@ -904,7 +1107,8 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-VST3-v$(cat dist/release-version.txt).zip --repo izzyreal/vmpc-juce --clobber
+          - name: Upload release assets
+            run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-Standalone-v$(cat dist/release-version.txt).zip --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
             vault:
               connection: home-vault
@@ -915,7 +1119,20 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-LV2-v$(cat dist/release-version.txt).zip --repo izzyreal/vmpc-juce --clobber
+          - name: Upload release assets
+            run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-VST3-v$(cat dist/release-version.txt).zip --repo izzyreal/vmpc-juce --clobber
+            skip_dry_run: true
+            vault:
+              connection: home-vault
+              secrets:
+                - name: github-secret
+                  mount: kv
+                  path: gh
+                  key: token
+            env:
+              GITHUB_TOKEN: "{{ secret.github-secret }}"
+          - name: Upload release assets
+            run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-LV2-v$(cat dist/release-version.txt).zip --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
             vault:
               connection: home-vault
@@ -927,7 +1144,8 @@ pipelines:
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
 
-          - run: |
+          - name: Check credentials
+            run: |
               VERSION="$(head -n 1 dist/release-version.txt | tr -d '[:space:]')"
               TAG="vmpc-${VERSION}"
               test -n "$VERSION"
