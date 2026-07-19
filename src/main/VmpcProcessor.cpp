@@ -26,6 +26,9 @@
 #include <audiomidi/DiskRecorder.hpp>
 #include <audiomidi/MidiOutput.hpp>
 
+#include <controller/ClientEventController.hpp>
+#include <controller/ClientHardwareEventController.hpp>
+
 #include <disk/AbstractDisk.hpp>
 #include <input/HostInputEvent.hpp>
 #include <performance/PerformanceManager.hpp>
@@ -526,13 +529,32 @@ void VmpcProcessor::processTransport()
         const auto positionQuarterNotes =
             positionInfo->getPpqPosition().orFallback(0);
 
+        const auto hardwareEventController =
+            mpc.clientEventController->clientHardwareEventController;
+
         if (!wasPlaying && isPlaying)
         {
-            mpcTransport->playImmediately();
+            if (hardwareEventController->isRecLockedOrPressed())
+            {
+                mpcTransport->recImmediately();
+            }
+            else if (hardwareEventController->isOverdubLockedOrPressed())
+            {
+                mpcTransport->overdubImmediately();
+            }
+            else
+            {
+                mpcTransport->playImmediately();
+            }
+
+            hardwareEventController->unlockRec();
+            hardwareEventController->unlockOverdub();
         }
         else if (wasPlaying && !isPlaying && mpcTransport->isPlaying())
         {
             mpcTransport->stop();
+            hardwareEventController->unlockRec();
+            hardwareEventController->unlockOverdub();
             previousPositionQuarterNotes =
                 std::numeric_limits<double>::lowest();
         }
