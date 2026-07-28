@@ -132,7 +132,10 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
         return;
     }
 
-    mpc.init();
+    const bool isStandalone = juce::JUCEApplication::isStandaloneApp();
+    mpc::MpcInitOptions initOptions;
+    initOptions.startMidiDeviceDetector = !isStandalone;
+    mpc.init(initOptions);
 
     if (juce::PluginHostType::jucePlugInClientCurrentWrapperType !=
         wrapperType_LV2)
@@ -140,14 +143,19 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
         mpc.getDisk()->initFiles();
     }
 
-    if (juce::JUCEApplication::isStandaloneApp())
+    if (isStandalone)
     {
         const auto autosaveDir = mpc.paths->getDocuments()->autoSavePath();
         const auto saveTarget =
             std::make_shared<mpc::DirectorySaveTarget>(autosaveDir);
         const bool headless = !VmpcProcessor::hasEditor();
 
-        mpc.getAutoSave()->restoreAutoSavedState(mpc, saveTarget, headless);
+        mpc.getAutoSave()->restoreAutoSavedState(
+            mpc, saveTarget, headless,
+            [this]
+            {
+                mpc.startMidiDeviceDetector();
+            });
     }
     else
     {
