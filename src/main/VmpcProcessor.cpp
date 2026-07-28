@@ -467,8 +467,9 @@ void VmpcProcessor::processMidiIn(const juce::MidiBuffer &midiMessages) const
     {
         const auto &m = meta.getMessage();
 
-        const mpc::client::event::ClientMidiEvent mpcMidiEvent =
+        auto mpcMidiEvent =
             JuceToMpcMidiEventConvertor::convert(m);
+        mpcMidiEvent.setBufferOffset(meta.samplePosition);
         mpc.dispatchHostInput(mpc::input::HostInputEvent(mpcMidiEvent));
     }
 }
@@ -693,6 +694,10 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
 
     processTransport();
     processMidiIn(midiMessages);
+    if (!midiMessages.isEmpty())
+    {
+        engineHost->drainAudioThreadStateQueues();
+    }
 
     const auto mpcClock = mpc.getClock();
     const auto mpcTransport = mpc.getSequencer()->getTransport();
