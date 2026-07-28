@@ -470,6 +470,9 @@ pipelines:
       - build
     jobs:
       - id: macos-codesign
+        artifact_sources:
+          - pipeline: build
+            job: macos-universal
         runs_on:
           executor: script
           shell: posix
@@ -587,6 +590,9 @@ pipelines:
       repo: https://github.com/izzyreal/vmpc-installer-scripts.git
     jobs:
       - id: macos-installer
+        artifact_sources:
+          - pipeline: codesign-macos
+            job: macos-codesign
         runs_on:
           executor: script
           shell: posix
@@ -718,6 +724,11 @@ pipelines:
       repo: https://github.com/izzyreal/vmpc-installer-scripts.git
     jobs:
       - id: windows10-installer
+        artifact_sources:
+          - pipeline: build
+            job: windows10-amd64
+          - pipeline: build
+            job: windows10-x86
         runs_on:
           executor: script
           shell: powershell
@@ -753,6 +764,11 @@ pipelines:
             run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe"; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe" "dist\VMPC2000XL-Installer-Win10-x86_64-v$($env:VERSION_IN_EXECUTABLE).exe"
 
       - id: windows7-installer
+        artifact_sources:
+          - pipeline: build
+            job: windows7-amd64
+          - pipeline: build
+            job: windows7-x86
         runs_on:
           executor: script
           shell: powershell
@@ -793,6 +809,9 @@ pipelines:
       - build
     jobs:
       - id: linux-package
+        artifact_sources:
+          - pipeline: build
+            job: linux-amd64
         runs_on:
           executor: script
           shell: posix
@@ -959,6 +978,9 @@ pipelines:
       - build
     jobs:
       - id: ios-export-appstore
+        artifact_sources:
+          - pipeline: build
+            job: ios
         runs_on:
           executor: script
           shell: posix
@@ -988,6 +1010,9 @@ pipelines:
       - ios
     jobs:
       - id: ios-export-appstore-gated
+        artifact_sources:
+          - pipeline: ios
+            job: ios-archive
         runs_on:
           executor: script
           shell: posix
@@ -1033,6 +1058,15 @@ pipelines:
             key: token
     jobs:
       - id: github-release
+        artifact_sources:
+          - pipeline: package-macos
+            job: macos-installer
+          - pipeline: package-windows
+            job: windows10-installer
+          - pipeline: package-windows
+            job: windows7-installer
+          - pipeline: package-linux
+            job: linux-package
         runs_on:
           executor: script
           shell: posix
