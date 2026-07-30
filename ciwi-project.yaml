@@ -63,8 +63,6 @@ pipelines:
             run: cd build && ninja -f build-Release.ninja vmpc2000xl_All mpc-tests vmpc-juce-tests
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
-          - name: Show ccache stats
-            run: if command -v ccache >/dev/null 2>&1; then ccache --show-stats; else echo "ccache not found in container"; fi
           - name: Run Mpc Tests
             test:
               name: mpc-tests
@@ -222,8 +220,6 @@ pipelines:
             run: cp build/build/vmpc2000xl_Standalone.build/Release/DerivedSources/Entitlements.plist dist/StandaloneEntitlements.plist
           - name: Copy AUv3 entitlements
             run: cp build/build/vmpc2000xl_AUv3.build/Release/DerivedSources/Entitlements.plist dist/AUv3Entitlements.plist
-          - name: Show ccache stats
-            run: ccache --dir "$CCACHE_DIR" --show-stats
 
       - id: ios
         runs_on:
@@ -302,8 +298,6 @@ pipelines:
             run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All mpc-tests vmpc-juce-tests
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
-          - name: Show ccache stats
-            run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
           - name: Run Mpc Tests
             test:
               name: mpc-tests
@@ -363,8 +357,6 @@ pipelines:
             run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
-          - name: Show ccache stats
-            run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
           - name: Copy version file
             run: copy /Y build\version.txt dist\version-windows10-x86.txt
           - name: Copy standalone binary
@@ -408,8 +400,6 @@ pipelines:
             run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
-          - name: Show ccache stats
-            run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
           - name: Copy version file
             run: copy /Y build\version.txt dist\version-windows7-amd64.txt
           - name: Copy standalone binary
@@ -453,8 +443,6 @@ pipelines:
             run: set "CCACHE_BASEDIR=%CD%" && set "CCACHE_NOHASHDIR=true" && set "CCACHE_COMPILERCHECK=content" && cmake --build build --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: C:\tmp\vmpc2000xl_documents
-          - name: Show ccache stats
-            run: '"C:\ProgramData\chocolatey\bin\ccache.exe" --dir "%CCACHE_DIR%" --show-stats'
           - name: Copy version file
             run: copy /Y build\version.txt dist\version-windows7-x86.txt
           - name: Copy standalone binary
@@ -922,8 +910,6 @@ pipelines:
               report: dist/result-junit-vmpc-juce.xml
           - name: Copy version file
             run: cp build/version.txt dist/version-macos-universal.txt
-          - name: Show ccache stats
-            run: ccache --dir "$CCACHE_DIR" --show-stats
   - id: ios
     trigger: manual
     vcs_source:
