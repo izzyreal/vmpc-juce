@@ -77,9 +77,9 @@ pipelines:
               command: ./build/Release/vmpc-juce-tests --reporter JUnit::out=dist/result-junit-vmpc-juce.xml
               format: junit-xml
               report: dist/result-junit-vmpc-juce.xml
-          - name: Copy test binary
+          - name: Copy MPC test binary
             run: cp build/_deps/mpc-build/Release/mpc-tests dist/mpc-tests-linux-amd64
-          - name: Copy test binary
+          - name: Copy VMPC JUCE test binary
             run: cp build/Release/vmpc-juce-tests dist/vmpc-juce-tests-linux-amd64
           - name: Copy version file
             run: cp build/version.txt dist/version-linux-amd64.txt
@@ -113,21 +113,21 @@ pipelines:
         steps:
           - name: Prepare document directory
             run: mkdir -p /tmp/vmpc2000xl_documents
-          - name: Clean dependency check
+          - name: Clean offline-build workspace
             run: rm -rf editables/JUCE editables/mpc editables/juce-raw-keyboard-input-module deps/json deps/melatonin_blur build-offline-src offline-check
-          - name: Configure CMake
+          - name: Configure source-package build
             run: cmake -S . -B build-offline-src -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
-          - name: Build CMake targets
+          - name: Build source archive
             run: cmake --build build-offline-src --config Release --target package_source
           - name: Extract source archive
             run: mkdir -p offline-check && (cd offline-check && cmake -E tar xzf ../build-offline-src/vmpc2000xl-*-Source.tar.gz)
-          - name: Configure CMake
+          - name: Configure extracted source offline
             run: SOURCE_DIR="$(find offline-check -mindepth 1 -maxdepth 1 -type d | head -n 1)" && test -n "$SOURCE_DIR" && cmake -S "$SOURCE_DIR" -B "$SOURCE_DIR/build" -G "Ninja Multi-Config" -DRTMIDI_API_ALSA=ON -Wno-dev -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_FULLY_DISCONNECTED=ON
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
-          - name: Build CMake targets
+          - name: Build extracted source offline
             run: SOURCE_DIR="$(find offline-check -mindepth 1 -maxdepth 1 -type d | head -n 1)" && test -n "$SOURCE_DIR" && cmake --build "$SOURCE_DIR/build" --config Release --target vmpc2000xl_All
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents
@@ -172,7 +172,7 @@ pipelines:
             run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - name: Copy standalone binary
+          - name: Build standalone app
             run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
@@ -251,11 +251,11 @@ pipelines:
             run: rm -rf build
           - name: Configure CMake
             run: cmake -Wno-dev -B build -G "Xcode" -DCMAKE_SYSTEM_NAME=iOS -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
-          - name: Build Standalone
+          - name: Build standalone target
             run: cd build && xcodebuild -project vmpc2000xl.xcodeproj build -target vmpc2000xl_Standalone -parallelizeTargets -configuration RelWithDebInfo -allowProvisioningUpdates
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - name: Build Standalone
+          - name: Archive standalone app
             run: cd build && xcodebuild -project vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -allowProvisioningUpdates -sdk iphoneos -configuration RelWithDebInfo archive -archivePath "./vmpc2000xl_StandaloneAndAUv3.xcarchive"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
@@ -316,9 +316,9 @@ pipelines:
               command: build\Release\vmpc-juce-tests.exe --reporter JUnit::out=build\result-junit-vmpc-juce.xml
               format: junit-xml
               report: build/result-junit-vmpc-juce.xml
-          - name: Copy test binary
+          - name: Copy MPC test binary
             run: copy /Y build\_deps\mpc-build\Release\mpc-tests.exe dist\mpc-tests-windows10-amd64.exe
-          - name: Copy test binary
+          - name: Copy VMPC JUCE test binary
             run: copy /Y build\Release\vmpc-juce-tests.exe dist\vmpc-juce-tests-windows10-amd64.exe
           - name: Copy version file
             run: copy /Y build\version.txt dist\version-windows10-amd64.txt
@@ -500,23 +500,23 @@ pipelines:
               DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
           - name: Prepare staging directories
             run: rm -rf binaries && mkdir -p binaries/Standalone binaries/AU binaries/VST3 binaries/LV2 binaries/StandaloneEntitlements binaries/AUv3Entitlements
-          - name: Copy app bundle
+          - name: Stage unsigned app bundle
             run: cp -R dist/VMPC2000XL-macos-universal-Standalone.app binaries/Standalone/VMPC2000XL.app
-          - name: Copy AU component
+          - name: Stage unsigned AU component
             run: cp -R dist/VMPC2000XL-macos-universal-AU.component binaries/AU/VMPC2000XL.component
-          - name: Copy VST3 plugin
+          - name: Stage unsigned VST3 plugin
             run: cp -R dist/VMPC2000XL-macos-universal-VST3.vst3 binaries/VST3/VMPC2000XL.vst3
-          - name: Copy LV2 plugin
+          - name: Stage unsigned LV2 plugin
             run: cp -R dist/VMPC2000XL-macos-universal-LV2.lv2 binaries/LV2/VMPC2000XL.lv2
-          - name: Copy Standalone entitlements
+          - name: Stage Standalone entitlements
             run: cp dist/StandaloneEntitlements.plist binaries/StandaloneEntitlements/Entitlements.plist
-          - name: Copy AUv3 entitlements
+          - name: Stage AUv3 entitlements
             run: cp dist/AUv3Entitlements.plist binaries/AUv3Entitlements/Entitlements.plist
-          - name: Copy Standalone entitlements
+          - name: Remove debug entitlement from Standalone
             run: /usr/libexec/PlistBuddy -c 'Delete :com.apple.security.get-task-allow' ./binaries/StandaloneEntitlements/Entitlements.plist || true
-          - name: Copy AUv3 entitlements
+          - name: Remove debug entitlement from AUv3
             run: /usr/libexec/PlistBuddy -c 'Delete :com.apple.security.get-task-allow' ./binaries/AUv3Entitlements/Entitlements.plist || true
-          - name: Copy AUv3 entitlements
+          - name: Sign AUv3 extension
             run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/Standalone/VMPC2000XL.app/Contents/PlugIns/VMPC2000XL.appex --entitlements ./binaries/AUv3Entitlements/Entitlements.plist --deep --strict --options=runtime --timestamp
             vault:
               connection: home-vault
@@ -527,7 +527,7 @@ pipelines:
                   key: dev-identity-app
             env:
               DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
-          - name: Copy Standalone entitlements
+          - name: Sign standalone app
             run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/Standalone/VMPC2000XL.app --entitlements ./binaries/StandaloneEntitlements/Entitlements.plist --strict --options=runtime --timestamp
             vault:
               connection: home-vault
@@ -538,7 +538,7 @@ pipelines:
                   key: dev-identity-app
             env:
               DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
-          - name: Copy AU component
+          - name: Sign AU component
             run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/AU/VMPC2000XL.component --deep --strict --options=runtime --timestamp
             vault:
               connection: home-vault
@@ -549,7 +549,7 @@ pipelines:
                   key: dev-identity-app
             env:
               DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
-          - name: Copy VST3 plugin
+          - name: Sign VST3 plugin
             run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/VST3/VMPC2000XL.vst3 --deep --strict --options=runtime --timestamp
             vault:
               connection: home-vault
@@ -560,7 +560,7 @@ pipelines:
                   key: dev-identity-app
             env:
               DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
-          - name: Copy LV2 plugin
+          - name: Sign LV2 plugin
             run: codesign --force -s "$DEV_IDENTITY_APP" -v ./binaries/LV2/VMPC2000XL.lv2/libVMPC2000XL.so --strict --timestamp
             vault:
               connection: home-vault
@@ -573,13 +573,13 @@ pipelines:
               DEV_IDENTITY_APP: "{{ secret.dev-identity-app }}"
           - name: Prepare codesign output
             run: rm -rf dist/codesigned-macos && mkdir -p dist/codesigned-macos
-          - name: Copy app bundle
+          - name: Publish signed app bundle
             run: cp -R binaries/Standalone/VMPC2000XL.app dist/codesigned-macos/VMPC2000XL.app
-          - name: Copy AU component
+          - name: Publish signed AU component
             run: cp -R binaries/AU/VMPC2000XL.component dist/codesigned-macos/VMPC2000XL.component
-          - name: Copy VST3 plugin
+          - name: Publish signed VST3 plugin
             run: cp -R binaries/VST3/VMPC2000XL.vst3 dist/codesigned-macos/VMPC2000XL.vst3
-          - name: Copy LV2 plugin
+          - name: Publish signed LV2 plugin
             run: cp -R binaries/LV2/VMPC2000XL.lv2 dist/codesigned-macos/VMPC2000XL.lv2
 
   - id: package-macos
@@ -643,15 +643,15 @@ pipelines:
               APPLE_ID: "{{ secret.apple-id }}"
           - name: Prepare staging directories
             run: rm -rf binaries && mkdir -p binaries/Standalone binaries/AU binaries/VST3 binaries/LV2
-          - name: Copy app bundle
+          - name: Stage signed app bundle
             run: cp -R dist/codesigned-macos/VMPC2000XL.app binaries/Standalone/VMPC2000XL.app
-          - name: Copy AU component
+          - name: Stage signed AU component
             run: cp -R dist/codesigned-macos/VMPC2000XL.component binaries/AU/VMPC2000XL.component
-          - name: Copy VST3 plugin
+          - name: Stage signed VST3 plugin
             run: cp -R dist/codesigned-macos/VMPC2000XL.vst3 binaries/VST3/VMPC2000XL.vst3
-          - name: Copy LV2 plugin
+          - name: Stage signed LV2 plugin
             run: cp -R dist/codesigned-macos/VMPC2000XL.lv2 binaries/LV2/VMPC2000XL.lv2
-          - name: Copy app bundle
+          - name: Write installer version
             run: VERSION="$([ -f dist/version-macos-universal.txt ] && cat dist/version-macos-universal.txt | tr -d '\r\n' || /usr/libexec/PlistBuddy -c 'print :CFBundleVersion' binaries/Standalone/VMPC2000XL.app/Contents/Info.plist)" && test -n "$VERSION" && echo "$VERSION" > dist/version-macos-installer.txt
           - name: Update package versions
             run: VERSION="$(cat dist/version-macos-installer.txt)" && packagesutil set package-1 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-2 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-3 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj && packagesutil set package-4 version "$VERSION" --file ./mac/VMPC2000XL.pkgproj
@@ -742,25 +742,25 @@ pipelines:
           - dist/VMPC2000XL-Installer-Win10-x86_64-v*.exe
           - dist/version-windows10-amd64.txt
         steps:
-          - name: If ( Not (Test Path Dist)) { New Item ItemType
+          - name: Prepare dist
             run: if (-not (Test-Path dist)) { New-Item -ItemType Directory -Path dist | Out-Null }
-          - name: If (Test Path Binaries) { Remove Item Recurse
+          - name: Clean staging directory
             run: if (Test-Path binaries) { Remove-Item -Recurse -Force binaries }
           - name: Prepare staging directories
             run: New-Item -ItemType Directory -Path binaries\win32\Standalone,binaries\win32\VST3,binaries\win32\LV2,binaries\win64\Standalone,binaries\win64\VST3,binaries\win64\LV2 | Out-Null
-          - name: Copy standalone binary
+          - name: Stage x86 standalone binary
             run: Copy-Item -Force dist\VMPC2000XL-windows10-x86-Standalone.exe binaries\win32\Standalone\VMPC2000XL.exe
-          - name: Copy VST3 plugin
+          - name: Stage x86 VST3 plugin
             run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-x86-VST3.vst3 binaries\win32\VST3\VMPC2000XL.vst3
-          - name: Copy LV2 plugin
+          - name: Stage x86 LV2 plugin
             run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-x86-LV2.lv2 binaries\win32\LV2\VMPC2000XL.lv2
-          - name: Copy standalone binary
+          - name: Stage x64 standalone binary
             run: Copy-Item -Force dist\VMPC2000XL-windows10-amd64-Standalone.exe binaries\win64\Standalone\VMPC2000XL.exe
-          - name: Copy VST3 plugin
+          - name: Stage x64 VST3 plugin
             run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-amd64-VST3.vst3 binaries\win64\VST3\VMPC2000XL.vst3
-          - name: Copy LV2 plugin
+          - name: Stage x64 LV2 plugin
             run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows10-amd64-LV2.lv2 binaries\win64\LV2\VMPC2000XL.lv2
-          - name: Copy VST3 plugin
+          - name: Build Windows 10 installer
             run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe"; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win10-x86_64.exe" "dist\VMPC2000XL-Installer-Win10-x86_64-v$($env:VERSION_IN_EXECUTABLE).exe"
 
       - id: windows7-installer
@@ -782,25 +782,25 @@ pipelines:
           - dist/VMPC2000XL-Installer-Win7-x86_64-v*.exe
           - dist/version-windows10-amd64.txt
         steps:
-          - name: If ( Not (Test Path Dist)) { New Item ItemType
+          - name: Prepare dist
             run: if (-not (Test-Path dist)) { New-Item -ItemType Directory -Path dist | Out-Null }
-          - name: If (Test Path Binaries) { Remove Item Recurse
+          - name: Clean staging directory
             run: if (Test-Path binaries) { Remove-Item -Recurse -Force binaries }
           - name: Prepare staging directories
             run: New-Item -ItemType Directory -Path binaries\win32\Standalone,binaries\win32\VST3,binaries\win32\LV2,binaries\win64\Standalone,binaries\win64\VST3,binaries\win64\LV2 | Out-Null
-          - name: Copy standalone binary
+          - name: Stage x86 standalone binary
             run: Copy-Item -Force dist\VMPC2000XL-windows7-x86-Standalone.exe binaries\win32\Standalone\VMPC2000XL.exe
-          - name: Copy VST3 plugin
+          - name: Stage x86 VST3 plugin
             run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-x86-VST3.vst3 binaries\win32\VST3\VMPC2000XL.vst3
-          - name: Copy LV2 plugin
+          - name: Stage x86 LV2 plugin
             run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-x86-LV2.lv2 binaries\win32\LV2\VMPC2000XL.lv2
-          - name: Copy standalone binary
+          - name: Stage x64 standalone binary
             run: Copy-Item -Force dist\VMPC2000XL-windows7-amd64-Standalone.exe binaries\win64\Standalone\VMPC2000XL.exe
-          - name: Copy VST3 plugin
+          - name: Stage x64 VST3 plugin
             run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-amd64-VST3.vst3 binaries\win64\VST3\VMPC2000XL.vst3
-          - name: Copy LV2 plugin
+          - name: Stage x64 LV2 plugin
             run: Copy-Item -Recurse -Force dist\VMPC2000XL-windows7-amd64-LV2.lv2 binaries\win64\LV2\VMPC2000XL.lv2
-          - name: Copy VST3 plugin
+          - name: Build Windows 7 installer
             run: $env:VERSION_IN_EXECUTABLE = (Get-Command binaries\win64\Standalone\VMPC2000XL.exe).FileVersionInfo.FileVersion; $env:32_BIT_EXECUTABLE_PATH = '..\binaries\win32\Standalone\VMPC2000XL.exe'; $env:32_BIT_VST3_PATH = '..\binaries\win32\VST3\VMPC2000XL.vst3\*'; $env:32_BIT_LV2_PATH = '..\binaries\win32\LV2\VMPC2000XL.lv2\*'; $env:64_BIT_EXECUTABLE_PATH = '..\binaries\win64\Standalone\VMPC2000XL.exe'; $env:64_BIT_VST3_PATH = '..\binaries\win64\VST3\VMPC2000XL.vst3\*'; $env:64_BIT_LV2_PATH = '..\binaries\win64\LV2\VMPC2000XL.lv2\*'; $env:DEMO_DATA_PATH = '..\demo_data\*'; $env:INSTALLER_SCRIPT_PATH = "$pwd\win\vmpc.iss"; $env:OUTPUT_DIR = "$pwd\dist\$($env:VERSION_IN_EXECUTABLE)\win"; iscc $env:INSTALLER_SCRIPT_PATH; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-x86_64.exe" "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe"; Move-Item -Force "$env:OUTPUT_DIR\VMPC2000XL-Installer-Win7-x86_64.exe" "dist\VMPC2000XL-Installer-Win7-x86_64-v$($env:VERSION_IN_EXECUTABLE).exe"
 
   - id: package-linux
@@ -826,13 +826,13 @@ pipelines:
         steps:
           - name: Prepare Linux package
             run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && test -n "$VERSION" && mkdir -p dist/${VERSION}/ubuntu
-          - name: Prepare dist
+          - name: Prepare staging directories
             run: mkdir -p dist/stage/Standalone dist/stage/VST3 dist/stage/LV2
-          - name: Fix executable bits
+          - name: Stage standalone binary and fix permissions
             run: cp dist/VMPC2000XL-linux-amd64-Standalone dist/stage/Standalone/VMPC2000XL && chmod +x dist/stage/Standalone/VMPC2000XL
-          - name: Copy VST3 plugin
+          - name: Stage VST3 plugin
             run: cp -R dist/VMPC2000XL-linux-amd64-VST3.vst3 dist/stage/VST3/VMPC2000XL.vst3
-          - name: Copy LV2 plugin
+          - name: Stage LV2 plugin
             run: cp -R dist/VMPC2000XL-linux-amd64-LV2.lv2 dist/stage/LV2/VMPC2000XL.lv2
           - name: Package standalone zip
             run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/Standalone && zip -v "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-Standalone-v${VERSION}.zip" ./VMPC2000XL)
@@ -840,7 +840,7 @@ pipelines:
             run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/VST3 && zip -v -r "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-VST3-v${VERSION}.zip" ./VMPC2000XL.vst3)
           - name: Package LV2 zip
             run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && (cd dist/stage/LV2 && zip -v -r "../../${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-LV2-v${VERSION}.zip" ./VMPC2000XL.lv2)
-          - name: Copy Linux packages
+          - name: Collect Linux packages
             run: VERSION="$(cat dist/version-linux-amd64.txt | tr -d '\r\n')" && cp dist/${VERSION}/ubuntu/VMPC2000XL-Ubuntu20-x86_64-*.zip dist/
   - id: macos-validate
     trigger: manual
@@ -884,7 +884,7 @@ pipelines:
             run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content cmake -S . -B build -G "Xcode" -Wno-dev -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -D CMAKE_EXE_LINKER_FLAGS=-Wl,-ld_classic -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=ON -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - name: Copy standalone binary
+          - name: Build standalone app
             run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
@@ -958,11 +958,11 @@ pipelines:
             run: rm -rf build
           - name: Configure CMake
             run: cmake -Wno-dev -B build -G "Xcode" -DCMAKE_SYSTEM_NAME=iOS -DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF -DVMPC_BUILD_CCACHE_ENABLED=ON -DVMPC_BUILD_TESTS=OFF -DFETCHCONTENT_CACHE_ROOT="$CIWI_FETCHCONTENT_SOURCES_DIR"
-          - name: Build Standalone
+          - name: Build standalone target
             run: cd build && xcodebuild -project vmpc2000xl.xcodeproj build -target vmpc2000xl_Standalone -parallelizeTargets -configuration RelWithDebInfo -allowProvisioningUpdates
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
-          - name: Build Standalone
+          - name: Archive standalone app
             run: cd build && xcodebuild -project vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -allowProvisioningUpdates -sdk iphoneos -configuration RelWithDebInfo archive -archivePath "./vmpc2000xl_StandaloneAndAUv3.xcarchive"
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
@@ -991,15 +991,15 @@ pipelines:
             xcodebuild: "*"
         timeout_seconds: 2700
         steps:
-          - name: Check artifact
+          - name: Verify iOS archive
             run: test -d dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
           - name: Clean build directory
             run: rm -rf build/vmpc2000xl_StandaloneAndAUv3.xcarchive
           - name: Prepare build directory
             run: mkdir -p build
-          - name: Copy iOS archive
+          - name: Stage iOS archive for export
             run: cp -R dist/vmpc2000xl_StandaloneAndAUv3.xcarchive build/vmpc2000xl_StandaloneAndAUv3.xcarchive
-          - name: Build Standalone
+          - name: Export App Store archive
             run: cd build && xcodebuild -exportArchive -archivePath ./vmpc2000xl_StandaloneAndAUv3.xcarchive -exportOptionsPlist ../dist/ExportOptions.plist -exportPath "./" -allowProvisioningUpdates
             skip_dry_run: true
 
@@ -1023,15 +1023,15 @@ pipelines:
             xcodebuild: "*"
         timeout_seconds: 2700
         steps:
-          - name: Check artifact
+          - name: Verify iOS archive
             run: test -d dist/vmpc2000xl_StandaloneAndAUv3.xcarchive
           - name: Clean build directory
             run: rm -rf build/vmpc2000xl_StandaloneAndAUv3.xcarchive
           - name: Prepare build directory
             run: mkdir -p build
-          - name: Copy iOS archive
+          - name: Stage iOS archive for export
             run: cp -R dist/vmpc2000xl_StandaloneAndAUv3.xcarchive build/vmpc2000xl_StandaloneAndAUv3.xcarchive
-          - name: Build Standalone
+          - name: Export App Store archive
             run: cd build && xcodebuild -exportArchive -archivePath ./vmpc2000xl_StandaloneAndAUv3.xcarchive -exportOptionsPlist ../dist/ExportOptions.plist -exportPath "./" -allowProvisioningUpdates
             skip_dry_run: true
 
@@ -1105,7 +1105,7 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - name: Upload release assets
+          - name: Upload Windows 7 installer
             run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Win7-x86_64-v$(cat dist/release-version.txt).exe --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
             vault:
@@ -1117,7 +1117,7 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - name: Upload release assets
+          - name: Upload Windows 10 installer
             run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Win10-x86_64-v$(cat dist/release-version.txt).exe --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
             vault:
@@ -1129,7 +1129,7 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - name: Upload release assets
+          - name: Upload macOS installer
             run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Installer-Intel-M1-v$(cat dist/release-version.txt).pkg --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
             vault:
@@ -1141,7 +1141,7 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - name: Upload release assets
+          - name: Upload Linux standalone archive
             run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-Standalone-v$(cat dist/release-version.txt).zip --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
             vault:
@@ -1153,7 +1153,7 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - name: Upload release assets
+          - name: Upload Linux VST3 archive
             run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-VST3-v$(cat dist/release-version.txt).zip --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
             vault:
@@ -1165,7 +1165,7 @@ pipelines:
                   key: token
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
-          - name: Upload release assets
+          - name: Upload Linux LV2 archive
             run: TAG="v$(cat dist/release-version.txt)" && gh release upload "$TAG" dist/VMPC2000XL-Ubuntu20-x86_64-LV2-v$(cat dist/release-version.txt).zip --repo izzyreal/vmpc-juce --clobber
             skip_dry_run: true
             vault:
@@ -1178,7 +1178,7 @@ pipelines:
             env:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
 
-          - name: Check credentials
+          - name: Tag dependency repositories
             run: |
               VERSION="$(head -n 1 dist/release-version.txt | tr -d '[:space:]')"
               TAG="vmpc-${VERSION}"
