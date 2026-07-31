@@ -1221,12 +1221,12 @@ pipelines:
               GITHUB_TOKEN: "{{ secret.github-secret }}"
 
 pipeline_chains:
-  - id: build-release-ios
+  - name: Validate and release iOS
     pipelines:
       - macos-validate
       - ios
       - release-ios-gated
-  - id: build-codesign-package-release
+  - name: Full cross-platform release
     pipelines:
       - build
       - codesign-macos
