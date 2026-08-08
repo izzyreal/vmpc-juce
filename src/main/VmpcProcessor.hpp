@@ -75,7 +75,7 @@ namespace vmpc_juce
 
         static BusesProperties getBusesProperties();
 
-        std::bitset<10> possiblyActiveMpcMonoOutChannels;
+        std::bitset<12> possiblyActiveMpcMonoOutChannels;
 
         void computePossiblyActiveMpcMonoOutChannels();
 

@@ -93,9 +93,9 @@ VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
 {
     midiOutputBuffer.resize(512);
 
-    mpcMonoOutputChannelIndicesToRender.reserve(18);
-    hostOutputChannelIndicesToRender.reserve(18);
-    previousHostOutputChannelIndicesToRender.reserve(18);
+    mpcMonoOutputChannelIndicesToRender.reserve(20);
+    hostOutputChannelIndicesToRender.reserve(20);
+    previousHostOutputChannelIndicesToRender.reserve(20);
 
     const time_t currentTime = time(nullptr);
     const tm *currentLocalTime = localtime(&currentTime);
@@ -278,7 +278,7 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
     if (juce::JUCEApplication::isStandaloneApp())
     {
         BusesProperties result;
-        result.addBus(false, "OUTPUT", C::discreteChannels(10));
+        result.addBus(false, "OUTPUT", C::discreteChannels(12));
         result.addBus(true, "RECORD", C::discreteChannels(2));
         return result;
     }
@@ -296,14 +296,14 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
         monoInCount = 0;
         stereoInCount = 1;
         monoOutCount = 8;
-        stereoOutCount = 5;
+        stereoOutCount = 6;
     }
     else /* if LV2 or VST3 */
     {
         monoInCount = 2;
         stereoInCount = 1;
         monoOutCount = 8;
-        stereoOutCount = 5;
+        stereoOutCount = 6;
     }
 
     BusesProperties result;
@@ -315,9 +315,10 @@ juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()
 
     for (int i = 0; i < stereoOutCount; i++)
     {
-        const auto name = i == 0 ? "STEREO OUT L/R"
-                                 : "MIX OUT " + std::to_string(i * 2 - 1) +
-                                       "/" + std::to_string(i * 2);
+        const auto name = i == 0   ? "STEREO OUT L/R"
+                          : i == 5 ? "Physical sounds"
+                                   : "MIX OUT " + std::to_string(i * 2 - 1) +
+                                         "/" + std::to_string(i * 2);
         const bool enabledByDefault = i == 0 || isAUv2 || isAUv3;
         result = result.withOutput(name, C::stereo(), enabledByDefault);
     }
@@ -375,7 +376,7 @@ bool VmpcProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
 
     for (int i = 1; i < layouts.getBuses(false).size(); i++)
     {
-        if (i >= 5)
+        if (i >= 6)
         {
             break;
         }
@@ -389,7 +390,7 @@ bool VmpcProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
         }
     }
 
-    for (int i = 5; i < layouts.getBuses(false).size(); i++)
+    for (int i = 6; i < layouts.getBuses(false).size(); i++)
     {
         if (layouts.getChannelSet(false, i) != juce::AudioChannelSet::mono() &&
             layouts.getChannelSet(false, i) !=
@@ -454,16 +455,16 @@ bool VmpcProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
     {
         result = stereoInputCount == 1 && monoInputCount == 0 &&
                  stereoOutputCount == 1 && monoOutputCount == 0;
-        result = result || (stereoOutputCount == 5 && monoOutputCount == 8 &&
+        result = result || (stereoOutputCount == 6 && monoOutputCount == 8 &&
                             stereoInputCount == 1 && monoInputCount == 0);
     }
     else if (isStandalone)
     {
-        result = totalNumInputChannels <= 2 && totalNumOutputChannels <= 10;
+        result = totalNumInputChannels <= 2 && totalNumOutputChannels <= 12;
     }
     else if (isVST3 || isLV2)
     {
-        result = totalNumInputChannels <= 4 && totalNumOutputChannels <= 18;
+        result = totalNumInputChannels <= 4 && totalNumOutputChannels <= 20;
     }
 
     return result;
@@ -1076,7 +1077,7 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
 
         for (int i = 0; i < getBus(false, 0)->getNumberOfChannels(); i++)
         {
-            if (i > 9)
+            if (i > 11)
             {
                 break;
             }
@@ -1176,9 +1177,9 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
 
     for (int i = 0; i < getBusCount(false); i++)
     {
-        if (mpcMonoChannelCounter >= 10)
+        if (mpcMonoChannelCounter >= 12)
         {
-            mpcMonoChannelCounter -= 10;
+            mpcMonoChannelCounter -= 12;
         }
 
         const auto bus = getBus(false, i);
@@ -1191,9 +1192,9 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
          */
 
         const bool busWasRequestedToBeStereoButIsMono =
-            bus->getBusIndex() <= 4 && bus->getLastEnabledLayout().size() == 1;
+            bus->getBusIndex() <= 5 && bus->getLastEnabledLayout().size() == 1;
         const bool busWasRequestedToBeMonoButIsStereo =
-            bus->getBusIndex() >= 5 && bus->getLastEnabledLayout().size() == 2;
+            bus->getBusIndex() >= 6 && bus->getLastEnabledLayout().size() == 2;
 
         int mpcMonoChannelsToAdd = bus->getLastEnabledLayout().size();
 
@@ -1215,10 +1216,10 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
             continue;
         }
 
-        if (bus->getBusIndex() < 5)
+        if (bus->getBusIndex() < 6)
         {
             // Here we process stereo buses STEREO OUT L/R, MIX 1/2, MIX 3/4,
-            // MIX 5/6 and MIX 7/8
+            // MIX 5/6, MIX 7/8 and Physical sounds.
             hostOutputChannelIndices.push_back(static_cast<int8_t>(
                 bus->getChannelIndexInProcessBlockBuffer(0)));
             mpcMonoOutputChannelIndices.push_back(
@@ -1245,8 +1246,7 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
         }
         else
         {
-            // Here we process mono buses STEREO OUT L, STEREO OUT R, MIX 1 ...
-            // MIX 8
+            // Here we process the mono MIX 1 ... MIX 8 buses.
             hostOutputChannelIndices.push_back(static_cast<int8_t>(
                 bus->getChannelIndexInProcessBlockBuffer(0)));
             mpcMonoOutputChannelIndices.push_back(
@@ -1308,10 +1308,10 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
         // so far, I'm not aware of a way to make an AUv2/3 expose 2 fixed bus
         // layouts to Logic, of which one has mixed mono and stereo channels:
         // 1. 1x stereo in, 1x stereo out
-        // 2. 1x stereo in, 5x stereo out and 8x mono out
+        // 2. 1x stereo in, 6x stereo out and 8x mono out
         // This has led to the decision to rely on "implicit" or "default"
         // layouts. See https://github.com/juce-framework/JUCE/issues/1508 This
-        // in turn poses the problem that in Logic, all 13 busses are always
+        // in turn poses the problem that in Logic, all 14 busses are always
         // reported to be active, even if the user loads the 1x stereo in, 1x
         // stereo out plugin flavor. So it's fine if we assume all busses are
         // stereo, as this will still prevent rendering MIX1...8, as long as the
@@ -1334,6 +1334,15 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
     // We always render STEREO L/R
     insertValue(0);
     insertValue(1);
+
+    const auto engineHost = mpc.getEngineHost();
+    if (engineHost->arePhysicalSoundsEnabled() &&
+        engineHost->getPhysicalSoundsMixMode() ==
+            mpc::engine::PhysicalSoundsMixMode::Dedicated)
+    {
+        insertValue(10);
+        insertValue(11);
+    }
 
     const auto metronomeSoundScreen =
         mpc.screens->get<ScreenId::MetronomeSoundScreen>();
