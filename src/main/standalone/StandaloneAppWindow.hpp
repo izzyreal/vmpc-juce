@@ -602,9 +602,10 @@ namespace vmpc_juce::standalone
         //==============================================================================
         void closeButtonPressed() override
         {
-            pluginHolder->savePluginState();
-
-            JUCEApplicationBase::quit();
+            if (auto *app = JUCEApplicationBase::getInstance())
+            {
+                app->systemRequestedQuit();
+            }
         }
 
         StandalonePluginHolder *getPluginHolder() const

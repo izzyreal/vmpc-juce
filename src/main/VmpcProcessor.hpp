@@ -6,9 +6,10 @@
 
 #include <Mpc.hpp>
 
+#include <atomic>
+#include <bitset>
 #include <limits>
 #include <vector>
-#include <bitset>
 
 namespace vmpc_juce
 {
@@ -20,7 +21,11 @@ namespace vmpc_juce
 
         void prepareToPlay(double sampleRate, int samplesPerBlock) override;
 
-        void releaseResources() override {}
+        void releaseResources() override;
+
+        bool beginStandalonePhysicalPowerOff();
+        bool isStandalonePhysicalPowerOffComplete();
+        double getPhysicalPowerOffDurationSeconds();
 
         bool isBusesLayoutSupported(const BusesLayout &layouts) const override;
 
@@ -84,6 +89,8 @@ namespace vmpc_juce
         std::vector<mpc::client::event::ClientMidiEvent> midiOutputBuffer;
         bool requiredResourcesAvailable = true;
         std::string requiredResourcesFailureMessage;
+        std::atomic<bool> audioStreamActive{false};
+        std::atomic<bool> physicalPowerOnRequested{false};
 
     public:
         bool shouldShowDisclaimer = true;

@@ -8,7 +8,8 @@ extern juce::JUCEApplicationBase *juce_CreateApplication();
 
 namespace vmpc_juce::standalone
 {
-    class StandaloneApp final : public juce::JUCEApplication
+    class StandaloneApp final : public juce::JUCEApplication,
+                                private juce::Timer
     {
     public:
         StandaloneApp();
@@ -37,5 +38,8 @@ namespace vmpc_juce::standalone
         juce::ApplicationProperties appProperties;
         std::unique_ptr<StandaloneAppWindow> mainWindow;
         void requestQuit() const;
+        void timerCallback() override;
+        bool shutdownPending = false;
+        double shutdownDeadlineMs = 0.0;
     };
 } // namespace vmpc_juce::standalone

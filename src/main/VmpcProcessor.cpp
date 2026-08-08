@@ -255,6 +255,12 @@ void VmpcProcessor::prepareToPlay(const double sampleRate,
     const auto server = engineHost->getAudioServer();
     server->setSampleRate(static_cast<int>(sampleRate));
     server->resizeBuffers(samplesPerBlock);
+    audioStreamActive.store(true, std::memory_order_relaxed);
+
+    if (!physicalPowerOnRequested.exchange(true, std::memory_order_relaxed))
+    {
+        engineHost->triggerPhysicalPowerOnSound();
+    }
 
     computeHostToMpcChannelMappings();
 
@@ -263,6 +269,35 @@ void VmpcProcessor::prepareToPlay(const double sampleRate,
         std::numeric_limits<int8_t>::max());
 
     // logActualBusLayout();
+}
+
+void VmpcProcessor::releaseResources()
+{
+    audioStreamActive.store(false, std::memory_order_relaxed);
+}
+
+bool VmpcProcessor::beginStandalonePhysicalPowerOff()
+{
+    if (!requiredResourcesAvailable ||
+        !audioStreamActive.load(std::memory_order_relaxed))
+    {
+        return false;
+    }
+
+    return mpc.getEngineHost()->beginPhysicalPowerOffSound();
+}
+
+bool VmpcProcessor::isStandalonePhysicalPowerOffComplete()
+{
+    return requiredResourcesAvailable &&
+           mpc.getEngineHost()->isPhysicalPowerOffSoundComplete();
+}
+
+double VmpcProcessor::getPhysicalPowerOffDurationSeconds()
+{
+    return requiredResourcesAvailable
+               ? mpc.getEngineHost()->getPhysicalPowerOffSoundDurationSeconds()
+               : 0.0;
 }
 
 juce::AudioProcessor::BusesProperties VmpcProcessor::getBusesProperties()

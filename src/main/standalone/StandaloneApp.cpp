@@ -58,6 +58,10 @@ void StandaloneApp::shutdown()
 
 void StandaloneApp::systemRequestedQuit()
 {
+    if (shutdownPending)
+    {
+        return;
+    }
 
 #ifndef JUCE_IOS
     if (mainWindow != nullptr)
@@ -69,13 +73,44 @@ void StandaloneApp::systemRequestedQuit()
     if (ModalComponentManager::getInstance()->cancelAllModalComponents())
     {
         Timer::callAfterDelay(100,
-                              [&]()
+                              [this]()
                               {
                                   requestQuit();
                               });
     }
     else
     {
+        auto *processor =
+            mainWindow != nullptr
+                ? dynamic_cast<VmpcProcessor *>(mainWindow->getAudioProcessor())
+                : nullptr;
+        if (processor == nullptr ||
+            !processor->beginStandalonePhysicalPowerOff())
+        {
+            quit();
+            return;
+        }
+
+        shutdownPending = true;
+        shutdownDeadlineMs =
+            juce::Time::getMillisecondCounterHiRes() +
+            (processor->getPhysicalPowerOffDurationSeconds() + 1.0) * 1000.0;
+        startTimer(10);
+    }
+}
+
+void StandaloneApp::timerCallback()
+{
+    auto *processor =
+        mainWindow != nullptr
+            ? dynamic_cast<VmpcProcessor *>(mainWindow->getAudioProcessor())
+            : nullptr;
+    const auto timedOut =
+        juce::Time::getMillisecondCounterHiRes() >= shutdownDeadlineMs;
+    if (processor == nullptr ||
+        processor->isStandalonePhysicalPowerOffComplete() || timedOut)
+    {
+        stopTimer();
         quit();
     }
 }
