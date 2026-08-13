@@ -21,7 +21,7 @@ StandaloneApp::StandaloneApp()
 
 StandaloneAppWindow *StandaloneApp::createWindow()
 {
-    StandalonePluginHolder::PluginInOuts channels[] = {{2, 10}};
+    StandalonePluginHolder::PluginInOuts channels[] = {{2, 12}};
 
     return new StandaloneAppWindow(
         getApplicationName(),

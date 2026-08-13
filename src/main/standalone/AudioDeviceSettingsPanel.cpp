@@ -112,6 +112,22 @@ AudioDeviceSettingsPanel::AudioDeviceSettingsPanel(
     }
 
     {
+        physicalSoundsOutList = std::make_unique<ChannelSelectorListBox>(
+            true, setup, ChannelSelectorListBox::audioOutputType, 10, 2,
+            mainFont);
+
+        addAndMakeVisible(physicalSoundsOutList.get());
+
+        physicalSoundsOutLabel =
+            std::make_unique<juce::Label>(juce::String{}, "Physical Sounds");
+
+        physicalSoundsOutLabel->setJustificationType(
+            juce::Justification::centredLeft);
+
+        addAndMakeVisible(physicalSoundsOutLabel.get());
+    }
+
+    {
         sampleRateDropDown = std::make_unique<juce::ComboBox>();
         addAndMakeVisible(sampleRateDropDown.get());
 
@@ -200,6 +216,16 @@ void AudioDeviceSettingsPanel::resized()
         r.removeFromTop(space);
     }
 
+    {
+        physicalSoundsOutList->setRowHeight(juce::jmin(22, h));
+
+        const auto listHeight =
+            physicalSoundsOutList->getBestHeight(maxListBoxHeight);
+
+        physicalSoundsOutList->setBounds(r.removeFromTop(listHeight));
+        r.removeFromTop(space);
+    }
+
     r.removeFromTop(space * 2);
 
     {
@@ -258,6 +284,10 @@ void AudioDeviceSettingsPanel::resized()
     assignableMixOutLabel->setBounds(
         labelAreaLeftMargin, assignableMixOutList->getY(), labelAreaWidth,
         assignableMixOutList->getHeight());
+
+    physicalSoundsOutLabel->setBounds(
+        labelAreaLeftMargin, physicalSoundsOutList->getY(), labelAreaWidth,
+        physicalSoundsOutList->getHeight());
 
     sampleRateLabel->setBounds(labelAreaLeftMargin, sampleRateDropDown->getY(),
                                labelAreaWidth, sampleRateDropDown->getHeight());
@@ -382,6 +412,7 @@ void AudioDeviceSettingsPanel::updateAllControls()
 
     stereoOutList->refresh();
     assignableMixOutList->refresh();
+    physicalSoundsOutList->refresh();
 
     updateRecordInComboBox(currentDevice);
     updateSampleRateComboBox(currentDevice);

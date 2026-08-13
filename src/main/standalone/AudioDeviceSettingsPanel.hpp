@@ -52,7 +52,7 @@ namespace vmpc_juce::standalone
 
         std::unique_ptr<juce::Label> outputDeviceLabel, inputDeviceLabel,
             sampleRateLabel, bufferSizeLabel, recordInLabel, stereoOutLabel,
-            assignableMixOutLabel;
+            assignableMixOutLabel, physicalSoundsOutLabel;
 
         std::unique_ptr<juce::TextButton> testButton;
         std::unique_ptr<InputLevelMeter> inputLevelMeter;
@@ -84,7 +84,7 @@ namespace vmpc_juce::standalone
         void updateBufferSizeComboBox(juce::AudioIODevice *currentDevice);
 
         std::unique_ptr<ChannelSelectorListBox> stereoOutList,
-            assignableMixOutList;
+            assignableMixOutList, physicalSoundsOutList;
 
         juce::ScopedMessageBox messageBox;
 

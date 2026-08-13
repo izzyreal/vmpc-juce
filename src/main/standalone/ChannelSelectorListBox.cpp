@@ -42,9 +42,7 @@ void ChannelSelectorListBox::refresh()
         {
             juce::StringArray pairs;
 
-            for (int i = channelOffset;
-                 i < std::min(items.size(), channelOffset + maxChannelCount);
-                 i += 2)
+            for (int i = 0; i < items.size(); i += 2)
             {
                 auto &name = items[i];
 
@@ -181,14 +179,14 @@ void ChannelSelectorListBox::flipEnablement(const int row) const
             if (type == audioInputType)
             {
                 config.useDefaultInputChannels = false;
-                flipBit(bits, row + channelOffset,
+                flipBit(bits, row + channelOffset / 2,
                         setup.minNumInputChannels / 2,
                         setup.maxNumInputChannels / 2);
             }
             else
             {
                 config.useDefaultOutputChannels = false;
-                flipBit(bits, row + channelOffset,
+                flipBit(bits, row + channelOffset / 2,
                         setup.minNumOutputChannels / 2,
                         setup.maxNumOutputChannels / 2);
             }
