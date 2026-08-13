@@ -22,26 +22,26 @@ namespace
          "display_and_f_keys_compact", 230, 115},
         {"function-buttons", "Function buttons", "f_keys", 180, 25},
         {"main-open", "Main Screen + Open Window",
-         "main_screen_and_open_window", 102, 30},
+         "main_screen_and_open_window", 102, 24},
         {"num-pad", "Num pad", "num_keys", 102, 84},
         {"data-wheel", "DATA wheel", "data_wheel_unlabelled", 80, 80},
         {"note-variation", "Note Variation + After/Assign",
          "note_variation_slider", 51, 130},
         {"tap-tempo", "Tap Tempo / Note Repeat", "tap_tempo_note_repeat", 51,
          30},
-        {"undo-erase", "Undo Seq + Erase", "undo_seq_erase", 51, 31},
-        {"cursor", "Cursor", "cursor", 80, 75},
-        {"locate", "Locate", "locate_group", 179, 52},
-        {"transport-horizontal", "Transport - horizontal", "transport_keys",
-         179, 40},
+        {"undo-erase", "Undo Seq + Erase", "undo_seq_erase", 60, 31},
+        {"cursor", "Cursor", "cursor", 80, 48},
+        {"locate", "Locate", "locate_group", 179, 28},
+        {"transport-horizontal", "Transport - horizontal", "transport_keys_lab",
+         179, 30},
         {"transport-vertical", "Transport - vertical",
-         "transport_keys_vertical", 45, 180},
-        {"levels", "Full Level + 16 Levels", "full_level_16_levels", 72, 44},
+         "transport_keys_vertical", 45, 150},
+        {"levels", "Full Level + 16 Levels", "full_level_16_levels", 72, 36},
         {"sequence-mute", "Next Seq + Track Mute", "next_seq_track_mute", 72,
-         44},
-        {"pads-banks", "Pads + Pad Bank", "pads_with_banks", 206, 255},
+         23},
+        {"pads-banks", "Pads + Pad Bank", "pads_with_banks", 206, 236},
         {"gain-volume", "Rec Gain + Main Volume", "rec_gain_main_volume", 110,
-         55},
+         52},
     }};
 
     juce::Font loadFont(const std::vector<char> &data)
@@ -169,14 +169,13 @@ public:
 
     int requiredWidth() const
     {
-        return std::max(
-            230,
-            juce::roundToInt(static_cast<float>(entry.width) * scale) + 24);
+        return std::max(230,
+                        juce::roundToInt(entry.referenceWidth * scale) + 24);
     }
 
     int requiredHeight() const
     {
-        return juce::roundToInt(static_cast<float>(entry.height) * scale) + 54;
+        return juce::roundToInt(entry.referenceHeight * scale) + 54;
     }
 
     void paint(juce::Graphics &g) override
@@ -194,8 +193,8 @@ public:
         title.setBounds(bounds.removeFromTop(26));
         bounds.removeFromTop(4);
         preview.setBounds(bounds.withSizeKeepingCentre(
-            juce::roundToInt(static_cast<float>(entry.width) * scale),
-            juce::roundToInt(static_cast<float>(entry.height) * scale)));
+            juce::roundToInt(entry.referenceWidth * scale),
+            juce::roundToInt(entry.referenceHeight * scale)));
     }
 
 private:

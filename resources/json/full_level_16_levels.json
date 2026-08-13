@@ -2,14 +2,16 @@
   "name" : "full_level_16_levels",
   "type" : "grid",
   "row_fractions" : [ 5, 3 ],
-  "column_fractions" : [ 1, 1 ],
+  "column_fractions" : [ 11, 10 ],
   "children" : [
-    { "name" : "background", "type" : "chassis_rectangle", "area" : [ 1, 1, 2, 2 ] },
-    { "name" : "full_level", "hardware_label" : "full-level-or-case-switch", "shadow_size" : 2.0, "key_hole_svg" : "medium_key_hole.svg", "key_button_svg" : "medium_key_button.svg", "label" : "FULL LEVEL", "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "background", "type" : "chassis_rectangle", "area" : [ 1, 1, 1, 2 ] },
+    { "name" : "full_level", "hardware_label" : "full-level-or-case-switch", "shadow_size" : 2.0, "key_hole_svg" : "medium_key_hole.svg", "key_button_svg" : "medium_key_button.svg", "margin" : [ 10, 0, 0, 0 ], "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "full_level_label", "label" : "FULL LEVEL", "margin" : [ 0, 0, 15, 0 ], "area" : [ 1, 1, 1, 1 ] },
     { "name" : "full_level_led", "hardware_label" : "full-level-or-case-switch-led", "type" : "green_led", "margin" : [ 0, 0, 4, 0 ], "area" : [ 1, 1, 1, 1 ] },
-    { "name" : "full_level_alt", "label" : "A/a", "label_style" : "pad_letters", "area" : [ 2, 1, 2, 1 ] },
-    { "name" : "16_levels", "hardware_label" : "sixteen-levels-or-space", "shadow_size" : 2.0, "key_hole_svg" : "medium_key_hole.svg", "key_button_svg" : "medium_key_button.svg", "label" : "16 LEVELS", "area" : [ 1, 2, 1, 2 ] },
+    { "name" : "full_level_alt", "label" : "A/a", "label_style" : "pad_letters", "margin" : [ 0, 0, 8, 0 ], "area" : [ 2, 1, 2, 1 ] },
+    { "name" : "16_levels", "hardware_label" : "sixteen-levels-or-space", "shadow_size" : 2.0, "key_hole_svg" : "medium_key_hole.svg", "key_button_svg" : "medium_key_button.svg", "margin" : [ 10, 0, 0, 0 ], "area" : [ 1, 2, 1, 2 ] },
+    { "name" : "16_levels_label", "label" : "16 LEVELS", "margin" : [ 0, 0, 15, 0 ], "area" : [ 1, 2, 1, 2 ] },
     { "name" : "16_levels_led", "hardware_label" : "sixteen-levels-or-space-led", "type" : "green_led", "margin" : [ 0, 0, 4, 0 ], "area" : [ 1, 2, 1, 2 ] },
-    { "name" : "16_levels_alt", "label" : "SPACE", "label_style" : "pad_letters", "area" : [ 2, 2, 2, 2 ] }
+    { "name" : "16_levels_alt", "label" : "SPACE", "label_style" : "pad_letters", "margin" : [ 0, 0, 8, 0 ], "area" : [ 2, 2, 2, 2 ] }
   ]
 }

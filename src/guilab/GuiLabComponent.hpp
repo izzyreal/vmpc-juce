@@ -16,8 +16,8 @@ namespace vmpc_juce::guilab
         const char *id;
         const char *title;
         const char *resourceName;
-        int width;
-        int height;
+        float referenceWidth;
+        float referenceHeight;
     };
 
     class PreviewComponent final : public juce::Component
