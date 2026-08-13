@@ -1,6 +1,9 @@
 #pragma once
 
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <melatonin_blur/melatonin/shadows.h>
+
+#include <array>
 
 namespace vmpc_juce::guilab
 {
@@ -14,5 +17,7 @@ namespace vmpc_juce::guilab
 
     private:
         juce::Image pixels;
+        std::array<std::array<bool, 60>, 248> pixelOn{};
+        melatonin::DropShadow backlight;
     };
 } // namespace vmpc_juce::guilab

@@ -17,11 +17,14 @@ using vmpc_juce::gui::vector::Constants;
 
 namespace
 {
-    constexpr std::array<CatalogEntry, 18> catalog{{
+    constexpr std::array<CatalogEntry, 22> catalog{{
         {"lcd-bare", "LCD - bare", "lcd_bare", 210, 55},
-        {"lcd-mounted", "LCD - mounted", "lcd_mounted_compact", 230, 100},
+        {"lcd-mounted", "LCD - mounted", "lcd_mounted_lab",
+         compactMountedLcdReferenceSize.width,
+         compactMountedLcdReferenceSize.height},
         {"lcd-mounted-functions", "LCD - mounted + function buttons",
-         "display_and_f_keys_compact", 230, 115},
+         "display_and_f_keys_compact", compactDisplayReferenceSize.width,
+         compactDisplayReferenceSize.height},
         {"function-buttons", "Function buttons", "f_keys", 180, 25},
         {"main-open", "Main Screen + Open Window",
          "main_screen_and_open_window", 102, 24},
@@ -33,17 +36,23 @@ namespace
          30},
         {"undo-erase", "Undo Seq + Erase", "undo_seq_erase", 60, 31},
         {"cursor", "Cursor", "cursor", 80, 48},
-        {"locate", "Locate", "locate_group", 179, 28},
+        {"cursor-compact", "Cursor - compact", "cursor_compact", 80, 31},
+        {"locate", "Locate", "locate_group_lab", 179, 28},
         {"transport-horizontal", "Transport - horizontal", "transport_keys_lab",
          179, 30},
         {"transport-vertical", "Transport - vertical",
          "transport_keys_vertical", 45, 150},
         {"levels", "Full Level + 16 Levels", "full_level_16_levels", 72, 36},
+        {"levels-compact", "Full Level + 16 Levels - compact",
+         "full_level_16_levels_compact", 72, 23},
         {"sequence-mute", "Next Seq + Track Mute", "next_seq_track_mute", 72,
          23},
         {"pads-banks", "Pads + Pad Bank", "pads_with_banks", 206, 236},
-        {"gain-volume", "Rec Gain + Main Volume", "rec_gain_main_volume", 110,
-         52},
+        {"pads", "Pads - compact", "pads", 206, 200},
+        {"gain-volume", "Rec Gain + Main Volume", "rec_gain_main_volume", 84,
+         48},
+        {"gain-volume-compact", "Rec Gain + Main Volume - compact",
+         "rec_gain_main_volume_compact", 84, 38},
     }};
 
     constexpr auto dragDescriptionPrefix = "component:";
@@ -200,8 +209,10 @@ public:
     {
     public:
         DragSource(const CatalogEntry &entryToUse,
-                   PreviewComponent &previewToUse)
-            : entry(entryToUse), preview(previewToUse)
+                   PreviewComponent &previewToUse,
+                   std::function<float(const CatalogEntry &)> getDropScaleToUse)
+            : entry(entryToUse), preview(previewToUse),
+              getDropScale(std::move(getDropScaleToUse))
         {
             setMouseCursor(juce::MouseCursor::DraggingHandCursor);
         }
@@ -228,19 +239,28 @@ public:
             dragStarted = true;
             const auto snapshot =
                 preview.createComponentSnapshot(preview.getLocalBounds());
+            const auto dropScale = std::max(0.01f, getDropScale(entry));
+            const auto dragImage = snapshot.rescaled(
+                std::max(1, juce::roundToInt(entry.referenceWidth * dropScale)),
+                std::max(1,
+                         juce::roundToInt(entry.referenceHeight * dropScale)),
+                juce::Graphics::highResamplingQuality);
             container->startDragging(
                 juce::String(dragDescriptionPrefix) + entry.id, this,
-                juce::ScaledImage(snapshot), false, nullptr, &event.source);
+                juce::ScaledImage(dragImage), false, nullptr, &event.source);
         }
 
     private:
         CatalogEntry entry;
         PreviewComponent &preview;
+        std::function<float(const CatalogEntry &)> getDropScale;
         bool dragStarted = false;
     };
 
-    explicit PreviewCard(const CatalogEntry &entryToUse)
-        : entry(entryToUse), preview(entry), dragSource(entry, preview)
+    PreviewCard(const CatalogEntry &entryToUse,
+                std::function<float(const CatalogEntry &)> getDropScale)
+        : entry(entryToUse), preview(entry),
+          dragSource(entry, preview, std::move(getDropScale))
     {
         title.setText(entry.title, juce::dontSendNotification);
         title.setFont(juce::Font(15.f, juce::Font::bold));
@@ -330,6 +350,14 @@ public:
 
         resized();
         repaint();
+    }
+
+    float getDefaultItemDisplayScale(const CatalogEntry &entry) const
+    {
+        const auto itemScale = constrainItemScale(
+            1.f, {entry.referenceWidth, entry.referenceHeight},
+            getEffectiveDeviceSize(device, orientation));
+        return zoom * itemScale;
     }
 
     void paint(juce::Graphics &g) override
@@ -755,7 +783,14 @@ GuiLabComponent::GuiLabComponent()
     cards.reserve(catalog.size());
     for (const auto &entry : catalog)
     {
-        auto card = std::make_unique<PreviewCard>(entry);
+        auto card = std::make_unique<PreviewCard>(
+            entry,
+            [this](const CatalogEntry &catalogEntry)
+            {
+                return workspace != nullptr
+                           ? workspace->getDefaultItemDisplayScale(catalogEntry)
+                           : 1.f;
+            });
         paletteGallery.addAndMakeVisible(*card);
         cards.push_back(std::move(card));
     }

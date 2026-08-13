@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
 
 #include "ArrangementModel.hpp"
 
@@ -6,6 +7,21 @@
 #include <string>
 
 using namespace vmpc_juce::guilab;
+
+TEST_CASE("GUI Lab compact LCD sizes follow the production grid",
+          "[gui-lab][arrangement]")
+{
+    CHECK(compactDisplayReferenceSize.width ==
+          Catch::Approx(229.52338f));
+    CHECK(compactDisplayReferenceSize.height ==
+          Catch::Approx(115.75869f));
+    CHECK(compactMountedLcdReferenceSize.width ==
+          compactDisplayReferenceSize.width);
+    CHECK(compactMountedLcdReferenceSize.height ==
+          Catch::Approx(88.19710f));
+    CHECK(compactMountedLcdReferenceSize.height ==
+          Catch::Approx(compactDisplayReferenceSize.height * 80.f / 105.f));
+}
 
 TEST_CASE("GUI Lab device catalog contains Apple and Samsung profiles",
           "[gui-lab][arrangement]")
@@ -64,4 +80,5 @@ TEST_CASE("GUI Lab item scale remains proportional and fits the device",
     CHECK(constrainItemScale(0.1f, reference, {390.f, 844.f}) == 0.5f);
     CHECK(constrainItemScale(3.f, reference, {390.f, 844.f}) == 390.f / 230.f);
     CHECK(constrainItemScale(1.4f, reference, {844.f, 390.f}) == 1.4f);
+    CHECK(constrainItemScale(4.f, {100.f, 100.f}, {844.f, 390.f}) == 3.f);
 }

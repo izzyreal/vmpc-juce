@@ -23,6 +23,17 @@ namespace vmpc_juce::guilab
         float height = 0.f;
     };
 
+    // These are the allocations produced for the compact display by
+    // default_compact -> main_container -> left_side_container at scale 1.
+    // Keeping the GUI Lab previews at these dimensions lets the production
+    // grid fractions and scale-dependent margins reproduce the same geometry.
+    inline constexpr LogicalSize compactDisplayReferenceSize{
+        445.f * (215.f / 220.f) * (95.f / 180.f),
+        342.f * (294.f / 303.f) * (15.f / 43.f)};
+    inline constexpr LogicalSize compactMountedLcdReferenceSize{
+        compactDisplayReferenceSize.width,
+        compactDisplayReferenceSize.height * (80.f / 105.f)};
+
     struct DeviceProfile
     {
         const char *id;
@@ -47,7 +58,7 @@ namespace vmpc_juce::guilab
                               float gridSize = 4.f);
     float constrainItemScale(float requestedScale, LogicalSize referenceSize,
                              LogicalSize deviceSize, float minimumScale = 0.5f,
-                             float maximumScale = 2.f);
+                             float maximumScale = 3.f);
     LogicalPoint constrainItemPosition(LogicalPoint requestedPosition,
                                        LogicalSize itemSize,
                                        LogicalSize deviceSize,

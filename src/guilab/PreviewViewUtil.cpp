@@ -94,6 +94,20 @@ namespace
     createSvgLikeComponent(const node &n, juce::Component *parent,
                            const std::function<float()> &getScale)
     {
+        if (n.name == "rec_gain" || n.name == "main_volume")
+        {
+            const auto type =
+                n.name == "rec_gain" ? Pot::REC_GAIN : Pot::MAIN_VOLUME;
+            const auto id = n.name == "rec_gain"
+                                ? mpc::hardware::REC_GAIN_POT
+                                : mpc::hardware::MAIN_VOLUME_POT;
+            auto model = std::make_shared<mpc::hardware::Pot>(id);
+            model->setValue(0.5f);
+            auto *pot = new Pot(model, type, parent, getScale);
+            pot->sharedTimerCallback();
+            return pot;
+        }
+
         if (n.node_type == "cursor_keys")
         {
             return new CursorKeys(
@@ -277,24 +291,7 @@ void PreviewViewUtil::createComponent(
                                     getMainFontScaled);
         }
 
-        juce::Component *visual = nullptr;
-        if (n.name == "rec_gain" || n.name == "main_volume")
-        {
-            const auto type =
-                n.name == "rec_gain" ? Pot::REC_GAIN : Pot::MAIN_VOLUME;
-            const auto id = n.name == "rec_gain"
-                                ? mpc::hardware::REC_GAIN_POT
-                                : mpc::hardware::MAIN_VOLUME_POT;
-            auto model = std::make_shared<mpc::hardware::Pot>(id);
-            model->setValue(0.5f);
-            auto *pot = new Pot(model, type, parent, getScale);
-            pot->sharedTimerCallback();
-            visual = pot;
-        }
-        else
-        {
-            visual = createSvgLikeComponent(n, parent, getScale);
-        }
+        auto *visual = createSvgLikeComponent(n, parent, getScale);
 
         n.svg_component = visual;
         n.label_component = label;
