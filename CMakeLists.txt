@@ -285,6 +285,7 @@ if (VMPC_BUILD_TESTS)
 
   target_include_directories(vmpc-juce-tests PRIVATE
     ${_src_root_path}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guilab
     ${CMAKE_CURRENT_BINARY_DIR}/generated
     ${mpc_SOURCE_DIR}/src/main
   )
@@ -304,6 +305,7 @@ if (VMPC_BUILD_TESTS)
   )
 
   target_sources(vmpc-juce-tests PRIVATE
+    src/guilab/ArrangementModel.cpp
     src/main/ZipSaveTarget.cpp
     src/main/VmpcJuceResourceUtil.cpp
   )

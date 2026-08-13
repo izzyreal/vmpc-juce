@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ArrangementModel.hpp"
 #include "gui/vector/Node.hpp"
 
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -48,7 +49,8 @@ namespace vmpc_juce::guilab
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PreviewComponent)
     };
 
-    class GuiLabComponent final : public juce::Component
+    class GuiLabComponent final : public juce::Component,
+                                  public juce::DragAndDropContainer
     {
     public:
         GuiLabComponent();
@@ -59,13 +61,26 @@ namespace vmpc_juce::guilab
 
     private:
         class PreviewCard;
+        class ArrangementWorkspace;
 
         juce::Label heading;
-        juce::Viewport viewport;
-        juce::Component gallery;
+        juce::Label brandLabel;
+        juce::Label deviceLabel;
+        juce::Label orientationLabel;
+        juce::ComboBox brandSelector;
+        juce::ComboBox deviceSelector;
+        juce::ComboBox orientationSelector;
+        juce::Label paletteHeading;
+        juce::Viewport paletteViewport;
+        juce::Component paletteGallery;
         std::vector<std::unique_ptr<PreviewCard>> cards;
+        std::vector<const DeviceProfile *> visibleDevices;
+        std::unique_ptr<ArrangementWorkspace> workspace;
 
-        void layoutGallery();
+        void configureControls();
+        void populateDevices(const std::string &preferredDeviceId = {});
+        void updateTarget();
+        void layoutPalette();
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GuiLabComponent)
     };

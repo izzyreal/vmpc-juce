@@ -9,6 +9,8 @@ juce_add_gui_app(vmpc2000xl_GuiLab
   PRODUCT_NAME "VMPC2000XL GUI Lab")
 
 target_sources(vmpc2000xl_GuiLab PRIVATE
+  "${CMAKE_SOURCE_DIR}/src/guilab/ArrangementModel.cpp"
+  "${CMAKE_SOURCE_DIR}/src/guilab/ArrangementModel.hpp"
   "${CMAKE_SOURCE_DIR}/src/guilab/Main.cpp"
   "${CMAKE_SOURCE_DIR}/src/guilab/GuiLabComponent.cpp"
   "${CMAKE_SOURCE_DIR}/src/guilab/GuiLabComponent.hpp"
@@ -71,6 +73,8 @@ set_target_properties(vmpc2000xl_GuiLab PROPERTIES
   BUILD_RPATH "${CMAKE_BINARY_DIR}/_deps/json-schema-validator-build/$<CONFIG>;${CMAKE_BINARY_DIR}/_deps/mpc-build/$<CONFIG>")
 
 source_group("GUI Lab" FILES
+  "${CMAKE_SOURCE_DIR}/src/guilab/ArrangementModel.cpp"
+  "${CMAKE_SOURCE_DIR}/src/guilab/ArrangementModel.hpp"
   "${CMAKE_SOURCE_DIR}/src/guilab/Main.cpp"
   "${CMAKE_SOURCE_DIR}/src/guilab/GuiLabComponent.cpp"
   "${CMAKE_SOURCE_DIR}/src/guilab/GuiLabComponent.hpp"
