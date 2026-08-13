@@ -1,0 +1,16 @@
+{
+  "name" : "transport_keys_vertical",
+  "type" : "grid",
+  "row_fractions" : [ 1, 1, 1, 1, 1 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    { "name" : "rec_led", "hardware_label" : "rec-led", "type" : "red_led", "margin" : [ 0, 12, 22, 0 ], "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "rec", "hardware_label" : "rec", "shadow_size" : 2.0, "key_hole_svg" : "big_key_hole.svg", "key_button_svg" : "big_key_red_button.svg", "label" : "REC", "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "over_dub_led", "hardware_label" : "overdub-led", "type" : "red_led", "margin" : [ 0, 12, 22, 0 ], "area" : [ 2, 1, 2, 1 ] },
+    { "name" : "over_dub", "hardware_label" : "overdub", "shadow_size" : 2.0, "key_hole_svg" : "big_key_hole.svg", "key_button_svg" : "big_key_red_button.svg", "label" : "OVER\nDUB", "area" : [ 2, 1, 2, 1 ] },
+    { "name" : "stop", "hardware_label" : "stop", "shadow_size" : 2.0, "key_hole_svg" : "big_key_hole.svg", "key_button_svg" : "big_key_button.svg", "label" : "STOP", "area" : [ 3, 1, 3, 1 ] },
+    { "name" : "play_led", "hardware_label" : "play-led", "type" : "green_led", "margin" : [ 0, 12, 22, 0 ], "area" : [ 4, 1, 4, 1 ] },
+    { "name" : "play", "hardware_label" : "play", "shadow_size" : 2.0, "key_hole_svg" : "big_key_hole.svg", "key_button_svg" : "big_key_button.svg", "label" : "PLAY", "area" : [ 4, 1, 4, 1 ] },
+    { "name" : "play_start", "hardware_label" : "play-start", "shadow_size" : 2.0, "key_hole_svg" : "big_key_hole.svg", "key_button_svg" : "big_key_button.svg", "label" : "PLAY\nSTART", "area" : [ 5, 1, 5, 1 ] }
+  ]
+}

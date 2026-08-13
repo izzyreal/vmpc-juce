@@ -311,6 +311,8 @@ endif()
 
 _bundle_vmpc_juce_resources(vmpc2000xl)
 
+include(cmake/guilab.cmake)
+
 if (VMPC_BUILD_TESTS AND TARGET vmpcjuce::rc)
   target_link_libraries(vmpc-juce-tests PRIVATE vmpcjuce::rc)
 endif()

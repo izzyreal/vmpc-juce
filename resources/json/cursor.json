@@ -1,0 +1,23 @@
+{
+  "name" : "cursor_container",
+  "type" : "grid",
+  "row_fractions" : [ 8, 2 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    {
+      "name" : "cursor_keys",
+      "type" : "cursor_keys",
+      "hardware_label" : "cursor",
+      "shadow_size" : 2.0,
+      "svg" : "cursor_keys_hole.svg",
+      "label" : "CURSOR",
+      "area" : [ 1, 1, 1, 1 ]
+    },
+    {
+      "name" : "cursor_bottom_label",
+      "label" : "<  DIGIT  >",
+      "label_style" : "cursor_digit",
+      "area" : [ 2, 1, 2, 1 ]
+    }
+  ]
+}

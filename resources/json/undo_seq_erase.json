@@ -1,0 +1,13 @@
+{
+  "name" : "undo_seq_erase_container",
+  "type" : "grid",
+  "row_fractions" : [ 1 ],
+  "column_fractions" : [ 1, 1 ],
+  "children" : [
+    { "name" : "undo_seq_label", "label" : "UNDO SEQ", "margin" : [ 0, 0, 10, 0 ], "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "undo_seq_led", "hardware_label" : "undo-seq-led", "type" : "green_led", "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "undo_seq", "hardware_label" : "undo-seq", "shadow_size" : 2.0, "key_hole_svg" : "medium_key_hole.svg", "key_button_svg" : "medium_key_button.svg", "margin" : [ 15, 0, 0, 0 ], "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "erase_label", "hardware_label" : "erase", "label" : "ERASE", "margin" : [ 0, 0, 3, 0 ], "area" : [ 1, 2, 1, 2 ] },
+    { "name" : "erase", "hardware_label" : "erase", "shadow_size" : 2.0, "key_hole_svg" : "medium_key_hole.svg", "key_button_svg" : "medium_key_button.svg", "margin" : [ 15, 0, 0, 0 ], "area" : [ 1, 2, 1, 2 ] }
+  ]
+}

@@ -25,6 +25,15 @@ namespace vmpc_juce::gui::vector
             addAndMakeVisible(sliderCap);
         }
 
+        Slider(std::shared_ptr<mpc::hardware::Slider> mpcSlider,
+               const std::function<float()> &getScaleToUse)
+            : getScale(getScaleToUse)
+        {
+            sliderCap =
+                new SliderCap(mpcSlider, {"slider_cap.svg"}, this, 5, getScale);
+            addAndMakeVisible(sliderCap);
+        }
+
         ~Slider() override
         {
             delete sliderCap;

@@ -1,0 +1,17 @@
+{
+  "name" : "pad_bank_buttons",
+  "type" : "grid",
+  "row_fractions" : [ 2, 8 ],
+  "column_fractions" : [ 1, 1, 1, 1 ],
+  "children" : [
+    { "name" : "pad_bank_label", "type" : "line_flanked_label", "label" : "PAD BANK", "area" : [ 1, 1, 1, 4 ] },
+    { "name" : "bank_a", "hardware_label" : "bank-a", "shadow_size" : 2.0, "key_hole_svg" : "medium_key_hole.svg", "key_button_svg" : "medium_key_button.svg", "label" : "A", "area" : [ 2, 1, 2, 1 ] },
+    { "name" : "bank_a_led", "hardware_label" : "bank-a-led", "type" : "green_led", "margin" : [ 0, 0, 4, 0 ], "area" : [ 2, 1, 2, 1 ] },
+    { "name" : "bank_b", "hardware_label" : "bank-b", "shadow_size" : 2.0, "key_hole_svg" : "medium_key_hole.svg", "key_button_svg" : "medium_key_button.svg", "label" : "B", "area" : [ 2, 2, 2, 2 ] },
+    { "name" : "bank_b_led", "hardware_label" : "bank-b-led", "type" : "green_led", "margin" : [ 0, 0, 4, 0 ], "area" : [ 2, 2, 2, 2 ] },
+    { "name" : "bank_c", "hardware_label" : "bank-c", "shadow_size" : 2.0, "key_hole_svg" : "medium_key_hole.svg", "key_button_svg" : "medium_key_button.svg", "label" : "C", "area" : [ 2, 3, 2, 3 ] },
+    { "name" : "bank_c_led", "hardware_label" : "bank-c-led", "type" : "green_led", "margin" : [ 0, 0, 4, 0 ], "area" : [ 2, 3, 2, 3 ] },
+    { "name" : "bank_d", "hardware_label" : "bank-d", "shadow_size" : 2.0, "key_hole_svg" : "medium_key_hole.svg", "key_button_svg" : "medium_key_button.svg", "label" : "D", "area" : [ 2, 4, 2, 4 ] },
+    { "name" : "bank_d_led", "hardware_label" : "bank-d-led", "type" : "green_led", "margin" : [ 0, 0, 4, 0 ], "area" : [ 2, 4, 2, 4 ] }
+  ]
+}

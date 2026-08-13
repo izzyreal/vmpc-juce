@@ -1,0 +1,10 @@
+{
+  "name" : "pads_with_banks",
+  "type" : "grid",
+  "row_fractions" : [ 45, 200 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    { "include" : "pad_bank_buttons", "area" : [ 1, 1, 1, 1 ] },
+    { "include" : "pads", "area" : [ 2, 1, 2, 1 ] }
+  ]
+}

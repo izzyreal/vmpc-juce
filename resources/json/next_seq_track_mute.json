@@ -1,0 +1,13 @@
+{
+  "name" : "next_seq_track_mute",
+  "type" : "grid",
+  "row_fractions" : [ 1 ],
+  "column_fractions" : [ 1, 1 ],
+  "children" : [
+    { "name" : "background", "type" : "chassis_rectangle", "area" : [ 1, 1, 1, 2 ] },
+    { "name" : "next_seq", "hardware_label" : "next-seq", "shadow_size" : 2.0, "key_hole_svg" : "medium_key_hole.svg", "key_button_svg" : "medium_key_button.svg", "label" : "NEXT SEQ", "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "next_seq_led", "hardware_label" : "next-seq-led", "type" : "green_led", "margin" : [ 0, 0, 4, 0 ], "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "track_mute", "hardware_label" : "track-mute", "shadow_size" : 2.0, "key_hole_svg" : "medium_key_hole.svg", "key_button_svg" : "medium_key_button.svg", "label" : "TRACK MUTE", "area" : [ 1, 2, 1, 2 ] },
+    { "name" : "track_mute_led", "hardware_label" : "track-mute-led", "type" : "green_led", "margin" : [ 0, 0, 4, 0 ], "area" : [ 1, 2, 1, 2 ] }
+  ]
+}
