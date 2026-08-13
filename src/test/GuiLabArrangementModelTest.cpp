@@ -80,5 +80,5 @@ TEST_CASE("GUI Lab item scale remains proportional and fits the device",
     CHECK(constrainItemScale(0.1f, reference, {390.f, 844.f}) == 0.5f);
     CHECK(constrainItemScale(3.f, reference, {390.f, 844.f}) == 390.f / 230.f);
     CHECK(constrainItemScale(1.4f, reference, {844.f, 390.f}) == 1.4f);
-    CHECK(constrainItemScale(4.f, {100.f, 100.f}, {844.f, 390.f}) == 3.f);
+    CHECK(constrainItemScale(7.f, {100.f, 100.f}, {1000.f, 1000.f}) == 6.f);
 }

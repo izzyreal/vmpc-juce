@@ -58,7 +58,7 @@ namespace vmpc_juce::guilab
                               float gridSize = 4.f);
     float constrainItemScale(float requestedScale, LogicalSize referenceSize,
                              LogicalSize deviceSize, float minimumScale = 0.5f,
-                             float maximumScale = 3.f);
+                             float maximumScale = 6.f);
     LogicalPoint constrainItemPosition(LogicalPoint requestedPosition,
                                        LogicalSize itemSize,
                                        LogicalSize deviceSize,
