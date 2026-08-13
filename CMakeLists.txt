@@ -69,7 +69,7 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
-option(VMPC_BUILD_TESTS "Build vmpc-juce integration tests" ON)
+option(VMPC_BUILD_TESTS "Build vmpc-juce test targets" ON)
 
 set(VMPC_JUCE_REPO "https://github.com/izzyreal/JUCE.git")
 set(VMPC_JUCE_REF "7.0.9-vmpc")
@@ -137,13 +137,14 @@ FetchContent_MakeAvailable(melatonin_blur)
 if (IOS)
     set(IOS_SPECIFIC_SETTINGS
         REQUIRES_FULL_SCREEN TRUE
+        IPHONE_SCREEN_ORIENTATIONS UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         IPAD_SCREEN_ORIENTATIONS UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         BACKGROUND_AUDIO_ENABLED TRUE
         APP_GROUPS_ENABLED TRUE
         APP_GROUP_IDS group.nl.izmar.vmpc2000xl
         FILE_SHARING_ENABLED TRUE
         DOCUMENT_BROWSER_ENABLED TRUE
-        TARGETED_DEVICE_FAMILY "2"
+        TARGETED_DEVICE_FAMILY "1,2"
         FORMATS AUv3 Standalone)
 else()
     set(NON_IOS_SPECIFIC_SETTINGS
@@ -294,6 +295,7 @@ if (VMPC_BUILD_TESTS)
       Catch2::Catch2WithMain
       juce::juce_gui_basics
       juce::juce_core
+      nlohmann_json::nlohmann_json
       mpc
   )
 
@@ -310,6 +312,8 @@ if (VMPC_BUILD_TESTS)
 endif()
 
 _bundle_vmpc_juce_resources(vmpc2000xl)
+
+include(cmake/guilab.cmake)
 
 if (VMPC_BUILD_TESTS AND TARGET vmpcjuce::rc)
   target_link_libraries(vmpc-juce-tests PRIVATE vmpcjuce::rc)

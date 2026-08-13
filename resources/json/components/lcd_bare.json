@@ -1,0 +1,10 @@
+{
+  "name" : "lcd_bare",
+  "type" : "grid",
+  "row_fractions" : [ 1 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    { "name" : "lcd_background", "type" : "lcd_rectangle", "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "lcd", "type" : "lcd", "magic_multiplier" : 1.0, "area" : [ 1, 1, 1, 1 ] }
+  ]
+}

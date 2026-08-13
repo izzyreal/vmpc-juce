@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui/WithSharedTimerCallback.hpp"
+#include "gui/arrangement/ArrangementModel.hpp"
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
@@ -20,6 +21,12 @@ namespace vmpc_juce::gui::focus
     class FocusHelper;
 }
 
+namespace vmpc_juce::gui::arrangement
+{
+    class ArrangementSurface;
+    class ArrangementSelectorOverlay;
+} // namespace vmpc_juce::gui::arrangement
+
 class Keyboard;
 
 namespace vmpc_juce::gui::vector
@@ -37,11 +44,14 @@ namespace vmpc_juce::gui::vector
              const std::function<void()> &showAudioSettingsDialog,
              juce::AudioProcessor::WrapperType wrapperType,
              const std::function<bool()> &isInstrument,
-             bool &shouldShowDisclaimer);
+             bool &shouldShowDisclaimer,
+             const std::optional<std::string> &preferredArrangementId,
+             std::function<void(const std::string &)> arrangementSelected);
 
         ~View() override;
 
         void resized() override;
+        void paint(juce::Graphics &) override;
 
         std::pair<int, int> getInitialRootWindowDimensions();
 
@@ -52,12 +62,22 @@ namespace vmpc_juce::gui::vector
         focus::FocusHelper *getFocusHelper() const;
 
         Keyboard *getKeyboard() const;
+        bool usesPhoneArrangements() const;
+        void restoreArrangement(
+            const std::optional<std::string> &arrangementId);
 
     private:
         void onKeyUp(int, bool ctrlDown, bool altDown, bool shiftDown) const;
         void onKeyDown(int, bool ctrlDown, bool altDown, bool shiftDown) const;
         mpc::Mpc &mpc;
         void deleteDisclaimer();
+        void buildPhoneArrangement();
+        void refreshHardwareRegistrations();
+        void showArrangementSelector();
+        void closeArrangementSelector();
+        void selectArrangementSlot(std::size_t index,
+                                   bool reportSelection = true);
+        void toggleIPhoneFullscreen();
         std::string layoutName = "default_compact";
         std::vector<Component *> components;
         std::vector<MouseListener *> mouseListeners;
@@ -68,6 +88,7 @@ namespace vmpc_juce::gui::vector
         const std::function<juce::Font &()> getKeyTooltipFontScaled;
 
         std::function<void()> closeAbout;
+        std::function<void(const std::string &)> arrangementSelected;
 
         focus::FocusHelper *focusHelper = nullptr;
         Keyboard *keyboard = nullptr;
@@ -94,6 +115,15 @@ namespace vmpc_juce::gui::vector
         juce::Font keyTooltipFont;
 
         std::vector<WithSharedTimerCallback *> timerCallbackComponents;
+
+        bool phoneArrangementMode = false;
+        bool iPhoneStatusBarHidden = false;
+        juce::AudioProcessor::WrapperType processorWrapperType;
+        gui::arrangement::ArrangementSetup arrangementSetup;
+        std::size_t activeArrangementSlot = 0;
+        arrangement::ArrangementSurface *arrangementSurface = nullptr;
+        arrangement::ArrangementSelectorOverlay *arrangementSelector = nullptr;
+        std::string arrangementError;
     };
 
 } // namespace vmpc_juce::gui::vector

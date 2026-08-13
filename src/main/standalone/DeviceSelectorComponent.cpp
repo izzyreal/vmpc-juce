@@ -16,12 +16,13 @@ namespace vmpc_juce::standalone
     DeviceSelectorComponent::DeviceSelectorComponent(
         AudioDeviceManager &deviceManagerToUse, const int minInputChannelsToUse,
         const int maxInputChannelsToUse, const int minOutputChannelsToUse,
-        const int maxOutputChannelsToUse)
+        const int maxOutputChannelsToUse, const bool usePhoneLayoutToUse)
         : deviceManager(deviceManagerToUse), itemHeight(24),
           minOutputChannels(minOutputChannelsToUse),
           maxOutputChannels(maxOutputChannelsToUse),
           minInputChannels(minInputChannelsToUse),
-          maxInputChannels(maxInputChannelsToUse)
+          maxInputChannels(maxInputChannelsToUse),
+          usePhoneLayout(usePhoneLayoutToUse)
     {
         jassert(minOutputChannels >= 0 &&
                 minOutputChannels <= maxOutputChannels);
@@ -118,8 +119,7 @@ namespace vmpc_juce::standalone
 
     void DeviceSelectorComponent::resized()
     {
-        juce::Rectangle r(proportionOfWidth(0.35f), 22, proportionOfWidth(0.6f),
-                          3000);
+        auto r = getControlColumnBounds(22, 3000);
         const auto space = itemHeight / 4;
 
         if (deviceTypeDropDown != nullptr)
@@ -159,7 +159,7 @@ namespace vmpc_juce::standalone
         }
 
         constexpr int labelAreaWidth = 150;
-        constexpr int labelAreaLeftMargin = 15;
+        const auto labelAreaLeftMargin = getLabelAreaLeftMargin();
 
         midiInputsLabel->setBounds(labelAreaLeftMargin, midiInputsList->getY(),
                                    labelAreaWidth, midiInputsList->getHeight());
@@ -181,6 +181,37 @@ namespace vmpc_juce::standalone
 #endif
     
         setSize(getWidth(), r.getY());
+    }
+
+    juce::Rectangle<int>
+    DeviceSelectorComponent::getControlColumnBounds(const int y,
+                                                    const int height) const
+    {
+        const auto originalX = proportionOfWidth(0.35f);
+        const auto originalWidth = proportionOfWidth(0.6f);
+        if (!usePhoneLayout)
+        {
+            return {originalX, y, originalWidth, height};
+        }
+
+        const auto characterWidth = mainFont.getStringWidth("0");
+        const auto originalRightMargin =
+            juce::jmax(0, getWidth() - originalX - originalWidth);
+        const auto rightMargin =
+            juce::roundToInt(static_cast<float>(originalRightMargin) * 0.6f);
+        const auto width =
+            juce::jmax(1, originalWidth - characterWidth * 3);
+        const auto x = juce::jmax(0, getWidth() - rightMargin - width);
+        return {x, y, width, height};
+    }
+
+    int DeviceSelectorComponent::getLabelAreaLeftMargin() const
+    {
+        constexpr auto originalMargin = 15;
+        return usePhoneLayout
+                   ? juce::jmax(0, originalMargin -
+                                      mainFont.getStringWidth("0"))
+                   : originalMargin;
     }
 
     void DeviceSelectorComponent::childBoundsChanged(Component *child)

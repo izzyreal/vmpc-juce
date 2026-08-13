@@ -1,0 +1,16 @@
+{
+  "name" : "cursor_compact",
+  "type" : "grid",
+  "row_fractions" : [ 1 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    {
+      "name" : "cursor_keys",
+      "type" : "cursor_keys",
+      "hardware_label" : "cursor",
+      "shadow_size" : 2.0,
+      "svg" : "cursor_keys_hole.svg",
+      "area" : [ 1, 1, 1, 1 ]
+    }
+  ]
+}

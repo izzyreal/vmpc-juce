@@ -1,0 +1,17 @@
+{
+  "name" : "tap_tempo_note_repeat_container",
+  "type" : "grid",
+  "row_fractions" : [ 1 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    {
+      "name" : "tap_tempo_note_repeat",
+      "hardware_label" : "tap-or-note-repeat",
+      "shadow_size" : 2.0,
+      "key_hole_svg" : "big_key_hole.svg",
+      "key_button_svg" : "big_key_button.svg",
+      "label" : "TAP TEMPO\nNOTE REPEAT",
+      "area" : [ 1, 1, 1, 1 ]
+    }
+  ]
+}

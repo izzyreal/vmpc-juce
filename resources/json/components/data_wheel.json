@@ -1,0 +1,10 @@
+{
+  "name" : "data_wheel_with_label",
+  "type" : "grid",
+  "row_fractions" : [ 2, 15 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    { "name" : "data_label", "label" : "DATA", "area" : [ 1, 1, 1, 1 ] },
+    { "include" : "components/data_wheel_unlabelled", "area" : [ 2, 1, 2, 1 ] }
+  ]
+}

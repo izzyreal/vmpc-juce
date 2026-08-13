@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Node.hpp"
+#include "Constants.hpp"
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include <algorithm>
 #include <vector>
 #include <functional>
 
@@ -18,7 +20,15 @@ namespace vmpc_juce::gui::vector
     {
     public:
         static float getLabelHeight(const std::string &text,
-                                    const std::function<float()> &getScale);
+                                    const std::function<float()> &getScale)
+        {
+            const auto newlineCount =
+                static_cast<float>(std::count(text.begin(), text.end(), '\n'));
+
+            return ((Constants::BASE_FONT_SIZE * (newlineCount + 1)) +
+                    (Constants::LINE_SIZE * newlineCount)) *
+                   getScale();
+        }
 
         static void createComponents(
             mpc::Mpc &mpc, node &n, std::vector<juce::Component *> &components,

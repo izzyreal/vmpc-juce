@@ -1,0 +1,9 @@
+{
+  "name" : "num_keys_trimmed",
+  "type" : "grid",
+  "row_fractions" : [ 1 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    { "include" : "num_keys", "area" : [ 1, 1, 1, 1 ], "margin" : [ 0, -9, 0, -8 ] }
+  ]
+}

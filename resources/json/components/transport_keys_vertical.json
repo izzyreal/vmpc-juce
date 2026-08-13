@@ -1,0 +1,66 @@
+{
+  "name" : "transport_keys_vertical",
+  "type" : "grid",
+  "row_fractions" : [ 1, 1, 1, 1, 1 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    {
+      "name" : "rec_group",
+      "type" : "grid",
+      "row_fractions" : [ 3, 4 ],
+      "column_fractions" : [ 1 ],
+      "area" : [ 1, 1, 1, 1 ],
+      "children" : [
+        { "name" : "rec_led", "hardware_label" : "rec-led", "type" : "red_led", "margin" : [ 0, 14, 0, 0 ], "area" : [ 1, 1, 1, 1 ] },
+        { "name" : "rec_label", "label" : "REC", "margin" : [ 0, 0, 0, 4 ], "area" : [ 1, 1, 1, 1 ] },
+        { "name" : "rec", "hardware_label" : "rec", "shadow_size" : 2.0, "key_hole_svg" : "big_key_hole.svg", "key_button_svg" : "big_key_red_button.svg", "area" : [ 2, 1, 2, 1 ] }
+      ]
+    },
+    {
+      "name" : "over_dub_group",
+      "type" : "grid",
+      "row_fractions" : [ 3, 4 ],
+      "column_fractions" : [ 1 ],
+      "area" : [ 2, 1, 2, 1 ],
+      "children" : [
+        { "name" : "over_dub_led", "hardware_label" : "overdub-led", "type" : "red_led", "margin" : [ 0, 17, 0, 0 ], "area" : [ 1, 1, 1, 1 ] },
+        { "name" : "over_dub_label", "label" : "OVER\nDUB", "margin" : [ 0, 0, 0, 4 ], "area" : [ 1, 1, 1, 1 ] },
+        { "name" : "over_dub", "hardware_label" : "overdub", "shadow_size" : 2.0, "key_hole_svg" : "big_key_hole.svg", "key_button_svg" : "big_key_red_button.svg", "area" : [ 2, 1, 2, 1 ] }
+      ]
+    },
+    {
+      "name" : "stop_group",
+      "type" : "grid",
+      "row_fractions" : [ 3, 4 ],
+      "column_fractions" : [ 1 ],
+      "area" : [ 3, 1, 3, 1 ],
+      "children" : [
+        { "name" : "stop_label", "label" : "STOP", "area" : [ 1, 1, 1, 1 ] },
+        { "name" : "stop", "hardware_label" : "stop", "shadow_size" : 2.0, "key_hole_svg" : "big_key_hole.svg", "key_button_svg" : "big_key_button.svg", "area" : [ 2, 1, 2, 1 ] }
+      ]
+    },
+    {
+      "name" : "play_group",
+      "type" : "grid",
+      "row_fractions" : [ 3, 4 ],
+      "column_fractions" : [ 1 ],
+      "area" : [ 4, 1, 4, 1 ],
+      "children" : [
+        { "name" : "play_led", "hardware_label" : "play-led", "type" : "green_led", "margin" : [ 0, 16, 0, 0 ], "area" : [ 1, 1, 1, 1 ] },
+        { "name" : "play_label", "label" : "PLAY", "margin" : [ 0, 0, 0, 4 ], "area" : [ 1, 1, 1, 1 ] },
+        { "name" : "play", "hardware_label" : "play", "shadow_size" : 2.0, "key_hole_svg" : "big_key_hole.svg", "key_button_svg" : "big_key_button.svg", "area" : [ 2, 1, 2, 1 ] }
+      ]
+    },
+    {
+      "name" : "play_start_group",
+      "type" : "grid",
+      "row_fractions" : [ 3, 4 ],
+      "column_fractions" : [ 1 ],
+      "area" : [ 5, 1, 5, 1 ],
+      "children" : [
+        { "name" : "play_start_label", "label" : "PLAY\nSTART", "area" : [ 1, 1, 1, 1 ] },
+        { "name" : "play_start", "hardware_label" : "play-start", "shadow_size" : 2.0, "key_hole_svg" : "big_key_hole.svg", "key_button_svg" : "big_key_button.svg", "area" : [ 2, 1, 2, 1 ] }
+      ]
+    }
+  ]
+}

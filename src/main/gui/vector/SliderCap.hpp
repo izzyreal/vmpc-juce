@@ -21,11 +21,21 @@ namespace vmpc_juce::gui::vector
                   Component *commonParentWithShadowToUse,
                   const float shadowSizeToUse,
                   const std::function<float()> &getScaleToUse)
-            : DraggableSvgComponent(svgPaths, commonParentWithShadowToUse,
-                                    shadowSizeToUse, getScaleToUse),
-              mpc(mpcToUse), model(modelToUse)
+            : SliderCap(&mpcToUse, modelToUse, svgPaths,
+                        commonParentWithShadowToUse, shadowSizeToUse,
+                        getScaleToUse)
         {
-            setIntervalMs(20);
+        }
+
+        SliderCap(const std::shared_ptr<mpc::hardware::Slider> &modelToUse,
+                  const std::vector<std::string> &svgPaths,
+                  Component *commonParentWithShadowToUse,
+                  const float shadowSizeToUse,
+                  const std::function<float()> &getScaleToUse)
+            : SliderCap(nullptr, modelToUse, svgPaths,
+                        commonParentWithShadowToUse, shadowSizeToUse,
+                        getScaleToUse)
+        {
         }
 
         void updatePositionFromModel()
@@ -61,7 +71,20 @@ namespace vmpc_juce::gui::vector
         }
 
     private:
-        mpc::Mpc &mpc;
+        SliderCap(mpc::Mpc *mpcToUse,
+                  const std::shared_ptr<mpc::hardware::Slider> &modelToUse,
+                  const std::vector<std::string> &svgPaths,
+                  Component *commonParentWithShadowToUse,
+                  const float shadowSizeToUse,
+                  const std::function<float()> &getScaleToUse)
+            : DraggableSvgComponent(svgPaths, commonParentWithShadowToUse,
+                                    shadowSizeToUse, getScaleToUse),
+              mpc(mpcToUse), model(modelToUse)
+        {
+            setIntervalMs(20);
+        }
+
+        mpc::Mpc *mpc = nullptr;
         std::shared_ptr<mpc::hardware::Slider> model;
         bool isDragging = false;
 
@@ -80,12 +103,16 @@ namespace vmpc_juce::gui::vector
         void mouseDrag(const juce::MouseEvent &e) override
         {
             DraggableSvgComponent::mouseDrag(e);
+            if (mpc == nullptr)
+            {
+                return;
+            }
             if (auto hostInputEvent = makeAbsoluteGestureFromMouse(
                     e, "slider", mpc::input::GestureEvent::Type::UPDATE,
                     getNormalizedY());
                 hostInputEvent)
             {
-                mpc.dispatchHostInput(*hostInputEvent);
+                mpc->dispatchHostInput(*hostInputEvent);
             }
         }
     };

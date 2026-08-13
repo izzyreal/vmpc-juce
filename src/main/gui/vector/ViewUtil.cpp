@@ -34,16 +34,6 @@
 
 using namespace vmpc_juce::gui::vector;
 
-float ViewUtil::getLabelHeight(const std::string &text,
-                               const std::function<float()> &getScale)
-{
-    const auto newlineCount = (float)std::count(text.begin(), text.end(), '\n');
-
-    return ((Constants::BASE_FONT_SIZE * (newlineCount + 1)) +
-            (Constants::LINE_SIZE * newlineCount)) *
-           getScale();
-}
-
 static void addShadow(const node &n, const std::function<float()> &getScale,
                       SvgComponent *svgComponent, juce::Component *parent,
                       std::vector<juce::Component *> &components)
@@ -76,9 +66,9 @@ static void addShadow(const node &n, const std::function<float()> &getScale,
     parent->addAndMakeVisible(shadow);
 }
 
-static juce::Component *createSvgLikeComponent(
-    mpc::Mpc &mpc, const node &n, juce::Component *parent,
-    const std::function<float()> &getScale)
+static juce::Component *
+createSvgLikeComponent(mpc::Mpc &mpc, const node &n, juce::Component *parent,
+                       const std::function<float()> &getScale)
 {
     if (n.node_type == "cursor_keys")
     {
@@ -103,7 +93,8 @@ static juce::Component *createSvgLikeComponent(
             if (componentIdIt != mpc::hardware::componentLabelToId.end() &&
                 mpc::hardware::isButtonId(componentIdIt->second))
             {
-                trackedButton = mpc.getHardware()->getButton(componentIdIt->second);
+                trackedButton =
+                    mpc.getHardware()->getButton(componentIdIt->second);
             }
         }
 
@@ -257,21 +248,17 @@ void ViewUtil::createComponent(
             }
         }
 
-        const auto numKey =
-            new NumKey(getScale, topLabel, bottomLabel, n.key_hole_svg,
-                       n.key_button_svg,
-                       !n.hardware_label.empty() &&
-                               mpc::hardware::componentLabelToId.count(
-                                   n.hardware_label) > 0 &&
-                               mpc::hardware::isButtonId(
-                                   mpc::hardware::componentLabelToId.at(
-                                       n.hardware_label))
-                           ? mpc.getHardware()->getButton(
-                                 mpc::hardware::componentLabelToId.at(
-                                     n.hardware_label))
-                           : nullptr,
-                       parent, n.shadow_size,
-                       getMainFontScaled);
+        const auto numKey = new NumKey(
+            getScale, topLabel, bottomLabel, n.key_hole_svg, n.key_button_svg,
+            !n.hardware_label.empty() &&
+                    mpc::hardware::componentLabelToId.count(n.hardware_label) >
+                        0 &&
+                    mpc::hardware::isButtonId(
+                        mpc::hardware::componentLabelToId.at(n.hardware_label))
+                ? mpc.getHardware()->getButton(
+                      mpc::hardware::componentLabelToId.at(n.hardware_label))
+                : nullptr,
+            parent, n.shadow_size, getMainFontScaled);
         addShadow(n, getScale, numKey->getSvgComponent(), parent, components);
         components.push_back(numKey);
         parent->addAndMakeVisible(numKey);
@@ -380,15 +367,15 @@ void ViewUtil::createComponent(
 
         if (n.name == "rec_gain")
         {
-            svgLikeComponent = new Pot(mpc.getHardware()->getRecPot(),
-                                       Pot::PotType::REC_GAIN, parent,
-                                       getScale);
+            svgLikeComponent =
+                new Pot(mpc.getHardware()->getRecPot(), Pot::PotType::REC_GAIN,
+                        parent, getScale);
         }
         else if (n.name == "main_volume")
         {
-            svgLikeComponent = new Pot(mpc.getHardware()->getVolPot(),
-                                       Pot::PotType::MAIN_VOLUME, parent,
-                                       getScale);
+            svgLikeComponent =
+                new Pot(mpc.getHardware()->getVolPot(),
+                        Pot::PotType::MAIN_VOLUME, parent, getScale);
         }
         else
         {

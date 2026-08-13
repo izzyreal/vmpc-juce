@@ -1,0 +1,15 @@
+{
+  "name" : "data_wheel_unlabelled",
+  "type" : "grid",
+  "row_fractions" : [ 1 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    {
+      "name" : "data_wheel",
+      "type" : "data_wheel",
+      "hardware_label" : "data-wheel",
+      "shadow_size" : 7,
+      "area" : [ 1, 1, 1, 1 ]
+    }
+  ]
+}

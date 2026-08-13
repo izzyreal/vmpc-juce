@@ -159,8 +159,7 @@ AudioDeviceSettingsPanel::~AudioDeviceSettingsPanel()
 
 void AudioDeviceSettingsPanel::resized()
 {
-    juce::Rectangle r(proportionOfWidth(0.35f), 0, proportionOfWidth(0.6f),
-                      3000);
+    auto r = parent.getControlColumnBounds(0, 3000);
 
     constexpr int maxListBoxHeight = 90;
     const int h = parent.getItemHeight();
@@ -268,7 +267,7 @@ void AudioDeviceSettingsPanel::resized()
     }
 
     constexpr int labelAreaWidth = 150;
-    constexpr int labelAreaLeftMargin = 15;
+    const auto labelAreaLeftMargin = parent.getLabelAreaLeftMargin();
 
     outputDeviceLabel->setBounds(labelAreaLeftMargin,
                                  outputDeviceDropDown->getY(), labelAreaWidth,

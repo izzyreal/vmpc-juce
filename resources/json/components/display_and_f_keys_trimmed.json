@@ -1,0 +1,9 @@
+{
+  "name" : "display_and_f_keys_trimmed",
+  "type" : "grid",
+  "row_fractions" : [ 1 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    { "include" : "display_and_f_keys_compact", "area" : [ 1, 1, 1, 1 ], "margin" : [ -2, -7, -2, 0 ] }
+  ]
+}

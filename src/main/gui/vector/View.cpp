@@ -11,6 +11,10 @@
 #include "gui/vector/About.hpp"
 #include "gui/vector/Pad.hpp"
 #include "gui/vector/PadTimer.hpp"
+#include "gui/arrangement/ArrangementCatalog.hpp"
+#include "gui/arrangement/ArrangementSelectorOverlay.hpp"
+#include "gui/arrangement/ArrangementSurface.hpp"
+#include "gui/ios/MobilePlatform.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "InitialWindowDimensions.hpp"
@@ -38,22 +42,24 @@ using namespace vmpc_juce::gui::vector;
 
 namespace
 {
-node makeFallbackRootNode()
-{
-    node result;
-    result.node_type = "flex_box";
-    result.direction = "column";
-    result.base_width = 1280;
-    result.base_height = 720;
-    return result;
-}
-}
+    node makeFallbackRootNode()
+    {
+        node result;
+        result.node_type = "flex_box";
+        result.direction = "column";
+        result.base_width = 1280;
+        result.base_height = 720;
+        return result;
+    }
+} // namespace
 
 View::View(mpc::Mpc &mpcToUse,
            const std::function<void()> &showAudioSettingsDialog,
            const juce::AudioProcessor::WrapperType wrapperType,
            const std::function<bool()> &isInstrument,
-           bool &shouldShowDisclaimer)
+           bool &shouldShowDisclaimer,
+           const std::optional<std::string> &preferredArrangementId,
+           std::function<void(const std::string &)> arrangementSelectedToUse)
     : mpc(mpcToUse), getScale(
                          [this]
                          {
@@ -80,8 +86,16 @@ View::View(mpc::Mpc &mpcToUse,
           [&]() -> juce::Font &
           {
               return keyTooltipFont;
-          })
+          }),
+      arrangementSelected(std::move(arrangementSelectedToUse)),
+      processorWrapperType(wrapperType)
 {
+    phoneArrangementMode =
+        gui::ios::isRunningOnIPhone() &&
+        (wrapperType ==
+             juce::AudioProcessor::WrapperType::wrapperType_Standalone ||
+         wrapperType ==
+             juce::AudioProcessor::WrapperType::wrapperType_AudioUnitv3);
     mainFontData =
         VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
     FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true, mainFontData.data(),
@@ -191,33 +205,40 @@ View::View(mpc::Mpc &mpcToUse,
 
     setWantsKeyboardFocus(true);
 
-    const auto jsonFileData =
-        VmpcJuceResourceUtil::getResourceData("json/" + layoutName + ".json");
-    try
+    if (!phoneArrangementMode)
     {
-        if (jsonFileData.empty())
+        const auto jsonFileData = VmpcJuceResourceUtil::getResourceData(
+            "json/" + layoutName + ".json");
+        try
         {
-            throw std::runtime_error("layout resource is empty");
+            if (jsonFileData.empty())
+            {
+                throw std::runtime_error("layout resource is empty");
+            }
+
+            const nlohmann::json data = nlohmann::json::parse(jsonFileData);
+            view_root = data.get<node>();
         }
-
-        const nlohmann::json data = nlohmann::json::parse(jsonFileData);
-        view_root = data.get<node>();
+        catch (const std::exception &e)
+        {
+            MLOG("Vector view failed to load layout '" + layoutName +
+                 "': " + std::string(e.what()));
+            view_root = makeFallbackRootNode();
+        }
+        catch (...)
+        {
+            MLOG("Vector view failed to load layout '" + layoutName +
+                 "': unknown error");
+            view_root = makeFallbackRootNode();
+        }
+        base_width = view_root.base_width;
+        base_height = view_root.base_height;
     }
-    catch (const std::exception &e)
+    else
     {
-        MLOG("Vector view failed to load layout '" + layoutName +
-             "': " + std::string(e.what()));
-        view_root = makeFallbackRootNode();
+        base_width = 390;
+        base_height = 844;
     }
-    catch (...)
-    {
-        MLOG("Vector view failed to load layout '" + layoutName +
-             "': unknown error");
-        view_root = makeFallbackRootNode();
-    }
-
-    base_width = view_root.base_width;
-    base_height = view_root.base_height;
 
     getScale = [this]
     {
@@ -227,10 +248,63 @@ View::View(mpc::Mpc &mpcToUse,
 
     tooltipOverlay = new TooltipOverlay();
 
-    ViewUtil::createComponent(
-        mpc, view_root, components, this, getScale, getMainFontScaled,
-        getMpc2000xlFaceplateGlyphsScaled, getKeyTooltipFontScaled,
-        mouseListeners, tooltipOverlay);
+    if (phoneArrangementMode)
+    {
+        const auto setupData = VmpcJuceResourceUtil::getResourceData(
+            "json/arrangements/default.json");
+        std::string error;
+        std::optional<gui::arrangement::ArrangementSetup> setup;
+        if (!setupData.empty())
+        {
+            setup = gui::arrangement::deserializeArrangementSetup(
+                std::string(setupData.begin(), setupData.end()), error);
+        }
+        if (!setup.has_value())
+        {
+            arrangementError = setupData.empty()
+                                   ? "The bundled arrangement setup is missing."
+                                   : error;
+        }
+        else if (const auto selected = gui::arrangement::resolveArrangementSlot(
+                     *setup, preferredArrangementId))
+        {
+            arrangementSetup = *setup;
+            activeArrangementSlot = *selected;
+            arrangementSelected(
+                arrangementSetup.slots[activeArrangementSlot]->id);
+            const auto orientation =
+                arrangementSetup.slots[activeArrangementSlot]->orientation;
+            base_width = orientation == gui::arrangement::Orientation::portrait
+                             ? 390
+                             : 844;
+            base_height = orientation == gui::arrangement::Orientation::portrait
+                              ? 844
+                              : 390;
+            buildPhoneArrangement();
+            if (wrapperType ==
+                juce::AudioProcessor::WrapperType::wrapperType_Standalone)
+            {
+                gui::ios::setIPhoneOrientation(orientation);
+            }
+        }
+        else
+        {
+            arrangementSetup = *setup;
+            arrangementError =
+                "The bundled arrangement setup has no occupied slots.";
+        }
+        if (!arrangementError.empty())
+        {
+            MLOG("iPhone arrangement setup: " + arrangementError);
+        }
+    }
+    else
+    {
+        ViewUtil::createComponent(
+            mpc, view_root, components, this, getScale, getMainFontScaled,
+            getMpc2000xlFaceplateGlyphsScaled, getKeyTooltipFontScaled,
+            mouseListeners, tooltipOverlay);
+    }
 
     timerCallbackComponents =
         utils::findChildComponentsOfClass<WithSharedTimerCallback>(this);
@@ -319,7 +393,19 @@ View::View(mpc::Mpc &mpcToUse,
 #endif
         getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen,
         setKeyboardShortcutTooltipsVisibility, tooltipOverlay,
-        getMainFontScaled, openAbout, wrapperType);
+        getMainFontScaled, openAbout,
+        phoneArrangementMode &&
+                gui::arrangement::findFirstOccupiedSlot(arrangementSetup)
+                    .has_value()
+            ? std::function<void()>(
+                  [this]
+                  {
+                      showArrangementSelector();
+                  })
+            : std::function<void()>(),
+        std::function<void()>(),
+        phoneArrangementMode,
+        wrapperType);
 
     addAndMakeVisible(menu);
     addAndMakeVisible(tooltipOverlay);
@@ -359,6 +445,10 @@ View::View(mpc::Mpc &mpcToUse,
                 const mpc::VelocityOrPressure velocityOrPressure,
                 const mpc::performance::UiCallbackPadEventType eventType)
             {
+                if (pads.size() < 16)
+                {
+                    return;
+                }
                 const std::function isActiveBank = [&]
                 {
                     const auto bank =
@@ -401,6 +491,10 @@ View::View(mpc::Mpc &mpcToUse,
                 const mpc::VelocityOrPressure velocityOrPressure,
                 const mpc::performance::UiCallbackPadEventType eventType)
             {
+                if (pads.size() < 16)
+                {
+                    return;
+                }
                 constexpr auto pressType = Pad::PressType::Primary;
 
                 const auto pad = pads[static_cast<size_t>(
@@ -442,6 +536,8 @@ View::~View()
     stopTimer();
 
     delete padTimer;
+    delete arrangementSelector;
+    delete arrangementSurface;
     delete focusHelper;
 
     for (const auto &c : components)
@@ -471,31 +567,60 @@ void View::deleteDisclaimer()
 
 void View::resized()
 {
-    if (components.empty())
+    if (arrangementSurface != nullptr)
     {
-        return;
+        arrangementSurface->setBounds(getLocalBounds());
+    }
+    else if (!components.empty())
+    {
+        const auto rootComponent = components.front();
+        assert(dynamic_cast<GridWrapper *>(rootComponent) != nullptr ||
+               dynamic_cast<FlexBoxWrapper *>(rootComponent) != nullptr);
+        rootComponent->setSize(getWidth(), getHeight());
+    }
+    if (tooltipOverlay != nullptr)
+    {
+        tooltipOverlay->setSize(getWidth(), getHeight());
     }
 
-    const auto rootComponent = components.front();
-
-    assert(dynamic_cast<GridWrapper *>(rootComponent) != nullptr ||
-           dynamic_cast<FlexBoxWrapper *>(rootComponent) != nullptr);
-
-    rootComponent->setSize(getWidth(), getHeight());
-    tooltipOverlay->setSize(getWidth(), getHeight());
-
     const auto scale = getScale();
-    constexpr auto menuMargin = 2.f;
-    const auto menuWidth = Menu::widthAtScale1 * scale;
-    const auto menuHeight = Menu::heightAtScale1 * scale;
-    const auto menuWidthWithMargin = (Menu::widthAtScale1 + menuMargin) * scale;
-    const auto menuHeightWithMargin =
-        (Menu::heightAtScale1 + menuMargin) * scale;
-    const auto menuX = static_cast<float>(getWidth()) - menuWidthWithMargin;
-    const auto menuY = static_cast<float>(getHeight()) - menuHeightWithMargin;
+    const auto menuMargin = phoneArrangementMode ? 10.f : 2.f;
+    auto menuScale = scale;
+    if (phoneArrangementMode && menu != nullptr)
+    {
+        constexpr auto preferredIPhoneMenuScaleMultiplier = 3.3f;
+        const auto availableWidth =
+            std::max(1.f, static_cast<float>(getWidth()) -
+                              (menuMargin * scale * 2.f));
+        const auto fitScale =
+            availableWidth / menu->getVisibleWidthAtScale1();
+        menuScale =
+            std::min(scale * preferredIPhoneMenuScaleMultiplier, fitScale);
+    }
+    if (menu != nullptr)
+    {
+        menu->setScaleMultiplier(scale > 0.f ? menuScale / scale : 1.f);
+    }
 
-    menu->setBounds(static_cast<int>(menuX), static_cast<int>(menuY),
-                    static_cast<int>(menuWidth), static_cast<int>(menuHeight));
+    const auto menuWidth =
+        (menu != nullptr ? menu->getRequiredWidthAtScale1()
+                         : Menu::widthAtScale1) *
+        menuScale;
+    const auto menuHeight = (menu != nullptr
+                                 ? menu->getRequiredHeightAtScale1()
+                                 : Menu::heightAtScale1) *
+                            menuScale;
+    const auto menuX = static_cast<float>(getWidth()) - menuWidth -
+                       (menuMargin * scale);
+    const auto menuY = static_cast<float>(getHeight()) - menuHeight -
+                       (menuMargin * scale);
+
+    if (menu != nullptr)
+    {
+        menu->setBounds(static_cast<int>(menuX), static_cast<int>(menuY),
+                        static_cast<int>(menuWidth),
+                        static_cast<int>(menuHeight));
+    }
 
     const auto rect = getLocalBounds().reduced(
         static_cast<int>(static_cast<float>(getWidth()) * 0.25f),
@@ -503,12 +628,59 @@ void View::resized()
 
     if (disclaimer != nullptr)
     {
-        disclaimer->setBounds(rect);
+        if (phoneArrangementMode)
+        {
+            const auto widthFraction = getHeight() >= getWidth() ? 1.f : 0.8f;
+            constexpr auto originalSizeFraction = 0.5f;
+            disclaimer->setScaleMultiplier(widthFraction /
+                                            originalSizeFraction);
+
+            auto disclaimerBounds = getLocalBounds().withSizeKeepingCentre(
+                juce::roundToInt(static_cast<float>(getWidth()) *
+                                 widthFraction),
+                juce::roundToInt(static_cast<float>(getHeight()) *
+                                 widthFraction));
+            disclaimer->setBounds(disclaimerBounds);
+        }
+        else
+        {
+            disclaimer->setScaleMultiplier(1.f);
+            disclaimer->setBounds(rect);
+        }
     }
 
     if (about != nullptr)
     {
         about->setBounds(rect);
+    }
+    if (arrangementSelector != nullptr)
+    {
+        arrangementSelector->setBounds(getLocalBounds());
+        arrangementSelector->toFront(false);
+    }
+    repaint();
+}
+
+void View::paint(juce::Graphics &g)
+{
+    if (!phoneArrangementMode)
+    {
+        return;
+    }
+    g.fillAll(Constants::chassisColour);
+    if (!arrangementError.empty())
+    {
+        g.setColour(juce::Colour(0xff343a38));
+        const auto panel = getLocalBounds().reduced(
+            std::max(18, juce::roundToInt(getWidth() * 0.08f)),
+            std::max(18, juce::roundToInt(getHeight() * 0.2f)));
+        g.fillRoundedRectangle(panel.toFloat(), 10.f);
+        g.setColour(juce::Colour(0xffedf2ef));
+        g.setFont(
+            juce::Font(std::max(16.f, getHeight() * 0.025f), juce::Font::bold));
+        g.drawFittedText("Arrangement setup unavailable\n\n" +
+                             juce::String(arrangementError),
+                         panel.reduced(20), juce::Justification::centred, 6);
     }
 }
 
@@ -546,4 +718,196 @@ vmpc_juce::gui::focus::FocusHelper *View::getFocusHelper() const
 Keyboard *View::getKeyboard() const
 {
     return keyboard;
+}
+
+bool View::usesPhoneArrangements() const
+{
+    return phoneArrangementMode;
+}
+
+void View::buildPhoneArrangement()
+{
+    arrangementError.clear();
+    const auto &slot = arrangementSetup.slots[activeArrangementSlot];
+    if (!slot.has_value() || slot->arrangement.nodes.empty())
+    {
+        arrangementError = "The selected arrangement slot is empty.";
+        return;
+    }
+
+    const auto mainFontAtScale = [this](const float scale) -> juce::Font &
+    {
+        mainFont.setHeight(Constants::BASE_FONT_SIZE * scale);
+        return mainFont;
+    };
+    const auto faceplateFontAtScale = [this](const float scale) -> juce::Font &
+    {
+        mpc2000xlFaceplateGlyphsFont.setHeight(Constants::BASE_FONT_SIZE *
+                                               scale);
+        return mpc2000xlFaceplateGlyphsFont;
+    };
+    const auto keyTooltipFontAtScale = [this](const float scale) -> juce::Font &
+    {
+        keyTooltipFont.setHeight(Constants::BASE_FONT_SIZE * scale);
+        return keyTooltipFont;
+    };
+
+    std::string error;
+    arrangementSurface = new gui::arrangement::ArrangementSurface(
+        mpc, slot->arrangement, mainFontAtScale, faceplateFontAtScale,
+        keyTooltipFontAtScale, tooltipOverlay, error);
+    if (!error.empty())
+    {
+        delete arrangementSurface;
+        arrangementSurface = nullptr;
+        arrangementError = error;
+        MLOG("iPhone arrangement: " + arrangementError);
+        return;
+    }
+    addAndMakeVisible(arrangementSurface);
+    arrangementSurface->toBack();
+}
+
+void View::refreshHardwareRegistrations()
+{
+    delete padTimer;
+    padTimer = nullptr;
+    pads = utils::findChildComponentsOfClass<Pad>(this);
+    timerCallbackComponents =
+        utils::findChildComponentsOfClass<WithSharedTimerCallback>(this);
+    padTimer = new PadTimer(pads);
+}
+
+void View::showArrangementSelector()
+{
+    if (!phoneArrangementMode || arrangementSelector != nullptr)
+    {
+        return;
+    }
+    const auto mainFontAtScale = [this](const float scale) -> juce::Font &
+    {
+        mainFont.setHeight(Constants::BASE_FONT_SIZE * scale);
+        return mainFont;
+    };
+    const auto faceplateFontAtScale = [this](const float scale) -> juce::Font &
+    {
+        mpc2000xlFaceplateGlyphsFont.setHeight(Constants::BASE_FONT_SIZE *
+                                               scale);
+        return mpc2000xlFaceplateGlyphsFont;
+    };
+    juce::Component::SafePointer<View> safeThis(this);
+    arrangementSelector = new gui::arrangement::ArrangementSelectorOverlay(
+        arrangementSetup, activeArrangementSlot, mainFontAtScale,
+        faceplateFontAtScale,
+        [safeThis](const std::size_t index)
+        {
+            juce::MessageManager::callAsync(
+                [safeThis, index]
+                {
+                    if (safeThis != nullptr)
+                    {
+                        safeThis->selectArrangementSlot(index);
+                    }
+                });
+        },
+        [safeThis]
+        {
+            juce::MessageManager::callAsync(
+                [safeThis]
+                {
+                    if (safeThis != nullptr)
+                    {
+                        safeThis->closeArrangementSelector();
+                    }
+                });
+        });
+    addAndMakeVisible(arrangementSelector);
+    resized();
+}
+
+void View::closeArrangementSelector()
+{
+    if (arrangementSelector == nullptr)
+    {
+        return;
+    }
+    removeChildComponent(arrangementSelector);
+    delete arrangementSelector;
+    arrangementSelector = nullptr;
+}
+
+void View::selectArrangementSlot(const std::size_t index,
+                                 const bool reportSelection)
+{
+    if (index >= arrangementSetup.slots.size() ||
+        !arrangementSetup.slots[index].has_value() ||
+        arrangementSetup.slots[index]->arrangement.nodes.empty())
+    {
+        return;
+    }
+    closeArrangementSelector();
+    if (reportSelection)
+    {
+        arrangementSelected(arrangementSetup.slots[index]->id);
+    }
+    if (index == activeArrangementSlot)
+    {
+        return;
+    }
+
+    delete padTimer;
+    padTimer = nullptr;
+    pads.clear();
+    timerCallbackComponents.clear();
+    if (arrangementSurface != nullptr)
+    {
+        removeChildComponent(arrangementSurface);
+        delete arrangementSurface;
+        arrangementSurface = nullptr;
+    }
+
+    activeArrangementSlot = index;
+    const auto orientation = arrangementSetup.slots[index]->orientation;
+    base_width =
+        orientation == gui::arrangement::Orientation::portrait ? 390 : 844;
+    base_height =
+        orientation == gui::arrangement::Orientation::portrait ? 844 : 390;
+    buildPhoneArrangement();
+    refreshHardwareRegistrations();
+    if (processorWrapperType ==
+        juce::AudioProcessor::WrapperType::wrapperType_Standalone)
+    {
+        gui::ios::setIPhoneOrientation(orientation);
+    }
+    initialRootWindowDimensions =
+        InitialWindowDimensions::get(base_width, base_height);
+    resized();
+    if (auto *parent = getParentComponent())
+    {
+        parent->resized();
+    }
+}
+
+void View::restoreArrangement(
+    const std::optional<std::string> &arrangementId)
+{
+    if (!phoneArrangementMode)
+    {
+        return;
+    }
+    const auto resolved =
+        gui::arrangement::resolveArrangementSlot(arrangementSetup,
+                                                 arrangementId);
+    if (!resolved.has_value())
+    {
+        return;
+    }
+    arrangementSelected(arrangementSetup.slots[*resolved]->id);
+    selectArrangementSlot(*resolved, false);
+}
+
+void View::toggleIPhoneFullscreen()
+{
+    iPhoneStatusBarHidden = !iPhoneStatusBarHidden;
+    gui::ios::setIPhoneStatusBarHidden(iPhoneStatusBarHidden);
 }

@@ -9,6 +9,8 @@
 #include <atomic>
 #include <bitset>
 #include <limits>
+#include <optional>
+#include <string>
 #include <vector>
 
 namespace vmpc_juce
@@ -51,6 +53,9 @@ namespace vmpc_juce
         void getStateInformation(juce::MemoryBlock &destData) override;
         void setStateInformation(const void *data, int sizeInBytes) override;
 
+        std::optional<std::string> getActiveArrangementId() const;
+        void setActiveArrangementId(const std::string &id);
+
         int lastUIWidth = 0, lastUIHeight = 0;
         bool hasRequiredResources() const;
         const std::string &getRequiredResourcesFailureMessage() const;
@@ -60,6 +65,7 @@ namespace vmpc_juce
         void processMidiOut(juce::MidiBuffer &midiMessages, bool discard);
         void processTransport();
         void computeHostToMpcChannelMappings();
+        void restoreUiState(const juce::XmlElement *uiState);
 
         std::vector<int8_t> mpcMonoInputChannelIndices,
             mpcMonoOutputChannelIndices, hostInputChannelIndices,
@@ -91,6 +97,7 @@ namespace vmpc_juce
         std::string requiredResourcesFailureMessage;
         std::atomic<bool> audioStreamActive{false};
         std::atomic<bool> physicalPowerOnRequested{false};
+        std::optional<std::string> activeArrangementId;
 
     public:
         bool shouldShowDisclaimer = true;

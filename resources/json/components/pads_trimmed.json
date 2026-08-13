@@ -1,0 +1,9 @@
+{
+  "name" : "pads_trimmed",
+  "type" : "grid",
+  "row_fractions" : [ 1 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    { "include" : "pads", "area" : [ 1, 1, 1, 1 ], "margin" : [ 0, -13, -12, -13 ] }
+  ]
+}
