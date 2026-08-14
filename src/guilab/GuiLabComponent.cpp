@@ -10,6 +10,7 @@
 #include <array>
 #include <cmath>
 #include <exception>
+#include <iterator>
 #include <string>
 
 using namespace vmpc_juce::guilab;
@@ -108,6 +109,33 @@ namespace
 
         return juce::Font(
             juce::Typeface::createSystemTypefaceFor(data.data(), data.size()));
+    }
+
+    struct PixelSpan
+    {
+        int start;
+        int end;
+    };
+
+    PixelSpan projectPixelSpan(const float logicalStart,
+                               const float logicalExtent, const float zoom,
+                               const int limit)
+    {
+        auto start = std::clamp(
+            juce::roundToInt(logicalStart * zoom), 0, limit);
+        auto end = std::clamp(
+            juce::roundToInt((logicalStart + logicalExtent) * zoom), 0,
+            limit);
+
+        // Keep very small projected nodes visible without allowing their
+        // component bounds to extend beyond the document surface.
+        if (end <= start && limit > 0)
+        {
+            start = std::min(start, limit - 1);
+            end = start + 1;
+        }
+
+        return {start, end};
     }
 } // namespace
 
@@ -320,13 +348,57 @@ class GuiLabComponent::ArrangementWorkspace final
     : public juce::Component,
       public juce::DragAndDropTarget
 {
+private:
+    class ArrangementNode;
+
 public:
     explicit ArrangementWorkspace(const DeviceProfile &deviceToUse)
         : device(deviceToUse)
     {
+        document.orientation = Orientation::portrait;
+        document.referenceDeviceId = device.id;
+        document.referenceSize =
+            getEffectiveDeviceSize(device, document.orientation);
         setWantsKeyboardFocus(true);
         setFocusContainerType(
             juce::Component::FocusContainerType::focusContainer);
+
+        groupButton.onClick = [this]
+        {
+            groupSelection();
+        };
+        ungroupButton.onClick = [this]
+        {
+            ungroupSelection();
+        };
+        for (auto *button : {&groupButton, &ungroupButton})
+        {
+            button->setColour(juce::TextButton::buttonColourId,
+                              juce::Colour(0xff343a38));
+            button->setColour(juce::TextButton::textColourOffId,
+                              juce::Colour(0xffedf2ef));
+            addAndMakeVisible(*button);
+        }
+
+        const std::array<juce::juce_wchar, 9> labelCharacters{
+            0x2196, 0x2191, 0x2197, 0x2190, 0x2022,
+            0x2192, 0x2199, 0x2193, 0x2198};
+        for (size_t i = 0; i < anchorButtons.size(); ++i)
+        {
+            auto button = std::make_unique<juce::TextButton>(
+                juce::String::charToString(labelCharacters[i]));
+            button->setTooltip("Anchor selected component");
+            button->onClick = [this, i]
+            {
+                setSelectedAnchor(
+                    {static_cast<AnchorAxis>(i % 3),
+                     static_cast<AnchorAxis>(i / 3)});
+            };
+            addAndMakeVisible(*button);
+            anchorButtons[i] = std::move(button);
+        }
+        refreshSelection();
+        refreshResponsiveLayout();
     }
 
     void setTarget(const DeviceProfile &newDevice,
@@ -334,20 +406,19 @@ public:
     {
         device = newDevice;
         orientation = newOrientation;
-        const auto deviceSize = getEffectiveDeviceSize(device, orientation);
 
-        for (auto &item : items)
+        // Before the first component is added, the selected screen establishes
+        // the document's canonical coordinate space. Afterwards target changes
+        // are previews only and never rewrite authored geometry.
+        if (document.nodes.empty())
         {
-            auto &model = item->getModel();
-            const auto referenceSize = item->getReferenceSize();
-            model.scale =
-                constrainItemScale(model.scale, referenceSize, deviceSize);
-            const LogicalSize itemSize{referenceSize.width * model.scale,
-                                       referenceSize.height * model.scale};
-            model.position = constrainItemPosition(model.position, itemSize,
-                                                   deviceSize, false);
+            document.orientation = orientation;
+            document.referenceDeviceId = device.id;
+            document.referenceSize =
+                getEffectiveDeviceSize(device, orientation);
         }
 
+        refreshResponsiveLayout();
         resized();
         repaint();
     }
@@ -369,23 +440,41 @@ public:
             juce::String(device.name) + " — " +
             juce::String(juce::roundToInt(deviceSize.width)) + " × " +
             juce::String(juce::roundToInt(deviceSize.height)) + " pt — " +
-            juce::String(juce::roundToInt(zoom * 100.f)) + "%";
+            juce::String(juce::roundToInt(zoom * 100.f)) + "% view — " +
+            juce::String(
+                juce::roundToInt(responsiveLayout.sharedScale * 100.f)) +
+            "% responsive scale";
         g.setColour(juce::Colour(0xffaeb7b3));
         g.setFont(13.f);
-        g.drawText(description, getLocalBounds().removeFromTop(26),
+        g.drawText(description, getLocalBounds().removeFromTop(54),
                    juce::Justification::centred);
 
         g.setColour(Constants::chassisColour);
         g.fillRect(surfaceBounds);
+        const auto borderWidth = isDragOverSurface ? 3 : 2;
         g.setColour(isDragOverSurface ? juce::Colour(0xff43b3dd)
                                       : juce::Colour(0xff87918e));
-        g.drawRect(surfaceBounds, isDragOverSurface ? 3 : 2);
+        g.drawRect(surfaceBounds.expanded(borderWidth), borderWidth);
     }
 
     void resized() override
     {
         auto available = getLocalBounds().reduced(18);
-        available.removeFromTop(28);
+        auto toolbar = available.removeFromTop(54);
+
+        groupButton.setBounds(toolbar.removeFromLeft(66).withHeight(24));
+        toolbar.removeFromLeft(6);
+        ungroupButton.setBounds(toolbar.removeFromLeft(76).withHeight(24));
+        constexpr int anchorButtonSize = 17;
+        auto anchorArea = getLocalBounds().reduced(18).removeFromTop(51);
+        anchorArea = anchorArea.removeFromRight(anchorButtonSize * 3);
+        for (size_t i = 0; i < anchorButtons.size(); ++i)
+        {
+            anchorButtons[i]->setBounds(
+                anchorArea.getX() + static_cast<int>(i % 3) * anchorButtonSize,
+                anchorArea.getY() + static_cast<int>(i / 3) * anchorButtonSize,
+                anchorButtonSize, anchorButtonSize);
+        }
 
         const auto deviceSize = getEffectiveDeviceSize(device, orientation);
         const auto horizontalZoom =
@@ -401,15 +490,20 @@ public:
         surfaceBounds =
             available.withSizeKeepingCentre(surfaceWidth, surfaceHeight);
 
-        for (auto &item : items)
+        refreshResponsiveLayout();
+        for (auto &node : nodeComponents)
         {
-            updateItemBounds(*item);
+            updateNodeBounds(*node);
         }
+        bringToolbarToFront();
     }
 
-    void mouseDown(const juce::MouseEvent &) override
+    void mouseDown(const juce::MouseEvent &event) override
     {
-        selectItem(nullptr);
+        if (event.eventComponent == this)
+        {
+            clearSelection();
+        }
         grabKeyboardFocus();
     }
 
@@ -417,25 +511,37 @@ public:
     {
         if (key == juce::KeyPress::escapeKey)
         {
-            selectItem(nullptr);
+            clearSelection();
             return true;
         }
 
-        if (selectedItem != nullptr && (key == juce::KeyPress::deleteKey ||
-                                        key == juce::KeyPress::backspaceKey))
+        const auto commandDown = key.getModifiers().isCommandDown();
+        if (commandDown && (key.getKeyCode() == 'G' ||
+                            key.getKeyCode() == 'g'))
         {
-            const auto found =
-                std::find_if(items.begin(), items.end(),
-                             [this](const auto &item)
-                             {
-                                 return item.get() == selectedItem;
-                             });
-            if (found != items.end())
+            if (key.getModifiers().isShiftDown())
             {
-                items.erase(found);
-                selectedItem = nullptr;
-                repaint();
+                ungroupSelection();
             }
+            else
+            {
+                groupSelection();
+            }
+            return true;
+        }
+
+        if (!selectedIds.empty() && (key == juce::KeyPress::deleteKey ||
+                                     key == juce::KeyPress::backspaceKey))
+        {
+            document.nodes.erase(
+                std::remove_if(document.nodes.begin(), document.nodes.end(),
+                               [this](const auto &node)
+                               {
+                                   return isSelected(node.id);
+                               }),
+                document.nodes.end());
+            selectedIds.clear();
+            rebuildNodeComponents();
             return true;
         }
 
@@ -477,9 +583,14 @@ public:
         const auto deviceSize = getEffectiveDeviceSize(device, orientation);
         const LogicalSize referenceSize{entry->referenceWidth,
                                         entry->referenceHeight};
-        ArrangementItemModel model;
+        ArrangementNodeModel model;
+        model.id = nextNodeId++;
         model.catalogId = entry->id;
-        model.scale = constrainItemScale(1.f, referenceSize, deviceSize);
+        model.referenceSize = referenceSize;
+        const auto projectedScale =
+            constrainItemScale(1.f, referenceSize, deviceSize);
+        model.scale = projectedScale /
+                      std::max(0.0001f, responsiveLayout.sharedScale);
 
         const auto logicalDropX =
             static_cast<float>(details.localPosition.x - surfaceBounds.getX()) /
@@ -487,33 +598,43 @@ public:
         const auto logicalDropY =
             static_cast<float>(details.localPosition.y - surfaceBounds.getY()) /
             zoom;
-        const LogicalSize itemSize{referenceSize.width * model.scale,
-                                   referenceSize.height * model.scale};
+        const LogicalSize itemSize{referenceSize.width * projectedScale,
+                                   referenceSize.height * projectedScale};
         const LogicalPoint requested{logicalDropX - itemSize.width * 0.5f,
                                      logicalDropY - itemSize.height * 0.5f};
         const auto shouldSnap =
             !juce::ModifierKeys::getCurrentModifiersRealtime().isAltDown();
-        model.position =
+        const auto projectedPosition =
             constrainItemPosition(requested, itemSize, deviceSize, shouldSnap);
+        model.anchor = inferAnchor(projectedPosition, itemSize, deviceSize);
+        model.position = unprojectNodePosition(
+            model, projectedPosition, responsiveLayout.transform,
+            responsiveLayout.sharedScale);
+        const auto nearest = findNearestValidPosition(
+            document, model, model.position, shouldSnap);
+        if (!nearest.has_value())
+        {
+            repaint();
+            return;
+        }
+        model.position = *nearest;
 
-        auto item = std::make_unique<ArrangementItem>(*this, *entry, model);
-        auto *itemPointer = item.get();
-        addAndMakeVisible(*itemPointer);
-        items.push_back(std::move(item));
-        updateItemBounds(*itemPointer);
-        selectItem(itemPointer);
+        document.nodes.push_back(std::move(model));
+        selectedIds = {document.nodes.back().id};
+        refreshResponsiveLayout();
+        rebuildNodeComponents();
         grabKeyboardFocus();
         repaint();
     }
 
 private:
-    class ArrangementItem final : public juce::Component
+    class ArrangementNode final : public juce::Component
     {
     public:
         class InteractionLayer final : public juce::Component
         {
         public:
-            explicit InteractionLayer(ArrangementItem &ownerToUse)
+            explicit InteractionLayer(ArrangementNode &ownerToUse)
                 : owner(ownerToUse)
             {
                 setMouseCursor(juce::MouseCursor::DraggingHandCursor);
@@ -540,18 +661,38 @@ private:
                 owner.continueMove(event);
             }
 
+            void mouseUp(const juce::MouseEvent &) override
+            {
+                owner.workspace.endGesture();
+            }
+
         private:
-            ArrangementItem &owner;
+            ArrangementNode &owner;
         };
 
         class ResizeHandle final : public juce::Component
         {
         public:
-            explicit ResizeHandle(ArrangementItem &ownerToUse)
-                : owner(ownerToUse)
+            ResizeHandle(ArrangementNode &ownerToUse,
+                         const ResizeCorner cornerToUse)
+                : owner(ownerToUse), corner(cornerToUse)
             {
-                setMouseCursor(
-                    juce::MouseCursor::BottomRightCornerResizeCursor);
+                auto cursor = juce::MouseCursor::BottomRightCornerResizeCursor;
+                switch (corner)
+                {
+                case ResizeCorner::topLeft:
+                    cursor = juce::MouseCursor::TopLeftCornerResizeCursor;
+                    break;
+                case ResizeCorner::topRight:
+                    cursor = juce::MouseCursor::TopRightCornerResizeCursor;
+                    break;
+                case ResizeCorner::bottomLeft:
+                    cursor = juce::MouseCursor::BottomLeftCornerResizeCursor;
+                    break;
+                case ResizeCorner::bottomRight:
+                    break;
+                }
+                setMouseCursor(cursor);
             }
 
             void paint(juce::Graphics &g) override
@@ -560,118 +701,225 @@ private:
                 g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1.f),
                                        2.f);
                 g.setColour(juce::Colour(0xffedf2ef));
-                g.drawLine(4.f, static_cast<float>(getHeight() - 4),
-                           static_cast<float>(getWidth() - 4), 4.f, 1.5f);
+                const auto descending =
+                    corner == ResizeCorner::topLeft ||
+                    corner == ResizeCorner::bottomRight;
+                g.drawLine(4.f, descending ? 4.f
+                                           : static_cast<float>(getHeight() - 4),
+                           static_cast<float>(getWidth() - 4),
+                           descending ? static_cast<float>(getHeight() - 4)
+                                      : 4.f,
+                           1.5f);
             }
 
             void mouseDown(const juce::MouseEvent &event) override
             {
-                owner.workspace.selectItem(&owner);
-                startScale = owner.model.scale;
-                startScreenPosition = event.getScreenPosition();
+                owner.beginResize(corner, event);
             }
 
             void mouseDrag(const juce::MouseEvent &event) override
             {
-                const auto delta =
-                    event.getScreenPosition() - startScreenPosition;
-                const auto reference = owner.getReferenceSize();
-                const auto denominator = owner.workspace.zoom *
-                                         (reference.width * reference.width +
-                                          reference.height * reference.height);
-                if (denominator <= 0.f)
-                {
-                    return;
-                }
+                owner.continueResize(corner, event);
+            }
 
-                const auto projectedDelta =
-                    (static_cast<float>(delta.x) * reference.width +
-                     static_cast<float>(delta.y) * reference.height) /
-                    denominator;
-                owner.workspace.resizeItem(owner, startScale + projectedDelta,
-                                           !event.mods.isAltDown());
+            void mouseUp(const juce::MouseEvent &) override
+            {
+                owner.workspace.endGesture();
             }
 
         private:
-            ArrangementItem &owner;
-            float startScale = 1.f;
-            juce::Point<int> startScreenPosition;
+            ArrangementNode &owner;
+            ResizeCorner corner;
         };
 
-        ArrangementItem(ArrangementWorkspace &workspaceToUse,
-                        const CatalogEntry &entryToUse,
-                        const ArrangementItemModel &modelToUse)
-            : workspace(workspaceToUse), entry(entryToUse), model(modelToUse),
-              preview(entry), interactionLayer(*this), resizeHandle(*this)
+        ArrangementNode(ArrangementWorkspace &workspaceToUse,
+                        const std::uint64_t nodeIdToUse)
+            : workspace(workspaceToUse), nodeId(nodeIdToUse),
+              interactionLayer(*this)
         {
             setMouseCursor(juce::MouseCursor::DraggingHandCursor);
-            preview.setInterceptsMouseClicks(false, false);
-            addAndMakeVisible(preview);
+            const auto *model = workspace.findNode(nodeId);
+            if (model != nullptr && model->isGroup())
+            {
+                for (const auto &child : model->children)
+                {
+                    if (const auto *entry = findCatalogEntry(child.catalogId))
+                    {
+                        auto preview = std::make_unique<PreviewComponent>(*entry);
+                        preview->setInterceptsMouseClicks(false, false);
+                        addAndMakeVisible(*preview);
+                        previews.push_back(std::move(preview));
+                    }
+                }
+            }
+            else if (model != nullptr)
+            {
+                if (const auto *entry = findCatalogEntry(model->catalogId))
+                {
+                    auto preview = std::make_unique<PreviewComponent>(*entry);
+                    preview->setInterceptsMouseClicks(false, false);
+                    addAndMakeVisible(*preview);
+                    previews.push_back(std::move(preview));
+                }
+            }
             addAndMakeVisible(interactionLayer);
-            addAndMakeVisible(resizeHandle);
-            resizeHandle.setVisible(false);
-        }
-
-        ArrangementItemModel &getModel()
-        {
-            return model;
+            for (const auto corner :
+                 {ResizeCorner::topLeft, ResizeCorner::topRight,
+                  ResizeCorner::bottomLeft, ResizeCorner::bottomRight})
+            {
+                auto handle = std::make_unique<ResizeHandle>(*this, corner);
+                handle->setVisible(false);
+                addAndMakeVisible(*handle);
+                resizeHandles.push_back(std::move(handle));
+            }
         }
 
         LogicalSize getReferenceSize() const
         {
-            return {entry.referenceWidth, entry.referenceHeight};
+            if (const auto *model = workspace.findNode(nodeId))
+            {
+                return model->referenceSize;
+            }
+            return {};
         }
 
-        void setSelected(const bool shouldBeSelected)
+        std::uint64_t getNodeId() const
+        {
+            return nodeId;
+        }
+
+        void setSelected(const bool shouldBeSelected,
+                         const bool showResizeHandle)
         {
             selected = shouldBeSelected;
-            resizeHandle.setVisible(selected);
+            for (auto &handle : resizeHandles)
+            {
+                handle->setVisible(selected && showResizeHandle);
+            }
             interactionLayer.repaint();
             repaint();
         }
 
-        void setPreviewScale(const float scale)
-        {
-            preview.setHardwareScale(scale);
-        }
-
         void resized() override
         {
-            preview.setBounds(getLocalBounds());
+            layoutPreviews();
             interactionLayer.setBounds(getLocalBounds());
             constexpr int handleSize = 16;
-            resizeHandle.setBounds(getWidth() - handleSize,
-                                   getHeight() - handleSize, handleSize,
-                                   handleSize);
-            resizeHandle.toFront(false);
+            const std::array<juce::Point<int>, 4> positions{{
+                {0, 0},
+                {getWidth() - handleSize, 0},
+                {0, getHeight() - handleSize},
+                {getWidth() - handleSize, getHeight() - handleSize}}};
+            for (size_t i = 0; i < resizeHandles.size(); ++i)
+            {
+                resizeHandles[i]->setBounds(positions[i].x, positions[i].y,
+                                             handleSize, handleSize);
+                resizeHandles[i]->toFront(false);
+            }
         }
 
     private:
         void beginMove(const juce::MouseEvent &event)
         {
-            workspace.selectItem(this);
+            workspace.selectNode(nodeId, event.mods.isShiftDown());
             workspace.grabKeyboardFocus();
-            startPosition = model.position;
+            workspace.beginGesture();
+            if (const auto *model = workspace.findNode(nodeId))
+            {
+                startPosition = model->position;
+            }
             startScreenPosition = event.getScreenPosition();
         }
 
         void continueMove(const juce::MouseEvent &event)
         {
             const auto delta = event.getScreenPosition() - startScreenPosition;
+            const auto positionScale = std::max(
+                0.0001f, workspace.responsiveLayout.transform.scale);
             const LogicalPoint requested{
-                startPosition.x + static_cast<float>(delta.x) / workspace.zoom,
-                startPosition.y + static_cast<float>(delta.y) / workspace.zoom};
-            workspace.moveItem(*this, requested, !event.mods.isAltDown());
+                startPosition.x + static_cast<float>(delta.x) /
+                                      (workspace.zoom * positionScale),
+                startPosition.y + static_cast<float>(delta.y) /
+                                      (workspace.zoom * positionScale)};
+            workspace.moveNode(nodeId, requested, !event.mods.isAltDown());
+        }
+
+        void beginResize(const ResizeCorner corner,
+                         const juce::MouseEvent &event)
+        {
+            workspace.selectNode(nodeId, false);
+            workspace.grabKeyboardFocus();
+            workspace.beginGesture();
+            resizeStartGeometry = workspace.getProjectedGeometry(nodeId);
+            resizeStartScreenPosition = event.getScreenPosition();
+            resizeCorner = corner;
+        }
+
+        void continueResize(const ResizeCorner corner,
+                            const juce::MouseEvent &event)
+        {
+            if (corner != resizeCorner)
+            {
+                return;
+            }
+            workspace.resizeNode(
+                nodeId, corner, resizeStartGeometry,
+                event.getScreenPosition() - resizeStartScreenPosition,
+                event.mods.isShiftDown(), !event.mods.isAltDown());
+        }
+
+        void layoutPreviews()
+        {
+            const auto *model = workspace.findNode(nodeId);
+            if (model == nullptr || previews.empty())
+            {
+                return;
+            }
+
+            if (!model->isGroup())
+            {
+                previews.front()->setHardwareScale(
+                    model->scale * workspace.responsiveLayout.sharedScale *
+                    workspace.zoom);
+                previews.front()->setBounds(getLocalBounds());
+                return;
+            }
+
+            size_t previewIndex = 0;
+            for (const auto &child : model->children)
+            {
+                if (findCatalogEntry(child.catalogId) == nullptr ||
+                    previewIndex >= previews.size())
+                {
+                    continue;
+                }
+                const auto localScale =
+                    model->scale * workspace.responsiveLayout.sharedScale *
+                    workspace.zoom;
+                auto &preview = *previews[previewIndex++];
+                preview.setHardwareScale(child.scale * localScale);
+                preview.setBounds(
+                    juce::roundToInt(child.position.x * localScale),
+                    juce::roundToInt(child.position.y * localScale),
+                    std::max(1, juce::roundToInt(
+                                    child.referenceSize.width * child.scale *
+                                    localScale)),
+                    std::max(1, juce::roundToInt(
+                                    child.referenceSize.height * child.scale *
+                                    localScale)));
+            }
         }
 
         ArrangementWorkspace &workspace;
-        CatalogEntry entry;
-        ArrangementItemModel model;
-        PreviewComponent preview;
+        std::uint64_t nodeId;
+        std::vector<std::unique_ptr<PreviewComponent>> previews;
         InteractionLayer interactionLayer;
-        ResizeHandle resizeHandle;
+        std::vector<std::unique_ptr<ResizeHandle>> resizeHandles;
         LogicalPoint startPosition;
         juce::Point<int> startScreenPosition;
+        ProjectedNodeGeometry resizeStartGeometry;
+        juce::Point<int> resizeStartScreenPosition;
+        ResizeCorner resizeCorner = ResizeCorner::bottomRight;
         bool selected = false;
     };
 
@@ -685,77 +933,504 @@ private:
         }
     }
 
-    void selectItem(ArrangementItem *item)
+    ArrangementNodeModel *findNode(const std::uint64_t id)
     {
-        if (selectedItem == item)
+        const auto found = std::find_if(document.nodes.begin(),
+                                        document.nodes.end(),
+                                        [id](const auto &node)
+                                        {
+                                            return node.id == id;
+                                        });
+        return found == document.nodes.end() ? nullptr : &*found;
+    }
+
+    const ArrangementNodeModel *findNode(const std::uint64_t id) const
+    {
+        const auto found = std::find_if(document.nodes.begin(),
+                                        document.nodes.end(),
+                                        [id](const auto &node)
+                                        {
+                                            return node.id == id;
+                                        });
+        return found == document.nodes.end() ? nullptr : &*found;
+    }
+
+    void refreshResponsiveLayout()
+    {
+        const auto targetSize = getEffectiveDeviceSize(device, orientation);
+        if (!frozenResponsiveScale.has_value() ||
+            !frozenResponsiveLayout.has_value())
+        {
+            responsiveLayout =
+                computeResponsiveLayout(document, targetSize);
+            return;
+        }
+
+        responsiveLayout = projectDocumentAtScale(
+            document, targetSize, *frozenResponsiveScale);
+        for (auto &projected : responsiveLayout.nodes)
+        {
+            const auto *frozen = findProjectedGeometry(
+                *frozenResponsiveLayout, projected.id);
+            if (frozen == nullptr)
+            {
+                continue;
+            }
+            projected.geometry.reflowOffset = frozen->reflowOffset;
+            projected.geometry.position.x += frozen->reflowOffset.x;
+            projected.geometry.position.y += frozen->reflowOffset.y;
+        }
+    }
+
+    void beginGesture()
+    {
+        if (!frozenResponsiveScale.has_value())
+        {
+            frozenResponsiveScale = responsiveLayout.sharedScale;
+            frozenResponsiveLayout = responsiveLayout;
+        }
+    }
+
+    void endGesture()
+    {
+        if (!frozenResponsiveScale.has_value())
+        {
+            return;
+        }
+        frozenResponsiveScale.reset();
+        frozenResponsiveLayout.reset();
+        refreshResponsiveLayout();
+        for (auto &component : nodeComponents)
+        {
+            updateNodeBounds(*component);
+        }
+        repaint();
+    }
+
+    ProjectedNodeGeometry getProjectedGeometry(const std::uint64_t id) const
+    {
+        if (const auto *geometry =
+                findProjectedGeometry(responsiveLayout, id))
+        {
+            return *geometry;
+        }
+        return {};
+    }
+
+    bool isSelected(const std::uint64_t id) const
+    {
+        return std::find(selectedIds.begin(), selectedIds.end(), id) !=
+               selectedIds.end();
+    }
+
+    void clearSelection()
+    {
+        selectedIds.clear();
+        refreshSelection();
+    }
+
+    void selectNode(const std::uint64_t id, const bool additive)
+    {
+        if (additive)
+        {
+            const auto found = std::find(selectedIds.begin(), selectedIds.end(),
+                                         id);
+            if (found == selectedIds.end())
+            {
+                selectedIds.push_back(id);
+            }
+            else
+            {
+                selectedIds.erase(found);
+            }
+        }
+        else if (!isSelected(id) || selectedIds.size() == 1)
+        {
+            selectedIds = {id};
+        }
+        refreshSelection();
+    }
+
+    void moveNode(const std::uint64_t id,
+                  const LogicalPoint requestedPosition,
+                  const bool shouldSnap)
+    {
+        auto *node = findNode(id);
+        if (node == nullptr)
+        {
+            return;
+        }
+        auto candidate = *node;
+        candidate.position = requestedPosition;
+        const auto nearest = findNearestValidPosition(
+            document, candidate, candidate.position, shouldSnap, id);
+        if (!nearest.has_value())
+        {
+            return;
+        }
+        node->position = *nearest;
+        refreshResponsiveLayout();
+        updateAllNodeBounds();
+    }
+
+    void resizeNode(const std::uint64_t id,
+                    const ResizeCorner corner,
+                    const ProjectedNodeGeometry startGeometry,
+                    const juce::Point<int> screenDelta,
+                    const bool useCentrePivot, const bool shouldSnap)
+    {
+        auto *node = findNode(id);
+        if (node == nullptr)
+        {
+            return;
+        }
+        const auto referenceSize = node->referenceSize;
+        const auto horizontalDirection =
+            corner == ResizeCorner::topLeft ||
+                    corner == ResizeCorner::bottomLeft
+                ? -1.f
+                : 1.f;
+        const auto verticalDirection =
+            corner == ResizeCorner::topLeft ||
+                    corner == ResizeCorner::topRight
+                ? -1.f
+                : 1.f;
+        const auto denominator =
+            zoom * (referenceSize.width * referenceSize.width +
+                    referenceSize.height * referenceSize.height);
+        if (denominator <= 0.f)
         {
             return;
         }
 
-        if (selectedItem != nullptr)
-        {
-            selectedItem->setSelected(false);
-        }
-        selectedItem = item;
-        if (selectedItem != nullptr)
-        {
-            selectedItem->setSelected(true);
-            selectedItem->toFront(false);
-        }
-    }
-
-    void moveItem(ArrangementItem &item, const LogicalPoint requestedPosition,
-                  const bool shouldSnap)
-    {
-        auto &model = item.getModel();
-        const auto referenceSize = item.getReferenceSize();
-        const LogicalSize itemSize{referenceSize.width * model.scale,
-                                   referenceSize.height * model.scale};
-        model.position = constrainItemPosition(
-            requestedPosition, itemSize,
-            getEffectiveDeviceSize(device, orientation), shouldSnap);
-        updateItemBounds(item);
-    }
-
-    void resizeItem(ArrangementItem &item, float requestedScale,
-                    const bool shouldSnap)
-    {
-        auto &model = item.getModel();
-        const auto referenceSize = item.getReferenceSize();
-        const auto deviceSize = getEffectiveDeviceSize(device, orientation);
+        auto requestedScale =
+            startGeometry.scale +
+            (static_cast<float>(screenDelta.x) * horizontalDirection *
+                 referenceSize.width +
+             static_cast<float>(screenDelta.y) * verticalDirection *
+                 referenceSize.height) /
+                denominator;
         if (shouldSnap)
         {
             requestedScale = snapItemScaleToGrid(requestedScale, referenceSize);
         }
-        model.scale =
-            constrainItemScale(requestedScale, referenceSize, deviceSize);
-        const LogicalSize itemSize{referenceSize.width * model.scale,
-                                   referenceSize.height * model.scale};
-        model.position =
-            constrainItemPosition(model.position, itemSize, deviceSize, false);
-        updateItemBounds(item);
+        const auto sharedScale = std::max(
+            0.0001f,
+            frozenResponsiveScale.value_or(responsiveLayout.sharedScale));
+        requestedScale = std::clamp(requestedScale, 0.5f * sharedScale,
+                                    6.f * sharedScale);
+
+        const auto makeCandidate = [&](const float projectedScale)
+        {
+            auto candidate = *node;
+            candidate.scale = projectedScale / sharedScale;
+            const LogicalSize requestedProjectedSize{
+                referenceSize.width * projectedScale,
+                referenceSize.height * projectedScale};
+            const auto displayedPosition = positionForResizedNode(
+                startGeometry, requestedProjectedSize, corner,
+                useCentrePivot);
+            const LogicalPoint idealPosition{
+                displayedPosition.x - startGeometry.reflowOffset.x,
+                displayedPosition.y - startGeometry.reflowOffset.y};
+            candidate.position = unprojectNodePosition(
+                candidate, idealPosition, responsiveLayout.transform,
+                sharedScale);
+            return candidate;
+        };
+
+        auto candidate = makeCandidate(requestedScale);
+        if (!isNodePlacementValid(document, candidate, id))
+        {
+            if (requestedScale <= startGeometry.scale)
+            {
+                return;
+            }
+            auto lower = startGeometry.scale;
+            auto upper = requestedScale;
+            for (int iteration = 0; iteration < 32; ++iteration)
+            {
+                const auto scale = (lower + upper) * 0.5f;
+                if (isNodePlacementValid(document, makeCandidate(scale), id))
+                {
+                    lower = scale;
+                }
+                else
+                {
+                    upper = scale;
+                }
+            }
+            candidate = makeCandidate(lower);
+        }
+
+        *node = std::move(candidate);
+        refreshResponsiveLayout();
+        updateAllNodeBounds();
     }
 
-    void updateItemBounds(ArrangementItem &item)
+    void updateNodeBounds(ArrangementNode &component)
     {
-        const auto &model = item.getModel();
-        const auto referenceSize = item.getReferenceSize();
-        item.setPreviewScale(zoom * model.scale);
-        item.setBounds(
-            surfaceBounds.getX() + juce::roundToInt(model.position.x * zoom),
-            surfaceBounds.getY() + juce::roundToInt(model.position.y * zoom),
-            std::max(
-                1, juce::roundToInt(referenceSize.width * model.scale * zoom)),
-            std::max(1, juce::roundToInt(referenceSize.height * model.scale *
-                                         zoom)));
+        const auto geometry = getProjectedGeometry(component.getNodeId());
+
+        // Round both edges of the projected rectangle instead of rounding its
+        // position and size independently. The latter can make the right or
+        // bottom edge one pixel too large and let a component paint over the
+        // document's exterior border.
+        const auto horizontal = projectPixelSpan(
+            geometry.position.x, geometry.size.width, zoom,
+            surfaceBounds.getWidth());
+        const auto vertical = projectPixelSpan(
+            geometry.position.y, geometry.size.height, zoom,
+            surfaceBounds.getHeight());
+        component.setBounds(
+            surfaceBounds.getX() + horizontal.start,
+            surfaceBounds.getY() + vertical.start,
+            horizontal.end - horizontal.start, vertical.end - vertical.start);
+        component.resized();
+    }
+
+    void updateNodeBoundsById(const std::uint64_t id)
+    {
+        const auto found = std::find_if(nodeComponents.begin(),
+                                        nodeComponents.end(),
+                                        [id](const auto &component)
+                                        {
+                                            return component->getNodeId() == id;
+                                        });
+        if (found != nodeComponents.end())
+        {
+            updateNodeBounds(**found);
+        }
+        refreshSelection();
+    }
+
+    void updateAllNodeBounds()
+    {
+        for (auto &component : nodeComponents)
+        {
+            updateNodeBounds(*component);
+        }
+        refreshSelection();
+    }
+
+    void rebuildNodeComponents()
+    {
+        refreshResponsiveLayout();
+        nodeComponents.clear();
+        for (const auto &node : document.nodes)
+        {
+            auto component = std::make_unique<ArrangementNode>(*this, node.id);
+            addAndMakeVisible(*component);
+            updateNodeBounds(*component);
+            nodeComponents.push_back(std::move(component));
+        }
+        refreshSelection();
+        repaint();
+    }
+
+    void refreshSelection()
+    {
+        const auto single = selectedIds.size() == 1;
+        for (auto &component : nodeComponents)
+        {
+            component->setSelected(isSelected(component->getNodeId()), single);
+        }
+
+        auto canGroup = selectedIds.size() >= 2 &&
+                        std::all_of(selectedIds.begin(), selectedIds.end(),
+                                    [this](const auto id)
+                                    {
+                                        const auto *node = findNode(id);
+                                        return node != nullptr &&
+                                               !node->isGroup();
+                                    });
+        if (canGroup)
+        {
+            std::vector<ArrangementNodeModel> selectedNodes;
+            for (const auto &node : document.nodes)
+            {
+                if (isSelected(node.id))
+                {
+                    selectedNodes.push_back(node);
+                }
+            }
+            const auto prospective =
+                makeFixedGroup(0, selectedNodes, document.referenceSize);
+            const auto prospectiveRect = getNodeRect(prospective);
+            canGroup = std::none_of(
+                document.nodes.begin(), document.nodes.end(),
+                [this, prospectiveRect](const auto &node)
+                {
+                    return !isSelected(node.id) &&
+                           rectanglesOverlap(prospectiveRect,
+                                             getNodeRect(node));
+                });
+        }
+        const auto *singleNode =
+            single ? findNode(selectedIds.front()) : nullptr;
+        groupButton.setEnabled(canGroup);
+        ungroupButton.setEnabled(singleNode != nullptr && singleNode->isGroup());
+
+        for (size_t i = 0; i < anchorButtons.size(); ++i)
+        {
+            auto &button = *anchorButtons[i];
+            button.setEnabled(singleNode != nullptr);
+            const ArrangementAnchor represented{
+                static_cast<AnchorAxis>(i % 3),
+                static_cast<AnchorAxis>(i / 3)};
+            button.setColour(
+                juce::TextButton::buttonColourId,
+                singleNode != nullptr && singleNode->anchor == represented
+                    ? juce::Colour(0xff43b3dd)
+                    : juce::Colour(0xff343a38));
+        }
+        bringToolbarToFront();
+    }
+
+    void bringToolbarToFront()
+    {
+        groupButton.toFront(false);
+        ungroupButton.toFront(false);
+        for (auto &button : anchorButtons)
+        {
+            if (button != nullptr)
+            {
+                button->toFront(false);
+            }
+        }
+    }
+
+    void setSelectedAnchor(const ArrangementAnchor anchor)
+    {
+        if (selectedIds.size() != 1)
+        {
+            return;
+        }
+        auto *node = findNode(selectedIds.front());
+        if (node == nullptr || node->anchor == anchor)
+        {
+            return;
+        }
+        const auto original = *node;
+        const auto projected = getProjectedGeometry(node->id);
+        const LogicalPoint idealPosition{
+            projected.position.x - projected.reflowOffset.x,
+            projected.position.y - projected.reflowOffset.y};
+        node->anchor = anchor;
+        node->position = unprojectNodePosition(
+            *node, idealPosition, responsiveLayout.transform,
+            responsiveLayout.sharedScale);
+        const auto nearest = findNearestValidPosition(
+            document, *node, node->position, false, node->id);
+        if (!nearest.has_value())
+        {
+            *node = original;
+            return;
+        }
+        node->position = *nearest;
+        refreshResponsiveLayout();
+        updateAllNodeBounds();
+    }
+
+    void groupSelection()
+    {
+        std::vector<ArrangementNodeModel> selectedNodes;
+        size_t insertionIndex = document.nodes.size();
+        for (size_t i = 0; i < document.nodes.size(); ++i)
+        {
+            if (isSelected(document.nodes[i].id))
+            {
+                if (document.nodes[i].isGroup())
+                {
+                    return;
+                }
+                insertionIndex = std::min(insertionIndex, i);
+                selectedNodes.push_back(document.nodes[i]);
+            }
+        }
+        if (selectedNodes.size() < 2)
+        {
+            return;
+        }
+
+        auto group = makeFixedGroup(nextNodeId++, selectedNodes,
+                                    document.referenceSize);
+        const auto groupRect = getNodeRect(group);
+        if (std::any_of(document.nodes.begin(), document.nodes.end(),
+                        [this, groupRect](const auto &node)
+                        {
+                            return !isSelected(node.id) &&
+                                   rectanglesOverlap(groupRect,
+                                                     getNodeRect(node));
+                        }))
+        {
+            return;
+        }
+        document.nodes.erase(
+            std::remove_if(document.nodes.begin(), document.nodes.end(),
+                           [this](const auto &node)
+                           {
+                               return isSelected(node.id);
+                           }),
+            document.nodes.end());
+        insertionIndex = std::min(insertionIndex, document.nodes.size());
+        const auto groupId = group.id;
+        document.nodes.insert(document.nodes.begin() +
+                                  static_cast<std::ptrdiff_t>(insertionIndex),
+                              std::move(group));
+        selectedIds = {groupId};
+        refreshResponsiveLayout();
+        rebuildNodeComponents();
+    }
+
+    void ungroupSelection()
+    {
+        if (selectedIds.size() != 1)
+        {
+            return;
+        }
+        const auto groupId = selectedIds.front();
+        const auto found = std::find_if(document.nodes.begin(),
+                                        document.nodes.end(),
+                                        [groupId](const auto &node)
+                                        {
+                                            return node.id == groupId;
+                                        });
+        if (found == document.nodes.end() || !found->isGroup())
+        {
+            return;
+        }
+        const auto index = static_cast<size_t>(
+            std::distance(document.nodes.begin(), found));
+        auto children = ungroupFixedGroup(*found, document.referenceSize);
+        document.nodes.erase(found);
+        selectedIds.clear();
+        for (const auto &child : children)
+        {
+            selectedIds.push_back(child.id);
+        }
+        document.nodes.insert(
+            document.nodes.begin() + static_cast<std::ptrdiff_t>(index),
+            std::make_move_iterator(children.begin()),
+            std::make_move_iterator(children.end()));
+        refreshResponsiveLayout();
+        rebuildNodeComponents();
     }
 
     DeviceProfile device;
     Orientation orientation = Orientation::portrait;
+    ArrangementDocument document;
+    ResponsiveLayout responsiveLayout;
+    std::optional<float> frozenResponsiveScale;
+    std::optional<ResponsiveLayout> frozenResponsiveLayout;
+    std::uint64_t nextNodeId = 1;
     float zoom = 1.f;
     juce::Rectangle<int> surfaceBounds;
-    std::vector<std::unique_ptr<ArrangementItem>> items;
-    ArrangementItem *selectedItem = nullptr;
+    std::vector<std::unique_ptr<ArrangementNode>> nodeComponents;
+    std::vector<std::uint64_t> selectedIds;
+    juce::TextButton groupButton{"Group"};
+    juce::TextButton ungroupButton{"Ungroup"};
+    std::array<std::unique_ptr<juce::TextButton>, 9> anchorButtons;
     bool isDragOverSurface = false;
 };
 
