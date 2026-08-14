@@ -1,10 +1,294 @@
 #include "ArrangementModel.hpp"
 
+#include <nlohmann/json.hpp>
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <unordered_set>
 
 using namespace vmpc_juce::guilab;
+
+namespace
+{
+    using json = nlohmann::json;
+
+    constexpr auto designFormat = "vmpc2000xl-gui-lab-arrangement";
+    constexpr int designFormatVersion = 2;
+
+    const char *anchorName(const AnchorAxis anchor)
+    {
+        switch (anchor)
+        {
+        case AnchorAxis::start:
+            return "start";
+        case AnchorAxis::end:
+            return "end";
+        case AnchorAxis::centre:
+        default:
+            return "centre";
+        }
+    }
+
+    AnchorAxis parseAnchor(const json &value)
+    {
+        const auto name = value.get<std::string>();
+        if (name == "start")
+        {
+            return AnchorAxis::start;
+        }
+        if (name == "centre")
+        {
+            return AnchorAxis::centre;
+        }
+        if (name == "end")
+        {
+            return AnchorAxis::end;
+        }
+        throw std::runtime_error("anchor must be start, centre, or end");
+    }
+
+    json pointToJson(const LogicalPoint point)
+    {
+        return {{"x", point.x}, {"y", point.y}};
+    }
+
+    json sizeToJson(const LogicalSize size)
+    {
+        return {{"width", size.width}, {"height", size.height}};
+    }
+
+    LogicalPoint parsePoint(const json &value)
+    {
+        return {value.at("x").get<float>(), value.at("y").get<float>()};
+    }
+
+    LogicalSize parseSize(const json &value)
+    {
+        return {value.at("width").get<float>(),
+                value.at("height").get<float>()};
+    }
+
+    json itemToJson(const ArrangementItemModel &item)
+    {
+        return {{"id", item.id},
+                {"component", item.catalogId},
+                {"position", pointToJson(item.position)},
+                {"scale", item.scale},
+                {"referenceSize", sizeToJson(item.referenceSize)}};
+    }
+
+    ArrangementItemModel parseItem(const json &value)
+    {
+        ArrangementItemModel result;
+        result.id = value.at("id").get<std::uint64_t>();
+        result.catalogId = value.at("component").get<std::string>();
+        result.position = parsePoint(value.at("position"));
+        result.scale = value.at("scale").get<float>();
+        result.referenceSize = parseSize(value.at("referenceSize"));
+        return result;
+    }
+
+    json nodeToJson(const ArrangementNodeModel &node)
+    {
+        json result{{"id", node.id},
+                    {"type", node.isGroup() ? "group" : "component"},
+                    {"anchorPosition", pointToJson(node.anchorPosition)},
+                    {"widthFraction", node.widthFraction},
+                    {"referenceSize", sizeToJson(node.referenceSize)},
+                    {"anchor",
+                     {{"horizontal", anchorName(node.anchor.horizontal)},
+                      {"vertical", anchorName(node.anchor.vertical)}}}};
+        if (node.isGroup())
+        {
+            result["children"] = json::array();
+            for (const auto &child : node.children)
+            {
+                result["children"].push_back(itemToJson(child));
+            }
+        }
+        else
+        {
+            result["component"] = node.catalogId;
+        }
+        return result;
+    }
+
+    ArrangementNodeModel parseNodeV2(const json &value)
+    {
+        ArrangementNodeModel result;
+        result.id = value.at("id").get<std::uint64_t>();
+        result.anchorPosition = parsePoint(value.at("anchorPosition"));
+        result.widthFraction = value.at("widthFraction").get<float>();
+        result.referenceSize = parseSize(value.at("referenceSize"));
+        const auto &anchor = value.at("anchor");
+        result.anchor = {parseAnchor(anchor.at("horizontal")),
+                         parseAnchor(anchor.at("vertical"))};
+
+        const auto type = value.at("type").get<std::string>();
+        if (type == "component")
+        {
+            result.catalogId = value.at("component").get<std::string>();
+        }
+        else if (type == "group")
+        {
+            const auto &children = value.at("children");
+            if (!children.is_array())
+            {
+                throw std::runtime_error("group children must be an array");
+            }
+            for (const auto &child : children)
+            {
+                result.children.push_back(parseItem(child));
+            }
+        }
+        else
+        {
+            throw std::runtime_error("node type must be component or group");
+        }
+        return result;
+    }
+
+    float anchorFactor(const AnchorAxis axis)
+    {
+        switch (axis)
+        {
+        case AnchorAxis::start:
+            return 0.f;
+        case AnchorAxis::end:
+            return 1.f;
+        case AnchorAxis::centre:
+        default:
+            return 0.5f;
+        }
+    }
+
+    ArrangementNodeModel parseNodeV1(const json &value,
+                                     const LogicalSize referenceSize)
+    {
+        ArrangementNodeModel result;
+        result.id = value.at("id").get<std::uint64_t>();
+        const auto position = parsePoint(value.at("position"));
+        const auto scale = value.at("scale").get<float>();
+        result.referenceSize = parseSize(value.at("referenceSize"));
+        const auto &anchor = value.at("anchor");
+        result.anchor = {parseAnchor(anchor.at("horizontal")),
+                         parseAnchor(anchor.at("vertical"))};
+        const LogicalSize size{result.referenceSize.width * scale,
+                               result.referenceSize.height * scale};
+        result.anchorPosition =
+            normalizedAnchorPosition(position, size, result.anchor,
+                                     referenceSize);
+        result.widthFraction = referenceSize.width > 0.f
+                                   ? size.width / referenceSize.width
+                                   : 0.f;
+
+        const auto type = value.at("type").get<std::string>();
+        if (type == "component")
+        {
+            result.catalogId = value.at("component").get<std::string>();
+        }
+        else if (type == "group")
+        {
+            for (const auto &child : value.at("children"))
+            {
+                result.children.push_back(parseItem(child));
+            }
+        }
+        else
+        {
+            throw std::runtime_error("node type must be component or group");
+        }
+        return result;
+    }
+
+    bool validPoint(const LogicalPoint point)
+    {
+        return std::isfinite(point.x) && std::isfinite(point.y);
+    }
+
+    bool validSize(const LogicalSize size)
+    {
+        return std::isfinite(size.width) && std::isfinite(size.height) &&
+               size.width > 0.f && size.height > 0.f;
+    }
+
+    bool validateDocument(const ArrangementDocument &document,
+                          std::string &error)
+    {
+        std::unordered_set<std::uint64_t> ids;
+        const auto validateItem =
+            [&ids, &error](const std::uint64_t id,
+                           const std::string &catalogId,
+                           const LogicalPoint position, const float scale,
+                           const LogicalSize referenceSize)
+        {
+            if (id == 0 || id == std::numeric_limits<std::uint64_t>::max() ||
+                !ids.insert(id).second)
+            {
+                error = "The design contains an invalid or duplicate component ID.";
+                return false;
+            }
+            if (catalogId.empty())
+            {
+                error = "The design contains a component without a type.";
+                return false;
+            }
+            if (!validPoint(position) || !std::isfinite(scale) || scale <= 0.f ||
+                !validSize(referenceSize))
+            {
+                error = "The design contains invalid component geometry.";
+                return false;
+            }
+            return true;
+        };
+
+        for (const auto &node : document.nodes)
+        {
+            const auto nodeType = node.isGroup() ? std::string("group")
+                                                 : node.catalogId;
+            if (node.id == 0 ||
+                node.id == std::numeric_limits<std::uint64_t>::max() ||
+                !ids.insert(node.id).second || nodeType.empty())
+            {
+                error = "The design contains an invalid component ID or type.";
+                return false;
+            }
+            if (!validPoint(node.anchorPosition) ||
+                node.anchorPosition.x < 0.f || node.anchorPosition.x > 1.f ||
+                node.anchorPosition.y < 0.f || node.anchorPosition.y > 1.f ||
+                !std::isfinite(node.widthFraction) ||
+                node.widthFraction <= 0.f || node.widthFraction > 1.f ||
+                !validSize(node.referenceSize))
+            {
+                error = "The design contains invalid normalized geometry.";
+                return false;
+            }
+            for (const auto &child : node.children)
+            {
+                if (!validateItem(
+                        child.id, child.catalogId, child.position, child.scale,
+                        child.referenceSize))
+                {
+                    return false;
+                }
+                const auto childRight =
+                    child.position.x + child.referenceSize.width * child.scale;
+                const auto childBottom = child.position.y +
+                                         child.referenceSize.height * child.scale;
+                constexpr float epsilon = 0.001f;
+                if (child.position.x < -epsilon || child.position.y < -epsilon ||
+                    childRight > node.referenceSize.width + epsilon ||
+                    childBottom > node.referenceSize.height + epsilon)
+                {
+                    error = "The design contains a group child outside its group.";
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+} // namespace
 
 const std::vector<DeviceProfile> &vmpc_juce::guilab::getDeviceProfiles()
 {
@@ -118,20 +402,6 @@ LogicalPoint vmpc_juce::guilab::constrainItemPosition(
 
 namespace
 {
-    float anchorFactor(const AnchorAxis axis)
-    {
-        switch (axis)
-        {
-        case AnchorAxis::start:
-            return 0.f;
-        case AnchorAxis::end:
-            return 1.f;
-        case AnchorAxis::centre:
-        default:
-            return 0.5f;
-        }
-    }
-
     AnchorAxis inferAnchorAxis(const float centre, const float extent)
     {
         if (centre < extent / 3.f)
@@ -143,16 +413,6 @@ namespace
             return AnchorAxis::end;
         }
         return AnchorAxis::centre;
-    }
-
-    LogicalPoint nodePivot(const ArrangementNodeModel &node)
-    {
-        const auto size = LogicalSize{node.referenceSize.width * node.scale,
-                                      node.referenceSize.height * node.scale};
-        return {node.position.x +
-                    size.width * anchorFactor(node.anchor.horizontal),
-                node.position.y +
-                    size.height * anchorFactor(node.anchor.vertical)};
     }
 
     bool responsiveLayoutIsValid(const ResponsiveLayout &layout,
@@ -236,67 +496,28 @@ namespace
     }
 } // namespace
 
-ResponsiveTransform vmpc_juce::guilab::makeResponsiveTransform(
-    const LogicalSize referenceSize, const LogicalSize targetSize)
-{
-    if (referenceSize.width <= 0.f || referenceSize.height <= 0.f ||
-        targetSize.width <= 0.f || targetSize.height <= 0.f)
-    {
-        return {};
-    }
-
-    ResponsiveTransform result;
-    result.scale = std::min(targetSize.width / referenceSize.width,
-                            targetSize.height / referenceSize.height);
-    result.horizontalSlack =
-        std::max(0.f, targetSize.width - referenceSize.width * result.scale);
-    result.verticalSlack =
-        std::max(0.f, targetSize.height - referenceSize.height * result.scale);
-    return result;
-}
-
-LogicalPoint vmpc_juce::guilab::projectPosition(
-    const LogicalPoint canonicalPosition, const ArrangementAnchor anchor,
-    const ResponsiveTransform transform)
-{
-    return {canonicalPosition.x * transform.scale +
-                anchorFactor(anchor.horizontal) * transform.horizontalSlack,
-            canonicalPosition.y * transform.scale +
-                anchorFactor(anchor.vertical) * transform.verticalSlack};
-}
-
-LogicalPoint vmpc_juce::guilab::unprojectPosition(
-    const LogicalPoint projectedPosition, const ArrangementAnchor anchor,
-    const ResponsiveTransform transform)
-{
-    const auto inverseScale = transform.scale > 0.f ? 1.f / transform.scale : 0.f;
-    return {(projectedPosition.x -
-             anchorFactor(anchor.horizontal) * transform.horizontalSlack) *
-                inverseScale,
-            (projectedPosition.y -
-             anchorFactor(anchor.vertical) * transform.verticalSlack) *
-                inverseScale};
-}
-
 ProjectedNodeGeometry vmpc_juce::guilab::projectNode(
-    const ArrangementNodeModel &node, const ResponsiveTransform transform)
+    const ArrangementNodeModel &node, const LogicalSize targetSize)
 {
-    return projectNodeAtScale(node, transform, transform.scale);
+    return projectNodeAtScale(node, targetSize, 1.f);
 }
 
 ProjectedNodeGeometry vmpc_juce::guilab::projectNodeAtScale(
-    const ArrangementNodeModel &node, const ResponsiveTransform transform,
+    const ArrangementNodeModel &node, const LogicalSize targetSize,
     const float sharedScale)
 {
-    const auto canonicalPivot = nodePivot(node);
-    const LogicalPoint projectedPivot{
-        canonicalPivot.x * transform.scale +
-            anchorFactor(node.anchor.horizontal) * transform.horizontalSlack,
-        canonicalPivot.y * transform.scale +
-            anchorFactor(node.anchor.vertical) * transform.verticalSlack};
-    const auto projectedScale = node.scale * sharedScale;
-    const LogicalSize size{node.referenceSize.width * projectedScale,
+    if (node.referenceSize.width <= 0.f || targetSize.width <= 0.f ||
+        targetSize.height <= 0.f)
+    {
+        return {};
+    }
+    const auto width = node.widthFraction * targetSize.width * sharedScale;
+    const auto projectedScale = width / node.referenceSize.width;
+    const LogicalSize size{width,
                            node.referenceSize.height * projectedScale};
+    const LogicalPoint projectedPivot{
+        node.anchorPosition.x * targetSize.width,
+        node.anchorPosition.y * targetSize.height};
     return {{projectedPivot.x -
                  size.width * anchorFactor(node.anchor.horizontal),
              projectedPivot.y -
@@ -304,37 +525,20 @@ ProjectedNodeGeometry vmpc_juce::guilab::projectNodeAtScale(
             size, projectedScale, {}};
 }
 
-LogicalPoint vmpc_juce::guilab::unprojectNodePosition(
-    const ArrangementNodeModel &node, const LogicalPoint projectedPosition,
-    const ResponsiveTransform transform, const float sharedScale)
+LogicalPoint vmpc_juce::guilab::normalizedAnchorPosition(
+    const LogicalPoint projectedPosition, const LogicalSize projectedSize,
+    const ArrangementAnchor anchor, const LogicalSize targetSize)
 {
-    if (transform.scale <= 0.f)
+    if (targetSize.width <= 0.f || targetSize.height <= 0.f)
     {
-        return node.position;
+        return {};
     }
-
-    const LogicalSize projectedSize{
-        node.referenceSize.width * node.scale * sharedScale,
-        node.referenceSize.height * node.scale * sharedScale};
-    const LogicalPoint projectedPivot{
-        projectedPosition.x +
-            projectedSize.width * anchorFactor(node.anchor.horizontal),
-        projectedPosition.y +
-            projectedSize.height * anchorFactor(node.anchor.vertical)};
-    const LogicalPoint canonicalPivot{
-        (projectedPivot.x -
-         anchorFactor(node.anchor.horizontal) * transform.horizontalSlack) /
-            transform.scale,
-        (projectedPivot.y -
-         anchorFactor(node.anchor.vertical) * transform.verticalSlack) /
-            transform.scale};
-    const LogicalSize canonicalSize{
-        node.referenceSize.width * node.scale,
-        node.referenceSize.height * node.scale};
-    return {canonicalPivot.x -
-                canonicalSize.width * anchorFactor(node.anchor.horizontal),
-            canonicalPivot.y -
-                canonicalSize.height * anchorFactor(node.anchor.vertical)};
+    return {(projectedPosition.x +
+             projectedSize.width * anchorFactor(anchor.horizontal)) /
+                targetSize.width,
+            (projectedPosition.y +
+             projectedSize.height * anchorFactor(anchor.vertical)) /
+                targetSize.height};
 }
 
 ResponsiveLayout vmpc_juce::guilab::projectDocumentAtScale(
@@ -342,15 +546,13 @@ ResponsiveLayout vmpc_juce::guilab::projectDocumentAtScale(
     const float sharedScale)
 {
     ResponsiveLayout result;
-    result.transform =
-        makeResponsiveTransform(document.referenceSize, targetSize);
     result.sharedScale = std::max(0.f, sharedScale);
     result.nodes.reserve(document.nodes.size());
     for (const auto &node : document.nodes)
     {
         result.nodes.push_back(
-            {node.id,
-             projectNodeAtScale(node, result.transform, result.sharedScale)});
+            {node.id, projectNodeAtScale(node, targetSize,
+                                         result.sharedScale)});
     }
     return result;
 }
@@ -358,17 +560,13 @@ ResponsiveLayout vmpc_juce::guilab::projectDocumentAtScale(
 ResponsiveLayout vmpc_juce::guilab::computeResponsiveLayout(
     const ArrangementDocument &document, const LogicalSize targetSize)
 {
-    const auto transform =
-        makeResponsiveTransform(document.referenceSize, targetSize);
-    if (document.nodes.empty() || document.referenceSize.width <= 0.f ||
-        document.referenceSize.height <= 0.f)
+    if (document.nodes.empty() || targetSize.width <= 0.f ||
+        targetSize.height <= 0.f)
     {
-        return projectDocumentAtScale(document, targetSize, transform.scale);
+        return projectDocumentAtScale(document, targetSize, 1.f);
     }
 
-    const auto upperScale = std::max(
-        targetSize.width / document.referenceSize.width,
-        targetSize.height / document.referenceSize.height);
+    constexpr float upperScale = 1.f;
     auto upperLayout = reflowProjectedLayout(
         projectDocumentAtScale(document, targetSize, upperScale), targetSize);
     if (responsiveLayoutIsValid(upperLayout, targetSize))
@@ -377,7 +575,7 @@ ResponsiveLayout vmpc_juce::guilab::computeResponsiveLayout(
     }
 
     auto lower = 0.f;
-    auto upper = std::max(0.f, upperScale);
+    auto upper = upperScale;
     for (int iteration = 0; iteration < 40; ++iteration)
     {
         const auto candidate = (lower + upper) * 0.5f;
@@ -408,14 +606,6 @@ const ProjectedNodeGeometry *vmpc_juce::guilab::findProjectedGeometry(
     return found == layout.nodes.end() ? nullptr : &found->geometry;
 }
 
-LogicalRect
-vmpc_juce::guilab::getNodeRect(const ArrangementNodeModel &node)
-{
-    return {node.position,
-            {node.referenceSize.width * node.scale,
-             node.referenceSize.height * node.scale}};
-}
-
 bool vmpc_juce::guilab::rectanglesOverlap(const LogicalRect first,
                                           const LogicalRect second)
 {
@@ -424,6 +614,24 @@ bool vmpc_juce::guilab::rectanglesOverlap(const LogicalRect first,
            second.position.x + second.size.width > first.position.x + epsilon &&
            first.position.y + first.size.height > second.position.y + epsilon &&
            second.position.y + second.size.height > first.position.y + epsilon;
+}
+
+bool vmpc_juce::guilab::isPlacementValid(
+    const LogicalRect candidate, const LogicalSize bounds,
+    const std::vector<LogicalRect> &obstacles)
+{
+    constexpr float epsilon = 0.001f;
+    if (candidate.position.x < -epsilon || candidate.position.y < -epsilon ||
+        candidate.position.x + candidate.size.width > bounds.width + epsilon ||
+        candidate.position.y + candidate.size.height > bounds.height + epsilon)
+    {
+        return false;
+    }
+    return std::none_of(obstacles.begin(), obstacles.end(),
+                        [candidate](const auto obstacle)
+                        {
+                            return rectanglesOverlap(candidate, obstacle);
+                        });
 }
 
 std::optional<LogicalPoint>
@@ -504,50 +712,79 @@ vmpc_juce::guilab::findNearestAvailablePosition(
     return best;
 }
 
-bool vmpc_juce::guilab::isNodePlacementValid(
-    const ArrangementDocument &document,
-    const ArrangementNodeModel &candidate,
-    const std::uint64_t ignoredNodeId)
+std::string vmpc_juce::guilab::serializeArrangementDocument(
+    const ArrangementDocument &document)
 {
-    constexpr float epsilon = 0.001f;
-    const auto candidateRect = getNodeRect(candidate);
-    if (candidateRect.position.x < -epsilon ||
-        candidateRect.position.y < -epsilon ||
-        candidateRect.position.x + candidateRect.size.width >
-            document.referenceSize.width + epsilon ||
-        candidateRect.position.y + candidateRect.size.height >
-            document.referenceSize.height + epsilon)
-    {
-        return false;
-    }
-
-    return std::none_of(document.nodes.begin(), document.nodes.end(),
-                        [&](const auto &node)
-                        {
-                            return node.id != ignoredNodeId &&
-                                   rectanglesOverlap(candidateRect,
-                                                     getNodeRect(node));
-                        });
-}
-
-std::optional<LogicalPoint> vmpc_juce::guilab::findNearestValidPosition(
-    const ArrangementDocument &document,
-    const ArrangementNodeModel &candidate,
-    const LogicalPoint requestedPosition, const bool shouldSnapToGrid,
-    const std::uint64_t ignoredNodeId, const float gridSize)
-{
-    std::vector<LogicalRect> obstacles;
-    obstacles.reserve(document.nodes.size());
+    json result{{"format", designFormat},
+                {"version", designFormatVersion},
+                {"nodes", json::array()}};
     for (const auto &node : document.nodes)
     {
-        if (node.id != ignoredNodeId)
-        {
-            obstacles.push_back(getNodeRect(node));
-        }
+        result["nodes"].push_back(nodeToJson(node));
     }
-    return findNearestAvailablePosition(
-        requestedPosition, getNodeRect(candidate).size,
-        document.referenceSize, obstacles, shouldSnapToGrid, gridSize);
+    return result.dump(2) + "\n";
+}
+
+std::optional<ArrangementDocument>
+vmpc_juce::guilab::deserializeArrangementDocument(
+    const std::string &contents, std::string &errorMessage)
+{
+    try
+    {
+        const auto source = json::parse(contents);
+        if (source.at("format").get<std::string>() != designFormat)
+        {
+            throw std::runtime_error("not a VMPC2000XL GUI Lab design");
+        }
+        const auto version = source.at("version").get<int>();
+        if (version != 1 && version != designFormatVersion)
+        {
+            throw std::runtime_error("unsupported design version");
+        }
+
+        ArrangementDocument result;
+        const auto &nodes = source.at("nodes");
+        if (!nodes.is_array())
+        {
+            throw std::runtime_error("nodes must be an array");
+        }
+        if (version == designFormatVersion)
+        {
+            for (const auto &node : nodes)
+            {
+                result.nodes.push_back(parseNodeV2(node));
+            }
+        }
+        else
+        {
+            const auto referenceSize =
+                parseSize(source.at("reference").at("size"));
+            if (!validSize(referenceSize))
+            {
+                throw std::runtime_error("invalid legacy reference size");
+            }
+            for (const auto &node : nodes)
+            {
+                result.nodes.push_back(parseNodeV1(node, referenceSize));
+            }
+        }
+
+        if (!validateDocument(result, errorMessage))
+        {
+            return std::nullopt;
+        }
+        errorMessage.clear();
+        return result;
+    }
+    catch (const std::exception &error)
+    {
+        errorMessage = std::string("Could not read the design: ") + error.what();
+    }
+    catch (...)
+    {
+        errorMessage = "Could not read the design: unknown file error";
+    }
+    return std::nullopt;
 }
 
 LogicalPoint vmpc_juce::guilab::positionForResizedNode(
@@ -596,65 +833,85 @@ ArrangementAnchor vmpc_juce::guilab::inferAnchor(
 ArrangementNodeModel vmpc_juce::guilab::makeFixedGroup(
     const std::uint64_t groupId,
     const std::vector<ArrangementNodeModel> &itemNodes,
-    const LogicalSize referenceCanvasSize)
+    const ResponsiveLayout &layout, const LogicalSize targetSize)
 {
     ArrangementNodeModel group;
     group.id = groupId;
-    if (itemNodes.empty())
+    if (itemNodes.empty() || targetSize.width <= 0.f)
     {
         return group;
     }
 
-    auto left = itemNodes.front().position.x;
-    auto top = itemNodes.front().position.y;
-    auto right = left + itemNodes.front().referenceSize.width *
-                            itemNodes.front().scale;
-    auto bottom = top + itemNodes.front().referenceSize.height *
-                              itemNodes.front().scale;
+    const auto *firstGeometry =
+        findProjectedGeometry(layout, itemNodes.front().id);
+    if (firstGeometry == nullptr)
+    {
+        return group;
+    }
+    auto left = firstGeometry->position.x;
+    auto top = firstGeometry->position.y;
+    auto right = left + firstGeometry->size.width;
+    auto bottom = top + firstGeometry->size.height;
     for (const auto &node : itemNodes)
     {
-        left = std::min(left, node.position.x);
-        top = std::min(top, node.position.y);
-        right = std::max(right, node.position.x +
-                                    node.referenceSize.width * node.scale);
-        bottom = std::max(bottom, node.position.y +
-                                      node.referenceSize.height * node.scale);
+        const auto *geometry = findProjectedGeometry(layout, node.id);
+        if (geometry == nullptr)
+        {
+            return {};
+        }
+        left = std::min(left, geometry->position.x);
+        top = std::min(top, geometry->position.y);
+        right = std::max(right, geometry->position.x + geometry->size.width);
+        bottom =
+            std::max(bottom, geometry->position.y + geometry->size.height);
     }
 
-    group.position = {left, top};
-    group.referenceSize = {right - left, bottom - top};
-    group.anchor = inferAnchor(group.position, group.referenceSize,
-                               referenceCanvasSize);
+    const LogicalPoint displayedPosition{left, top};
+    const LogicalSize displayedSize{right - left, bottom - top};
+    group.referenceSize = displayedSize;
+    group.widthFraction = group.referenceSize.width / targetSize.width;
+    group.anchor = inferAnchor(displayedPosition, displayedSize, targetSize);
+    group.anchorPosition = normalizedAnchorPosition(
+        displayedPosition, displayedSize, group.anchor, targetSize);
     group.children.reserve(itemNodes.size());
     for (const auto &node : itemNodes)
     {
+        const auto *geometry = findProjectedGeometry(layout, node.id);
         group.children.push_back({node.id, node.catalogId,
-                                  {node.position.x - left,
-                                   node.position.y - top},
-                                  node.scale, node.referenceSize});
+                                  {geometry->position.x - left,
+                                   geometry->position.y - top},
+                                  geometry->scale,
+                                  node.referenceSize});
     }
     return group;
 }
 
 std::vector<ArrangementNodeModel> vmpc_juce::guilab::ungroupFixedGroup(
-    const ArrangementNodeModel &group, const LogicalSize referenceCanvasSize)
+    const ArrangementNodeModel &group,
+    const ProjectedNodeGeometry groupGeometry, const LogicalSize targetSize)
 {
     std::vector<ArrangementNodeModel> result;
+    if (targetSize.width <= 0.f)
+    {
+        return result;
+    }
     result.reserve(group.children.size());
     for (const auto &child : group.children)
     {
         ArrangementNodeModel node;
         node.id = child.id;
         node.catalogId = child.catalogId;
-        node.position = {group.position.x + child.position.x * group.scale,
-                         group.position.y + child.position.y * group.scale};
-        node.scale = child.scale * group.scale;
         node.referenceSize = child.referenceSize;
-        node.anchor = inferAnchor(
-            node.position,
-            {node.referenceSize.width * node.scale,
-             node.referenceSize.height * node.scale},
-            referenceCanvasSize);
+        const LogicalPoint displayedPosition{
+            groupGeometry.position.x + child.position.x * groupGeometry.scale,
+            groupGeometry.position.y + child.position.y * groupGeometry.scale};
+        const LogicalSize displayedSize{
+            child.referenceSize.width * child.scale * groupGeometry.scale,
+            child.referenceSize.height * child.scale * groupGeometry.scale};
+        node.widthFraction = displayedSize.width / targetSize.width;
+        node.anchor = inferAnchor(displayedPosition, displayedSize, targetSize);
+        node.anchorPosition = normalizedAnchorPosition(
+            displayedPosition, displayedSize, node.anchor, targetSize);
         result.push_back(std::move(node));
     }
     return result;

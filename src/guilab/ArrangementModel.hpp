@@ -57,13 +57,6 @@ namespace vmpc_juce::guilab
         }
     };
 
-    struct ResponsiveTransform
-    {
-        float scale = 1.f;
-        float horizontalSlack = 0.f;
-        float verticalSlack = 0.f;
-    };
-
     // These are the allocations produced for the compact display by
     // default_compact -> main_container -> left_side_container at scale 1.
     // Keeping the GUI Lab previews at these dimensions lets the production
@@ -100,8 +93,8 @@ namespace vmpc_juce::guilab
     {
         std::uint64_t id = 0;
         ArrangementAnchor anchor;
-        LogicalPoint position;
-        float scale = 1.f;
+        LogicalPoint anchorPosition{0.5f, 0.5f};
+        float widthFraction = 0.25f;
         LogicalSize referenceSize;
         std::string catalogId;
         std::vector<ArrangementItemModel> children;
@@ -114,9 +107,6 @@ namespace vmpc_juce::guilab
 
     struct ArrangementDocument
     {
-        Orientation orientation = Orientation::portrait;
-        std::string referenceDeviceId;
-        LogicalSize referenceSize;
         std::vector<ArrangementNodeModel> nodes;
     };
 
@@ -136,7 +126,6 @@ namespace vmpc_juce::guilab
 
     struct ResponsiveLayout
     {
-        ResponsiveTransform transform;
         float sharedScale = 1.f;
         bool hasValidPlacement = true;
         std::vector<ProjectedArrangementNode> nodes;
@@ -156,22 +145,15 @@ namespace vmpc_juce::guilab
                                        LogicalSize deviceSize,
                                        bool shouldSnapToGrid,
                                        float gridSize = 4.f);
-    ResponsiveTransform makeResponsiveTransform(LogicalSize referenceSize,
-                                                LogicalSize targetSize);
-    LogicalPoint projectPosition(LogicalPoint canonicalPosition,
-                                 ArrangementAnchor anchor,
-                                 ResponsiveTransform transform);
-    LogicalPoint unprojectPosition(LogicalPoint projectedPosition,
-                                   ArrangementAnchor anchor,
-                                   ResponsiveTransform transform);
     ProjectedNodeGeometry projectNode(const ArrangementNodeModel &node,
-                                      ResponsiveTransform transform);
+                                      LogicalSize targetSize);
     ProjectedNodeGeometry projectNodeAtScale(
-        const ArrangementNodeModel &node, ResponsiveTransform transform,
+        const ArrangementNodeModel &node, LogicalSize targetSize,
         float sharedScale);
-    LogicalPoint unprojectNodePosition(
-        const ArrangementNodeModel &node, LogicalPoint projectedPosition,
-        ResponsiveTransform transform, float sharedScale);
+    LogicalPoint normalizedAnchorPosition(LogicalPoint projectedPosition,
+                                          LogicalSize projectedSize,
+                                          ArrangementAnchor anchor,
+                                          LogicalSize targetSize);
     ResponsiveLayout projectDocumentAtScale(
         const ArrangementDocument &document, LogicalSize targetSize,
         float sharedScale);
@@ -179,20 +161,18 @@ namespace vmpc_juce::guilab
         const ArrangementDocument &document, LogicalSize targetSize);
     const ProjectedNodeGeometry *findProjectedGeometry(
         const ResponsiveLayout &layout, std::uint64_t nodeId);
-    LogicalRect getNodeRect(const ArrangementNodeModel &node);
     bool rectanglesOverlap(LogicalRect first, LogicalRect second);
+    bool isPlacementValid(LogicalRect candidate, LogicalSize bounds,
+                          const std::vector<LogicalRect> &obstacles);
     std::optional<LogicalPoint> findNearestAvailablePosition(
         LogicalPoint requestedPosition, LogicalSize itemSize,
         LogicalSize bounds, const std::vector<LogicalRect> &obstacles,
         bool shouldSnapToGrid = false, float gridSize = 4.f);
-    bool isNodePlacementValid(const ArrangementDocument &document,
-                              const ArrangementNodeModel &candidate,
-                              std::uint64_t ignoredNodeId = 0);
-    std::optional<LogicalPoint> findNearestValidPosition(
-        const ArrangementDocument &document,
-        const ArrangementNodeModel &candidate,
-        LogicalPoint requestedPosition, bool shouldSnapToGrid,
-        std::uint64_t ignoredNodeId = 0, float gridSize = 4.f);
+    std::string serializeArrangementDocument(
+        const ArrangementDocument &document);
+    std::optional<ArrangementDocument>
+    deserializeArrangementDocument(const std::string &contents,
+                                   std::string &errorMessage);
     LogicalPoint positionForResizedNode(
         ProjectedNodeGeometry startGeometry, LogicalSize requestedSize,
         ResizeCorner corner, bool useCentrePivot);
@@ -201,8 +181,9 @@ namespace vmpc_juce::guilab
     ArrangementNodeModel makeFixedGroup(
         std::uint64_t groupId,
         const std::vector<ArrangementNodeModel> &itemNodes,
-        LogicalSize referenceCanvasSize);
+        const ResponsiveLayout &layout, LogicalSize targetSize);
     std::vector<ArrangementNodeModel>
     ungroupFixedGroup(const ArrangementNodeModel &group,
-                      LogicalSize referenceCanvasSize);
+                      ProjectedNodeGeometry groupGeometry,
+                      LogicalSize targetSize);
 } // namespace vmpc_juce::guilab

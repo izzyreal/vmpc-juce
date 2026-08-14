@@ -21,11 +21,11 @@ namespace
     constexpr std::array<CatalogEntry, 22> catalog{{
         {"lcd-bare", "LCD - bare", "lcd_bare", 210, 55},
         {"lcd-mounted", "LCD - mounted", "lcd_mounted_lab",
-         compactMountedLcdReferenceSize.width,
-         compactMountedLcdReferenceSize.height},
+         compactMountedLcdReferenceSize.width - 7.f,
+         compactMountedLcdReferenceSize.height - 4.f},
         {"lcd-mounted-functions", "LCD - mounted + function buttons",
-         "display_and_f_keys_compact", compactDisplayReferenceSize.width,
-         compactDisplayReferenceSize.height},
+         "display_and_f_keys_lab", compactDisplayReferenceSize.width - 7.f,
+         compactDisplayReferenceSize.height - 4.f},
         {"function-buttons", "Function buttons", "f_keys", 180, 25},
         {"main-open", "Main Screen + Open Window",
          "main_screen_and_open_window", 90, 21},
@@ -355,10 +355,6 @@ public:
     explicit ArrangementWorkspace(const DeviceProfile &deviceToUse)
         : device(deviceToUse)
     {
-        document.orientation = Orientation::portrait;
-        document.referenceDeviceId = device.id;
-        document.referenceSize =
-            getEffectiveDeviceSize(device, document.orientation);
         setWantsKeyboardFocus(true);
         setFocusContainerType(
             juce::Component::FocusContainerType::focusContainer);
@@ -407,20 +403,57 @@ public:
         device = newDevice;
         orientation = newOrientation;
 
-        // Before the first component is added, the selected screen establishes
-        // the document's canonical coordinate space. Afterwards target changes
-        // are previews only and never rewrite authored geometry.
-        if (document.nodes.empty())
-        {
-            document.orientation = orientation;
-            document.referenceDeviceId = device.id;
-            document.referenceSize =
-                getEffectiveDeviceSize(device, orientation);
-        }
-
         refreshResponsiveLayout();
         resized();
         repaint();
+    }
+
+    ArrangementDocument getDocument() const
+    {
+        return document;
+    }
+
+    bool loadDocument(const ArrangementDocument &newDocument,
+                      std::string &errorMessage)
+    {
+        for (const auto &node : newDocument.nodes)
+        {
+            if (!node.isGroup() && findCatalogEntry(node.catalogId) == nullptr)
+            {
+                errorMessage = "The design uses an unknown component: " +
+                               node.catalogId;
+                return false;
+            }
+            for (const auto &child : node.children)
+            {
+                if (findCatalogEntry(child.catalogId) == nullptr)
+                {
+                    errorMessage = "The design uses an unknown component: " +
+                                   child.catalogId;
+                    return false;
+                }
+            }
+        }
+
+        document = newDocument;
+        frozenResponsiveScale.reset();
+        frozenResponsiveLayout.reset();
+        activeGestureNodeId.reset();
+        selectedIds.clear();
+        nextNodeId = 1;
+        for (const auto &node : document.nodes)
+        {
+            nextNodeId = std::max(nextNodeId, node.id + 1);
+            for (const auto &child : node.children)
+            {
+                nextNodeId = std::max(nextNodeId, child.id + 1);
+            }
+        }
+        rebuildNodeComponents();
+        resized();
+        repaint();
+        errorMessage.clear();
+        return true;
     }
 
     float getDefaultItemDisplayScale(const CatalogEntry &entry) const
@@ -589,8 +622,8 @@ public:
         model.referenceSize = referenceSize;
         const auto projectedScale =
             constrainItemScale(1.f, referenceSize, deviceSize);
-        model.scale = projectedScale /
-                      std::max(0.0001f, responsiveLayout.sharedScale);
+        model.widthFraction =
+            referenceSize.width * projectedScale / deviceSize.width;
 
         const auto logicalDropX =
             static_cast<float>(details.localPosition.x - surfaceBounds.getX()) /
@@ -604,20 +637,23 @@ public:
                                      logicalDropY - itemSize.height * 0.5f};
         const auto shouldSnap =
             !juce::ModifierKeys::getCurrentModifiersRealtime().isAltDown();
-        const auto projectedPosition =
+        auto projectedPosition =
             constrainItemPosition(requested, itemSize, deviceSize, shouldSnap);
-        model.anchor = inferAnchor(projectedPosition, itemSize, deviceSize);
-        model.position = unprojectNodePosition(
-            model, projectedPosition, responsiveLayout.transform,
-            responsiveLayout.sharedScale);
-        const auto nearest = findNearestValidPosition(
-            document, model, model.position, shouldSnap);
-        if (!nearest.has_value())
+        std::vector<LogicalRect> obstacles;
+        obstacles.reserve(responsiveLayout.nodes.size());
+        for (const auto &projected : responsiveLayout.nodes)
         {
-            repaint();
-            return;
+            obstacles.push_back(
+                {projected.geometry.position, projected.geometry.size});
         }
-        model.position = *nearest;
+        if (const auto nearest = findNearestAvailablePosition(
+                projectedPosition, itemSize, deviceSize, obstacles, shouldSnap))
+        {
+            projectedPosition = *nearest;
+        }
+        model.anchor = inferAnchor(projectedPosition, itemSize, deviceSize);
+        model.anchorPosition = normalizedAnchorPosition(
+            projectedPosition, itemSize, model.anchor, deviceSize);
 
         document.nodes.push_back(std::move(model));
         selectedIds = {document.nodes.back().id};
@@ -823,24 +859,21 @@ private:
         {
             workspace.selectNode(nodeId, event.mods.isShiftDown());
             workspace.grabKeyboardFocus();
-            workspace.beginGesture();
-            if (const auto *model = workspace.findNode(nodeId))
-            {
-                startPosition = model->position;
-            }
+            workspace.beginGesture(nodeId);
+            startPosition = workspace.getProjectedGeometry(nodeId).position;
             startScreenPosition = event.getScreenPosition();
         }
 
         void continueMove(const juce::MouseEvent &event)
         {
             const auto delta = event.getScreenPosition() - startScreenPosition;
-            const auto positionScale = std::max(
-                0.0001f, workspace.responsiveLayout.transform.scale);
+            if (delta.isOrigin())
+            {
+                return;
+            }
             const LogicalPoint requested{
-                startPosition.x + static_cast<float>(delta.x) /
-                                      (workspace.zoom * positionScale),
-                startPosition.y + static_cast<float>(delta.y) /
-                                      (workspace.zoom * positionScale)};
+                startPosition.x + static_cast<float>(delta.x) / workspace.zoom,
+                startPosition.y + static_cast<float>(delta.y) / workspace.zoom};
             workspace.moveNode(nodeId, requested, !event.mods.isAltDown());
         }
 
@@ -849,7 +882,7 @@ private:
         {
             workspace.selectNode(nodeId, false);
             workspace.grabKeyboardFocus();
-            workspace.beginGesture();
+            workspace.beginGesture(nodeId);
             resizeStartGeometry = workspace.getProjectedGeometry(nodeId);
             resizeStartScreenPosition = event.getScreenPosition();
             resizeCorner = corner;
@@ -862,10 +895,15 @@ private:
             {
                 return;
             }
+            const auto delta =
+                event.getScreenPosition() - resizeStartScreenPosition;
+            if (delta.isOrigin())
+            {
+                return;
+            }
             workspace.resizeNode(
                 nodeId, corner, resizeStartGeometry,
-                event.getScreenPosition() - resizeStartScreenPosition,
-                event.mods.isShiftDown(), !event.mods.isAltDown());
+                delta, event.mods.isShiftDown(), !event.mods.isAltDown());
         }
 
         void layoutPreviews()
@@ -878,9 +916,10 @@ private:
 
             if (!model->isGroup())
             {
+                const auto geometry =
+                    workspace.getProjectedGeometry(nodeId);
                 previews.front()->setHardwareScale(
-                    model->scale * workspace.responsiveLayout.sharedScale *
-                    workspace.zoom);
+                    geometry.scale * workspace.zoom);
                 previews.front()->setBounds(getLocalBounds());
                 return;
             }
@@ -894,7 +933,7 @@ private:
                     continue;
                 }
                 const auto localScale =
-                    model->scale * workspace.responsiveLayout.sharedScale *
+                    workspace.getProjectedGeometry(nodeId).scale *
                     workspace.zoom;
                 auto &preview = *previews[previewIndex++];
                 preview.setHardwareScale(child.scale * localScale);
@@ -976,18 +1015,24 @@ private:
             {
                 continue;
             }
+            if (activeGestureNodeId.has_value() &&
+                projected.id == *activeGestureNodeId)
+            {
+                continue;
+            }
             projected.geometry.reflowOffset = frozen->reflowOffset;
             projected.geometry.position.x += frozen->reflowOffset.x;
             projected.geometry.position.y += frozen->reflowOffset.y;
         }
     }
 
-    void beginGesture()
+    void beginGesture(const std::uint64_t nodeId)
     {
         if (!frozenResponsiveScale.has_value())
         {
             frozenResponsiveScale = responsiveLayout.sharedScale;
             frozenResponsiveLayout = responsiveLayout;
+            activeGestureNodeId = nodeId;
         }
     }
 
@@ -999,6 +1044,7 @@ private:
         }
         frozenResponsiveScale.reset();
         frozenResponsiveLayout.reset();
+        activeGestureNodeId.reset();
         refreshResponsiveLayout();
         for (auto &component : nodeComponents)
         {
@@ -1060,15 +1106,28 @@ private:
         {
             return;
         }
-        auto candidate = *node;
-        candidate.position = requestedPosition;
-        const auto nearest = findNearestValidPosition(
-            document, candidate, candidate.position, shouldSnap, id);
+        const auto geometry = getProjectedGeometry(id);
+        const auto targetSize = getEffectiveDeviceSize(device, orientation);
+        std::vector<LogicalRect> obstacles;
+        const auto &obstacleLayout =
+            frozenResponsiveLayout.value_or(responsiveLayout);
+        for (const auto &projected : obstacleLayout.nodes)
+        {
+            if (projected.id != id)
+            {
+                obstacles.push_back(
+                    {projected.geometry.position, projected.geometry.size});
+            }
+        }
+        const auto nearest = findNearestAvailablePosition(
+            requestedPosition, geometry.size, targetSize, obstacles,
+            shouldSnap);
         if (!nearest.has_value())
         {
             return;
         }
-        node->position = *nearest;
+        node->anchorPosition = normalizedAnchorPosition(
+            *nearest, geometry.size, node->anchor, targetSize);
         refreshResponsiveLayout();
         updateAllNodeBounds();
     }
@@ -1117,30 +1176,39 @@ private:
         const auto sharedScale = std::max(
             0.0001f,
             frozenResponsiveScale.value_or(responsiveLayout.sharedScale));
-        requestedScale = std::clamp(requestedScale, 0.5f * sharedScale,
-                                    6.f * sharedScale);
-
-        const auto makeCandidate = [&](const float projectedScale)
+        const auto targetSize = getEffectiveDeviceSize(device, orientation);
+        requestedScale = std::clamp(
+            requestedScale, 0.01f,
+            targetSize.width * sharedScale / referenceSize.width);
+        std::vector<LogicalRect> obstacles;
+        const auto &obstacleLayout =
+            frozenResponsiveLayout.value_or(responsiveLayout);
+        for (const auto &projected : obstacleLayout.nodes)
         {
-            auto candidate = *node;
-            candidate.scale = projectedScale / sharedScale;
+            if (projected.id != id)
+            {
+                obstacles.push_back(
+                    {projected.geometry.position, projected.geometry.size});
+            }
+        }
+
+        const auto makeGeometry = [&](const float projectedScale)
+        {
             const LogicalSize requestedProjectedSize{
                 referenceSize.width * projectedScale,
                 referenceSize.height * projectedScale};
             const auto displayedPosition = positionForResizedNode(
                 startGeometry, requestedProjectedSize, corner,
                 useCentrePivot);
-            const LogicalPoint idealPosition{
-                displayedPosition.x - startGeometry.reflowOffset.x,
-                displayedPosition.y - startGeometry.reflowOffset.y};
-            candidate.position = unprojectNodePosition(
-                candidate, idealPosition, responsiveLayout.transform,
-                sharedScale);
-            return candidate;
+            return ProjectedNodeGeometry{displayedPosition,
+                                         requestedProjectedSize,
+                                         projectedScale, {}};
         };
 
-        auto candidate = makeCandidate(requestedScale);
-        if (!isNodePlacementValid(document, candidate, id))
+        auto requestedGeometry = makeGeometry(requestedScale);
+        if (!isPlacementValid(
+                {requestedGeometry.position, requestedGeometry.size},
+                targetSize, obstacles))
         {
             if (requestedScale <= startGeometry.scale)
             {
@@ -1151,7 +1219,9 @@ private:
             for (int iteration = 0; iteration < 32; ++iteration)
             {
                 const auto scale = (lower + upper) * 0.5f;
-                if (isNodePlacementValid(document, makeCandidate(scale), id))
+                const auto geometry = makeGeometry(scale);
+                if (isPlacementValid({geometry.position, geometry.size},
+                                     targetSize, obstacles))
                 {
                     lower = scale;
                 }
@@ -1160,10 +1230,14 @@ private:
                     upper = scale;
                 }
             }
-            candidate = makeCandidate(lower);
+            requestedGeometry = makeGeometry(lower);
         }
 
-        *node = std::move(candidate);
+        node->widthFraction = requestedGeometry.size.width /
+                              (targetSize.width * sharedScale);
+        node->anchorPosition = normalizedAnchorPosition(
+            requestedGeometry.position, requestedGeometry.size, node->anchor,
+            targetSize);
         refreshResponsiveLayout();
         updateAllNodeBounds();
     }
@@ -1244,28 +1318,6 @@ private:
                                         return node != nullptr &&
                                                !node->isGroup();
                                     });
-        if (canGroup)
-        {
-            std::vector<ArrangementNodeModel> selectedNodes;
-            for (const auto &node : document.nodes)
-            {
-                if (isSelected(node.id))
-                {
-                    selectedNodes.push_back(node);
-                }
-            }
-            const auto prospective =
-                makeFixedGroup(0, selectedNodes, document.referenceSize);
-            const auto prospectiveRect = getNodeRect(prospective);
-            canGroup = std::none_of(
-                document.nodes.begin(), document.nodes.end(),
-                [this, prospectiveRect](const auto &node)
-                {
-                    return !isSelected(node.id) &&
-                           rectanglesOverlap(prospectiveRect,
-                                             getNodeRect(node));
-                });
-        }
         const auto *singleNode =
             single ? findNode(selectedIds.front()) : nullptr;
         groupButton.setEnabled(canGroup);
@@ -1311,23 +1363,11 @@ private:
         {
             return;
         }
-        const auto original = *node;
         const auto projected = getProjectedGeometry(node->id);
-        const LogicalPoint idealPosition{
-            projected.position.x - projected.reflowOffset.x,
-            projected.position.y - projected.reflowOffset.y};
         node->anchor = anchor;
-        node->position = unprojectNodePosition(
-            *node, idealPosition, responsiveLayout.transform,
-            responsiveLayout.sharedScale);
-        const auto nearest = findNearestValidPosition(
-            document, *node, node->position, false, node->id);
-        if (!nearest.has_value())
-        {
-            *node = original;
-            return;
-        }
-        node->position = *nearest;
+        node->anchorPosition = normalizedAnchorPosition(
+            projected.position, projected.size, anchor,
+            getEffectiveDeviceSize(device, orientation));
         refreshResponsiveLayout();
         updateAllNodeBounds();
     }
@@ -1353,16 +1393,10 @@ private:
             return;
         }
 
-        auto group = makeFixedGroup(nextNodeId++, selectedNodes,
-                                    document.referenceSize);
-        const auto groupRect = getNodeRect(group);
-        if (std::any_of(document.nodes.begin(), document.nodes.end(),
-                        [this, groupRect](const auto &node)
-                        {
-                            return !isSelected(node.id) &&
-                                   rectanglesOverlap(groupRect,
-                                                     getNodeRect(node));
-                        }))
+        auto group = makeFixedGroup(
+            nextNodeId++, selectedNodes, responsiveLayout,
+            getEffectiveDeviceSize(device, orientation));
+        if (!group.isGroup())
         {
             return;
         }
@@ -1402,7 +1436,10 @@ private:
         }
         const auto index = static_cast<size_t>(
             std::distance(document.nodes.begin(), found));
-        auto children = ungroupFixedGroup(*found, document.referenceSize);
+        const auto groupGeometry = getProjectedGeometry(groupId);
+        auto children = ungroupFixedGroup(
+            *found, groupGeometry,
+            getEffectiveDeviceSize(device, orientation));
         document.nodes.erase(found);
         selectedIds.clear();
         for (const auto &child : children)
@@ -1423,6 +1460,7 @@ private:
     ResponsiveLayout responsiveLayout;
     std::optional<float> frozenResponsiveScale;
     std::optional<ResponsiveLayout> frozenResponsiveLayout;
+    std::optional<std::uint64_t> activeGestureNodeId;
     std::uint64_t nextNodeId = 1;
     float zoom = 1.f;
     juce::Rectangle<int> surfaceBounds;
@@ -1496,7 +1534,12 @@ void GuiLabComponent::paint(juce::Graphics &g)
 void GuiLabComponent::resized()
 {
     auto bounds = getLocalBounds().reduced(18);
-    heading.setBounds(bounds.removeFromTop(38));
+    auto headingBounds = bounds.removeFromTop(38);
+    saveButton.setBounds(headingBounds.removeFromRight(82).reduced(0, 4));
+    headingBounds.removeFromRight(8);
+    loadButton.setBounds(headingBounds.removeFromRight(82).reduced(0, 4));
+    headingBounds.removeFromRight(8);
+    heading.setBounds(headingBounds);
     bounds.removeFromTop(6);
 
     auto controls = bounds.removeFromTop(50);
@@ -1538,6 +1581,15 @@ void GuiLabComponent::configureControls()
     styleComboBox(deviceSelector);
     styleComboBox(orientationSelector);
 
+    for (auto *button : {&loadButton, &saveButton})
+    {
+        button->setColour(juce::TextButton::buttonColourId,
+                          juce::Colour(0xff343a38));
+        button->setColour(juce::TextButton::textColourOffId,
+                          juce::Colour(0xffedf2ef));
+        addAndMakeVisible(*button);
+    }
+
     addAndMakeVisible(brandLabel);
     addAndMakeVisible(deviceLabel);
     addAndMakeVisible(orientationLabel);
@@ -1566,7 +1618,137 @@ void GuiLabComponent::configureControls()
     {
         updateTarget();
     };
+    loadButton.onClick = [this]
+    {
+        chooseDesignToLoad();
+    };
+    saveButton.onClick = [this]
+    {
+        chooseDesignToSave();
+    };
     updateTarget();
+}
+
+void GuiLabComponent::chooseDesignToLoad()
+{
+    const auto initialLocation =
+        currentDesignFile.getFullPathName().isNotEmpty()
+            ? currentDesignFile.getParentDirectory()
+            : juce::File::getSpecialLocation(
+                  juce::File::userDocumentsDirectory);
+    designFileChooser = std::make_unique<juce::FileChooser>(
+        "Load arrangement design", initialLocation, "*.vmpclab", true);
+    loadButton.setEnabled(false);
+    saveButton.setEnabled(false);
+    juce::Component::SafePointer<GuiLabComponent> safeThis(this);
+    designFileChooser->launchAsync(
+        juce::FileBrowserComponent::openMode |
+            juce::FileBrowserComponent::canSelectFiles,
+        [safeThis](const juce::FileChooser &chooser)
+        {
+            if (safeThis == nullptr)
+            {
+                return;
+            }
+            safeThis->loadButton.setEnabled(true);
+            safeThis->saveButton.setEnabled(true);
+            const auto file = chooser.getResult();
+            if (file.getFullPathName().isNotEmpty())
+            {
+                safeThis->loadDesignFile(file);
+            }
+        });
+}
+
+void GuiLabComponent::chooseDesignToSave()
+{
+    auto initialFile = currentDesignFile;
+    if (initialFile.getFullPathName().isEmpty())
+    {
+        initialFile = juce::File::getSpecialLocation(
+                          juce::File::userDocumentsDirectory)
+                          .getChildFile("Untitled.vmpclab");
+    }
+    designFileChooser = std::make_unique<juce::FileChooser>(
+        "Save arrangement design", initialFile, "*.vmpclab", true);
+    loadButton.setEnabled(false);
+    saveButton.setEnabled(false);
+    juce::Component::SafePointer<GuiLabComponent> safeThis(this);
+    designFileChooser->launchAsync(
+        juce::FileBrowserComponent::saveMode |
+            juce::FileBrowserComponent::canSelectFiles |
+            juce::FileBrowserComponent::warnAboutOverwriting,
+        [safeThis](const juce::FileChooser &chooser)
+        {
+            if (safeThis == nullptr)
+            {
+                return;
+            }
+            safeThis->loadButton.setEnabled(true);
+            safeThis->saveButton.setEnabled(true);
+            const auto file = chooser.getResult();
+            if (file.getFullPathName().isNotEmpty())
+            {
+                safeThis->saveDesignFile(file);
+            }
+        });
+}
+
+void GuiLabComponent::loadDesignFile(const juce::File &file)
+{
+    if (!file.existsAsFile())
+    {
+        showFileError("The selected design file does not exist.");
+        return;
+    }
+
+    std::string errorMessage;
+    const auto document = deserializeArrangementDocument(
+        file.loadFileAsString().toStdString(), errorMessage);
+    if (!document.has_value())
+    {
+        showFileError(errorMessage);
+        return;
+    }
+    if (!workspace->loadDocument(*document, errorMessage))
+    {
+        showFileError(errorMessage);
+        return;
+    }
+
+    currentDesignFile = file;
+}
+
+void GuiLabComponent::saveDesignFile(juce::File file)
+{
+    if (!file.hasFileExtension("vmpclab"))
+    {
+        file = file.withFileExtension("vmpclab");
+    }
+    try
+    {
+        const auto contents =
+            serializeArrangementDocument(workspace->getDocument());
+        if (!file.replaceWithText(juce::String::fromUTF8(
+                contents.data(), static_cast<int>(contents.size()))))
+        {
+            showFileError("The design could not be written to disk.");
+            return;
+        }
+        currentDesignFile = file;
+    }
+    catch (const std::exception &error)
+    {
+        showFileError(juce::String("The design could not be saved: ") +
+                      error.what());
+    }
+}
+
+void GuiLabComponent::showFileError(const juce::String &message)
+{
+    juce::AlertWindow::showMessageBoxAsync(
+        juce::MessageBoxIconType::WarningIcon, "Arrangement design", message,
+        "OK", this);
 }
 
 void GuiLabComponent::populateDevices(const std::string &preferredDeviceId)

@@ -64,6 +64,8 @@ namespace vmpc_juce::guilab
         class ArrangementWorkspace;
 
         juce::Label heading;
+        juce::TextButton loadButton{"Load"};
+        juce::TextButton saveButton{"Save"};
         juce::Label brandLabel;
         juce::Label deviceLabel;
         juce::Label orientationLabel;
@@ -76,11 +78,18 @@ namespace vmpc_juce::guilab
         std::vector<std::unique_ptr<PreviewCard>> cards;
         std::vector<const DeviceProfile *> visibleDevices;
         std::unique_ptr<ArrangementWorkspace> workspace;
+        std::unique_ptr<juce::FileChooser> designFileChooser;
+        juce::File currentDesignFile;
 
         void configureControls();
         void populateDevices(const std::string &preferredDeviceId = {});
         void updateTarget();
         void layoutPalette();
+        void chooseDesignToLoad();
+        void chooseDesignToSave();
+        void loadDesignFile(const juce::File &file);
+        void saveDesignFile(juce::File file);
+        void showFileError(const juce::String &message);
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GuiLabComponent)
     };
