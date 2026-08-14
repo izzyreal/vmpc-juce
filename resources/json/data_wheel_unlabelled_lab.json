@@ -1,9 +1,0 @@
-{
-  "name" : "data_wheel_unlabelled_lab",
-  "type" : "grid",
-  "row_fractions" : [ 1 ],
-  "column_fractions" : [ 1 ],
-  "children" : [
-    { "include" : "data_wheel_unlabelled", "area" : [ 1, 1, 1, 1 ], "margin" : [ 0, 0, 0, -12 ] }
-  ]
-}

@@ -1,9 +1,0 @@
-{
-  "name" : "lcd_mounted_lab",
-  "type" : "grid",
-  "row_fractions" : [ 1 ],
-  "column_fractions" : [ 1 ],
-  "children" : [
-    { "include" : "lcd_mounted_compact", "area" : [ 1, 1, 1, 1 ], "margin" : [ -2, 0, -2, 0 ] }
-  ]
-}

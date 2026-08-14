@@ -1,5 +1,5 @@
 {
-  "name" : "pads_lab",
+  "name" : "pads_trimmed",
   "type" : "grid",
   "row_fractions" : [ 1 ],
   "column_fractions" : [ 1 ],

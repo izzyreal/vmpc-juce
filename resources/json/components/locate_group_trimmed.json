@@ -1,10 +1,10 @@
 {
-  "name" : "locate_group_lab",
+  "name" : "locate_group_trimmed",
   "type" : "grid",
   "row_fractions" : [ 2, 10 ],
   "column_fractions" : [ 1 ],
   "children" : [
     { "name" : "locate_label", "type" : "line_flanked_label", "label" : "LOCATE", "area" : [ 1, 1, 1, 1 ] },
-    { "include" : "locate_lab", "area" : [ 2, 1, 2, 1 ] }
+    { "include" : "components/locate_trimmed", "area" : [ 2, 1, 2, 1 ] }
   ]
 }

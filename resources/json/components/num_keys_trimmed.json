@@ -1,5 +1,5 @@
 {
-  "name" : "num_keys_lab",
+  "name" : "num_keys_trimmed",
   "type" : "grid",
   "row_fractions" : [ 1 ],
   "column_fractions" : [ 1 ],

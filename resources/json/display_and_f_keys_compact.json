@@ -4,7 +4,7 @@
   "row_fractions" : [ 80, 2, 18, 5 ],
   "column_fractions" : [ 2, 13, 2 ],
   "children" : [
-    { "include" : "lcd_mounted_compact", "area" : [ 1, 1, 1, 3 ] },
+    { "include" : "components/lcd_mounted_compact", "area" : [ 1, 1, 1, 3 ] },
     { "include" : "f_keys", "area" : [ 3, 2, 3, 2 ] }
   ]
 }

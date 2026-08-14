@@ -40,9 +40,10 @@ function(_bundle_vmpc_juce_resources _target_name)
   if (APPLE)
 
     foreach(resource ${VMPC_JUCE_RESOURCES})
-      get_filename_component(parent_dir ${resource} DIRECTORY)
-      get_filename_component(final_segment ${parent_dir} NAME)
-      set(resource_path "Resources/${final_segment}")
+      file(RELATIVE_PATH relative_path
+        "${_vmpc_juce_resources_root}" "${resource}")
+      get_filename_component(relative_dir "${relative_path}" DIRECTORY)
+      set(resource_path "Resources/${relative_dir}")
       set_source_files_properties(${resource} PROPERTIES MACOSX_PACKAGE_LOCATION ${resource_path})
     endforeach()
 

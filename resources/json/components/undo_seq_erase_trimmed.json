@@ -1,5 +1,5 @@
 {
-  "name" : "undo_seq_erase_lab",
+  "name" : "undo_seq_erase_trimmed",
   "type" : "grid",
   "row_fractions" : [ 1 ],
   "column_fractions" : [ 12, 1, 12 ],
