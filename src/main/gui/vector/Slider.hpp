@@ -26,11 +26,14 @@ namespace vmpc_juce::gui::vector
         }
 
         Slider(std::shared_ptr<mpc::hardware::Slider> mpcSlider,
+               juce::Component *commonParentWithShadowToUse,
+               const float shadowSizeToUse,
                const std::function<float()> &getScaleToUse)
             : getScale(getScaleToUse)
         {
-            sliderCap =
-                new SliderCap(mpcSlider, {"slider_cap.svg"}, this, 5, getScale);
+            sliderCap = new SliderCap(
+                mpcSlider, {"slider_cap.svg"}, commonParentWithShadowToUse,
+                shadowSizeToUse, getScale);
             addAndMakeVisible(sliderCap);
         }
 

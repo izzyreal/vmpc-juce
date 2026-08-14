@@ -226,9 +226,10 @@ void PreviewViewUtil::createComponent(
     {
         auto model = std::make_shared<mpc::hardware::Slider>();
         model->setValue(63.5f);
-        auto *slider = new Slider(model, getScale);
-        components.push_back(slider);
+        auto *slider = new Slider(model, parent, n.shadow_size, getScale);
+        addShadows(n, getScale, slider, parent, components);
         parent->addAndMakeVisible(slider);
+        components.push_back(slider);
         n.slider_component = slider;
     }
     else if (n.node_type == "data_wheel")
