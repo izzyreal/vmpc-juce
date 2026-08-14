@@ -5,7 +5,7 @@
 
 #include <array>
 
-namespace vmpc_juce::guilab
+namespace vmpc_juce::gui::arrangement
 {
     class PreviewLcd final : public juce::Component
     {
@@ -20,4 +20,4 @@ namespace vmpc_juce::guilab
         std::array<std::array<bool, 60>, 248> pixelOn{};
         melatonin::DropShadow backlight;
     };
-} // namespace vmpc_juce::guilab
+} // namespace vmpc_juce::gui::arrangement

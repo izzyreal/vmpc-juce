@@ -137,13 +137,14 @@ FetchContent_MakeAvailable(melatonin_blur)
 if (IOS)
     set(IOS_SPECIFIC_SETTINGS
         REQUIRES_FULL_SCREEN TRUE
+        IPHONE_SCREEN_ORIENTATIONS UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         IPAD_SCREEN_ORIENTATIONS UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         BACKGROUND_AUDIO_ENABLED TRUE
         APP_GROUPS_ENABLED TRUE
         APP_GROUP_IDS group.nl.izmar.vmpc2000xl
         FILE_SHARING_ENABLED TRUE
         DOCUMENT_BROWSER_ENABLED TRUE
-        TARGETED_DEVICE_FAMILY "2"
+        TARGETED_DEVICE_FAMILY "1,2"
         FORMATS AUv3 Standalone)
 else()
     set(NON_IOS_SPECIFIC_SETTINGS
@@ -306,7 +307,8 @@ if (VMPC_BUILD_TESTS)
   )
 
   target_sources(vmpc-juce-tests PRIVATE
-    src/guilab/ArrangementModel.cpp
+    src/main/gui/arrangement/ArrangementCatalog.cpp
+    src/main/gui/arrangement/ArrangementModel.cpp
     src/main/ZipSaveTarget.cpp
     src/main/VmpcJuceResourceUtil.cpp
   )

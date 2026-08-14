@@ -1,4 +1,5 @@
-#include "ArrangementModel.hpp"
+#include "gui/arrangement/ArrangementModel.hpp"
+#include "gui/arrangement/ArrangementCatalog.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -7,26 +8,48 @@
 #include <limits>
 #include <unordered_set>
 
-using namespace vmpc_juce::guilab;
+using namespace vmpc_juce::gui::arrangement;
 
 namespace
 {
     using json = nlohmann::json;
 
-    constexpr auto designFormat = "vmpc2000xl-gui-lab-arrangement";
+    constexpr auto designFormat = "vmpc2000xl-arrangement";
+    constexpr auto legacyDesignFormat = "vmpc2000xl-gui-lab-arrangement";
     constexpr int designFormatVersion = 2;
+    constexpr auto setupFormat = "vmpc2000xl-arrangement-setup";
+    constexpr int setupFormatVersion = 1;
+
+    const char *orientationName(const Orientation orientation)
+    {
+        return orientation == Orientation::landscape ? "landscape" : "portrait";
+    }
+
+    Orientation parseOrientation(const json &value)
+    {
+        const auto name = value.get<std::string>();
+        if (name == "portrait")
+        {
+            return Orientation::portrait;
+        }
+        if (name == "landscape")
+        {
+            return Orientation::landscape;
+        }
+        throw std::runtime_error("orientation must be portrait or landscape");
+    }
 
     const char *anchorName(const AnchorAxis anchor)
     {
         switch (anchor)
         {
-        case AnchorAxis::start:
-            return "start";
-        case AnchorAxis::end:
-            return "end";
-        case AnchorAxis::centre:
-        default:
-            return "centre";
+            case AnchorAxis::start:
+                return "start";
+            case AnchorAxis::end:
+                return "end";
+            case AnchorAxis::centre:
+            default:
+                return "centre";
         }
     }
 
@@ -153,13 +176,13 @@ namespace
     {
         switch (axis)
         {
-        case AnchorAxis::start:
-            return 0.f;
-        case AnchorAxis::end:
-            return 1.f;
-        case AnchorAxis::centre:
-        default:
-            return 0.5f;
+            case AnchorAxis::start:
+                return 0.f;
+            case AnchorAxis::end:
+                return 1.f;
+            case AnchorAxis::centre:
+            default:
+                return 0.5f;
         }
     }
 
@@ -176,12 +199,10 @@ namespace
                          parseAnchor(anchor.at("vertical"))};
         const LogicalSize size{result.referenceSize.width * scale,
                                result.referenceSize.height * scale};
-        result.anchorPosition =
-            normalizedAnchorPosition(position, size, result.anchor,
-                                     referenceSize);
-        result.widthFraction = referenceSize.width > 0.f
-                                   ? size.width / referenceSize.width
-                                   : 0.f;
+        result.anchorPosition = normalizedAnchorPosition(
+            position, size, result.anchor, referenceSize);
+        result.widthFraction =
+            referenceSize.width > 0.f ? size.width / referenceSize.width : 0.f;
 
         const auto type = value.at("type").get<std::string>();
         if (type == "component")
@@ -218,15 +239,15 @@ namespace
     {
         std::unordered_set<std::uint64_t> ids;
         const auto validateItem =
-            [&ids, &error](const std::uint64_t id,
-                           const std::string &catalogId,
+            [&ids, &error](const std::uint64_t id, const std::string &catalogId,
                            const LogicalPoint position, const float scale,
                            const LogicalSize referenceSize)
         {
             if (id == 0 || id == std::numeric_limits<std::uint64_t>::max() ||
                 !ids.insert(id).second)
             {
-                error = "The design contains an invalid or duplicate component ID.";
+                error =
+                    "The design contains an invalid or duplicate component ID.";
                 return false;
             }
             if (catalogId.empty())
@@ -234,8 +255,8 @@ namespace
                 error = "The design contains a component without a type.";
                 return false;
             }
-            if (!validPoint(position) || !std::isfinite(scale) || scale <= 0.f ||
-                !validSize(referenceSize))
+            if (!validPoint(position) || !std::isfinite(scale) ||
+                scale <= 0.f || !validSize(referenceSize))
             {
                 error = "The design contains invalid component geometry.";
                 return false;
@@ -245,8 +266,8 @@ namespace
 
         for (const auto &node : document.nodes)
         {
-            const auto nodeType = node.isGroup() ? std::string("group")
-                                                 : node.catalogId;
+            const auto nodeType =
+                node.isGroup() ? std::string("group") : node.catalogId;
             if (node.id == 0 ||
                 node.id == std::numeric_limits<std::uint64_t>::max() ||
                 !ids.insert(node.id).second || nodeType.empty())
@@ -266,22 +287,23 @@ namespace
             }
             for (const auto &child : node.children)
             {
-                if (!validateItem(
-                        child.id, child.catalogId, child.position, child.scale,
-                        child.referenceSize))
+                if (!validateItem(child.id, child.catalogId, child.position,
+                                  child.scale, child.referenceSize))
                 {
                     return false;
                 }
                 const auto childRight =
                     child.position.x + child.referenceSize.width * child.scale;
-                const auto childBottom = child.position.y +
-                                         child.referenceSize.height * child.scale;
+                const auto childBottom =
+                    child.position.y + child.referenceSize.height * child.scale;
                 constexpr float epsilon = 0.001f;
-                if (child.position.x < -epsilon || child.position.y < -epsilon ||
+                if (child.position.x < -epsilon ||
+                    child.position.y < -epsilon ||
                     childRight > node.referenceSize.width + epsilon ||
                     childBottom > node.referenceSize.height + epsilon)
                 {
-                    error = "The design contains a group child outside its group.";
+                    error =
+                        "The design contains a group child outside its group.";
                     return false;
                 }
             }
@@ -290,7 +312,8 @@ namespace
     }
 } // namespace
 
-const std::vector<DeviceProfile> &vmpc_juce::guilab::getDeviceProfiles()
+const std::vector<DeviceProfile> &
+vmpc_juce::gui::arrangement::getDeviceProfiles()
 {
     static const std::vector<DeviceProfile> profiles{
         {"iphone-2g-3g-3gs", "Apple", "iPhone 2G/3G/3GS", 320, 480},
@@ -325,9 +348,8 @@ const std::vector<DeviceProfile> &vmpc_juce::guilab::getDeviceProfiles()
     return profiles;
 }
 
-LogicalSize
-vmpc_juce::guilab::getEffectiveDeviceSize(const DeviceProfile &device,
-                                          const Orientation orientation)
+LogicalSize vmpc_juce::gui::arrangement::getEffectiveDeviceSize(
+    const DeviceProfile &device, const Orientation orientation)
 {
     if (orientation == Orientation::landscape)
     {
@@ -339,7 +361,8 @@ vmpc_juce::guilab::getEffectiveDeviceSize(const DeviceProfile &device,
             static_cast<float>(device.portraitHeight)};
 }
 
-float vmpc_juce::guilab::snapToGrid(const float value, const float gridSize)
+float vmpc_juce::gui::arrangement::snapToGrid(const float value,
+                                              const float gridSize)
 {
     if (gridSize <= 0.f)
     {
@@ -349,9 +372,9 @@ float vmpc_juce::guilab::snapToGrid(const float value, const float gridSize)
     return std::round(value / gridSize) * gridSize;
 }
 
-float vmpc_juce::guilab::snapItemScaleToGrid(const float requestedScale,
-                                             const LogicalSize referenceSize,
-                                             const float gridSize)
+float vmpc_juce::gui::arrangement::snapItemScaleToGrid(
+    const float requestedScale, const LogicalSize referenceSize,
+    const float gridSize)
 {
     const auto referenceExtent =
         std::max(referenceSize.width, referenceSize.height);
@@ -364,11 +387,10 @@ float vmpc_juce::guilab::snapItemScaleToGrid(const float requestedScale,
            referenceExtent;
 }
 
-float vmpc_juce::guilab::constrainItemScale(const float requestedScale,
-                                            const LogicalSize referenceSize,
-                                            const LogicalSize deviceSize,
-                                            const float minimumScale,
-                                            const float maximumScale)
+float vmpc_juce::gui::arrangement::constrainItemScale(
+    const float requestedScale, const LogicalSize referenceSize,
+    const LogicalSize deviceSize, const float minimumScale,
+    const float maximumScale)
 {
     if (referenceSize.width <= 0.f || referenceSize.height <= 0.f)
     {
@@ -382,7 +404,7 @@ float vmpc_juce::guilab::constrainItemScale(const float requestedScale,
     return std::clamp(requestedScale, lower, upper);
 }
 
-LogicalPoint vmpc_juce::guilab::constrainItemPosition(
+LogicalPoint vmpc_juce::gui::arrangement::constrainItemPosition(
     LogicalPoint requestedPosition, const LogicalSize itemSize,
     const LogicalSize deviceSize, const bool shouldSnapToGrid,
     const float gridSize)
@@ -454,7 +476,7 @@ namespace
     }
 
     ResponsiveLayout reflowProjectedLayout(ResponsiveLayout layout,
-                                            const LogicalSize targetSize)
+                                           const LogicalSize targetSize)
     {
         std::vector<size_t> placementOrder(layout.nodes.size());
         for (size_t i = 0; i < placementOrder.size(); ++i)
@@ -486,9 +508,8 @@ namespace
             }
 
             geometry.position = *placedPosition;
-            geometry.reflowOffset = {
-                placedPosition->x - idealPosition.x,
-                placedPosition->y - idealPosition.y};
+            geometry.reflowOffset = {placedPosition->x - idealPosition.x,
+                                     placedPosition->y - idealPosition.y};
             placedRectangles.push_back({geometry.position, geometry.size});
         }
         layout.hasValidPlacement = true;
@@ -496,13 +517,14 @@ namespace
     }
 } // namespace
 
-ProjectedNodeGeometry vmpc_juce::guilab::projectNode(
-    const ArrangementNodeModel &node, const LogicalSize targetSize)
+ProjectedNodeGeometry
+vmpc_juce::gui::arrangement::projectNode(const ArrangementNodeModel &node,
+                                         const LogicalSize targetSize)
 {
     return projectNodeAtScale(node, targetSize, 1.f);
 }
 
-ProjectedNodeGeometry vmpc_juce::guilab::projectNodeAtScale(
+ProjectedNodeGeometry vmpc_juce::gui::arrangement::projectNodeAtScale(
     const ArrangementNodeModel &node, const LogicalSize targetSize,
     const float sharedScale)
 {
@@ -513,19 +535,19 @@ ProjectedNodeGeometry vmpc_juce::guilab::projectNodeAtScale(
     }
     const auto width = node.widthFraction * targetSize.width * sharedScale;
     const auto projectedScale = width / node.referenceSize.width;
-    const LogicalSize size{width,
-                           node.referenceSize.height * projectedScale};
-    const LogicalPoint projectedPivot{
-        node.anchorPosition.x * targetSize.width,
-        node.anchorPosition.y * targetSize.height};
-    return {{projectedPivot.x -
-                 size.width * anchorFactor(node.anchor.horizontal),
-             projectedPivot.y -
-                 size.height * anchorFactor(node.anchor.vertical)},
-            size, projectedScale, {}};
+    const LogicalSize size{width, node.referenceSize.height * projectedScale};
+    const LogicalPoint projectedPivot{node.anchorPosition.x * targetSize.width,
+                                      node.anchorPosition.y *
+                                          targetSize.height};
+    return {
+        {projectedPivot.x - size.width * anchorFactor(node.anchor.horizontal),
+         projectedPivot.y - size.height * anchorFactor(node.anchor.vertical)},
+        size,
+        projectedScale,
+        {}};
 }
 
-LogicalPoint vmpc_juce::guilab::normalizedAnchorPosition(
+LogicalPoint vmpc_juce::gui::arrangement::normalizedAnchorPosition(
     const LogicalPoint projectedPosition, const LogicalSize projectedSize,
     const ArrangementAnchor anchor, const LogicalSize targetSize)
 {
@@ -541,7 +563,7 @@ LogicalPoint vmpc_juce::guilab::normalizedAnchorPosition(
                 targetSize.height};
 }
 
-ResponsiveLayout vmpc_juce::guilab::projectDocumentAtScale(
+ResponsiveLayout vmpc_juce::gui::arrangement::projectDocumentAtScale(
     const ArrangementDocument &document, const LogicalSize targetSize,
     const float sharedScale)
 {
@@ -551,13 +573,13 @@ ResponsiveLayout vmpc_juce::guilab::projectDocumentAtScale(
     for (const auto &node : document.nodes)
     {
         result.nodes.push_back(
-            {node.id, projectNodeAtScale(node, targetSize,
-                                         result.sharedScale)});
+            {node.id,
+             projectNodeAtScale(node, targetSize, result.sharedScale)});
     }
     return result;
 }
 
-ResponsiveLayout vmpc_juce::guilab::computeResponsiveLayout(
+ResponsiveLayout vmpc_juce::gui::arrangement::computeResponsiveLayout(
     const ArrangementDocument &document, const LogicalSize targetSize)
 {
     if (document.nodes.empty() || targetSize.width <= 0.f ||
@@ -595,7 +617,7 @@ ResponsiveLayout vmpc_juce::guilab::computeResponsiveLayout(
         projectDocumentAtScale(document, targetSize, lower), targetSize);
 }
 
-const ProjectedNodeGeometry *vmpc_juce::guilab::findProjectedGeometry(
+const ProjectedNodeGeometry *vmpc_juce::gui::arrangement::findProjectedGeometry(
     const ResponsiveLayout &layout, const std::uint64_t nodeId)
 {
     const auto found = std::find_if(layout.nodes.begin(), layout.nodes.end(),
@@ -606,8 +628,8 @@ const ProjectedNodeGeometry *vmpc_juce::guilab::findProjectedGeometry(
     return found == layout.nodes.end() ? nullptr : &found->geometry;
 }
 
-bool vmpc_juce::guilab::rectanglesOverlap(const LogicalRect first,
-                                          const LogicalRect second)
+bool vmpc_juce::gui::arrangement::rectanglesOverlap(const LogicalRect first,
+                                                    const LogicalRect second)
 {
     constexpr float epsilon = 0.001f;
     return first.position.x + first.size.width > second.position.x + epsilon &&
@@ -616,7 +638,7 @@ bool vmpc_juce::guilab::rectanglesOverlap(const LogicalRect first,
            second.position.y + second.size.height > first.position.y + epsilon;
 }
 
-bool vmpc_juce::guilab::isPlacementValid(
+bool vmpc_juce::gui::arrangement::isPlacementValid(
     const LogicalRect candidate, const LogicalSize bounds,
     const std::vector<LogicalRect> &obstacles)
 {
@@ -635,7 +657,7 @@ bool vmpc_juce::guilab::isPlacementValid(
 }
 
 std::optional<LogicalPoint>
-vmpc_juce::guilab::findNearestAvailablePosition(
+vmpc_juce::gui::arrangement::findNearestAvailablePosition(
     const LogicalPoint requestedPosition, const LogicalSize itemSize,
     const LogicalSize bounds, const std::vector<LogicalRect> &obstacles,
     const bool shouldSnapToGrid, const float gridSize)
@@ -712,7 +734,7 @@ vmpc_juce::guilab::findNearestAvailablePosition(
     return best;
 }
 
-std::string vmpc_juce::guilab::serializeArrangementDocument(
+std::string vmpc_juce::gui::arrangement::serializeArrangementDocument(
     const ArrangementDocument &document)
 {
     json result{{"format", designFormat},
@@ -726,15 +748,16 @@ std::string vmpc_juce::guilab::serializeArrangementDocument(
 }
 
 std::optional<ArrangementDocument>
-vmpc_juce::guilab::deserializeArrangementDocument(
+vmpc_juce::gui::arrangement::deserializeArrangementDocument(
     const std::string &contents, std::string &errorMessage)
 {
     try
     {
         const auto source = json::parse(contents);
-        if (source.at("format").get<std::string>() != designFormat)
+        const auto format = source.at("format").get<std::string>();
+        if (format != designFormat && format != legacyDesignFormat)
         {
-            throw std::runtime_error("not a VMPC2000XL GUI Lab design");
+            throw std::runtime_error("not a VMPC2000XL arrangement");
         }
         const auto version = source.at("version").get<int>();
         if (version != 1 && version != designFormatVersion)
@@ -778,7 +801,8 @@ vmpc_juce::guilab::deserializeArrangementDocument(
     }
     catch (const std::exception &error)
     {
-        errorMessage = std::string("Could not read the design: ") + error.what();
+        errorMessage =
+            std::string("Could not read the design: ") + error.what();
     }
     catch (...)
     {
@@ -787,10 +811,107 @@ vmpc_juce::guilab::deserializeArrangementDocument(
     return std::nullopt;
 }
 
-LogicalPoint vmpc_juce::guilab::positionForResizedNode(
-    const ProjectedNodeGeometry startGeometry,
-    const LogicalSize requestedSize, const ResizeCorner corner,
-    const bool useCentrePivot)
+std::string vmpc_juce::gui::arrangement::serializeArrangementSetup(
+    const ArrangementSetup &setup)
+{
+    json slots = json::array();
+    for (const auto &slot : setup.slots)
+    {
+        if (!slot.has_value())
+        {
+            slots.push_back(nullptr);
+            continue;
+        }
+        slots.push_back(
+            {{"orientation", orientationName(slot->orientation)},
+             {"arrangement",
+              json::parse(serializeArrangementDocument(slot->arrangement))}});
+    }
+    return json{{"format", setupFormat},
+                {"version", setupFormatVersion},
+                {"slots", std::move(slots)}}
+               .dump(2) +
+           "\n";
+}
+
+std::optional<ArrangementSetup>
+vmpc_juce::gui::arrangement::deserializeArrangementSetup(
+    const std::string &contents, std::string &errorMessage)
+{
+    try
+    {
+        const auto source = json::parse(contents);
+        if (source.at("format").get<std::string>() != setupFormat)
+        {
+            throw std::runtime_error("not a VMPC2000XL arrangement setup");
+        }
+        if (source.at("version").get<int>() != setupFormatVersion)
+        {
+            throw std::runtime_error("unsupported setup version");
+        }
+        const auto &slots = source.at("slots");
+        if (!slots.is_array() || slots.size() != ArrangementSetup::slotCount)
+        {
+            throw std::runtime_error("setup must contain exactly five slots");
+        }
+
+        ArrangementSetup result;
+        for (std::size_t i = 0; i < ArrangementSetup::slotCount; ++i)
+        {
+            const auto &sourceSlot = slots.at(i);
+            if (sourceSlot.is_null())
+            {
+                continue;
+            }
+            ArrangementSlot slot;
+            slot.orientation = parseOrientation(sourceSlot.at("orientation"));
+            std::string documentError;
+            const auto document = deserializeArrangementDocument(
+                sourceSlot.at("arrangement").dump(), documentError);
+            if (!document.has_value())
+            {
+                throw std::runtime_error("slot " + std::to_string(i + 1) +
+                                         ": " + documentError);
+            }
+            if (!documentUsesKnownCatalogEntries(*document, documentError))
+            {
+                throw std::runtime_error("slot " + std::to_string(i + 1) +
+                                         ": " + documentError);
+            }
+            slot.arrangement = *document;
+            result.slots[i] = std::move(slot);
+        }
+        errorMessage.clear();
+        return result;
+    }
+    catch (const std::exception &error)
+    {
+        errorMessage = std::string("Could not read the setup: ") + error.what();
+    }
+    catch (...)
+    {
+        errorMessage = "Could not read the setup: unknown file error";
+    }
+    return std::nullopt;
+}
+
+std::optional<std::size_t> vmpc_juce::gui::arrangement::findFirstOccupiedSlot(
+    const ArrangementSetup &setup)
+{
+    for (std::size_t i = 0; i < setup.slots.size(); ++i)
+    {
+        if (setup.slots[i].has_value() &&
+            !setup.slots[i]->arrangement.nodes.empty())
+        {
+            return i;
+        }
+    }
+    return std::nullopt;
+}
+
+LogicalPoint vmpc_juce::gui::arrangement::positionForResizedNode(
+    const ProjectedNodeGeometry startGeometry, const LogicalSize requestedSize,
+    const ResizeCorner corner, const bool useCentrePivot)
 {
     if (useCentrePivot)
     {
@@ -802,35 +923,36 @@ LogicalPoint vmpc_juce::guilab::positionForResizedNode(
 
     switch (corner)
     {
-    case ResizeCorner::topLeft:
-        return {startGeometry.position.x + startGeometry.size.width -
-                    requestedSize.width,
-                startGeometry.position.y + startGeometry.size.height -
-                    requestedSize.height};
-    case ResizeCorner::topRight:
-        return {startGeometry.position.x,
-                startGeometry.position.y + startGeometry.size.height -
-                    requestedSize.height};
-    case ResizeCorner::bottomLeft:
-        return {startGeometry.position.x + startGeometry.size.width -
-                    requestedSize.width,
-                startGeometry.position.y};
-    case ResizeCorner::bottomRight:
-    default:
-        return startGeometry.position;
+        case ResizeCorner::topLeft:
+            return {startGeometry.position.x + startGeometry.size.width -
+                        requestedSize.width,
+                    startGeometry.position.y + startGeometry.size.height -
+                        requestedSize.height};
+        case ResizeCorner::topRight:
+            return {startGeometry.position.x, startGeometry.position.y +
+                                                  startGeometry.size.height -
+                                                  requestedSize.height};
+        case ResizeCorner::bottomLeft:
+            return {startGeometry.position.x + startGeometry.size.width -
+                        requestedSize.width,
+                    startGeometry.position.y};
+        case ResizeCorner::bottomRight:
+        default:
+            return startGeometry.position;
     }
 }
 
-ArrangementAnchor vmpc_juce::guilab::inferAnchor(
-    const LogicalPoint position, const LogicalSize size,
-    const LogicalSize canvasSize)
+ArrangementAnchor
+vmpc_juce::gui::arrangement::inferAnchor(const LogicalPoint position,
+                                         const LogicalSize size,
+                                         const LogicalSize canvasSize)
 {
-    return {inferAnchorAxis(position.x + size.width * 0.5f, canvasSize.width),
-            inferAnchorAxis(position.y + size.height * 0.5f,
-                            canvasSize.height)};
+    return {
+        inferAnchorAxis(position.x + size.width * 0.5f, canvasSize.width),
+        inferAnchorAxis(position.y + size.height * 0.5f, canvasSize.height)};
 }
 
-ArrangementNodeModel vmpc_juce::guilab::makeFixedGroup(
+ArrangementNodeModel vmpc_juce::gui::arrangement::makeFixedGroup(
     const std::uint64_t groupId,
     const std::vector<ArrangementNodeModel> &itemNodes,
     const ResponsiveLayout &layout, const LogicalSize targetSize)
@@ -862,8 +984,7 @@ ArrangementNodeModel vmpc_juce::guilab::makeFixedGroup(
         left = std::min(left, geometry->position.x);
         top = std::min(top, geometry->position.y);
         right = std::max(right, geometry->position.x + geometry->size.width);
-        bottom =
-            std::max(bottom, geometry->position.y + geometry->size.height);
+        bottom = std::max(bottom, geometry->position.y + geometry->size.height);
     }
 
     const LogicalPoint displayedPosition{left, top};
@@ -877,16 +998,18 @@ ArrangementNodeModel vmpc_juce::guilab::makeFixedGroup(
     for (const auto &node : itemNodes)
     {
         const auto *geometry = findProjectedGeometry(layout, node.id);
-        group.children.push_back({node.id, node.catalogId,
-                                  {geometry->position.x - left,
-                                   geometry->position.y - top},
-                                  geometry->scale,
-                                  node.referenceSize});
+        group.children.push_back(
+            {node.id,
+             node.catalogId,
+             {geometry->position.x - left, geometry->position.y - top},
+             geometry->scale,
+             node.referenceSize});
     }
     return group;
 }
 
-std::vector<ArrangementNodeModel> vmpc_juce::guilab::ungroupFixedGroup(
+std::vector<ArrangementNodeModel>
+vmpc_juce::gui::arrangement::ungroupFixedGroup(
     const ArrangementNodeModel &group,
     const ProjectedNodeGeometry groupGeometry, const LogicalSize targetSize)
 {

@@ -7,7 +7,7 @@
 #include <functional>
 #include <vector>
 
-namespace vmpc_juce::guilab
+namespace vmpc_juce::gui::arrangement
 {
     class PreviewViewUtil
     {
@@ -27,4 +27,4 @@ namespace vmpc_juce::guilab
             const std::function<juce::Font &()>
                 &getMpc2000xlFaceplateGlyphsScaled);
     };
-} // namespace vmpc_juce::guilab
+} // namespace vmpc_juce::gui::arrangement

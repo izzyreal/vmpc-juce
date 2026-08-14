@@ -1,6 +1,6 @@
-#include "PreviewViewUtil.hpp"
+#include "gui/arrangement/PreviewViewUtil.hpp"
 
-#include "PreviewLcd.hpp"
+#include "gui/arrangement/PreviewLcd.hpp"
 
 #include "gui/vector/AdditionalShadowComponentsProvider.hpp"
 #include "gui/vector/Constants.hpp"
@@ -29,7 +29,7 @@
 #include <array>
 #include <memory>
 
-using namespace vmpc_juce::guilab;
+using namespace vmpc_juce::gui::arrangement;
 using namespace vmpc_juce::gui::vector;
 
 namespace

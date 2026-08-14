@@ -1,6 +1,6 @@
 #include "GuiLabComponent.hpp"
 
-#include "PreviewViewUtil.hpp"
+#include "gui/arrangement/PreviewViewUtil.hpp"
 #include "VmpcJuceResourceUtil.hpp"
 #include "gui/vector/Constants.hpp"
 
@@ -14,65 +14,12 @@
 #include <string>
 
 using namespace vmpc_juce::guilab;
+using namespace vmpc_juce::gui::arrangement;
 using vmpc_juce::gui::vector::Constants;
 
 namespace
 {
-    constexpr std::array<CatalogEntry, 22> catalog{{
-        {"lcd-bare", "LCD - bare", "components/lcd_bare", 210, 55},
-        {"lcd-mounted", "LCD - mounted", "components/lcd_mounted_trimmed",
-         compactMountedLcdReferenceSize.width - 7.f,
-         compactMountedLcdReferenceSize.height - 4.f},
-        {"lcd-mounted-functions", "LCD - mounted + function buttons",
-         "components/display_and_f_keys_trimmed",
-         compactDisplayReferenceSize.width - 7.f,
-         compactDisplayReferenceSize.height - 4.f},
-        {"function-buttons", "Function buttons", "f_keys", 180, 25},
-        {"main-open", "Main Screen + Open Window",
-         "main_screen_and_open_window", 90, 21},
-        {"num-pad", "Num pad", "components/num_keys_trimmed", 85, 84},
-        {"data-wheel", "DATA wheel",
-         "components/data_wheel_unlabelled_trimmed", 72, 80},
-        {"note-variation", "Note Variation + After/Assign",
-         "components/note_variation_slider", 51, 130},
-        {"tap-tempo", "Tap Tempo / Note Repeat",
-         "components/tap_tempo_note_repeat", 51, 30},
-        {"undo-erase", "Undo Seq + Erase",
-         "components/undo_seq_erase_trimmed", 58, 31},
-        {"cursor", "Cursor", "components/cursor", 48, 48},
-        {"cursor-compact", "Cursor - compact", "components/cursor_compact",
-         48, 31},
-        {"locate", "Locate", "components/locate_group_trimmed", 179, 28},
-        {"transport-horizontal", "Transport - horizontal",
-         "components/transport_keys_trimmed", 179, 30},
-        {"transport-vertical", "Transport - vertical",
-         "components/transport_keys_vertical", 33, 150},
-        {"levels", "Full Level + 16 Levels",
-         "components/full_level_16_levels", 69, 36},
-        {"levels-compact", "Full Level + 16 Levels - compact",
-         "components/full_level_16_levels_compact", 69, 23},
-        {"sequence-mute", "Next Seq + Track Mute",
-         "components/next_seq_track_mute", 69, 23},
-        {"pads-banks", "Pads + Pad Bank",
-         "components/pads_with_banks_trimmed", 180, 224},
-        {"pads", "Pads - compact", "components/pads_trimmed", 180, 188},
-        {"gain-volume", "Rec Gain + Main Volume",
-         "components/rec_gain_main_volume", 84, 48},
-        {"gain-volume-compact", "Rec Gain + Main Volume - compact",
-         "components/rec_gain_main_volume_compact", 84, 38},
-    }};
-
     constexpr auto dragDescriptionPrefix = "component:";
-
-    const CatalogEntry *findCatalogEntry(const std::string &id)
-    {
-        const auto found = std::find_if(catalog.begin(), catalog.end(),
-                                        [&id](const auto &entry)
-                                        {
-                                            return id == entry.id;
-                                        });
-        return found == catalog.end() ? nullptr : &*found;
-    }
 
     const CatalogEntry *catalogEntryFromDragDescription(const juce::var &value)
     {
@@ -127,11 +74,10 @@ namespace
                                const float logicalExtent, const float zoom,
                                const int limit)
     {
-        auto start = std::clamp(
-            juce::roundToInt(logicalStart * zoom), 0, limit);
+        auto start =
+            std::clamp(juce::roundToInt(logicalStart * zoom), 0, limit);
         auto end = std::clamp(
-            juce::roundToInt((logicalStart + logicalExtent) * zoom), 0,
-            limit);
+            juce::roundToInt((logicalStart + logicalExtent) * zoom), 0, limit);
 
         // Keep very small projected nodes visible without allowing their
         // component bounds to extend beyond the document surface.
@@ -392,9 +338,8 @@ public:
             button->setTooltip("Anchor selected component");
             button->onClick = [this, i]
             {
-                setSelectedAnchor(
-                    {static_cast<AnchorAxis>(i % 3),
-                     static_cast<AnchorAxis>(i / 3)});
+                setSelectedAnchor({static_cast<AnchorAxis>(i % 3),
+                                   static_cast<AnchorAxis>(i / 3)});
             };
             addAndMakeVisible(*button);
             anchorButtons[i] = std::move(button);
@@ -426,8 +371,8 @@ public:
         {
             if (!node.isGroup() && findCatalogEntry(node.catalogId) == nullptr)
             {
-                errorMessage = "The design uses an unknown component: " +
-                               node.catalogId;
+                errorMessage =
+                    "The design uses an unknown component: " + node.catalogId;
                 return false;
             }
             for (const auto &child : node.children)
@@ -555,8 +500,7 @@ public:
         }
 
         const auto commandDown = key.getModifiers().isCommandDown();
-        if (commandDown && (key.getKeyCode() == 'G' ||
-                            key.getKeyCode() == 'g'))
+        if (commandDown && (key.getKeyCode() == 'G' || key.getKeyCode() == 'g'))
         {
             if (key.getModifiers().isShiftDown())
             {
@@ -572,13 +516,13 @@ public:
         if (!selectedIds.empty() && (key == juce::KeyPress::deleteKey ||
                                      key == juce::KeyPress::backspaceKey))
         {
-            document.nodes.erase(
-                std::remove_if(document.nodes.begin(), document.nodes.end(),
-                               [this](const auto &node)
-                               {
-                                   return isSelected(node.id);
-                               }),
-                document.nodes.end());
+            document.nodes.erase(std::remove_if(document.nodes.begin(),
+                                                document.nodes.end(),
+                                                [this](const auto &node)
+                                                {
+                                                    return isSelected(node.id);
+                                                }),
+                                 document.nodes.end());
             selectedIds.clear();
             rebuildNodeComponents();
             return true;
@@ -722,17 +666,18 @@ private:
                 auto cursor = juce::MouseCursor::BottomRightCornerResizeCursor;
                 switch (corner)
                 {
-                case ResizeCorner::topLeft:
-                    cursor = juce::MouseCursor::TopLeftCornerResizeCursor;
-                    break;
-                case ResizeCorner::topRight:
-                    cursor = juce::MouseCursor::TopRightCornerResizeCursor;
-                    break;
-                case ResizeCorner::bottomLeft:
-                    cursor = juce::MouseCursor::BottomLeftCornerResizeCursor;
-                    break;
-                case ResizeCorner::bottomRight:
-                    break;
+                    case ResizeCorner::topLeft:
+                        cursor = juce::MouseCursor::TopLeftCornerResizeCursor;
+                        break;
+                    case ResizeCorner::topRight:
+                        cursor = juce::MouseCursor::TopRightCornerResizeCursor;
+                        break;
+                    case ResizeCorner::bottomLeft:
+                        cursor =
+                            juce::MouseCursor::BottomLeftCornerResizeCursor;
+                        break;
+                    case ResizeCorner::bottomRight:
+                        break;
                 }
                 setMouseCursor(cursor);
             }
@@ -743,15 +688,13 @@ private:
                 g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1.f),
                                        2.f);
                 g.setColour(juce::Colour(0xffedf2ef));
-                const auto descending =
-                    corner == ResizeCorner::topLeft ||
-                    corner == ResizeCorner::bottomRight;
-                g.drawLine(4.f, descending ? 4.f
-                                           : static_cast<float>(getHeight() - 4),
-                           static_cast<float>(getWidth() - 4),
-                           descending ? static_cast<float>(getHeight() - 4)
-                                      : 4.f,
-                           1.5f);
+                const auto descending = corner == ResizeCorner::topLeft ||
+                                        corner == ResizeCorner::bottomRight;
+                g.drawLine(
+                    4.f, descending ? 4.f : static_cast<float>(getHeight() - 4),
+                    static_cast<float>(getWidth() - 4),
+                    descending ? static_cast<float>(getHeight() - 4) : 4.f,
+                    1.5f);
             }
 
             void mouseDown(const juce::MouseEvent &event) override
@@ -787,7 +730,8 @@ private:
                 {
                     if (const auto *entry = findCatalogEntry(child.catalogId))
                     {
-                        auto preview = std::make_unique<PreviewComponent>(*entry);
+                        auto preview =
+                            std::make_unique<PreviewComponent>(*entry);
                         preview->setInterceptsMouseClicks(false, false);
                         addAndMakeVisible(*preview);
                         previews.push_back(std::move(preview));
@@ -847,15 +791,15 @@ private:
             layoutPreviews();
             interactionLayer.setBounds(getLocalBounds());
             constexpr int handleSize = 16;
-            const std::array<juce::Point<int>, 4> positions{{
-                {0, 0},
-                {getWidth() - handleSize, 0},
-                {0, getHeight() - handleSize},
-                {getWidth() - handleSize, getHeight() - handleSize}}};
+            const std::array<juce::Point<int>, 4> positions{
+                {{0, 0},
+                 {getWidth() - handleSize, 0},
+                 {0, getHeight() - handleSize},
+                 {getWidth() - handleSize, getHeight() - handleSize}}};
             for (size_t i = 0; i < resizeHandles.size(); ++i)
             {
                 resizeHandles[i]->setBounds(positions[i].x, positions[i].y,
-                                             handleSize, handleSize);
+                                            handleSize, handleSize);
                 resizeHandles[i]->toFront(false);
             }
         }
@@ -907,9 +851,9 @@ private:
             {
                 return;
             }
-            workspace.resizeNode(
-                nodeId, corner, resizeStartGeometry,
-                delta, event.mods.isShiftDown(), !event.mods.isAltDown());
+            workspace.resizeNode(nodeId, corner, resizeStartGeometry, delta,
+                                 event.mods.isShiftDown(),
+                                 !event.mods.isAltDown());
         }
 
         void layoutPreviews()
@@ -922,10 +866,9 @@ private:
 
             if (!model->isGroup())
             {
-                const auto geometry =
-                    workspace.getProjectedGeometry(nodeId);
-                previews.front()->setHardwareScale(
-                    geometry.scale * workspace.zoom);
+                const auto geometry = workspace.getProjectedGeometry(nodeId);
+                previews.front()->setHardwareScale(geometry.scale *
+                                                   workspace.zoom);
                 previews.front()->setBounds(getLocalBounds());
                 return;
             }
@@ -946,12 +889,10 @@ private:
                 preview.setBounds(
                     juce::roundToInt(child.position.x * localScale),
                     juce::roundToInt(child.position.y * localScale),
-                    std::max(1, juce::roundToInt(
-                                    child.referenceSize.width * child.scale *
-                                    localScale)),
-                    std::max(1, juce::roundToInt(
-                                    child.referenceSize.height * child.scale *
-                                    localScale)));
+                    std::max(1, juce::roundToInt(child.referenceSize.width *
+                                                 child.scale * localScale)),
+                    std::max(1, juce::roundToInt(child.referenceSize.height *
+                                                 child.scale * localScale)));
             }
         }
 
@@ -980,23 +921,23 @@ private:
 
     ArrangementNodeModel *findNode(const std::uint64_t id)
     {
-        const auto found = std::find_if(document.nodes.begin(),
-                                        document.nodes.end(),
-                                        [id](const auto &node)
-                                        {
-                                            return node.id == id;
-                                        });
+        const auto found =
+            std::find_if(document.nodes.begin(), document.nodes.end(),
+                         [id](const auto &node)
+                         {
+                             return node.id == id;
+                         });
         return found == document.nodes.end() ? nullptr : &*found;
     }
 
     const ArrangementNodeModel *findNode(const std::uint64_t id) const
     {
-        const auto found = std::find_if(document.nodes.begin(),
-                                        document.nodes.end(),
-                                        [id](const auto &node)
-                                        {
-                                            return node.id == id;
-                                        });
+        const auto found =
+            std::find_if(document.nodes.begin(), document.nodes.end(),
+                         [id](const auto &node)
+                         {
+                             return node.id == id;
+                         });
         return found == document.nodes.end() ? nullptr : &*found;
     }
 
@@ -1006,17 +947,16 @@ private:
         if (!frozenResponsiveScale.has_value() ||
             !frozenResponsiveLayout.has_value())
         {
-            responsiveLayout =
-                computeResponsiveLayout(document, targetSize);
+            responsiveLayout = computeResponsiveLayout(document, targetSize);
             return;
         }
 
-        responsiveLayout = projectDocumentAtScale(
-            document, targetSize, *frozenResponsiveScale);
+        responsiveLayout = projectDocumentAtScale(document, targetSize,
+                                                  *frozenResponsiveScale);
         for (auto &projected : responsiveLayout.nodes)
         {
-            const auto *frozen = findProjectedGeometry(
-                *frozenResponsiveLayout, projected.id);
+            const auto *frozen =
+                findProjectedGeometry(*frozenResponsiveLayout, projected.id);
             if (frozen == nullptr)
             {
                 continue;
@@ -1061,8 +1001,7 @@ private:
 
     ProjectedNodeGeometry getProjectedGeometry(const std::uint64_t id) const
     {
-        if (const auto *geometry =
-                findProjectedGeometry(responsiveLayout, id))
+        if (const auto *geometry = findProjectedGeometry(responsiveLayout, id))
         {
             return *geometry;
         }
@@ -1085,8 +1024,8 @@ private:
     {
         if (additive)
         {
-            const auto found = std::find(selectedIds.begin(), selectedIds.end(),
-                                         id);
+            const auto found =
+                std::find(selectedIds.begin(), selectedIds.end(), id);
             if (found == selectedIds.end())
             {
                 selectedIds.push_back(id);
@@ -1103,8 +1042,7 @@ private:
         refreshSelection();
     }
 
-    void moveNode(const std::uint64_t id,
-                  const LogicalPoint requestedPosition,
+    void moveNode(const std::uint64_t id, const LogicalPoint requestedPosition,
                   const bool shouldSnap)
     {
         auto *node = findNode(id);
@@ -1125,9 +1063,9 @@ private:
                     {projected.geometry.position, projected.geometry.size});
             }
         }
-        const auto nearest = findNearestAvailablePosition(
-            requestedPosition, geometry.size, targetSize, obstacles,
-            shouldSnap);
+        const auto nearest =
+            findNearestAvailablePosition(requestedPosition, geometry.size,
+                                         targetSize, obstacles, shouldSnap);
         if (!nearest.has_value())
         {
             return;
@@ -1138,8 +1076,7 @@ private:
         updateAllNodeBounds();
     }
 
-    void resizeNode(const std::uint64_t id,
-                    const ResizeCorner corner,
+    void resizeNode(const std::uint64_t id, const ResizeCorner corner,
                     const ProjectedNodeGeometry startGeometry,
                     const juce::Point<int> screenDelta,
                     const bool useCentrePivot, const bool shouldSnap)
@@ -1156,8 +1093,7 @@ private:
                 ? -1.f
                 : 1.f;
         const auto verticalDirection =
-            corner == ResizeCorner::topLeft ||
-                    corner == ResizeCorner::topRight
+            corner == ResizeCorner::topLeft || corner == ResizeCorner::topRight
                 ? -1.f
                 : 1.f;
         const auto denominator =
@@ -1168,13 +1104,12 @@ private:
             return;
         }
 
-        auto requestedScale =
-            startGeometry.scale +
-            (static_cast<float>(screenDelta.x) * horizontalDirection *
-                 referenceSize.width +
-             static_cast<float>(screenDelta.y) * verticalDirection *
-                 referenceSize.height) /
-                denominator;
+        auto requestedScale = startGeometry.scale +
+                              (static_cast<float>(screenDelta.x) *
+                                   horizontalDirection * referenceSize.width +
+                               static_cast<float>(screenDelta.y) *
+                                   verticalDirection * referenceSize.height) /
+                                  denominator;
         if (shouldSnap)
         {
             requestedScale = snapItemScaleToGrid(requestedScale, referenceSize);
@@ -1183,9 +1118,9 @@ private:
             0.0001f,
             frozenResponsiveScale.value_or(responsiveLayout.sharedScale));
         const auto targetSize = getEffectiveDeviceSize(device, orientation);
-        requestedScale = std::clamp(
-            requestedScale, 0.01f,
-            targetSize.width * sharedScale / referenceSize.width);
+        requestedScale =
+            std::clamp(requestedScale, 0.01f,
+                       targetSize.width * sharedScale / referenceSize.width);
         std::vector<LogicalRect> obstacles;
         const auto &obstacleLayout =
             frozenResponsiveLayout.value_or(responsiveLayout);
@@ -1204,11 +1139,9 @@ private:
                 referenceSize.width * projectedScale,
                 referenceSize.height * projectedScale};
             const auto displayedPosition = positionForResizedNode(
-                startGeometry, requestedProjectedSize, corner,
-                useCentrePivot);
-            return ProjectedNodeGeometry{displayedPosition,
-                                         requestedProjectedSize,
-                                         projectedScale, {}};
+                startGeometry, requestedProjectedSize, corner, useCentrePivot);
+            return ProjectedNodeGeometry{
+                displayedPosition, requestedProjectedSize, projectedScale, {}};
         };
 
         auto requestedGeometry = makeGeometry(requestedScale);
@@ -1239,8 +1172,8 @@ private:
             requestedGeometry = makeGeometry(lower);
         }
 
-        node->widthFraction = requestedGeometry.size.width /
-                              (targetSize.width * sharedScale);
+        node->widthFraction =
+            requestedGeometry.size.width / (targetSize.width * sharedScale);
         node->anchorPosition = normalizedAnchorPosition(
             requestedGeometry.position, requestedGeometry.size, node->anchor,
             targetSize);
@@ -1256,27 +1189,27 @@ private:
         // position and size independently. The latter can make the right or
         // bottom edge one pixel too large and let a component paint over the
         // document's exterior border.
-        const auto horizontal = projectPixelSpan(
-            geometry.position.x, geometry.size.width, zoom,
-            surfaceBounds.getWidth());
-        const auto vertical = projectPixelSpan(
-            geometry.position.y, geometry.size.height, zoom,
-            surfaceBounds.getHeight());
-        component.setBounds(
-            surfaceBounds.getX() + horizontal.start,
-            surfaceBounds.getY() + vertical.start,
-            horizontal.end - horizontal.start, vertical.end - vertical.start);
+        const auto horizontal =
+            projectPixelSpan(geometry.position.x, geometry.size.width, zoom,
+                             surfaceBounds.getWidth());
+        const auto vertical =
+            projectPixelSpan(geometry.position.y, geometry.size.height, zoom,
+                             surfaceBounds.getHeight());
+        component.setBounds(surfaceBounds.getX() + horizontal.start,
+                            surfaceBounds.getY() + vertical.start,
+                            horizontal.end - horizontal.start,
+                            vertical.end - vertical.start);
         component.resized();
     }
 
     void updateNodeBoundsById(const std::uint64_t id)
     {
-        const auto found = std::find_if(nodeComponents.begin(),
-                                        nodeComponents.end(),
-                                        [id](const auto &component)
-                                        {
-                                            return component->getNodeId() == id;
-                                        });
+        const auto found =
+            std::find_if(nodeComponents.begin(), nodeComponents.end(),
+                         [id](const auto &component)
+                         {
+                             return component->getNodeId() == id;
+                         });
         if (found != nodeComponents.end())
         {
             updateNodeBounds(**found);
@@ -1316,31 +1249,31 @@ private:
             component->setSelected(isSelected(component->getNodeId()), single);
         }
 
-        auto canGroup = selectedIds.size() >= 2 &&
-                        std::all_of(selectedIds.begin(), selectedIds.end(),
-                                    [this](const auto id)
-                                    {
-                                        const auto *node = findNode(id);
-                                        return node != nullptr &&
-                                               !node->isGroup();
-                                    });
+        auto canGroup =
+            selectedIds.size() >= 2 &&
+            std::all_of(selectedIds.begin(), selectedIds.end(),
+                        [this](const auto id)
+                        {
+                            const auto *node = findNode(id);
+                            return node != nullptr && !node->isGroup();
+                        });
         const auto *singleNode =
             single ? findNode(selectedIds.front()) : nullptr;
         groupButton.setEnabled(canGroup);
-        ungroupButton.setEnabled(singleNode != nullptr && singleNode->isGroup());
+        ungroupButton.setEnabled(singleNode != nullptr &&
+                                 singleNode->isGroup());
 
         for (size_t i = 0; i < anchorButtons.size(); ++i)
         {
             auto &button = *anchorButtons[i];
             button.setEnabled(singleNode != nullptr);
-            const ArrangementAnchor represented{
-                static_cast<AnchorAxis>(i % 3),
-                static_cast<AnchorAxis>(i / 3)};
-            button.setColour(
-                juce::TextButton::buttonColourId,
-                singleNode != nullptr && singleNode->anchor == represented
-                    ? juce::Colour(0xff43b3dd)
-                    : juce::Colour(0xff343a38));
+            const ArrangementAnchor represented{static_cast<AnchorAxis>(i % 3),
+                                                static_cast<AnchorAxis>(i / 3)};
+            button.setColour(juce::TextButton::buttonColourId,
+                             singleNode != nullptr &&
+                                     singleNode->anchor == represented
+                                 ? juce::Colour(0xff43b3dd)
+                                 : juce::Colour(0xff343a38));
         }
         bringToolbarToFront();
     }
@@ -1399,20 +1332,20 @@ private:
             return;
         }
 
-        auto group = makeFixedGroup(
-            nextNodeId++, selectedNodes, responsiveLayout,
-            getEffectiveDeviceSize(device, orientation));
+        auto group =
+            makeFixedGroup(nextNodeId++, selectedNodes, responsiveLayout,
+                           getEffectiveDeviceSize(device, orientation));
         if (!group.isGroup())
         {
             return;
         }
-        document.nodes.erase(
-            std::remove_if(document.nodes.begin(), document.nodes.end(),
-                           [this](const auto &node)
-                           {
-                               return isSelected(node.id);
-                           }),
-            document.nodes.end());
+        document.nodes.erase(std::remove_if(document.nodes.begin(),
+                                            document.nodes.end(),
+                                            [this](const auto &node)
+                                            {
+                                                return isSelected(node.id);
+                                            }),
+                             document.nodes.end());
         insertionIndex = std::min(insertionIndex, document.nodes.size());
         const auto groupId = group.id;
         document.nodes.insert(document.nodes.begin() +
@@ -1430,32 +1363,31 @@ private:
             return;
         }
         const auto groupId = selectedIds.front();
-        const auto found = std::find_if(document.nodes.begin(),
-                                        document.nodes.end(),
-                                        [groupId](const auto &node)
-                                        {
-                                            return node.id == groupId;
-                                        });
+        const auto found =
+            std::find_if(document.nodes.begin(), document.nodes.end(),
+                         [groupId](const auto &node)
+                         {
+                             return node.id == groupId;
+                         });
         if (found == document.nodes.end() || !found->isGroup())
         {
             return;
         }
-        const auto index = static_cast<size_t>(
-            std::distance(document.nodes.begin(), found));
+        const auto index =
+            static_cast<size_t>(std::distance(document.nodes.begin(), found));
         const auto groupGeometry = getProjectedGeometry(groupId);
         auto children = ungroupFixedGroup(
-            *found, groupGeometry,
-            getEffectiveDeviceSize(device, orientation));
+            *found, groupGeometry, getEffectiveDeviceSize(device, orientation));
         document.nodes.erase(found);
         selectedIds.clear();
         for (const auto &child : children)
         {
             selectedIds.push_back(child.id);
         }
-        document.nodes.insert(
-            document.nodes.begin() + static_cast<std::ptrdiff_t>(index),
-            std::make_move_iterator(children.begin()),
-            std::make_move_iterator(children.end()));
+        document.nodes.insert(document.nodes.begin() +
+                                  static_cast<std::ptrdiff_t>(index),
+                              std::make_move_iterator(children.begin()),
+                              std::make_move_iterator(children.end()));
         refreshResponsiveLayout();
         rebuildNodeComponents();
     }
@@ -1499,6 +1431,7 @@ GuiLabComponent::GuiLabComponent()
                               juce::Colour(0xff68716e));
     addAndMakeVisible(paletteViewport);
 
+    const auto &catalog = getArrangementCatalog();
     cards.reserve(catalog.size());
     for (const auto &entry : catalog)
     {
@@ -1541,11 +1474,25 @@ void GuiLabComponent::resized()
 {
     auto bounds = getLocalBounds().reduced(18);
     auto headingBounds = bounds.removeFromTop(38);
-    saveButton.setBounds(headingBounds.removeFromRight(82).reduced(0, 4));
+    saveSetupButton.setBounds(headingBounds.removeFromRight(104).reduced(0, 4));
     headingBounds.removeFromRight(8);
-    loadButton.setBounds(headingBounds.removeFromRight(82).reduced(0, 4));
+    loadSetupButton.setBounds(headingBounds.removeFromRight(104).reduced(0, 4));
+    headingBounds.removeFromRight(8);
+    saveButton.setBounds(headingBounds.removeFromRight(72).reduced(0, 4));
+    headingBounds.removeFromRight(8);
+    loadButton.setBounds(headingBounds.removeFromRight(72).reduced(0, 4));
     headingBounds.removeFromRight(8);
     heading.setBounds(headingBounds);
+    bounds.removeFromTop(6);
+
+    auto slotBounds = bounds.removeFromTop(34);
+    slotsLabel.setBounds(slotBounds.removeFromLeft(44));
+    for (auto &button : slotButtons)
+    {
+        button.setBounds(slotBounds.removeFromLeft(48).reduced(2, 2));
+    }
+    slotBounds.removeFromLeft(8);
+    clearSlotButton.setBounds(slotBounds.removeFromLeft(92).reduced(0, 2));
     bounds.removeFromTop(6);
 
     auto controls = bounds.removeFromTop(50);
@@ -1580,6 +1527,7 @@ void GuiLabComponent::resized()
 
 void GuiLabComponent::configureControls()
 {
+    styleControlLabel(slotsLabel, "Slots");
     styleControlLabel(brandLabel, "Brand");
     styleControlLabel(deviceLabel, "Device");
     styleControlLabel(orientationLabel, "Orientation");
@@ -1587,13 +1535,33 @@ void GuiLabComponent::configureControls()
     styleComboBox(deviceSelector);
     styleComboBox(orientationSelector);
 
-    for (auto *button : {&loadButton, &saveButton})
+    for (auto *button : {&loadButton, &saveButton, &loadSetupButton,
+                         &saveSetupButton, &clearSlotButton})
     {
         button->setColour(juce::TextButton::buttonColourId,
                           juce::Colour(0xff343a38));
         button->setColour(juce::TextButton::textColourOffId,
                           juce::Colour(0xffedf2ef));
         addAndMakeVisible(*button);
+    }
+    addAndMakeVisible(slotsLabel);
+    for (std::size_t i = 0; i < slotButtons.size(); ++i)
+    {
+        auto &button = slotButtons[i];
+        button.setClickingTogglesState(false);
+        button.setColour(juce::TextButton::buttonColourId,
+                         juce::Colour(0xff343a38));
+        button.setColour(juce::TextButton::buttonOnColourId,
+                         juce::Colour(0xff67b8de));
+        button.setColour(juce::TextButton::textColourOffId,
+                         juce::Colour(0xffedf2ef));
+        button.setColour(juce::TextButton::textColourOnId,
+                         juce::Colour(0xff202523));
+        button.onClick = [this, i]
+        {
+            selectSlot(i);
+        };
+        addAndMakeVisible(button);
     }
 
     addAndMakeVisible(brandLabel);
@@ -1623,6 +1591,7 @@ void GuiLabComponent::configureControls()
     orientationSelector.onChange = [this]
     {
         updateTarget();
+        persistActiveSlot();
     };
     loadButton.onClick = [this]
     {
@@ -1632,6 +1601,19 @@ void GuiLabComponent::configureControls()
     {
         chooseDesignToSave();
     };
+    loadSetupButton.onClick = [this]
+    {
+        chooseSetupToLoad();
+    };
+    saveSetupButton.onClick = [this]
+    {
+        chooseSetupToSave();
+    };
+    clearSlotButton.onClick = [this]
+    {
+        clearActiveSlot();
+    };
+    updateSlotButtons();
     updateTarget();
 }
 
@@ -1644,8 +1626,7 @@ void GuiLabComponent::chooseDesignToLoad()
                   juce::File::userDocumentsDirectory);
     designFileChooser = std::make_unique<juce::FileChooser>(
         "Load arrangement design", initialLocation, "*.vmpclab", true);
-    loadButton.setEnabled(false);
-    saveButton.setEnabled(false);
+    setFileButtonsEnabled(false);
     juce::Component::SafePointer<GuiLabComponent> safeThis(this);
     designFileChooser->launchAsync(
         juce::FileBrowserComponent::openMode |
@@ -1656,8 +1637,7 @@ void GuiLabComponent::chooseDesignToLoad()
             {
                 return;
             }
-            safeThis->loadButton.setEnabled(true);
-            safeThis->saveButton.setEnabled(true);
+            safeThis->setFileButtonsEnabled(true);
             const auto file = chooser.getResult();
             if (file.getFullPathName().isNotEmpty())
             {
@@ -1671,14 +1651,13 @@ void GuiLabComponent::chooseDesignToSave()
     auto initialFile = currentDesignFile;
     if (initialFile.getFullPathName().isEmpty())
     {
-        initialFile = juce::File::getSpecialLocation(
-                          juce::File::userDocumentsDirectory)
-                          .getChildFile("Untitled.vmpclab");
+        initialFile =
+            juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
+                .getChildFile("Untitled.vmpclab");
     }
     designFileChooser = std::make_unique<juce::FileChooser>(
         "Save arrangement design", initialFile, "*.vmpclab", true);
-    loadButton.setEnabled(false);
-    saveButton.setEnabled(false);
+    setFileButtonsEnabled(false);
     juce::Component::SafePointer<GuiLabComponent> safeThis(this);
     designFileChooser->launchAsync(
         juce::FileBrowserComponent::saveMode |
@@ -1690,8 +1669,7 @@ void GuiLabComponent::chooseDesignToSave()
             {
                 return;
             }
-            safeThis->loadButton.setEnabled(true);
-            safeThis->saveButton.setEnabled(true);
+            safeThis->setFileButtonsEnabled(true);
             const auto file = chooser.getResult();
             if (file.getFullPathName().isNotEmpty())
             {
@@ -1723,6 +1701,7 @@ void GuiLabComponent::loadDesignFile(const juce::File &file)
     }
 
     currentDesignFile = file;
+    persistActiveSlot();
 }
 
 void GuiLabComponent::saveDesignFile(juce::File file)
@@ -1742,11 +1721,212 @@ void GuiLabComponent::saveDesignFile(juce::File file)
             return;
         }
         currentDesignFile = file;
+        persistActiveSlot();
     }
     catch (const std::exception &error)
     {
         showFileError(juce::String("The design could not be saved: ") +
                       error.what());
+    }
+}
+
+void GuiLabComponent::chooseSetupToLoad()
+{
+    const auto initialLocation = currentSetupFile.getFullPathName().isNotEmpty()
+                                     ? currentSetupFile.getParentDirectory()
+                                     : juce::File::getSpecialLocation(
+                                           juce::File::userDocumentsDirectory);
+    designFileChooser = std::make_unique<juce::FileChooser>(
+        "Load arrangement setup", initialLocation, "*.json", true);
+    setFileButtonsEnabled(false);
+    juce::Component::SafePointer<GuiLabComponent> safeThis(this);
+    designFileChooser->launchAsync(
+        juce::FileBrowserComponent::openMode |
+            juce::FileBrowserComponent::canSelectFiles,
+        [safeThis](const juce::FileChooser &chooser)
+        {
+            if (safeThis == nullptr)
+            {
+                return;
+            }
+            safeThis->setFileButtonsEnabled(true);
+            const auto file = chooser.getResult();
+            if (file.getFullPathName().isNotEmpty())
+            {
+                safeThis->loadSetupFile(file);
+            }
+        });
+}
+
+void GuiLabComponent::chooseSetupToSave()
+{
+    auto initialFile = currentSetupFile;
+    if (initialFile.getFullPathName().isEmpty())
+    {
+        initialFile =
+            juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
+                .getChildFile("arrangement-setup.json");
+    }
+    designFileChooser = std::make_unique<juce::FileChooser>(
+        "Save arrangement setup", initialFile, "*.json", true);
+    setFileButtonsEnabled(false);
+    juce::Component::SafePointer<GuiLabComponent> safeThis(this);
+    designFileChooser->launchAsync(
+        juce::FileBrowserComponent::saveMode |
+            juce::FileBrowserComponent::canSelectFiles |
+            juce::FileBrowserComponent::warnAboutOverwriting,
+        [safeThis](const juce::FileChooser &chooser)
+        {
+            if (safeThis == nullptr)
+            {
+                return;
+            }
+            safeThis->setFileButtonsEnabled(true);
+            const auto file = chooser.getResult();
+            if (file.getFullPathName().isNotEmpty())
+            {
+                safeThis->saveSetupFile(file);
+            }
+        });
+}
+
+void GuiLabComponent::loadSetupFile(const juce::File &file)
+{
+    if (!file.existsAsFile())
+    {
+        showFileError("The selected setup file does not exist.");
+        return;
+    }
+    std::string errorMessage;
+    const auto loaded = deserializeArrangementSetup(
+        file.loadFileAsString().toStdString(), errorMessage);
+    if (!loaded.has_value())
+    {
+        showFileError(errorMessage);
+        return;
+    }
+
+    setup = *loaded;
+    activeSlot = findFirstOccupiedSlot(setup).value_or(0);
+    const auto &slot = setup.slots[activeSlot];
+    const auto orientation =
+        slot.has_value() ? slot->orientation : Orientation::portrait;
+    orientationSelector.setSelectedId(orientation == Orientation::landscape ? 2
+                                                                            : 1,
+                                      juce::dontSendNotification);
+    const ArrangementDocument empty;
+    if (!workspace->loadDocument(slot.has_value() ? slot->arrangement : empty,
+                                 errorMessage))
+    {
+        showFileError(errorMessage);
+        return;
+    }
+    currentSetupFile = file;
+    currentDesignFile = juce::File();
+    updateTarget();
+    updateSlotButtons();
+}
+
+void GuiLabComponent::saveSetupFile(juce::File file)
+{
+    if (!file.hasFileExtension("json"))
+    {
+        file = file.withFileExtension("json");
+    }
+    persistActiveSlot();
+    try
+    {
+        const auto contents = serializeArrangementSetup(setup);
+        if (!file.replaceWithText(juce::String::fromUTF8(
+                contents.data(), static_cast<int>(contents.size()))))
+        {
+            showFileError("The setup could not be written to disk.");
+            return;
+        }
+        currentSetupFile = file;
+    }
+    catch (const std::exception &error)
+    {
+        showFileError(juce::String("The setup could not be saved: ") +
+                      error.what());
+    }
+}
+
+void GuiLabComponent::persistActiveSlot()
+{
+    const auto document = workspace->getDocument();
+    if (document.nodes.empty())
+    {
+        setup.slots[activeSlot] = std::nullopt;
+    }
+    else
+    {
+        setup.slots[activeSlot] = ArrangementSlot{
+            orientationSelector.getSelectedId() == 2 ? Orientation::landscape
+                                                     : Orientation::portrait,
+            document};
+    }
+    updateSlotButtons();
+}
+
+void GuiLabComponent::selectSlot(const std::size_t index)
+{
+    if (index >= setup.slots.size() || index == activeSlot)
+    {
+        return;
+    }
+    persistActiveSlot();
+    activeSlot = index;
+    const auto &slot = setup.slots[activeSlot];
+    const auto orientation =
+        slot.has_value() ? slot->orientation : Orientation::portrait;
+    orientationSelector.setSelectedId(orientation == Orientation::landscape ? 2
+                                                                            : 1,
+                                      juce::dontSendNotification);
+    std::string errorMessage;
+    const ArrangementDocument empty;
+    if (!workspace->loadDocument(slot.has_value() ? slot->arrangement : empty,
+                                 errorMessage))
+    {
+        showFileError(errorMessage);
+    }
+    currentDesignFile = juce::File();
+    updateTarget();
+    updateSlotButtons();
+}
+
+void GuiLabComponent::clearActiveSlot()
+{
+    std::string errorMessage;
+    if (!workspace->loadDocument({}, errorMessage))
+    {
+        showFileError(errorMessage);
+        return;
+    }
+    setup.slots[activeSlot] = std::nullopt;
+    currentDesignFile = juce::File();
+    updateSlotButtons();
+}
+
+void GuiLabComponent::updateSlotButtons()
+{
+    for (std::size_t i = 0; i < slotButtons.size(); ++i)
+    {
+        slotButtons[i].setToggleState(i == activeSlot,
+                                      juce::dontSendNotification);
+        const auto occupied = setup.slots[i].has_value() &&
+                              !setup.slots[i]->arrangement.nodes.empty();
+        slotButtons[i].setButtonText(juce::String(static_cast<int>(i + 1)) +
+                                     (occupied ? " •" : ""));
+    }
+}
+
+void GuiLabComponent::setFileButtonsEnabled(const bool enabled)
+{
+    for (auto *button :
+         {&loadButton, &saveButton, &loadSetupButton, &saveSetupButton})
+    {
+        button->setEnabled(enabled);
     }
 }
 

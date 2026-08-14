@@ -1,11 +1,12 @@
 #pragma once
 
 #include <cstdint>
+#include <array>
 #include <optional>
 #include <string>
 #include <vector>
 
-namespace vmpc_juce::guilab
+namespace vmpc_juce::gui::arrangement
 {
     enum class Orientation
     {
@@ -110,6 +111,18 @@ namespace vmpc_juce::guilab
         std::vector<ArrangementNodeModel> nodes;
     };
 
+    struct ArrangementSlot
+    {
+        Orientation orientation = Orientation::portrait;
+        ArrangementDocument arrangement;
+    };
+
+    struct ArrangementSetup
+    {
+        static constexpr std::size_t slotCount = 5;
+        std::array<std::optional<ArrangementSlot>, slotCount> slots;
+    };
+
     struct ProjectedNodeGeometry
     {
         LogicalPoint position;
@@ -147,20 +160,21 @@ namespace vmpc_juce::guilab
                                        float gridSize = 4.f);
     ProjectedNodeGeometry projectNode(const ArrangementNodeModel &node,
                                       LogicalSize targetSize);
-    ProjectedNodeGeometry projectNodeAtScale(
-        const ArrangementNodeModel &node, LogicalSize targetSize,
-        float sharedScale);
+    ProjectedNodeGeometry projectNodeAtScale(const ArrangementNodeModel &node,
+                                             LogicalSize targetSize,
+                                             float sharedScale);
     LogicalPoint normalizedAnchorPosition(LogicalPoint projectedPosition,
                                           LogicalSize projectedSize,
                                           ArrangementAnchor anchor,
                                           LogicalSize targetSize);
-    ResponsiveLayout projectDocumentAtScale(
-        const ArrangementDocument &document, LogicalSize targetSize,
-        float sharedScale);
-    ResponsiveLayout computeResponsiveLayout(
-        const ArrangementDocument &document, LogicalSize targetSize);
-    const ProjectedNodeGeometry *findProjectedGeometry(
-        const ResponsiveLayout &layout, std::uint64_t nodeId);
+    ResponsiveLayout projectDocumentAtScale(const ArrangementDocument &document,
+                                            LogicalSize targetSize,
+                                            float sharedScale);
+    ResponsiveLayout
+    computeResponsiveLayout(const ArrangementDocument &document,
+                            LogicalSize targetSize);
+    const ProjectedNodeGeometry *
+    findProjectedGeometry(const ResponsiveLayout &layout, std::uint64_t nodeId);
     bool rectanglesOverlap(LogicalRect first, LogicalRect second);
     bool isPlacementValid(LogicalRect candidate, LogicalSize bounds,
                           const std::vector<LogicalRect> &obstacles);
@@ -168,22 +182,29 @@ namespace vmpc_juce::guilab
         LogicalPoint requestedPosition, LogicalSize itemSize,
         LogicalSize bounds, const std::vector<LogicalRect> &obstacles,
         bool shouldSnapToGrid = false, float gridSize = 4.f);
-    std::string serializeArrangementDocument(
-        const ArrangementDocument &document);
+    std::string
+    serializeArrangementDocument(const ArrangementDocument &document);
     std::optional<ArrangementDocument>
     deserializeArrangementDocument(const std::string &contents,
                                    std::string &errorMessage);
-    LogicalPoint positionForResizedNode(
-        ProjectedNodeGeometry startGeometry, LogicalSize requestedSize,
-        ResizeCorner corner, bool useCentrePivot);
+    std::string serializeArrangementSetup(const ArrangementSetup &setup);
+    std::optional<ArrangementSetup>
+    deserializeArrangementSetup(const std::string &contents,
+                                std::string &errorMessage);
+    std::optional<std::size_t>
+    findFirstOccupiedSlot(const ArrangementSetup &setup);
+    LogicalPoint positionForResizedNode(ProjectedNodeGeometry startGeometry,
+                                        LogicalSize requestedSize,
+                                        ResizeCorner corner,
+                                        bool useCentrePivot);
     ArrangementAnchor inferAnchor(LogicalPoint position, LogicalSize size,
                                   LogicalSize canvasSize);
-    ArrangementNodeModel makeFixedGroup(
-        std::uint64_t groupId,
-        const std::vector<ArrangementNodeModel> &itemNodes,
-        const ResponsiveLayout &layout, LogicalSize targetSize);
+    ArrangementNodeModel
+    makeFixedGroup(std::uint64_t groupId,
+                   const std::vector<ArrangementNodeModel> &itemNodes,
+                   const ResponsiveLayout &layout, LogicalSize targetSize);
     std::vector<ArrangementNodeModel>
     ungroupFixedGroup(const ArrangementNodeModel &group,
                       ProjectedNodeGeometry groupGeometry,
                       LogicalSize targetSize);
-} // namespace vmpc_juce::guilab
+} // namespace vmpc_juce::gui::arrangement

@@ -9,15 +9,17 @@ juce_add_gui_app(vmpc2000xl_GuiLab
   PRODUCT_NAME "VMPC2000XL GUI Lab")
 
 target_sources(vmpc2000xl_GuiLab PRIVATE
-  "${CMAKE_SOURCE_DIR}/src/guilab/ArrangementModel.cpp"
-  "${CMAKE_SOURCE_DIR}/src/guilab/ArrangementModel.hpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/ArrangementCatalog.cpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/ArrangementCatalog.hpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/ArrangementModel.cpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/ArrangementModel.hpp"
   "${CMAKE_SOURCE_DIR}/src/guilab/Main.cpp"
   "${CMAKE_SOURCE_DIR}/src/guilab/GuiLabComponent.cpp"
   "${CMAKE_SOURCE_DIR}/src/guilab/GuiLabComponent.hpp"
-  "${CMAKE_SOURCE_DIR}/src/guilab/PreviewLcd.cpp"
-  "${CMAKE_SOURCE_DIR}/src/guilab/PreviewLcd.hpp"
-  "${CMAKE_SOURCE_DIR}/src/guilab/PreviewViewUtil.cpp"
-  "${CMAKE_SOURCE_DIR}/src/guilab/PreviewViewUtil.hpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/PreviewLcd.cpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/PreviewLcd.hpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/PreviewViewUtil.cpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/PreviewViewUtil.hpp"
   "${CMAKE_SOURCE_DIR}/src/main/VmpcJuceResourceUtil.cpp"
   "${CMAKE_SOURCE_DIR}/src/main/VmpcJuceResourceUtil.hpp"
   "${CMAKE_SOURCE_DIR}/src/main/gui/vector/Constants.cpp"
@@ -73,12 +75,14 @@ set_target_properties(vmpc2000xl_GuiLab PROPERTIES
   BUILD_RPATH "${CMAKE_BINARY_DIR}/_deps/json-schema-validator-build/$<CONFIG>;${CMAKE_BINARY_DIR}/_deps/mpc-build/$<CONFIG>")
 
 source_group("GUI Lab" FILES
-  "${CMAKE_SOURCE_DIR}/src/guilab/ArrangementModel.cpp"
-  "${CMAKE_SOURCE_DIR}/src/guilab/ArrangementModel.hpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/ArrangementCatalog.cpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/ArrangementCatalog.hpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/ArrangementModel.cpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/ArrangementModel.hpp"
   "${CMAKE_SOURCE_DIR}/src/guilab/Main.cpp"
   "${CMAKE_SOURCE_DIR}/src/guilab/GuiLabComponent.cpp"
   "${CMAKE_SOURCE_DIR}/src/guilab/GuiLabComponent.hpp"
-  "${CMAKE_SOURCE_DIR}/src/guilab/PreviewLcd.cpp"
-  "${CMAKE_SOURCE_DIR}/src/guilab/PreviewLcd.hpp"
-  "${CMAKE_SOURCE_DIR}/src/guilab/PreviewViewUtil.cpp"
-  "${CMAKE_SOURCE_DIR}/src/guilab/PreviewViewUtil.hpp")
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/PreviewLcd.cpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/PreviewLcd.hpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/PreviewViewUtil.cpp"
+  "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/PreviewViewUtil.hpp")

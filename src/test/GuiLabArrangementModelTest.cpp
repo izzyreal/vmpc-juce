@@ -1,14 +1,15 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-#include "ArrangementModel.hpp"
+#include "gui/arrangement/ArrangementModel.hpp"
+#include "gui/arrangement/ArrangementCatalog.hpp"
 
 #include <nlohmann/json.hpp>
 
 #include <algorithm>
 #include <string>
 
-using namespace vmpc_juce::guilab;
+using namespace vmpc_juce::gui::arrangement;
 
 namespace
 {
@@ -44,9 +45,8 @@ namespace
             for (size_t j = i + 1; j < layout.nodes.size(); ++j)
             {
                 const auto &second = layout.nodes[j].geometry;
-                CHECK_FALSE(rectanglesOverlap(
-                    {first.position, first.size},
-                    {second.position, second.size}));
+                CHECK_FALSE(rectanglesOverlap({first.position, first.size},
+                                              {second.position, second.size}));
             }
         }
     }
@@ -59,8 +59,7 @@ TEST_CASE("GUI Lab compact LCD sizes follow the production grid",
     CHECK(compactDisplayReferenceSize.height == Catch::Approx(115.75869f));
     CHECK(compactMountedLcdReferenceSize.width ==
           compactDisplayReferenceSize.width);
-    CHECK(compactMountedLcdReferenceSize.height ==
-          Catch::Approx(88.19710f));
+    CHECK(compactMountedLcdReferenceSize.height == Catch::Approx(88.19710f));
 }
 
 TEST_CASE("GUI Lab device catalog contains Apple and Samsung profiles",
@@ -114,17 +113,15 @@ TEST_CASE("GUI Lab item scale remains proportional and fits the device",
     const LogicalSize reference{230.f, 115.f};
     CHECK(snapItemScaleToGrid(1.03f, {100.f, 40.f}) == 1.04f);
     CHECK(constrainItemScale(0.1f, reference, {390.f, 844.f}) == 0.5f);
-    CHECK(constrainItemScale(3.f, reference, {390.f, 844.f}) ==
-          390.f / 230.f);
+    CHECK(constrainItemScale(3.f, reference, {390.f, 844.f}) == 390.f / 230.f);
 }
 
 TEST_CASE("GUI Lab normalized width and anchors project without a device",
           "[gui-lab][arrangement][responsive]")
 {
     const LogicalSize viewport{400.f, 300.f};
-    const auto node = makeNode(
-        1, {0.25f, 0.5f}, 0.5f, {100.f, 50.f},
-        {AnchorAxis::centre, AnchorAxis::end});
+    const auto node = makeNode(1, {0.25f, 0.5f}, 0.5f, {100.f, 50.f},
+                               {AnchorAxis::centre, AnchorAxis::end});
     const auto projected = projectNode(node, viewport);
     CHECK(projected.size.width == Catch::Approx(200.f));
     CHECK(projected.size.height == Catch::Approx(100.f));
@@ -142,13 +139,12 @@ TEST_CASE("GUI Lab width fraction one spans the available width",
           "[gui-lab][arrangement][responsive]")
 {
     ArrangementDocument document;
-    document.nodes = {makeNode(
-        1, {0.5f, 0.f}, 1.f, {200.f, 50.f},
-        {AnchorAxis::centre, AnchorAxis::start})};
+    document.nodes = {makeNode(1, {0.5f, 0.f}, 1.f, {200.f, 50.f},
+                               {AnchorAxis::centre, AnchorAxis::start})};
 
-    for (const auto viewport : {LogicalSize{320.f, 568.f},
-                                LogicalSize{428.f, 926.f},
-                                LogicalSize{844.f, 390.f}})
+    for (const auto viewport :
+         {LogicalSize{320.f, 568.f}, LogicalSize{428.f, 926.f},
+          LogicalSize{844.f, 390.f}})
     {
         const auto layout = computeResponsiveLayout(document, viewport);
         REQUIRE(layout.nodes.size() == 1);
@@ -163,9 +159,8 @@ TEST_CASE("GUI Lab responsive layout compresses and reflows when necessary",
           "[gui-lab][arrangement][responsive]")
 {
     ArrangementDocument document;
-    document.nodes = {
-        makeNode(1, {0.5f, 0.5f}, 0.6f, {100.f, 100.f}),
-        makeNode(2, {0.5f, 0.5f}, 0.6f, {100.f, 100.f})};
+    document.nodes = {makeNode(1, {0.5f, 0.5f}, 0.6f, {100.f, 100.f}),
+                      makeNode(2, {0.5f, 0.5f}, 0.6f, {100.f, 100.f})};
 
     const LogicalSize viewport{100.f, 100.f};
     const auto layout = computeResponsiveLayout(document, viewport);
@@ -178,16 +173,15 @@ TEST_CASE("GUI Lab normalized layout remains valid across catalog screens",
           "[gui-lab][arrangement][responsive]")
 {
     ArrangementDocument document;
-    document.nodes = {
-        makeNode(1, {0.5f, 0.f}, 0.9f, {230.f, 116.f},
-                 {AnchorAxis::centre, AnchorAxis::start}),
-        makeNode(2, {0.2f, 0.55f}, 0.28f, {85.f, 84.f}),
-        makeNode(3, {0.75f, 0.55f}, 0.24f, {72.f, 80.f})};
+    document.nodes = {makeNode(1, {0.5f, 0.f}, 0.9f, {230.f, 116.f},
+                               {AnchorAxis::centre, AnchorAxis::start}),
+                      makeNode(2, {0.2f, 0.55f}, 0.28f, {85.f, 84.f}),
+                      makeNode(3, {0.75f, 0.55f}, 0.24f, {72.f, 80.f})};
 
     for (const auto &device : getDeviceProfiles())
     {
-        for (const auto orientation : {Orientation::portrait,
-                                       Orientation::landscape})
+        for (const auto orientation :
+             {Orientation::portrait, Orientation::landscape})
         {
             const auto viewport = getEffectiveDeviceSize(device, orientation);
             const auto layout = computeResponsiveLayout(document, viewport);
@@ -195,8 +189,8 @@ TEST_CASE("GUI Lab normalized layout remains valid across catalog screens",
             checkValidLayout(layout, viewport);
         }
     }
-    for (const auto viewport : {LogicalSize{240.f, 1000.f},
-                                LogicalSize{1200.f, 240.f}})
+    for (const auto viewport :
+         {LogicalSize{240.f, 1000.f}, LogicalSize{1200.f, 240.f}})
     {
         checkValidLayout(computeResponsiveLayout(document, viewport), viewport);
     }
@@ -226,8 +220,8 @@ TEST_CASE("GUI Lab fixed groups preserve displayed child geometry",
     ArrangementDocument grouped{{group}};
     const auto groupLayout = computeResponsiveLayout(grouped, viewport);
     REQUIRE(groupLayout.nodes.size() == 1);
-    const auto children = ungroupFixedGroup(
-        group, groupLayout.nodes[0].geometry, viewport);
+    const auto children =
+        ungroupFixedGroup(group, groupLayout.nodes[0].geometry, viewport);
     ArrangementDocument ungrouped{children};
     const auto restoredLayout = computeResponsiveLayout(ungrouped, viewport);
     REQUIRE(restoredLayout.nodes.size() == originalLayout.nodes.size());
@@ -247,8 +241,9 @@ TEST_CASE("GUI Lab fixed groups preserve displayed child geometry",
     }
 }
 
-TEST_CASE("GUI Lab grouping a compressed layout bakes valid normalized geometry",
-          "[gui-lab][arrangement][responsive][group]")
+TEST_CASE(
+    "GUI Lab grouping a compressed layout bakes valid normalized geometry",
+    "[gui-lab][arrangement][responsive][group]")
 {
     const LogicalSize viewport{100.f, 100.f};
     auto first = makeNode(1, {0.5f, 0.5f}, 0.8f, {100.f, 100.f});
@@ -286,8 +281,8 @@ TEST_CASE("GUI Lab placement finds the nearest non-overlapping gap",
     REQUIRE(nearest.has_value());
     CHECK(nearest->x == Catch::Approx(60.f));
     CHECK(nearest->y == Catch::Approx(30.f));
-    CHECK(isPlacementValid({*nearest, {20.f, 20.f}}, {100.f, 100.f},
-                           obstacles));
+    CHECK(
+        isPlacementValid({*nearest, {20.f, 20.f}}, {100.f, 100.f}, obstacles));
 }
 
 TEST_CASE("GUI Lab corner resizing preserves the selected pivot",
@@ -295,15 +290,15 @@ TEST_CASE("GUI Lab corner resizing preserves the selected pivot",
 {
     const ProjectedNodeGeometry start{{10.f, 20.f}, {100.f, 50.f}, 1.f};
     const LogicalSize larger{120.f, 60.f};
-    CHECK(positionForResizedNode(start, larger, ResizeCorner::topLeft, false).x
-          == Catch::Approx(-10.f));
-    CHECK(positionForResizedNode(start, larger, ResizeCorner::topRight, false).y
-          == Catch::Approx(10.f));
-    CHECK(positionForResizedNode(start, larger, ResizeCorner::bottomLeft,
-                                 false)
+    CHECK(
+        positionForResizedNode(start, larger, ResizeCorner::topLeft, false).x ==
+        Catch::Approx(-10.f));
+    CHECK(positionForResizedNode(start, larger, ResizeCorner::topRight, false)
+              .y == Catch::Approx(10.f));
+    CHECK(positionForResizedNode(start, larger, ResizeCorner::bottomLeft, false)
               .x == Catch::Approx(-10.f));
-    const auto centred = positionForResizedNode(
-        start, larger, ResizeCorner::topLeft, true);
+    const auto centred =
+        positionForResizedNode(start, larger, ResizeCorner::topLeft, true);
     CHECK(centred.x == Catch::Approx(0.f));
     CHECK(centred.y == Catch::Approx(15.f));
 }
@@ -312,9 +307,8 @@ TEST_CASE("GUI Lab version two designs are device agnostic",
           "[gui-lab][arrangement][serialization]")
 {
     ArrangementDocument document;
-    auto component = makeNode(
-        1, {0.8f, 0.25f}, 0.2f, {48.f, 48.f},
-        {AnchorAxis::end, AnchorAxis::centre});
+    auto component = makeNode(1, {0.8f, 0.25f}, 0.2f, {48.f, 48.f},
+                              {AnchorAxis::end, AnchorAxis::centre});
     component.catalogId = "cursor";
     document.nodes = {component};
 
@@ -390,8 +384,79 @@ TEST_CASE("GUI Lab arrangement loading rejects invalid normalized files",
                     .has_value());
     CHECK(error.find("ID") != std::string::npos);
 
-    CHECK_FALSE(deserializeArrangementDocument(
-                    R"({"format":"vmpc2000xl-gui-lab-arrangement","version":99})",
-                    error)
-                    .has_value());
+    CHECK_FALSE(
+        deserializeArrangementDocument(
+            R"({"format":"vmpc2000xl-gui-lab-arrangement","version":99})",
+            error)
+            .has_value());
+}
+
+TEST_CASE("Arrangement setup round-trips five ordered slots",
+          "[arrangement][setup]")
+{
+    ArrangementSetup setup;
+    ArrangementSlot first;
+    first.orientation = Orientation::portrait;
+    first.arrangement.nodes = {
+        makeNode(1, {0.5f, 0.f}, 1.f, {210.f, 55.f},
+                 {AnchorAxis::centre, AnchorAxis::start})};
+    first.arrangement.nodes.front().catalogId = "lcd-bare";
+    setup.slots[0] = first;
+
+    ArrangementSlot fifth;
+    fifth.orientation = Orientation::landscape;
+    fifth.arrangement.nodes = {makeNode(2, {0.5f, 0.5f}, 0.25f, {48.f, 31.f})};
+    fifth.arrangement.nodes.front().catalogId = "cursor-compact";
+    setup.slots[4] = fifth;
+
+    const auto contents = serializeArrangementSetup(setup);
+    const auto json = nlohmann::json::parse(contents);
+    CHECK(json.at("format") == "vmpc2000xl-arrangement-setup");
+    CHECK(json.at("slots").size() == 5);
+    CHECK(json.at("slots")[1].is_null());
+    CHECK(json.at("slots")[4].at("orientation") == "landscape");
+
+    std::string error;
+    const auto restored = deserializeArrangementSetup(contents, error);
+    INFO(error);
+    REQUIRE(restored.has_value());
+    REQUIRE(restored->slots[0].has_value());
+    CHECK(restored->slots[0]->orientation == Orientation::portrait);
+    REQUIRE(restored->slots[4].has_value());
+    CHECK(restored->slots[4]->orientation == Orientation::landscape);
+    CHECK(findFirstOccupiedSlot(*restored) == std::optional<std::size_t>(0));
+}
+
+TEST_CASE("Arrangement setup rejects invalid shape and catalog entries",
+          "[arrangement][setup]")
+{
+    std::string error;
+    CHECK_FALSE(
+        deserializeArrangementSetup(
+            R"({"format":"vmpc2000xl-arrangement-setup","version":1,"slots":[]})",
+            error)
+            .has_value());
+    CHECK(error.find("exactly five") != std::string::npos);
+
+    ArrangementSetup setup;
+    ArrangementSlot slot;
+    slot.arrangement.nodes = {makeNode(1, {0.5f, 0.5f}, 0.2f, {48.f, 48.f})};
+    slot.arrangement.nodes.front().catalogId = "not-in-the-catalog";
+    setup.slots[2] = slot;
+    CHECK_FALSE(
+        deserializeArrangementSetup(serializeArrangementSetup(setup), error)
+            .has_value());
+    CHECK(error.find("Unknown arrangement component") != std::string::npos);
+}
+
+TEST_CASE("Arrangement document reader accepts the legacy format identifier",
+          "[arrangement][serialization][migration]")
+{
+    ArrangementDocument document;
+    document.nodes = {makeNode(1, {0.5f, 0.5f}, 0.2f, {48.f, 48.f})};
+    auto json = nlohmann::json::parse(serializeArrangementDocument(document));
+    CHECK(json.at("format") == "vmpc2000xl-arrangement");
+    json["format"] = "vmpc2000xl-gui-lab-arrangement";
+    std::string error;
+    CHECK(deserializeArrangementDocument(json.dump(), error).has_value());
 }

@@ -13,10 +13,12 @@ namespace vmpc_juce::gui::vector
     public:
         InfoTooltip(const std::function<float()> &getScaleToUse,
                     const std::function<juce::Font &()> &getMainFontScaledToUse,
-                    juce::Component *tooltipOverlayToUse)
+                    juce::Component *tooltipOverlayToUse,
+                    const float scaleMultiplierToUse = 1.f)
             : getScale(getScaleToUse),
               getMainFontScaled(getMainFontScaledToUse),
-              tooltipOverlay(tooltipOverlayToUse)
+              tooltipOverlay(tooltipOverlayToUse),
+              scaleMultiplier(scaleMultiplierToUse)
         {
             shadow.setColor(juce::Colours::black.withAlpha(0.6f));
         }
@@ -37,7 +39,7 @@ namespace vmpc_juce::gui::vector
 
         void paint(juce::Graphics &g) override
         {
-            const auto scale = getScale();
+            const auto scale = getEffectiveScale();
             const auto radius = 1.f * scale;
             const auto lineThickness = .5f * scale;
 
@@ -132,7 +134,7 @@ namespace vmpc_juce::gui::vector
 
         void resized() override
         {
-            const auto scale = getScale();
+            const auto scale = getEffectiveScale();
             const auto textWidth = getTextWidth();
             const auto textHeight = getFont().getHeight();
             const auto margin = 3.f * scale;
@@ -200,7 +202,7 @@ namespace vmpc_juce::gui::vector
                                    juce::Point<int>(anchor->getWidth() / 2, 0);
             return tooltipOverlay
                 ->getLocalPoint(anchor->getParentComponent(), anchorTopCenter)
-                .translated(0, static_cast<int>(2.f * getScale()));
+                .translated(0, static_cast<int>(2.f * getEffectiveScale()));
         }
 
         juce::Point<int> getUpArrowTipPosWithinTooltipOverlay()
@@ -216,7 +218,7 @@ namespace vmpc_juce::gui::vector
             return tooltipOverlay
                 ->getLocalPoint(anchor->getParentComponent(),
                                 anchorBottomCenter)
-                .translated(0, static_cast<int>(2.f * getScale()));
+                .translated(0, static_cast<int>(2.f * getEffectiveScale()));
         }
 
         juce::Point<int> getDownArrowTipPosWithinSelf()
@@ -253,12 +255,18 @@ namespace vmpc_juce::gui::vector
         juce::Font getFont()
         {
             auto result = getMainFontScaled();
-            return result.withHeight(result.getHeight() * 1.5f);
+            return result.withHeight(result.getHeight() * 1.5f *
+                                     scaleMultiplier);
         }
 
         float getArrowHeightScaled()
         {
-            return arrowHeightAtScale1 * getScale();
+            return arrowHeightAtScale1 * getEffectiveScale();
+        }
+
+        float getEffectiveScale() const
+        {
+            return getScale() * scaleMultiplier;
         }
 
         const std::function<float()> &getScale;
@@ -266,6 +274,7 @@ namespace vmpc_juce::gui::vector
         std::string tooltipText;
         const juce::Component *anchor = nullptr;
         const juce::Component *tooltipOverlay;
+        const float scaleMultiplier;
 
         const float arrowHeightAtScale1 = 2.5f;
 

@@ -1,0 +1,420 @@
+{
+  "format": "vmpc2000xl-arrangement-setup",
+  "version": 1,
+  "slots": [
+    {
+      "orientation": "portrait",
+      "arrangement": {
+        "format": "vmpc2000xl-arrangement",
+        "version": 2,
+        "nodes": [
+          {
+            "id": 1001,
+            "type": "component",
+            "component": "lcd-mounted-functions",
+            "anchor": { "horizontal": "centre", "vertical": "start" },
+            "anchorPosition": { "x": 0.5, "y": 0.02 },
+            "widthFraction": 0.94,
+            "referenceSize": { "width": 222.52336, "height": 111.75869 }
+          },
+          {
+            "id": 1002,
+            "type": "component",
+            "component": "main-open",
+            "anchor": { "horizontal": "centre", "vertical": "start" },
+            "anchorPosition": { "x": 0.5, "y": 0.27 },
+            "widthFraction": 0.35,
+            "referenceSize": { "width": 90.0, "height": 21.0 }
+          },
+          {
+            "id": 1003,
+            "type": "component",
+            "component": "levels-compact",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.05, "y": 0.33 },
+            "widthFraction": 0.32,
+            "referenceSize": { "width": 69.0, "height": 23.0 }
+          },
+          {
+            "id": 1004,
+            "type": "component",
+            "component": "sequence-mute",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.63, "y": 0.33 },
+            "widthFraction": 0.32,
+            "referenceSize": { "width": 69.0, "height": 23.0 }
+          },
+          {
+            "id": 1005,
+            "type": "component",
+            "component": "transport-horizontal",
+            "anchor": { "horizontal": "centre", "vertical": "start" },
+            "anchorPosition": { "x": 0.5, "y": 0.4 },
+            "widthFraction": 0.88,
+            "referenceSize": { "width": 179.0, "height": 30.0 }
+          },
+          {
+            "id": 1006,
+            "type": "component",
+            "component": "pads",
+            "anchor": { "horizontal": "centre", "vertical": "start" },
+            "anchorPosition": { "x": 0.5, "y": 0.55 },
+            "widthFraction": 0.88,
+            "referenceSize": { "width": 180.0, "height": 188.0 }
+          }
+        ]
+      }
+    },
+    {
+      "orientation": "portrait",
+      "arrangement": {
+        "format": "vmpc2000xl-arrangement",
+        "version": 2,
+        "nodes": [
+          {
+            "id": 2001,
+            "type": "component",
+            "component": "lcd-mounted",
+            "anchor": { "horizontal": "centre", "vertical": "start" },
+            "anchorPosition": { "x": 0.5, "y": 0.02 },
+            "widthFraction": 0.94,
+            "referenceSize": { "width": 222.52336, "height": 84.1971 }
+          },
+          {
+            "id": 2002,
+            "type": "component",
+            "component": "function-buttons",
+            "anchor": { "horizontal": "centre", "vertical": "start" },
+            "anchorPosition": { "x": 0.5, "y": 0.2 },
+            "widthFraction": 0.72,
+            "referenceSize": { "width": 180.0, "height": 25.0 }
+          },
+          {
+            "id": 2003,
+            "type": "component",
+            "component": "main-open",
+            "anchor": { "horizontal": "centre", "vertical": "start" },
+            "anchorPosition": { "x": 0.5, "y": 0.27 },
+            "widthFraction": 0.42,
+            "referenceSize": { "width": 90.0, "height": 21.0 }
+          },
+          {
+            "id": 2004,
+            "type": "component",
+            "component": "num-pad",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.04, "y": 0.35 },
+            "widthFraction": 0.33,
+            "referenceSize": { "width": 85.0, "height": 84.0 }
+          },
+          {
+            "id": 2005,
+            "type": "component",
+            "component": "cursor",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.39, "y": 0.35 },
+            "widthFraction": 0.25,
+            "referenceSize": { "width": 48.0, "height": 48.0 }
+          },
+          {
+            "id": 2006,
+            "type": "component",
+            "component": "data-wheel",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.68, "y": 0.35 },
+            "widthFraction": 0.29,
+            "referenceSize": { "width": 72.0, "height": 80.0 }
+          },
+          {
+            "id": 2007,
+            "type": "component",
+            "component": "undo-erase",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.04, "y": 0.53 },
+            "widthFraction": 0.38,
+            "referenceSize": { "width": 58.0, "height": 31.0 }
+          },
+          {
+            "id": 2008,
+            "type": "component",
+            "component": "levels",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.6, "y": 0.53 },
+            "widthFraction": 0.36,
+            "referenceSize": { "width": 69.0, "height": 36.0 }
+          },
+          {
+            "id": 2009,
+            "type": "component",
+            "component": "locate",
+            "anchor": { "horizontal": "centre", "vertical": "start" },
+            "anchorPosition": { "x": 0.5, "y": 0.65 },
+            "widthFraction": 0.92,
+            "referenceSize": { "width": 179.0, "height": 28.0 }
+          },
+          {
+            "id": 2010,
+            "type": "component",
+            "component": "transport-horizontal",
+            "anchor": { "horizontal": "centre", "vertical": "start" },
+            "anchorPosition": { "x": 0.5, "y": 0.74 },
+            "widthFraction": 0.92,
+            "referenceSize": { "width": 179.0, "height": 30.0 }
+          },
+          {
+            "id": 2011,
+            "type": "component",
+            "component": "note-variation",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.05, "y": 0.79 },
+            "widthFraction": 0.165,
+            "referenceSize": { "width": 51.0, "height": 130.0 }
+          },
+          {
+            "id": 2012,
+            "type": "component",
+            "component": "tap-tempo",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.3, "y": 0.8 },
+            "widthFraction": 0.3,
+            "referenceSize": { "width": 51.0, "height": 30.0 }
+          },
+          {
+            "id": 2013,
+            "type": "component",
+            "component": "sequence-mute",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.3, "y": 0.9 },
+            "widthFraction": 0.38,
+            "referenceSize": { "width": 69.0, "height": 23.0 }
+          }
+        ]
+      }
+    },
+    {
+      "orientation": "landscape",
+      "arrangement": {
+        "format": "vmpc2000xl-arrangement",
+        "version": 2,
+        "nodes": [
+          {
+            "id": 3001,
+            "type": "component",
+            "component": "lcd-mounted-functions",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.02, "y": 0.04 },
+            "widthFraction": 0.5,
+            "referenceSize": { "width": 222.52336, "height": 111.75869 }
+          },
+          {
+            "id": 3002,
+            "type": "component",
+            "component": "pads",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.58, "y": 0.04 },
+            "widthFraction": 0.4,
+            "referenceSize": { "width": 180.0, "height": 188.0 }
+          },
+          {
+            "id": 3003,
+            "type": "component",
+            "component": "transport-horizontal",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.02, "y": 0.64 },
+            "widthFraction": 0.5,
+            "referenceSize": { "width": 179.0, "height": 30.0 }
+          },
+          {
+            "id": 3004,
+            "type": "component",
+            "component": "main-open",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.02, "y": 0.85 },
+            "widthFraction": 0.26,
+            "referenceSize": { "width": 90.0, "height": 21.0 }
+          },
+          {
+            "id": 3005,
+            "type": "component",
+            "component": "levels-compact",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.3, "y": 0.85 },
+            "widthFraction": 0.2,
+            "referenceSize": { "width": 69.0, "height": 23.0 }
+          }
+        ]
+      }
+    },
+    {
+      "orientation": "landscape",
+      "arrangement": {
+        "format": "vmpc2000xl-arrangement",
+        "version": 2,
+        "nodes": [
+          {
+            "id": 4001,
+            "type": "component",
+            "component": "lcd-mounted-functions",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.02, "y": 0.04 },
+            "widthFraction": 0.48,
+            "referenceSize": { "width": 222.52336, "height": 111.75869 }
+          },
+          {
+            "id": 4002,
+            "type": "component",
+            "component": "num-pad",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.02, "y": 0.59 },
+            "widthFraction": 0.18,
+            "referenceSize": { "width": 85.0, "height": 84.0 }
+          },
+          {
+            "id": 4003,
+            "type": "component",
+            "component": "cursor-compact",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.22, "y": 0.59 },
+            "widthFraction": 0.11,
+            "referenceSize": { "width": 48.0, "height": 31.0 }
+          },
+          {
+            "id": 4004,
+            "type": "component",
+            "component": "data-wheel",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.35, "y": 0.59 },
+            "widthFraction": 0.13,
+            "referenceSize": { "width": 72.0, "height": 80.0 }
+          },
+          {
+            "id": 4005,
+            "type": "component",
+            "component": "locate",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.52, "y": 0.05 },
+            "widthFraction": 0.46,
+            "referenceSize": { "width": 179.0, "height": 28.0 }
+          },
+          {
+            "id": 4006,
+            "type": "component",
+            "component": "transport-horizontal",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.52, "y": 0.25 },
+            "widthFraction": 0.46,
+            "referenceSize": { "width": 179.0, "height": 30.0 }
+          },
+          {
+            "id": 4007,
+            "type": "component",
+            "component": "main-open",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.54, "y": 0.48 },
+            "widthFraction": 0.28,
+            "referenceSize": { "width": 90.0, "height": 21.0 }
+          },
+          {
+            "id": 4008,
+            "type": "component",
+            "component": "undo-erase",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.54, "y": 0.66 },
+            "widthFraction": 0.18,
+            "referenceSize": { "width": 58.0, "height": 31.0 }
+          },
+          {
+            "id": 4009,
+            "type": "component",
+            "component": "levels",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.79, "y": 0.66 },
+            "widthFraction": 0.18,
+            "referenceSize": { "width": 69.0, "height": 36.0 }
+          }
+        ]
+      }
+    },
+    {
+      "orientation": "portrait",
+      "arrangement": {
+        "format": "vmpc2000xl-arrangement",
+        "version": 2,
+        "nodes": [
+          {
+            "id": 5001,
+            "type": "component",
+            "component": "lcd-bare",
+            "anchor": { "horizontal": "centre", "vertical": "start" },
+            "anchorPosition": { "x": 0.5, "y": 0.02 },
+            "widthFraction": 0.9,
+            "referenceSize": { "width": 210.0, "height": 55.0 }
+          },
+          {
+            "id": 5002,
+            "type": "component",
+            "component": "function-buttons",
+            "anchor": { "horizontal": "centre", "vertical": "start" },
+            "anchorPosition": { "x": 0.5, "y": 0.145 },
+            "widthFraction": 0.7,
+            "referenceSize": { "width": 180.0, "height": 25.0 }
+          },
+          {
+            "id": 5003,
+            "type": "component",
+            "component": "cursor-compact",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.05, "y": 0.23 },
+            "widthFraction": 0.28,
+            "referenceSize": { "width": 48.0, "height": 31.0 }
+          },
+          {
+            "id": 5004,
+            "type": "component",
+            "component": "data-wheel",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.65, "y": 0.22 },
+            "widthFraction": 0.3,
+            "referenceSize": { "width": 72.0, "height": 80.0 }
+          },
+          {
+            "id": 5005,
+            "type": "component",
+            "component": "levels-compact",
+            "anchor": { "horizontal": "start", "vertical": "start" },
+            "anchorPosition": { "x": 0.05, "y": 0.34 },
+            "widthFraction": 0.32,
+            "referenceSize": { "width": 69.0, "height": 23.0 }
+          },
+          {
+            "id": 5006,
+            "type": "component",
+            "component": "main-open",
+            "anchor": { "horizontal": "centre", "vertical": "start" },
+            "anchorPosition": { "x": 0.5, "y": 0.405 },
+            "widthFraction": 0.44,
+            "referenceSize": { "width": 90.0, "height": 21.0 }
+          },
+          {
+            "id": 5007,
+            "type": "component",
+            "component": "pads-banks",
+            "anchor": { "horizontal": "centre", "vertical": "start" },
+            "anchorPosition": { "x": 0.5, "y": 0.47 },
+            "widthFraction": 0.78,
+            "referenceSize": { "width": 180.0, "height": 224.0 }
+          },
+          {
+            "id": 5008,
+            "type": "component",
+            "component": "transport-horizontal",
+            "anchor": { "horizontal": "centre", "vertical": "start" },
+            "anchorPosition": { "x": 0.5, "y": 0.925 },
+            "widthFraction": 0.78,
+            "referenceSize": { "width": 179.0, "height": 30.0 }
+          }
+        ]
+      }
+    }
+  ]
+}

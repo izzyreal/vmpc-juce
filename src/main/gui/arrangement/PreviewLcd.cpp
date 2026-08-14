@@ -1,9 +1,9 @@
-#include "PreviewLcd.hpp"
+#include "gui/arrangement/PreviewLcd.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "gui/vector/Constants.hpp"
 
-using namespace vmpc_juce::guilab;
+using namespace vmpc_juce::gui::arrangement;
 using vmpc_juce::gui::vector::Constants;
 
 PreviewLcd::PreviewLcd()

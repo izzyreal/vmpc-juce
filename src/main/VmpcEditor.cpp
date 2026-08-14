@@ -24,8 +24,6 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
                     vmpcProcessor.wrapperType, isInstrument,
                     vmpcProcessor.shouldShowDisclaimer);
 
-    const auto viewAspectRatio = view->getAspectRatio();
-
     auto initialWindowWidth = vmpcProcessor.lastUIWidth;
     auto initialWindowHeight = vmpcProcessor.lastUIHeight;
 
@@ -59,6 +57,8 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
         setSize(initialWindowWidth, initialWindowHeight);
     }
 #else
+
+    const auto viewAspectRatio = view->getAspectRatio();
 
     if (juce::PluginHostType::getHostPath().containsIgnoreCase("ardour"))
     {
@@ -122,6 +122,26 @@ void VmpcEditor::timerCallback()
 
 void VmpcEditor::resized()
 {
+    if (view->usesPhoneArrangements() &&
+        vmpcProcessor.wrapperType ==
+            juce::AudioProcessor::WrapperType::wrapperType_Standalone)
+    {
+        const auto landscape = getWidth() > getHeight();
+        if (stableIPhoneStandaloneViewBounds.isEmpty() ||
+            landscape != stableIPhoneLandscape)
+        {
+            stableIPhoneLandscape = landscape;
+            stableIPhoneStandaloneViewBounds = getLocalBounds();
+        }
+        const auto width =
+            std::min(getWidth(), stableIPhoneStandaloneViewBounds.getWidth());
+        const auto height =
+            std::min(getHeight(), stableIPhoneStandaloneViewBounds.getHeight());
+        view->setBounds((getWidth() - width) / 2, (getHeight() - height) / 2,
+                        width, height);
+        return;
+    }
+
     const float viewAspectRatio = view->getAspectRatio();
     const int parentWidth = getWidth();
     const int parentHeight = getHeight();

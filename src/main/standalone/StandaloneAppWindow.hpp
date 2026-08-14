@@ -5,6 +5,7 @@
 #include "standalone/AudioMidiSettingsComponent.hpp"
 
 #include "VmpcProcessor.hpp"
+#include "gui/ios/MobilePlatform.hpp"
 
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 
@@ -226,10 +227,55 @@ namespace vmpc_juce::standalone
             content->setSize(480, 100);
             content->setToRecommendedSize();
 
-            const auto contentW = content->getWidth();
-            const auto contentH = content->getHeight();
+            auto contentW = content->getWidth();
+            auto contentH = content->getHeight();
+            auto maximumWindowSize = juce::Point<int>();
+            const auto usePhoneViewport = gui::ios::isRunningOnIPhone();
 
-            o.content.setOwned(content.release());
+            std::unique_ptr<juce::Component> dialogContent;
+            if (usePhoneViewport)
+            {
+                const auto editor = processor->getActiveEditor();
+                auto availableSize = juce::Point<int>(480, 800);
+                if (editor != nullptr)
+                {
+                    availableSize = {editor->getWidth(), editor->getHeight()};
+                }
+                else if (const auto display = juce::Desktop::getInstance()
+                                                  .getDisplays()
+                                                  .getPrimaryDisplay())
+                {
+                    availableSize = {display->userArea.getWidth(),
+                                     display->userArea.getHeight()};
+                }
+                constexpr auto windowMargin = 8;
+                constexpr auto windowChromeAllowance = 8;
+                maximumWindowSize = {
+                    juce::jmax(1, availableSize.x - windowMargin * 2),
+                    juce::jmax(1, availableSize.y - windowMargin * 2)};
+
+                contentW = juce::jmin(
+                    contentW,
+                    juce::jmax(1, maximumWindowSize.x -
+                                      windowChromeAllowance));
+                content->setSize(contentW, contentH);
+                content->setToRecommendedSize();
+                contentH = content->getHeight();
+
+                auto viewport = std::make_unique<juce::Viewport>();
+                viewport->setViewedComponent(content.release(), true);
+                viewport->setScrollBarsShown(false, false, true, true);
+                viewport->setSize(contentW,
+                                  juce::jmin(contentH, maximumWindowSize.y));
+                contentH = viewport->getHeight();
+                dialogContent = std::move(viewport);
+            }
+            else
+            {
+                dialogContent = std::move(content);
+            }
+
+            o.content.setOwned(dialogContent.release());
             o.dialogTitle = "Audio/MIDI Settings";
             o.dialogBackgroundColour = o.content->getLookAndFeel().findColour(
                 ResizableWindow::backgroundColourId);
@@ -243,7 +289,16 @@ namespace vmpc_juce::standalone
             const auto window = o.launchAsync();
             window->setComponentID("AudioMidiSettingsWindow");
             window->addComponentListener(this);
-            window->setSize(contentW, contentH);
+            if (usePhoneViewport)
+            {
+                window->centreWithSize(
+                    juce::jmin(window->getWidth(), maximumWindowSize.x),
+                    juce::jmin(window->getHeight(), maximumWindowSize.y));
+            }
+            else
+            {
+                window->setSize(contentW, contentH);
+            }
         }
 
         void saveAudioDeviceState() const

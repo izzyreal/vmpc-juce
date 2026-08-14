@@ -29,6 +29,7 @@ Lcd::Lcd(mpc::Mpc &mpcToUse) : mpc(mpcToUse)
     {
         return img;
     };
+    dirtyRect = juce::Rectangle<int>(0, 0, 248, 60);
     drawPixelsToImg();
 
     const auto othersScreen =

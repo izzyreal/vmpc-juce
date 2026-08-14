@@ -1,25 +1,20 @@
 #pragma once
 
-#include "ArrangementModel.hpp"
+#include "gui/arrangement/ArrangementCatalog.hpp"
+#include "gui/arrangement/ArrangementModel.hpp"
 #include "gui/vector/Node.hpp"
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include <functional>
+#include <array>
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace vmpc_juce::guilab
 {
-    struct CatalogEntry
-    {
-        const char *id;
-        const char *title;
-        const char *resourceName;
-        float referenceWidth;
-        float referenceHeight;
-    };
+    using namespace gui::arrangement;
 
     class PreviewComponent final : public juce::Component
     {
@@ -66,6 +61,13 @@ namespace vmpc_juce::guilab
         juce::Label heading;
         juce::TextButton loadButton{"Load"};
         juce::TextButton saveButton{"Save"};
+        juce::TextButton loadSetupButton{"Load Setup"};
+        juce::TextButton saveSetupButton{"Save Setup"};
+        juce::TextButton clearSlotButton{"Clear Slot"};
+        juce::Label slotsLabel;
+        std::array<juce::TextButton, ArrangementSetup::slotCount> slotButtons{
+            juce::TextButton{"1"}, juce::TextButton{"2"}, juce::TextButton{"3"},
+            juce::TextButton{"4"}, juce::TextButton{"5"}};
         juce::Label brandLabel;
         juce::Label deviceLabel;
         juce::Label orientationLabel;
@@ -80,6 +82,9 @@ namespace vmpc_juce::guilab
         std::unique_ptr<ArrangementWorkspace> workspace;
         std::unique_ptr<juce::FileChooser> designFileChooser;
         juce::File currentDesignFile;
+        juce::File currentSetupFile;
+        ArrangementSetup setup;
+        std::size_t activeSlot = 0;
 
         void configureControls();
         void populateDevices(const std::string &preferredDeviceId = {});
@@ -87,8 +92,17 @@ namespace vmpc_juce::guilab
         void layoutPalette();
         void chooseDesignToLoad();
         void chooseDesignToSave();
+        void chooseSetupToLoad();
+        void chooseSetupToSave();
         void loadDesignFile(const juce::File &file);
         void saveDesignFile(juce::File file);
+        void loadSetupFile(const juce::File &file);
+        void saveSetupFile(juce::File file);
+        void persistActiveSlot();
+        void selectSlot(std::size_t index);
+        void clearActiveSlot();
+        void updateSlotButtons();
+        void setFileButtonsEnabled(bool enabled);
         void showFileError(const juce::String &message);
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GuiLabComponent)

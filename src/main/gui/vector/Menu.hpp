@@ -7,6 +7,8 @@
 #include "TooltipOverlay.hpp"
 #include "InfoTooltip.hpp"
 
+#include <cmath>
+
 #ifdef __APPLE__
 #include <TargetConditionals.h>
 #if TARGET_OS_IPHONE
@@ -45,6 +47,9 @@ namespace vmpc_juce::gui::vector
             TooltipOverlay *tooltipOverlayToUse,
             const std::function<juce::Font &()> &getMainFontScaledToUse,
             const std::function<void()> &openAboutToUse,
+            const std::function<void()> &openArrangementSelectorToUse,
+            const std::function<void()> &toggleIPhoneFullscreenToUse,
+            const bool useLargeIPhoneTooltips,
             juce::AudioProcessor::WrapperType wrapperTypeToUse)
             :
 #if TARGET_OS_IPHONE
@@ -57,7 +62,10 @@ namespace vmpc_juce::gui::vector
               setKeyboardShortcutTooltipsVisibility(
                   setKeyboardShortcutTooltipsVisibilityToUse),
               getMainFontScaled(getMainFontScaledToUse),
-              openAbout(openAboutToUse), tooltipOverlay(tooltipOverlayToUse)
+              openAbout(openAboutToUse),
+              openArrangementSelector(openArrangementSelectorToUse),
+              toggleIPhoneFullscreen(toggleIPhoneFullscreenToUse),
+              tooltipOverlay(tooltipOverlayToUse)
         {
             juce::Desktop::getInstance().addFocusChangeListener(this);
 
@@ -104,6 +112,21 @@ namespace vmpc_juce::gui::vector
             folderIcon = new SvgComponent({"folder.svg"}, this, 0.f, getScale);
             folderIcon->setInterceptsMouseClicks(false, false);
             addAndMakeVisible(folderIcon);
+
+            if (openArrangementSelector)
+            {
+                arrangementIcon =
+                    new SvgComponent({"layout_slots.svg"}, this, 0.f, getScale);
+                arrangementIcon->setInterceptsMouseClicks(false, false);
+                addAndMakeVisible(arrangementIcon);
+            }
+            if (toggleIPhoneFullscreen)
+            {
+                fullscreenIcon = new SvgComponent({"arrows_pointing_in.svg"},
+                                                  this, 0.f, getScale);
+                fullscreenIcon->setInterceptsMouseClicks(false, false);
+                addAndMakeVisible(fullscreenIcon);
+            }
 #endif
             helpIcon = new SvgComponent({"question_mark_circle.svg"}, this, 0.f,
                                         getScale);
@@ -121,8 +144,9 @@ namespace vmpc_juce::gui::vector
 
             setWantsKeyboardFocus(false);
 
-            infoTooltip =
-                new InfoTooltip(getScale, getMainFontScaled, tooltipOverlay);
+            infoTooltip = new InfoTooltip(
+                getScale, getMainFontScaled, tooltipOverlay,
+                useLargeIPhoneTooltips ? 3.f : 1.f);
             tooltipOverlay->addChildComponent(infoTooltip);
         }
 
@@ -243,6 +267,14 @@ namespace vmpc_juce::gui::vector
             {
                 folderIcon->setAlpha(1.f);
             }
+            if (arrangementIcon != nullptr)
+            {
+                arrangementIcon->setAlpha(1.f);
+            }
+            if (fullscreenIcon != nullptr)
+            {
+                fullscreenIcon->setAlpha(1.f);
+            }
             helpIcon->setAlpha(1.f);
             keyboardIcon->setAlpha(1.f);
             infoIcon->setAlpha(1.f);
@@ -281,7 +313,7 @@ namespace vmpc_juce::gui::vector
 
         void resized() override
         {
-            const auto scale = getScale();
+            const auto scale = getMenuScale();
             const auto lineThickness = 1.f * scale;
 
             juce::Grid grid;
@@ -306,7 +338,7 @@ namespace vmpc_juce::gui::vector
                 const auto icon = visibleIcons[static_cast<size_t>(idx)];
                 grid.templateColumns.insert(
                     0, juce::Grid::Px((static_cast<float>(getWidth()) /
-                                       float(totalAvailableIconCount)) -
+                                       float(getLayoutIconCount())) -
                                       (lineThickness * 2)));
 
                 juce::GridItem::Margin margin{3.f * scale};
@@ -349,7 +381,7 @@ namespace vmpc_juce::gui::vector
 
         void paint(juce::Graphics &g) override
         {
-            const auto scale = getScale();
+            const auto scale = getMenuScale();
             const auto radius = 3.f * scale;
             const auto lineThickness = 1.f * scale;
             const auto margin = 5.f * scale;
@@ -391,6 +423,8 @@ namespace vmpc_juce::gui::vector
             delete keyboardIcon;
             delete folderIcon;
             delete infoIcon;
+            delete arrangementIcon;
+            delete fullscreenIcon;
         }
 
         const static int totalAvailableIconCount = 9;
@@ -398,11 +432,41 @@ namespace vmpc_juce::gui::vector
             15.f * totalAvailableIconCount * 1.1;
         constexpr static const float heightAtScale1 = 16.f * 1.1f;
 
+        float getRequiredWidthAtScale1() const
+        {
+            return 15.f * static_cast<float>(getLayoutIconCount()) * 1.1f;
+        }
+
+        float getVisibleWidthAtScale1() const
+        {
+            constexpr auto gridTrackWidthAtScale1 = 15.f * 1.1f - 2.f;
+            constexpr auto backgroundExpansionAtScale1 = 1.f;
+            return gridTrackWidthAtScale1 *
+                       static_cast<float>(getPlatformAvailableIcons().size()) +
+                   backgroundExpansionAtScale1;
+        }
+
+        float getRequiredHeightAtScale1() const
+        {
+            return heightAtScale1;
+        }
+
+        void setScaleMultiplier(const float multiplier)
+        {
+            if (std::abs(scaleMultiplier - multiplier) < 0.0001f)
+            {
+                return;
+            }
+            scaleMultiplier = multiplier;
+            resized();
+            repaint();
+        }
+
     private:
         void handleClick(const juce::MouseEvent e)
         {
             if (menuIcon->getBounds()
-                    .expanded(static_cast<int>(getScale() * 3.f))
+                    .expanded(static_cast<int>(getMenuScale() * 3.f))
                     .contains(e.getPosition()))
             {
                 expanded = !expanded;
@@ -465,6 +529,14 @@ namespace vmpc_juce::gui::vector
                 auto uiView = getPeer()->getNativeHandle();
                 doPresentRecordingManager(uiView, &mpc);
             }
+            else if (clickedIcon == arrangementIcon)
+            {
+                openArrangementSelector();
+            }
+            else if (clickedIcon == fullscreenIcon)
+            {
+                toggleIPhoneFullscreen();
+            }
 #endif
             else if (clickedIcon == keyboardIcon)
             {
@@ -525,6 +597,14 @@ namespace vmpc_juce::gui::vector
             {
                 tooltipText = "Recording manager";
             }
+            else if (icon == arrangementIcon)
+            {
+                tooltipText = "Choose arrangement";
+            }
+            else if (icon == fullscreenIcon)
+            {
+                tooltipText = "Toggle full screen";
+            }
 
             if (infoTooltip->isVisible() && infoTooltip->getAnchor() == icon)
             {
@@ -542,7 +622,7 @@ namespace vmpc_juce::gui::vector
             }
         }
 
-        std::vector<SvgComponent *> getPlatformAvailableIcons()
+        std::vector<SvgComponent *> getPlatformAvailableIcons() const
         {
             std::vector<SvgComponent *> result{menuIcon};
 
@@ -562,6 +642,14 @@ namespace vmpc_juce::gui::vector
             result.push_back(importIcon);
             result.push_back(exportIcon);
             result.push_back(folderIcon);
+            if (arrangementIcon != nullptr)
+            {
+                result.push_back(arrangementIcon);
+            }
+            if (fullscreenIcon != nullptr)
+            {
+                result.push_back(fullscreenIcon);
+            }
 #endif
             result.push_back(keyboardIcon);
             result.push_back(helpIcon);
@@ -569,12 +657,19 @@ namespace vmpc_juce::gui::vector
             return result;
         }
 
+        int getLayoutIconCount() const
+        {
+            return totalAvailableIconCount +
+                   (arrangementIcon != nullptr ? 1 : 0) +
+                   (fullscreenIcon != nullptr ? 1 : 0);
+        }
+
         SvgComponent *getIconAtPosition(const juce::Point<int> &position)
         {
             for (auto &icon : getPlatformAvailableIcons())
             {
                 if (icon->getBounds()
-                        .expanded(static_cast<int>(getScale() * 3.f))
+                        .expanded(static_cast<int>(getMenuScale() * 3.f))
                         .contains(position))
                 {
                     return icon;
@@ -600,6 +695,11 @@ namespace vmpc_juce::gui::vector
             return iconBounds;
         }
 
+        float getMenuScale() const
+        {
+            return getScale() * scaleMultiplier;
+        }
+
 #if TARGET_OS_IPHONE
         mpc::Mpc &mpc;
 #endif
@@ -615,6 +715,9 @@ namespace vmpc_juce::gui::vector
             setKeyboardShortcutTooltipsVisibility;
         const std::function<juce::Font &()> &getMainFontScaled;
         const std::function<void()> openAbout;
+        const std::function<void()> openArrangementSelector;
+        const std::function<void()> toggleIPhoneFullscreen;
+        float scaleMultiplier = 1.f;
 
         TooltipOverlay *tooltipOverlay;
         InfoTooltip *infoTooltip = nullptr;
@@ -628,6 +731,8 @@ namespace vmpc_juce::gui::vector
         SvgComponent *keyboardIcon = nullptr;
         SvgComponent *folderIcon = nullptr;
         SvgComponent *infoIcon = nullptr;
+        SvgComponent *arrangementIcon = nullptr;
+        SvgComponent *fullscreenIcon = nullptr;
 
         // mouseMove is triggered also when modifier keys have changed.
         // We only want to know about actual mouse moves, so we keep track of
