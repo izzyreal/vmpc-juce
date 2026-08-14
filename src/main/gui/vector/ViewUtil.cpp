@@ -287,7 +287,9 @@ void ViewUtil::createComponent(
     }
     else if (n.node_type == "slider")
     {
-        auto slider = new Slider(mpc, mpc.getHardware()->getSlider(), getScale);
+        auto slider = new Slider(mpc, mpc.getHardware()->getSlider(), parent,
+                                 n.shadow_size, getScale);
+        addShadows(n, getScale, slider, parent, components);
         parent->addAndMakeVisible(slider);
         components.push_back(slider);
         n.slider_component = slider;

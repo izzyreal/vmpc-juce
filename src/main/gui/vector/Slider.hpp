@@ -1,6 +1,7 @@
 #pragma once
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "AdditionalShadowComponentsProvider.hpp"
 #include "Constants.hpp"
 #include "gui/vector/SliderCap.hpp"
 #include <juce_graphics/juce_graphics.h>
@@ -8,21 +9,30 @@
 namespace vmpc_juce::gui::vector
 {
 
-    class Slider : public juce::Component
+    class Slider : public juce::Component,
+                   public AdditionalShadowComponentsProvider
     {
     public:
         Slider(mpc::Mpc &mpc, std::shared_ptr<mpc::hardware::Slider> mpcSlider,
+               juce::Component *commonParentWithShadowToUse,
+               const float shadowSizeToUse,
                const std::function<float()> &getScaleToUse)
             : getScale(getScaleToUse)
         {
-            sliderCap = new SliderCap(mpc, mpcSlider, {"slider_cap.svg"}, this,
-                                      5, getScale);
+            sliderCap = new SliderCap(
+                mpc, mpcSlider, {"slider_cap.svg"},
+                commonParentWithShadowToUse, shadowSizeToUse, getScale);
             addAndMakeVisible(sliderCap);
         }
 
         ~Slider() override
         {
             delete sliderCap;
+        }
+
+        std::vector<SvgComponent *> getAdditionalShadowComponents() override
+        {
+            return {sliderCap};
         }
 
         void resized() override
