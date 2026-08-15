@@ -24,12 +24,19 @@ namespace vmpc_juce::guilab
 
         void initialise(const juce::String &) override
         {
-            mainWindow = std::make_unique<MainWindow>(getApplicationName());
+            juce::PropertiesFile::Options options;
+            options.applicationName = getApplicationName();
+            options.filenameSuffix = ".settings";
+            options.osxLibrarySubFolder = "Application Support";
+            appProperties.setStorageParameters(options);
+            mainWindow = std::make_unique<MainWindow>(
+                getApplicationName(), *appProperties.getUserSettings());
         }
 
         void shutdown() override
         {
             mainWindow.reset();
+            appProperties.saveIfNeeded();
         }
 
         void systemRequestedQuit() override
@@ -43,12 +50,12 @@ namespace vmpc_juce::guilab
         class MainWindow final : public juce::DocumentWindow
         {
         public:
-            explicit MainWindow(const juce::String &name)
+            MainWindow(const juce::String &name, juce::PropertiesFile &settings)
                 : DocumentWindow(name, juce::Colour(0xff202523),
                                  DocumentWindow::allButtons)
             {
                 setUsingNativeTitleBar(true);
-                setContentOwned(new GuiLabComponent(), true);
+                setContentOwned(new GuiLabComponent(settings), true);
                 setResizable(true, false);
                 setResizeLimits(760, 540, 4096, 4096);
                 centreWithSize(1280, 900);
@@ -64,6 +71,7 @@ namespace vmpc_juce::guilab
             }
         };
 
+        juce::ApplicationProperties appProperties;
         std::unique_ptr<MainWindow> mainWindow;
     };
 } // namespace vmpc_juce::guilab

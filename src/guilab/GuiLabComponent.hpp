@@ -4,6 +4,7 @@
 #include "gui/arrangement/ArrangementModel.hpp"
 #include "gui/vector/Node.hpp"
 
+#include <juce_data_structures/juce_data_structures.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include <functional>
@@ -48,7 +49,7 @@ namespace vmpc_juce::guilab
                                   public juce::DragAndDropContainer
     {
     public:
-        GuiLabComponent();
+        explicit GuiLabComponent(juce::PropertiesFile &settingsToUse);
         ~GuiLabComponent() override;
 
         void resized() override;
@@ -58,6 +59,7 @@ namespace vmpc_juce::guilab
         class PreviewCard;
         class ArrangementWorkspace;
 
+        juce::PropertiesFile &settings;
         juce::Label heading;
         juce::TextButton loadButton{"Load"};
         juce::TextButton saveButton{"Save"};
@@ -94,6 +96,9 @@ namespace vmpc_juce::guilab
         void chooseDesignToSave();
         void chooseSetupToLoad();
         void chooseSetupToSave();
+        void restoreRecentDocument();
+        juce::File getRememberedFile(const juce::String &key) const;
+        void rememberRecentFile(const juce::File &file, bool isSetup);
         void loadDesignFile(const juce::File &file);
         void saveDesignFile(juce::File file);
         void loadSetupFile(const juce::File &file);

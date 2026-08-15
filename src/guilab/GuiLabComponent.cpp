@@ -11,6 +11,7 @@
 #include <cmath>
 #include <exception>
 #include <iterator>
+#include <limits>
 #include <string>
 
 using namespace vmpc_juce::guilab;
@@ -20,6 +21,14 @@ using vmpc_juce::gui::vector::Constants;
 namespace
 {
     constexpr auto dragDescriptionPrefix = "component:";
+    constexpr float arrangementGridSize = 4.f;
+    constexpr float fineKeyboardMove = 1.f;
+    constexpr float largeKeyboardMove = arrangementGridSize * 4.f;
+    constexpr auto recentDesignFileKey = "recentDesignFile";
+    constexpr auto recentSetupFileKey = "recentSetupFile";
+    constexpr auto recentDocumentKindKey = "recentDocumentKind";
+    constexpr auto designDocumentKind = "design";
+    constexpr auto setupDocumentKind = "setup";
 
     const CatalogEntry *catalogEntryFromDragDescription(const juce::var &value)
     {
@@ -499,10 +508,20 @@ public:
             return true;
         }
 
-        const auto commandDown = key.getModifiers().isCommandDown();
+        const auto modifiers = key.getModifiers();
+        const auto commandDown = modifiers.isCommandDown();
+        const auto selectAllShortcutDown =
+            commandDown || modifiers.isCtrlDown();
+        if (selectAllShortcutDown &&
+            (key.getKeyCode() == 'A' || key.getKeyCode() == 'a'))
+        {
+            selectAllNodes();
+            return true;
+        }
+
         if (commandDown && (key.getKeyCode() == 'G' || key.getKeyCode() == 'g'))
         {
-            if (key.getModifiers().isShiftDown())
+            if (modifiers.isShiftDown())
             {
                 ungroupSelection();
             }
@@ -510,6 +529,38 @@ public:
             {
                 groupSelection();
             }
+            return true;
+        }
+
+        LogicalPoint keyboardDirection;
+        if (key.isKeyCode(juce::KeyPress::leftKey))
+        {
+            keyboardDirection.x = -1.f;
+        }
+        else if (key.isKeyCode(juce::KeyPress::rightKey))
+        {
+            keyboardDirection.x = 1.f;
+        }
+        else if (key.isKeyCode(juce::KeyPress::upKey))
+        {
+            keyboardDirection.y = -1.f;
+        }
+        else if (key.isKeyCode(juce::KeyPress::downKey))
+        {
+            keyboardDirection.y = 1.f;
+        }
+
+        if (!selectAllShortcutDown && !selectedIds.empty() &&
+            (keyboardDirection.x != 0.f || keyboardDirection.y != 0.f))
+        {
+            const auto fineMove = modifiers.isAltDown();
+            const auto distance = fineMove ? fineKeyboardMove
+                                  : modifiers.isShiftDown()
+                                      ? largeKeyboardMove
+                                      : arrangementGridSize;
+            moveSelection({keyboardDirection.x * distance,
+                           keyboardDirection.y * distance},
+                          !fineMove);
             return true;
         }
 
@@ -1020,6 +1071,17 @@ private:
         refreshSelection();
     }
 
+    void selectAllNodes()
+    {
+        selectedIds.clear();
+        selectedIds.reserve(document.nodes.size());
+        for (const auto &node : document.nodes)
+        {
+            selectedIds.push_back(node.id);
+        }
+        refreshSelection();
+    }
+
     void selectNode(const std::uint64_t id, const bool additive)
     {
         if (additive)
@@ -1074,6 +1136,117 @@ private:
             *nearest, geometry.size, node->anchor, targetSize);
         refreshResponsiveLayout();
         updateAllNodeBounds();
+    }
+
+    void moveSelection(LogicalPoint delta, const bool shouldSnap)
+    {
+        if (selectedIds.empty())
+        {
+            return;
+        }
+
+        struct SelectedGeometry
+        {
+            ArrangementNodeModel *node;
+            ProjectedNodeGeometry geometry;
+        };
+
+        std::vector<SelectedGeometry> selected;
+        selected.reserve(selectedIds.size());
+        auto minimumX = std::numeric_limits<float>::max();
+        auto minimumY = std::numeric_limits<float>::max();
+        auto maximumX = std::numeric_limits<float>::lowest();
+        auto maximumY = std::numeric_limits<float>::lowest();
+        for (const auto id : selectedIds)
+        {
+            auto *node = findNode(id);
+            const auto *geometry = findProjectedGeometry(responsiveLayout, id);
+            if (node == nullptr || geometry == nullptr)
+            {
+                continue;
+            }
+
+            selected.push_back({node, *geometry});
+            minimumX = std::min(minimumX, geometry->position.x);
+            minimumY = std::min(minimumY, geometry->position.y);
+            maximumX =
+                std::max(maximumX, geometry->position.x + geometry->size.width);
+            maximumY = std::max(maximumY,
+                                geometry->position.y + geometry->size.height);
+        }
+        if (selected.empty())
+        {
+            return;
+        }
+
+        // Snap only along the axis being moved. This prevents an arrow press
+        // from unexpectedly correcting the selection on the other axis. Use
+        // the next grid line in the requested direction when fine movement
+        // has left the selection between grid lines.
+        if (shouldSnap)
+        {
+            if (delta.x != 0.f)
+            {
+                const auto gridSteps = std::max(
+                    1.f, std::round(std::abs(delta.x) / arrangementGridSize));
+                const auto targetGridIndex =
+                    delta.x > 0.f
+                        ? std::floor(minimumX / arrangementGridSize) + gridSteps
+                        : std::ceil(minimumX / arrangementGridSize) - gridSteps;
+                delta.x = targetGridIndex * arrangementGridSize - minimumX;
+            }
+            if (delta.y != 0.f)
+            {
+                const auto gridSteps = std::max(
+                    1.f, std::round(std::abs(delta.y) / arrangementGridSize));
+                const auto targetGridIndex =
+                    delta.y > 0.f
+                        ? std::floor(minimumY / arrangementGridSize) + gridSteps
+                        : std::ceil(minimumY / arrangementGridSize) - gridSteps;
+                delta.y = targetGridIndex * arrangementGridSize - minimumY;
+            }
+        }
+
+        const auto targetSize = getEffectiveDeviceSize(device, orientation);
+        delta.x = std::clamp(delta.x, -minimumX, targetSize.width - maximumX);
+        delta.y = std::clamp(delta.y, -minimumY, targetSize.height - maximumY);
+        if (std::abs(delta.x) < 0.001f && std::abs(delta.y) < 0.001f)
+        {
+            return;
+        }
+
+        std::vector<LogicalRect> obstacles;
+        obstacles.reserve(responsiveLayout.nodes.size() - selected.size());
+        for (const auto &projected : responsiveLayout.nodes)
+        {
+            if (!isSelected(projected.id))
+            {
+                obstacles.push_back(
+                    {projected.geometry.position, projected.geometry.size});
+            }
+        }
+
+        for (const auto &item : selected)
+        {
+            const LogicalRect candidate{{item.geometry.position.x + delta.x,
+                                         item.geometry.position.y + delta.y},
+                                        item.geometry.size};
+            if (!isPlacementValid(candidate, targetSize, obstacles))
+            {
+                return;
+            }
+        }
+
+        for (auto &item : selected)
+        {
+            const LogicalPoint position{item.geometry.position.x + delta.x,
+                                        item.geometry.position.y + delta.y};
+            item.node->anchorPosition = normalizedAnchorPosition(
+                position, item.geometry.size, item.node->anchor, targetSize);
+        }
+        refreshResponsiveLayout();
+        updateAllNodeBounds();
+        repaint();
     }
 
     void resizeNode(const std::uint64_t id, const ResizeCorner corner,
@@ -1410,7 +1583,8 @@ private:
     bool isDragOverSurface = false;
 };
 
-GuiLabComponent::GuiLabComponent()
+GuiLabComponent::GuiLabComponent(juce::PropertiesFile &settingsToUse)
+    : settings(settingsToUse)
 {
     heading.setText("VMPC2000XL arrangement lab", juce::dontSendNotification);
     heading.setFont(juce::Font(24.f, juce::Font::bold));
@@ -1458,6 +1632,7 @@ GuiLabComponent::GuiLabComponent()
         defaultDevice != profiles.end() ? *defaultDevice : profiles.front());
     addAndMakeVisible(*workspace);
     configureControls();
+    restoreRecentDocument();
 }
 
 GuiLabComponent::~GuiLabComponent()
@@ -1619,11 +1794,14 @@ void GuiLabComponent::configureControls()
 
 void GuiLabComponent::chooseDesignToLoad()
 {
-    const auto initialLocation =
-        currentDesignFile.getFullPathName().isNotEmpty()
-            ? currentDesignFile.getParentDirectory()
-            : juce::File::getSpecialLocation(
-                  juce::File::userDocumentsDirectory);
+    const auto rememberedFile = getRememberedFile(recentDesignFileKey);
+    const auto initialFile = currentDesignFile.getFullPathName().isNotEmpty()
+                                 ? currentDesignFile
+                                 : rememberedFile;
+    const auto initialLocation = initialFile.getFullPathName().isNotEmpty()
+                                     ? initialFile.getParentDirectory()
+                                     : juce::File::getSpecialLocation(
+                                           juce::File::userDocumentsDirectory);
     designFileChooser = std::make_unique<juce::FileChooser>(
         "Load arrangement design", initialLocation, "*.vmpclab", true);
     setFileButtonsEnabled(false);
@@ -1649,6 +1827,10 @@ void GuiLabComponent::chooseDesignToLoad()
 void GuiLabComponent::chooseDesignToSave()
 {
     auto initialFile = currentDesignFile;
+    if (initialFile.getFullPathName().isEmpty())
+    {
+        initialFile = getRememberedFile(recentDesignFileKey);
+    }
     if (initialFile.getFullPathName().isEmpty())
     {
         initialFile =
@@ -1701,6 +1883,7 @@ void GuiLabComponent::loadDesignFile(const juce::File &file)
     }
 
     currentDesignFile = file;
+    rememberRecentFile(file, false);
     persistActiveSlot(true);
 }
 
@@ -1721,6 +1904,7 @@ void GuiLabComponent::saveDesignFile(juce::File file)
             return;
         }
         currentDesignFile = file;
+        rememberRecentFile(file, false);
         persistActiveSlot();
     }
     catch (const std::exception &error)
@@ -1732,8 +1916,12 @@ void GuiLabComponent::saveDesignFile(juce::File file)
 
 void GuiLabComponent::chooseSetupToLoad()
 {
-    const auto initialLocation = currentSetupFile.getFullPathName().isNotEmpty()
-                                     ? currentSetupFile.getParentDirectory()
+    const auto rememberedFile = getRememberedFile(recentSetupFileKey);
+    const auto initialFile = currentSetupFile.getFullPathName().isNotEmpty()
+                                 ? currentSetupFile
+                                 : rememberedFile;
+    const auto initialLocation = initialFile.getFullPathName().isNotEmpty()
+                                     ? initialFile.getParentDirectory()
                                      : juce::File::getSpecialLocation(
                                            juce::File::userDocumentsDirectory);
     designFileChooser = std::make_unique<juce::FileChooser>(
@@ -1761,6 +1949,10 @@ void GuiLabComponent::chooseSetupToLoad()
 void GuiLabComponent::chooseSetupToSave()
 {
     auto initialFile = currentSetupFile;
+    if (initialFile.getFullPathName().isEmpty())
+    {
+        initialFile = getRememberedFile(recentSetupFileKey);
+    }
     if (initialFile.getFullPathName().isEmpty())
     {
         initialFile =
@@ -1823,6 +2015,7 @@ void GuiLabComponent::loadSetupFile(const juce::File &file)
     }
     currentSetupFile = file;
     currentDesignFile = juce::File();
+    rememberRecentFile(file, true);
     updateTarget();
     updateSlotButtons();
 }
@@ -1844,12 +2037,49 @@ void GuiLabComponent::saveSetupFile(juce::File file)
             return;
         }
         currentSetupFile = file;
+        rememberRecentFile(file, true);
     }
     catch (const std::exception &error)
     {
         showFileError(juce::String("The setup could not be saved: ") +
                       error.what());
     }
+}
+
+void GuiLabComponent::restoreRecentDocument()
+{
+    const auto kind = settings.getValue(recentDocumentKindKey);
+    const auto file = getRememberedFile(
+        kind == setupDocumentKind ? recentSetupFileKey : recentDesignFileKey);
+    if (!file.existsAsFile())
+    {
+        return;
+    }
+
+    if (kind == setupDocumentKind)
+    {
+        loadSetupFile(file);
+    }
+    else if (kind == designDocumentKind)
+    {
+        loadDesignFile(file);
+    }
+}
+
+juce::File GuiLabComponent::getRememberedFile(const juce::String &key) const
+{
+    const auto path = settings.getValue(key);
+    return path.isNotEmpty() ? juce::File(path) : juce::File();
+}
+
+void GuiLabComponent::rememberRecentFile(const juce::File &file,
+                                         const bool isSetup)
+{
+    settings.setValue(isSetup ? recentSetupFileKey : recentDesignFileKey,
+                      file.getFullPathName());
+    settings.setValue(recentDocumentKindKey,
+                      isSetup ? setupDocumentKind : designDocumentKind);
+    settings.saveIfNeeded();
 }
 
 void GuiLabComponent::persistActiveSlot(const bool replaceIdentity)
