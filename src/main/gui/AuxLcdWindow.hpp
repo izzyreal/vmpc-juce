@@ -60,9 +60,9 @@ namespace vmpc_juce::gui
         static constexpr char MARGIN = 6;
         static constexpr unsigned char LCD_W = 248;
         static constexpr char LCD_H = 60;
+        static constexpr int CONTROL_HIT_TARGET_SIZE = 40;
         AuxLcd *auxLcd = nullptr;
         AuxLcdWindowMaximizeButton maximizeButton;
-        Component maximizeButtonMouseInterceptor;
         int buttonsHaveBeenShownForMs = 0;
         const std::function<void()> resetKeyboardAuxParent;
         const std::function<void()> resetAuxWindow;
@@ -98,6 +98,10 @@ namespace vmpc_juce::gui
         {
             dynamic_cast<AuxLcdWindow *>(getParentComponent())->showButtons();
             ResizableCornerComponent::mouseDown(e);
+        }
+        bool hitTest(int x, int y) override
+        {
+            return getLocalBounds().contains(x, y);
         }
     };
 } // namespace vmpc_juce::gui

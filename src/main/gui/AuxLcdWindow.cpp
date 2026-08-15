@@ -21,14 +21,16 @@ void AuxLcdWindowMaximizeButton::paint(juce::Graphics &g)
     }
 }
 
-void AuxLcdWindowMaximizeButton::mouseDown(const juce::MouseEvent &)
+void AuxLcdWindowMaximizeButton::mouseDown(const juce::MouseEvent &e)
 {
     dynamic_cast<AuxLcdWindow *>(getParentComponent())->showButtons();
+    juce::Button::mouseDown(e);
 }
 
-void AuxLcdWindowMaximizeButton::mouseEnter(const juce::MouseEvent &)
+void AuxLcdWindowMaximizeButton::mouseEnter(const juce::MouseEvent &e)
 {
     dynamic_cast<AuxLcdWindow *>(getParentComponent())->showButtons();
+    juce::Button::mouseEnter(e);
 }
 
 void AuxLcdWindowMaximizeButton::paintButton(
@@ -198,13 +200,14 @@ void AuxLcdWindow::resized()
 
     auxLcd->setCentrePosition(getLocalBounds().getCentre());
 
-    constexpr int widgetSize = 40;
-    resizableCorner->setBounds(getWidth() - widgetSize,
-                               getHeight() - widgetSize + 2, widgetSize,
-                               widgetSize);
+    resizableCorner->setBounds(
+        getWidth() - CONTROL_HIT_TARGET_SIZE,
+        getHeight() - CONTROL_HIT_TARGET_SIZE + 2, CONTROL_HIT_TARGET_SIZE,
+        CONTROL_HIT_TARGET_SIZE);
 
-    maximizeButton.setBounds(getWidth() - widgetSize, 0, widgetSize,
-                             widgetSize);
+    maximizeButton.setBounds(getWidth() - CONTROL_HIT_TARGET_SIZE, 0,
+                             CONTROL_HIT_TARGET_SIZE,
+                             CONTROL_HIT_TARGET_SIZE);
 }
 
 void AuxLcdWindow::mouseMove(const juce::MouseEvent &)
