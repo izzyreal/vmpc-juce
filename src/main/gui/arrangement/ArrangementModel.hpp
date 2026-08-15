@@ -8,6 +8,10 @@
 
 namespace vmpc_juce::gui::arrangement
 {
+    inline constexpr auto arrangementFileExtension = "vmpc_gui_arrangement";
+    inline constexpr auto arrangementSetupFileExtension =
+        "vmpc_gui_arrangements";
+
     enum class Orientation
     {
         portrait,

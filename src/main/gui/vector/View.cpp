@@ -250,8 +250,9 @@ View::View(mpc::Mpc &mpcToUse,
 
     if (phoneArrangementMode)
     {
-        const auto setupData = VmpcJuceResourceUtil::getResourceData(
-            "json/arrangements/default.json");
+        const auto setupPath = std::string{"json/arrangements/default."} +
+                               gui::arrangement::arrangementSetupFileExtension;
+        const auto setupData = VmpcJuceResourceUtil::getResourceData(setupPath);
         std::string error;
         std::optional<gui::arrangement::ArrangementSetup> setup;
         if (!setupData.empty())

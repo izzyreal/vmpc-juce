@@ -1645,13 +1645,50 @@ void GuiLabComponent::paint(juce::Graphics &g)
     g.fillAll(juce::Colour(0xff202523));
 }
 
+bool GuiLabComponent::keyPressed(const juce::KeyPress &key)
+{
+    const auto modifiers = key.getModifiers();
+    const auto shortcutDown =
+        modifiers.isCommandDown() || modifiers.isCtrlDown();
+    if (!shortcutDown)
+    {
+        return false;
+    }
+
+    const auto keyCode = key.getKeyCode();
+    if (keyCode == 'O' || keyCode == 'o')
+    {
+        if (loadButton.isEnabled())
+        {
+            chooseFileToLoad();
+        }
+        return true;
+    }
+
+    if (keyCode == 'S' || keyCode == 's')
+    {
+        if (saveSetupButton.isEnabled())
+        {
+            if (modifiers.isShiftDown())
+            {
+                chooseSetupToSave();
+            }
+            else
+            {
+                saveCurrentSetup();
+            }
+        }
+        return true;
+    }
+
+    return false;
+}
+
 void GuiLabComponent::resized()
 {
     auto bounds = getLocalBounds().reduced(18);
     auto headingBounds = bounds.removeFromTop(38);
     saveSetupButton.setBounds(headingBounds.removeFromRight(104).reduced(0, 4));
-    headingBounds.removeFromRight(8);
-    loadSetupButton.setBounds(headingBounds.removeFromRight(104).reduced(0, 4));
     headingBounds.removeFromRight(8);
     saveButton.setBounds(headingBounds.removeFromRight(72).reduced(0, 4));
     headingBounds.removeFromRight(8);
@@ -1710,8 +1747,8 @@ void GuiLabComponent::configureControls()
     styleComboBox(deviceSelector);
     styleComboBox(orientationSelector);
 
-    for (auto *button : {&loadButton, &saveButton, &loadSetupButton,
-                         &saveSetupButton, &clearSlotButton})
+    for (auto *button :
+         {&loadButton, &saveButton, &saveSetupButton, &clearSlotButton})
     {
         button->setColour(juce::TextButton::buttonColourId,
                           juce::Colour(0xff343a38));
@@ -1770,19 +1807,15 @@ void GuiLabComponent::configureControls()
     };
     loadButton.onClick = [this]
     {
-        chooseDesignToLoad();
+        chooseFileToLoad();
     };
     saveButton.onClick = [this]
     {
         chooseDesignToSave();
     };
-    loadSetupButton.onClick = [this]
-    {
-        chooseSetupToLoad();
-    };
     saveSetupButton.onClick = [this]
     {
-        chooseSetupToSave();
+        saveCurrentSetup();
     };
     clearSlotButton.onClick = [this]
     {
@@ -1792,36 +1825,42 @@ void GuiLabComponent::configureControls()
     updateTarget();
 }
 
-void GuiLabComponent::chooseDesignToLoad()
+void GuiLabComponent::chooseFileToLoad()
 {
-    const auto rememberedFile = getRememberedFile(recentDesignFileKey);
-    const auto initialFile = currentDesignFile.getFullPathName().isNotEmpty()
-                                 ? currentDesignFile
+    const auto setupWasMostRecent =
+        settings.getValue(recentDocumentKindKey) == setupDocumentKind;
+    const auto currentFile =
+        setupWasMostRecent ? currentSetupFile : currentDesignFile;
+    const auto rememberedFile = getRememberedFile(
+        setupWasMostRecent ? recentSetupFileKey : recentDesignFileKey);
+    const auto initialFile = currentFile.getFullPathName().isNotEmpty()
+                                 ? currentFile
                                  : rememberedFile;
     const auto initialLocation = initialFile.getFullPathName().isNotEmpty()
                                      ? initialFile.getParentDirectory()
                                      : juce::File::getSpecialLocation(
                                            juce::File::userDocumentsDirectory);
-    designFileChooser = std::make_unique<juce::FileChooser>(
-        "Load arrangement design", initialLocation, "*.vmpclab", true);
+    const auto wildcard = juce::String("*.") + arrangementFileExtension +
+                          ";*." + arrangementSetupFileExtension;
+    fileChooser = std::make_unique<juce::FileChooser>(
+        "Load arrangement or setup", initialLocation, wildcard, true);
     setFileButtonsEnabled(false);
     juce::Component::SafePointer<GuiLabComponent> safeThis(this);
-    designFileChooser->launchAsync(
-        juce::FileBrowserComponent::openMode |
-            juce::FileBrowserComponent::canSelectFiles,
-        [safeThis](const juce::FileChooser &chooser)
-        {
-            if (safeThis == nullptr)
-            {
-                return;
-            }
-            safeThis->setFileButtonsEnabled(true);
-            const auto file = chooser.getResult();
-            if (file.getFullPathName().isNotEmpty())
-            {
-                safeThis->loadDesignFile(file);
-            }
-        });
+    fileChooser->launchAsync(juce::FileBrowserComponent::openMode |
+                                 juce::FileBrowserComponent::canSelectFiles,
+                             [safeThis](const juce::FileChooser &chooser)
+                             {
+                                 if (safeThis == nullptr)
+                                 {
+                                     return;
+                                 }
+                                 safeThis->setFileButtonsEnabled(true);
+                                 const auto file = chooser.getResult();
+                                 if (file.getFullPathName().isNotEmpty())
+                                 {
+                                     safeThis->loadFile(file);
+                                 }
+                             });
 }
 
 void GuiLabComponent::chooseDesignToSave()
@@ -1835,13 +1874,19 @@ void GuiLabComponent::chooseDesignToSave()
     {
         initialFile =
             juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
-                .getChildFile("Untitled.vmpclab");
+                .getChildFile(juce::String("Untitled.") +
+                              arrangementFileExtension);
     }
-    designFileChooser = std::make_unique<juce::FileChooser>(
-        "Save arrangement design", initialFile, "*.vmpclab", true);
+    else if (!initialFile.hasFileExtension(arrangementFileExtension))
+    {
+        initialFile = initialFile.withFileExtension(arrangementFileExtension);
+    }
+    const auto wildcard = juce::String("*.") + arrangementFileExtension;
+    fileChooser = std::make_unique<juce::FileChooser>(
+        "Save arrangement design", initialFile, wildcard, true);
     setFileButtonsEnabled(false);
     juce::Component::SafePointer<GuiLabComponent> safeThis(this);
-    designFileChooser->launchAsync(
+    fileChooser->launchAsync(
         juce::FileBrowserComponent::saveMode |
             juce::FileBrowserComponent::canSelectFiles |
             juce::FileBrowserComponent::warnAboutOverwriting,
@@ -1889,9 +1934,9 @@ void GuiLabComponent::loadDesignFile(const juce::File &file)
 
 void GuiLabComponent::saveDesignFile(juce::File file)
 {
-    if (!file.hasFileExtension("vmpclab"))
+    if (!file.hasFileExtension(arrangementFileExtension))
     {
-        file = file.withFileExtension("vmpclab");
+        file = file.withFileExtension(arrangementFileExtension);
     }
     try
     {
@@ -1914,36 +1959,34 @@ void GuiLabComponent::saveDesignFile(juce::File file)
     }
 }
 
-void GuiLabComponent::chooseSetupToLoad()
+void GuiLabComponent::loadFile(const juce::File &file)
 {
-    const auto rememberedFile = getRememberedFile(recentSetupFileKey);
-    const auto initialFile = currentSetupFile.getFullPathName().isNotEmpty()
-                                 ? currentSetupFile
-                                 : rememberedFile;
-    const auto initialLocation = initialFile.getFullPathName().isNotEmpty()
-                                     ? initialFile.getParentDirectory()
-                                     : juce::File::getSpecialLocation(
-                                           juce::File::userDocumentsDirectory);
-    designFileChooser = std::make_unique<juce::FileChooser>(
-        "Load arrangement setup", initialLocation, "*.json", true);
-    setFileButtonsEnabled(false);
-    juce::Component::SafePointer<GuiLabComponent> safeThis(this);
-    designFileChooser->launchAsync(
-        juce::FileBrowserComponent::openMode |
-            juce::FileBrowserComponent::canSelectFiles,
-        [safeThis](const juce::FileChooser &chooser)
-        {
-            if (safeThis == nullptr)
-            {
-                return;
-            }
-            safeThis->setFileButtonsEnabled(true);
-            const auto file = chooser.getResult();
-            if (file.getFullPathName().isNotEmpty())
-            {
-                safeThis->loadSetupFile(file);
-            }
-        });
+    if (file.hasFileExtension(arrangementFileExtension))
+    {
+        loadDesignFile(file);
+    }
+    else if (file.hasFileExtension(arrangementSetupFileExtension))
+    {
+        loadSetupFile(file);
+    }
+    else
+    {
+        showFileError(juce::String("Select a .") + arrangementFileExtension +
+                      " arrangement or ." + arrangementSetupFileExtension +
+                      " arrangement setup.");
+    }
+}
+
+void GuiLabComponent::saveCurrentSetup()
+{
+    if (currentSetupFile.getFullPathName().isNotEmpty())
+    {
+        saveSetupFile(currentSetupFile);
+    }
+    else
+    {
+        chooseSetupToSave();
+    }
 }
 
 void GuiLabComponent::chooseSetupToSave()
@@ -1957,13 +2000,20 @@ void GuiLabComponent::chooseSetupToSave()
     {
         initialFile =
             juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
-                .getChildFile("arrangement-setup.json");
+                .getChildFile(juce::String("arrangement-setup.") +
+                              arrangementSetupFileExtension);
     }
-    designFileChooser = std::make_unique<juce::FileChooser>(
-        "Save arrangement setup", initialFile, "*.json", true);
+    else if (!initialFile.hasFileExtension(arrangementSetupFileExtension))
+    {
+        initialFile =
+            initialFile.withFileExtension(arrangementSetupFileExtension);
+    }
+    const auto wildcard = juce::String("*.") + arrangementSetupFileExtension;
+    fileChooser = std::make_unique<juce::FileChooser>(
+        "Save arrangement setup", initialFile, wildcard, true);
     setFileButtonsEnabled(false);
     juce::Component::SafePointer<GuiLabComponent> safeThis(this);
-    designFileChooser->launchAsync(
+    fileChooser->launchAsync(
         juce::FileBrowserComponent::saveMode |
             juce::FileBrowserComponent::canSelectFiles |
             juce::FileBrowserComponent::warnAboutOverwriting,
@@ -2022,9 +2072,9 @@ void GuiLabComponent::loadSetupFile(const juce::File &file)
 
 void GuiLabComponent::saveSetupFile(juce::File file)
 {
-    if (!file.hasFileExtension("json"))
+    if (!file.hasFileExtension(arrangementSetupFileExtension))
     {
-        file = file.withFileExtension("json");
+        file = file.withFileExtension(arrangementSetupFileExtension);
     }
     persistActiveSlot();
     try
@@ -2056,11 +2106,13 @@ void GuiLabComponent::restoreRecentDocument()
         return;
     }
 
-    if (kind == setupDocumentKind)
+    if (kind == setupDocumentKind &&
+        file.hasFileExtension(arrangementSetupFileExtension))
     {
         loadSetupFile(file);
     }
-    else if (kind == designDocumentKind)
+    else if (kind == designDocumentKind &&
+             file.hasFileExtension(arrangementFileExtension))
     {
         loadDesignFile(file);
     }
@@ -2161,8 +2213,7 @@ void GuiLabComponent::updateSlotButtons()
 
 void GuiLabComponent::setFileButtonsEnabled(const bool enabled)
 {
-    for (auto *button :
-         {&loadButton, &saveButton, &loadSetupButton, &saveSetupButton})
+    for (auto *button : {&loadButton, &saveButton, &saveSetupButton})
     {
         button->setEnabled(enabled);
     }

@@ -54,6 +54,7 @@ namespace vmpc_juce::guilab
 
         void resized() override;
         void paint(juce::Graphics &g) override;
+        bool keyPressed(const juce::KeyPress &key) override;
 
     private:
         class PreviewCard;
@@ -63,7 +64,6 @@ namespace vmpc_juce::guilab
         juce::Label heading;
         juce::TextButton loadButton{"Load"};
         juce::TextButton saveButton{"Save"};
-        juce::TextButton loadSetupButton{"Load Setup"};
         juce::TextButton saveSetupButton{"Save Setup"};
         juce::TextButton clearSlotButton{"Clear Slot"};
         juce::Label slotsLabel;
@@ -82,7 +82,7 @@ namespace vmpc_juce::guilab
         std::vector<std::unique_ptr<PreviewCard>> cards;
         std::vector<const DeviceProfile *> visibleDevices;
         std::unique_ptr<ArrangementWorkspace> workspace;
-        std::unique_ptr<juce::FileChooser> designFileChooser;
+        std::unique_ptr<juce::FileChooser> fileChooser;
         juce::File currentDesignFile;
         juce::File currentSetupFile;
         ArrangementSetup setup;
@@ -92,9 +92,10 @@ namespace vmpc_juce::guilab
         void populateDevices(const std::string &preferredDeviceId = {});
         void updateTarget();
         void layoutPalette();
-        void chooseDesignToLoad();
+        void chooseFileToLoad();
         void chooseDesignToSave();
-        void chooseSetupToLoad();
+        void loadFile(const juce::File &file);
+        void saveCurrentSetup();
         void chooseSetupToSave();
         void restoreRecentDocument();
         juce::File getRememberedFile(const juce::String &key) const;
