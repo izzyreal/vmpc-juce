@@ -6,6 +6,7 @@
 #include "SvgComponent.hpp"
 #include "TooltipOverlay.hpp"
 #include "InfoTooltip.hpp"
+#include "MenuGeometry.hpp"
 
 #include <cmath>
 
@@ -311,6 +312,16 @@ namespace vmpc_juce::gui::vector
 #endif
         }
 
+        bool hitTest(const int x, const int y) override
+        {
+            const auto scale = getMenuScale();
+            const auto interactiveBounds = menu_geometry::getInteractiveBounds(
+                getIconBounds(), static_cast<float>(getHeight()), scale,
+                expanded || mouseOverExpansion);
+            return interactiveBounds.contains(static_cast<float>(x),
+                                              static_cast<float>(y));
+        }
+
         void resized() override
         {
             const auto scale = getMenuScale();
@@ -384,23 +395,9 @@ namespace vmpc_juce::gui::vector
             const auto scale = getMenuScale();
             const auto radius = 3.f * scale;
             const auto lineThickness = 1.f * scale;
-            const auto margin = 5.f * scale;
-
-            const auto fixedHeight =
-                (heightAtScale1 * scale) - (lineThickness * 3);
-            const auto centerY =
-                (static_cast<float>(getHeight()) - fixedHeight) / 2.0f;
-
-            auto rect =
-                getIconBounds().toFloat().expanded(margin, lineThickness);
-            rect.setY(centerY);
-            rect.setHeight(fixedHeight);
-            rect = rect.withTrimmedRight(lineThickness * 2);
-
-            if (!expanded && !mouseOverExpansion)
-            {
-                rect = rect.withTrimmedLeft(lineThickness * 2);
-            }
+            const auto rect = menu_geometry::getBackgroundBounds(
+                getIconBounds(), static_cast<float>(getHeight()), scale,
+                expanded || mouseOverExpansion);
 
             g.setColour(juce::Colours::white);
             g.fillRoundedRectangle(rect, radius);
@@ -430,7 +427,8 @@ namespace vmpc_juce::gui::vector
         const static int totalAvailableIconCount = 9;
         constexpr static const float widthAtScale1 =
             15.f * totalAvailableIconCount * 1.1;
-        constexpr static const float heightAtScale1 = 16.f * 1.1f;
+        constexpr static const float heightAtScale1 =
+            menu_geometry::heightAtScale1;
 
         float getRequiredWidthAtScale1() const
         {
@@ -668,6 +666,11 @@ namespace vmpc_juce::gui::vector
         {
             for (auto &icon : getPlatformAvailableIcons())
             {
+                if (!icon->isVisible())
+                {
+                    continue;
+                }
+
                 if (icon->getBounds()
                         .expanded(static_cast<int>(getMenuScale() * 3.f))
                         .contains(position))

@@ -70,24 +70,11 @@ namespace vmpc_juce::gui::arrangement
     {
         for (const auto &node : document.nodes)
         {
-            if (!node.isGroup())
+            if (findCatalogEntry(node.catalogId) == nullptr)
             {
-                if (findCatalogEntry(node.catalogId) == nullptr)
-                {
-                    errorMessage =
-                        "Unknown arrangement component: " + node.catalogId;
-                    return false;
-                }
-                continue;
-            }
-            for (const auto &child : node.children)
-            {
-                if (findCatalogEntry(child.catalogId) == nullptr)
-                {
-                    errorMessage =
-                        "Unknown arrangement component: " + child.catalogId;
-                    return false;
-                }
+                errorMessage =
+                    "Unknown arrangement component: " + node.catalogId;
+                return false;
             }
         }
         errorMessage.clear();

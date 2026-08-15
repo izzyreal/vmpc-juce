@@ -36,30 +36,12 @@ namespace vmpc_juce::gui::arrangement
         LogicalSize size;
     };
 
-    enum class AnchorAxis
-    {
-        start,
-        centre,
-        end
-    };
-
     enum class ResizeCorner
     {
         topLeft,
         topRight,
         bottomLeft,
         bottomRight
-    };
-
-    struct ArrangementAnchor
-    {
-        AnchorAxis horizontal = AnchorAxis::centre;
-        AnchorAxis vertical = AnchorAxis::centre;
-
-        bool operator==(const ArrangementAnchor &other) const
-        {
-            return horizontal == other.horizontal && vertical == other.vertical;
-        }
     };
 
     // These are the allocations produced for the compact display by
@@ -82,32 +64,16 @@ namespace vmpc_juce::gui::arrangement
         int portraitHeight;
     };
 
-    struct ArrangementItemModel
-    {
-        std::uint64_t id = 0;
-        std::string catalogId;
-        LogicalPoint position;
-        float scale = 1.f;
-        LogicalSize referenceSize;
-    };
-
-    // A top-level node is either one catalog item, or a fixed single-level
-    // group. Group children use coordinates local to the group's reference
-    // rectangle and never contain further children.
     struct ArrangementNodeModel
     {
         std::uint64_t id = 0;
-        ArrangementAnchor anchor;
-        LogicalPoint anchorPosition{0.5f, 0.5f};
+        // Preferred centre in the normalized 0..1 document canvas.
+        LogicalPoint center{0.5f, 0.5f};
+        // Width as a fraction of the target canvas width. Height follows the
+        // component's reference aspect ratio.
         float widthFraction = 0.25f;
         LogicalSize referenceSize;
         std::string catalogId;
-        std::vector<ArrangementItemModel> children;
-
-        bool isGroup() const
-        {
-            return !children.empty();
-        }
     };
 
     struct ArrangementDocument
@@ -133,7 +99,6 @@ namespace vmpc_juce::gui::arrangement
         LogicalPoint position;
         LogicalSize size;
         float scale = 1.f;
-        LogicalPoint reflowOffset;
     };
 
     struct ProjectedArrangementNode
@@ -168,10 +133,8 @@ namespace vmpc_juce::gui::arrangement
     ProjectedNodeGeometry projectNodeAtScale(const ArrangementNodeModel &node,
                                              LogicalSize targetSize,
                                              float sharedScale);
-    LogicalPoint normalizedAnchorPosition(LogicalPoint projectedPosition,
-                                          LogicalSize projectedSize,
-                                          ArrangementAnchor anchor,
-                                          LogicalSize targetSize);
+    LogicalPoint normalizedCenter(ProjectedNodeGeometry geometry,
+                                  LogicalSize targetSize);
     ResponsiveLayout projectDocumentAtScale(const ArrangementDocument &document,
                                             LogicalSize targetSize,
                                             float sharedScale);
@@ -187,6 +150,10 @@ namespace vmpc_juce::gui::arrangement
         LogicalPoint requestedPosition, LogicalSize itemSize,
         LogicalSize bounds, const std::vector<LogicalRect> &obstacles,
         bool shouldSnapToGrid = false, float gridSize = 4.f);
+    std::optional<LogicalPoint> findNearestAvailableAxisTranslation(
+        LogicalPoint requestedDelta,
+        const std::vector<LogicalRect> &movingItems, LogicalSize bounds,
+        const std::vector<LogicalRect> &obstacles, float searchStep = 0.f);
     std::string
     serializeArrangementDocument(const ArrangementDocument &document);
     std::optional<ArrangementDocument>
@@ -210,20 +177,4 @@ namespace vmpc_juce::gui::arrangement
                                         LogicalSize requestedSize,
                                         ResizeCorner corner,
                                         bool useCentrePivot);
-    ArrangementAnchor inferAnchor(LogicalPoint position, LogicalSize size,
-                                  LogicalSize canvasSize);
-    void bakeProjectedGeometry(ArrangementNodeModel &node,
-                               ProjectedNodeGeometry geometry,
-                               LogicalSize targetSize);
-    ArrangementNodeModel
-    makeFixedGroup(std::uint64_t groupId,
-                   const std::vector<ArrangementNodeModel> &itemNodes,
-                   const ResponsiveLayout &layout, LogicalSize targetSize);
-    std::vector<ArrangementNodeModel>
-    ungroupFixedGroup(const ArrangementNodeModel &group,
-                      ProjectedNodeGeometry groupGeometry,
-                      LogicalSize targetSize);
-    std::vector<std::uint64_t>
-    ungroupFixedGroup(ArrangementDocument &document, std::uint64_t groupId,
-                      const ResponsiveLayout &layout, LogicalSize targetSize);
 } // namespace vmpc_juce::gui::arrangement

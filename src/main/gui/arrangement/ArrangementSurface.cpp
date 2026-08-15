@@ -16,8 +16,6 @@ namespace vmpc_juce::gui::arrangement
     struct ArrangementSurface::RenderedItem
     {
         gui::vector::node root;
-        LogicalPoint position;
-        float scale = 1.f;
         float renderedScale = 1.f;
         std::vector<juce::Component *> components;
         std::function<float()> getScale;
@@ -53,21 +51,9 @@ namespace vmpc_juce::gui::arrangement
 
         for (const auto &node : document.nodes)
         {
-            if (!node.isGroup())
+            if (!addItem(node.catalogId, errorMessage))
             {
-                if (!addItem(node.catalogId, {}, 1.f, errorMessage))
-                {
-                    return;
-                }
-                continue;
-            }
-            for (const auto &child : node.children)
-            {
-                if (!addItem(child.catalogId, child.position, child.scale,
-                             errorMessage))
-                {
-                    return;
-                }
+                return;
             }
         }
         errorMessage.clear();
@@ -83,8 +69,6 @@ namespace vmpc_juce::gui::arrangement
     }
 
     bool ArrangementSurface::addItem(const std::string &catalogId,
-                                     const LogicalPoint position,
-                                     const float scale,
                                      std::string &errorMessage)
     {
         const auto *entry = findCatalogEntry(catalogId);
@@ -105,8 +89,6 @@ namespace vmpc_juce::gui::arrangement
 
             auto item = std::make_unique<RenderedItem>();
             item->root = nlohmann::json::parse(data).get<gui::vector::node>();
-            item->position = position;
-            item->scale = scale;
             auto *stableItem = item.get();
             item->getScale = [stableItem]
             {
@@ -159,40 +141,17 @@ namespace vmpc_juce::gui::arrangement
         const LogicalSize target{static_cast<float>(getWidth()),
                                  static_cast<float>(getHeight())};
         const auto layout = computeResponsiveLayout(document, target);
-        std::size_t itemIndex = 0;
         for (std::size_t nodeIndex = 0; nodeIndex < document.nodes.size();
              ++nodeIndex)
         {
-            const auto &node = document.nodes[nodeIndex];
             const auto &geometry = layout.nodes[nodeIndex].geometry;
-            if (!node.isGroup())
-            {
-                auto &item = *items[itemIndex++];
-                item.renderedScale = geometry.scale;
-                item.components.front()->setBounds(
-                    juce::roundToInt(geometry.position.x),
-                    juce::roundToInt(geometry.position.y),
-                    std::max(1, juce::roundToInt(geometry.size.width)),
-                    std::max(1, juce::roundToInt(geometry.size.height)));
-                continue;
-            }
-            for (const auto &child : node.children)
-            {
-                auto &item = *items[itemIndex++];
-                item.renderedScale = geometry.scale * child.scale;
-                const auto x =
-                    geometry.position.x + child.position.x * geometry.scale;
-                const auto y =
-                    geometry.position.y + child.position.y * geometry.scale;
-                const auto width =
-                    child.referenceSize.width * item.renderedScale;
-                const auto height =
-                    child.referenceSize.height * item.renderedScale;
-                item.components.front()->setBounds(
-                    juce::roundToInt(x), juce::roundToInt(y),
-                    std::max(1, juce::roundToInt(width)),
-                    std::max(1, juce::roundToInt(height)));
-            }
+            auto &item = *items[nodeIndex];
+            item.renderedScale = geometry.scale;
+            item.components.front()->setBounds(
+                juce::roundToInt(geometry.position.x),
+                juce::roundToInt(geometry.position.y),
+                std::max(1, juce::roundToInt(geometry.size.width)),
+                std::max(1, juce::roundToInt(geometry.size.height)));
         }
     }
 } // namespace vmpc_juce::gui::arrangement

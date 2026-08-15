@@ -34,8 +34,7 @@ namespace vmpc_juce::gui::arrangement
 
     private:
         struct RenderedItem;
-        bool addItem(const std::string &catalogId, LogicalPoint position,
-                     float scale, std::string &errorMessage);
+        bool addItem(const std::string &catalogId, std::string &errorMessage);
         void rebuildGeometry();
 
         mpc::Mpc &mpc;

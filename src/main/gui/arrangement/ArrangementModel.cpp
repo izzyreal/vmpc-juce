@@ -17,10 +17,9 @@ namespace
     using json = nlohmann::json;
 
     constexpr auto designFormat = "vmpc2000xl-arrangement";
-    constexpr auto legacyDesignFormat = "vmpc2000xl-gui-lab-arrangement";
-    constexpr int designFormatVersion = 2;
+    constexpr int designFormatVersion = 4;
     constexpr auto setupFormat = "vmpc2000xl-arrangement-setup";
-    constexpr int setupFormatVersion = 2;
+    constexpr int setupFormatVersion = 4;
 
     const char *orientationName(const Orientation orientation)
     {
@@ -39,38 +38,6 @@ namespace
             return Orientation::landscape;
         }
         throw std::runtime_error("orientation must be portrait or landscape");
-    }
-
-    const char *anchorName(const AnchorAxis anchor)
-    {
-        switch (anchor)
-        {
-            case AnchorAxis::start:
-                return "start";
-            case AnchorAxis::end:
-                return "end";
-            case AnchorAxis::centre:
-            default:
-                return "centre";
-        }
-    }
-
-    AnchorAxis parseAnchor(const json &value)
-    {
-        const auto name = value.get<std::string>();
-        if (name == "start")
-        {
-            return AnchorAxis::start;
-        }
-        if (name == "centre")
-        {
-            return AnchorAxis::centre;
-        }
-        if (name == "end")
-        {
-            return AnchorAxis::end;
-        }
-        throw std::runtime_error("anchor must be start, centre, or end");
     }
 
     json pointToJson(const LogicalPoint point)
@@ -94,134 +61,24 @@ namespace
                 value.at("height").get<float>()};
     }
 
-    json itemToJson(const ArrangementItemModel &item)
-    {
-        return {{"id", item.id},
-                {"component", item.catalogId},
-                {"position", pointToJson(item.position)},
-                {"scale", item.scale},
-                {"referenceSize", sizeToJson(item.referenceSize)}};
-    }
-
-    ArrangementItemModel parseItem(const json &value)
-    {
-        ArrangementItemModel result;
-        result.id = value.at("id").get<std::uint64_t>();
-        result.catalogId = value.at("component").get<std::string>();
-        result.position = parsePoint(value.at("position"));
-        result.scale = value.at("scale").get<float>();
-        result.referenceSize = parseSize(value.at("referenceSize"));
-        return result;
-    }
-
     json nodeToJson(const ArrangementNodeModel &node)
     {
         json result{{"id", node.id},
-                    {"type", node.isGroup() ? "group" : "component"},
-                    {"anchorPosition", pointToJson(node.anchorPosition)},
+                    {"component", node.catalogId},
+                    {"center", pointToJson(node.center)},
                     {"widthFraction", node.widthFraction},
-                    {"referenceSize", sizeToJson(node.referenceSize)},
-                    {"anchor",
-                     {{"horizontal", anchorName(node.anchor.horizontal)},
-                      {"vertical", anchorName(node.anchor.vertical)}}}};
-        if (node.isGroup())
-        {
-            result["children"] = json::array();
-            for (const auto &child : node.children)
-            {
-                result["children"].push_back(itemToJson(child));
-            }
-        }
-        else
-        {
-            result["component"] = node.catalogId;
-        }
+                    {"referenceSize", sizeToJson(node.referenceSize)}};
         return result;
     }
 
-    ArrangementNodeModel parseNodeV2(const json &value)
+    ArrangementNodeModel parseNode(const json &value)
     {
         ArrangementNodeModel result;
         result.id = value.at("id").get<std::uint64_t>();
-        result.anchorPosition = parsePoint(value.at("anchorPosition"));
+        result.center = parsePoint(value.at("center"));
         result.widthFraction = value.at("widthFraction").get<float>();
         result.referenceSize = parseSize(value.at("referenceSize"));
-        const auto &anchor = value.at("anchor");
-        result.anchor = {parseAnchor(anchor.at("horizontal")),
-                         parseAnchor(anchor.at("vertical"))};
-
-        const auto type = value.at("type").get<std::string>();
-        if (type == "component")
-        {
-            result.catalogId = value.at("component").get<std::string>();
-        }
-        else if (type == "group")
-        {
-            const auto &children = value.at("children");
-            if (!children.is_array())
-            {
-                throw std::runtime_error("group children must be an array");
-            }
-            for (const auto &child : children)
-            {
-                result.children.push_back(parseItem(child));
-            }
-        }
-        else
-        {
-            throw std::runtime_error("node type must be component or group");
-        }
-        return result;
-    }
-
-    float anchorFactor(const AnchorAxis axis)
-    {
-        switch (axis)
-        {
-            case AnchorAxis::start:
-                return 0.f;
-            case AnchorAxis::end:
-                return 1.f;
-            case AnchorAxis::centre:
-            default:
-                return 0.5f;
-        }
-    }
-
-    ArrangementNodeModel parseNodeV1(const json &value,
-                                     const LogicalSize referenceSize)
-    {
-        ArrangementNodeModel result;
-        result.id = value.at("id").get<std::uint64_t>();
-        const auto position = parsePoint(value.at("position"));
-        const auto scale = value.at("scale").get<float>();
-        result.referenceSize = parseSize(value.at("referenceSize"));
-        const auto &anchor = value.at("anchor");
-        result.anchor = {parseAnchor(anchor.at("horizontal")),
-                         parseAnchor(anchor.at("vertical"))};
-        const LogicalSize size{result.referenceSize.width * scale,
-                               result.referenceSize.height * scale};
-        result.anchorPosition = normalizedAnchorPosition(
-            position, size, result.anchor, referenceSize);
-        result.widthFraction =
-            referenceSize.width > 0.f ? size.width / referenceSize.width : 0.f;
-
-        const auto type = value.at("type").get<std::string>();
-        if (type == "component")
-        {
-            result.catalogId = value.at("component").get<std::string>();
-        }
-        else if (type == "group")
-        {
-            for (const auto &child : value.at("children"))
-            {
-                result.children.push_back(parseItem(child));
-            }
-        }
-        else
-        {
-            throw std::runtime_error("node type must be component or group");
-        }
+        result.catalogId = value.at("component").get<std::string>();
         return result;
     }
 
@@ -240,74 +97,23 @@ namespace
                           std::string &error)
     {
         std::unordered_set<std::uint64_t> ids;
-        const auto validateItem =
-            [&ids, &error](const std::uint64_t id, const std::string &catalogId,
-                           const LogicalPoint position, const float scale,
-                           const LogicalSize referenceSize)
-        {
-            if (id == 0 || id == std::numeric_limits<std::uint64_t>::max() ||
-                !ids.insert(id).second)
-            {
-                error =
-                    "The design contains an invalid or duplicate component ID.";
-                return false;
-            }
-            if (catalogId.empty())
-            {
-                error = "The design contains a component without a type.";
-                return false;
-            }
-            if (!validPoint(position) || !std::isfinite(scale) ||
-                scale <= 0.f || !validSize(referenceSize))
-            {
-                error = "The design contains invalid component geometry.";
-                return false;
-            }
-            return true;
-        };
-
         for (const auto &node : document.nodes)
         {
-            const auto nodeType =
-                node.isGroup() ? std::string("group") : node.catalogId;
             if (node.id == 0 ||
                 node.id == std::numeric_limits<std::uint64_t>::max() ||
-                !ids.insert(node.id).second || nodeType.empty())
+                !ids.insert(node.id).second || node.catalogId.empty())
             {
                 error = "The design contains an invalid component ID or type.";
                 return false;
             }
-            if (!validPoint(node.anchorPosition) ||
-                node.anchorPosition.x < 0.f || node.anchorPosition.x > 1.f ||
-                node.anchorPosition.y < 0.f || node.anchorPosition.y > 1.f ||
-                !std::isfinite(node.widthFraction) ||
+            if (!validPoint(node.center) || node.center.x < 0.f ||
+                node.center.x > 1.f || node.center.y < 0.f ||
+                node.center.y > 1.f || !std::isfinite(node.widthFraction) ||
                 node.widthFraction <= 0.f || node.widthFraction > 1.f ||
                 !validSize(node.referenceSize))
             {
                 error = "The design contains invalid normalized geometry.";
                 return false;
-            }
-            for (const auto &child : node.children)
-            {
-                if (!validateItem(child.id, child.catalogId, child.position,
-                                  child.scale, child.referenceSize))
-                {
-                    return false;
-                }
-                const auto childRight =
-                    child.position.x + child.referenceSize.width * child.scale;
-                const auto childBottom =
-                    child.position.y + child.referenceSize.height * child.scale;
-                constexpr float epsilon = 0.001f;
-                if (child.position.x < -epsilon ||
-                    child.position.y < -epsilon ||
-                    childRight > node.referenceSize.width + epsilon ||
-                    childBottom > node.referenceSize.height + epsilon)
-                {
-                    error =
-                        "The design contains a group child outside its group.";
-                    return false;
-                }
             }
         }
         return true;
@@ -426,19 +232,6 @@ LogicalPoint vmpc_juce::gui::arrangement::constrainItemPosition(
 
 namespace
 {
-    AnchorAxis inferAnchorAxis(const float centre, const float extent)
-    {
-        if (centre < extent / 3.f)
-        {
-            return AnchorAxis::start;
-        }
-        if (centre > extent * 2.f / 3.f)
-        {
-            return AnchorAxis::end;
-        }
-        return AnchorAxis::centre;
-    }
-
     bool responsiveLayoutIsValid(const ResponsiveLayout &layout,
                                  const LogicalSize targetSize)
     {
@@ -477,46 +270,6 @@ namespace
         return true;
     }
 
-    ResponsiveLayout reflowProjectedLayout(ResponsiveLayout layout,
-                                           const LogicalSize targetSize)
-    {
-        std::vector<size_t> placementOrder(layout.nodes.size());
-        for (size_t i = 0; i < placementOrder.size(); ++i)
-        {
-            placementOrder[i] = i;
-        }
-        std::stable_sort(
-            placementOrder.begin(), placementOrder.end(),
-            [&layout](const auto firstIndex, const auto secondIndex)
-            {
-                const auto &first = layout.nodes[firstIndex].geometry.size;
-                const auto &second = layout.nodes[secondIndex].geometry.size;
-                return first.width * first.height >
-                       second.width * second.height;
-            });
-
-        std::vector<LogicalRect> placedRectangles;
-        placedRectangles.reserve(layout.nodes.size());
-        for (const auto index : placementOrder)
-        {
-            auto &geometry = layout.nodes[index].geometry;
-            const auto idealPosition = geometry.position;
-            const auto placedPosition = findNearestAvailablePosition(
-                idealPosition, geometry.size, targetSize, placedRectangles);
-            if (!placedPosition.has_value())
-            {
-                layout.hasValidPlacement = false;
-                return layout;
-            }
-
-            geometry.position = *placedPosition;
-            geometry.reflowOffset = {placedPosition->x - idealPosition.x,
-                                     placedPosition->y - idealPosition.y};
-            placedRectangles.push_back({geometry.position, geometry.size});
-        }
-        layout.hasValidPlacement = true;
-        return layout;
-    }
 } // namespace
 
 ProjectedNodeGeometry
@@ -535,34 +288,31 @@ ProjectedNodeGeometry vmpc_juce::gui::arrangement::projectNodeAtScale(
     {
         return {};
     }
-    const auto width = node.widthFraction * targetSize.width * sharedScale;
-    const auto projectedScale = width / node.referenceSize.width;
-    const LogicalSize size{width, node.referenceSize.height * projectedScale};
-    const LogicalPoint projectedPivot{node.anchorPosition.x * targetSize.width,
-                                      node.anchorPosition.y *
-                                          targetSize.height};
-    return {
-        {projectedPivot.x - size.width * anchorFactor(node.anchor.horizontal),
-         projectedPivot.y - size.height * anchorFactor(node.anchor.vertical)},
-        size,
-        projectedScale,
-        {}};
+    const auto scale = std::max(0.f, sharedScale);
+    const auto fullWidth = node.widthFraction * targetSize.width;
+    const auto fullProjectedScale = fullWidth / node.referenceSize.width;
+    const LogicalSize size{fullWidth * scale, node.referenceSize.height *
+                                                  fullProjectedScale * scale};
+    const LogicalPoint center{node.center.x * targetSize.width,
+                              node.center.y * targetSize.height};
+    return {{center.x - size.width * 0.5f, center.y - size.height * 0.5f},
+            size,
+            fullProjectedScale * scale};
 }
 
-LogicalPoint vmpc_juce::gui::arrangement::normalizedAnchorPosition(
-    const LogicalPoint projectedPosition, const LogicalSize projectedSize,
-    const ArrangementAnchor anchor, const LogicalSize targetSize)
+LogicalPoint vmpc_juce::gui::arrangement::normalizedCenter(
+    const ProjectedNodeGeometry geometry, const LogicalSize targetSize)
 {
     if (targetSize.width <= 0.f || targetSize.height <= 0.f)
     {
         return {};
     }
-    return {(projectedPosition.x +
-             projectedSize.width * anchorFactor(anchor.horizontal)) /
-                targetSize.width,
-            (projectedPosition.y +
-             projectedSize.height * anchorFactor(anchor.vertical)) /
-                targetSize.height};
+    return {std::clamp((geometry.position.x + geometry.size.width * 0.5f) /
+                           targetSize.width,
+                       0.f, 1.f),
+            std::clamp((geometry.position.y + geometry.size.height * 0.5f) /
+                           targetSize.height,
+                       0.f, 1.f)};
 }
 
 ResponsiveLayout vmpc_juce::gui::arrangement::projectDocumentAtScale(
@@ -591,8 +341,7 @@ ResponsiveLayout vmpc_juce::gui::arrangement::computeResponsiveLayout(
     }
 
     constexpr float upperScale = 1.f;
-    auto upperLayout = reflowProjectedLayout(
-        projectDocumentAtScale(document, targetSize, upperScale), targetSize);
+    auto upperLayout = projectDocumentAtScale(document, targetSize, upperScale);
     if (responsiveLayoutIsValid(upperLayout, targetSize))
     {
         return upperLayout;
@@ -603,9 +352,8 @@ ResponsiveLayout vmpc_juce::gui::arrangement::computeResponsiveLayout(
     for (int iteration = 0; iteration < 40; ++iteration)
     {
         const auto candidate = (lower + upper) * 0.5f;
-        const auto layout = reflowProjectedLayout(
-            projectDocumentAtScale(document, targetSize, candidate),
-            targetSize);
+        const auto layout =
+            projectDocumentAtScale(document, targetSize, candidate);
         if (responsiveLayoutIsValid(layout, targetSize))
         {
             lower = candidate;
@@ -615,8 +363,9 @@ ResponsiveLayout vmpc_juce::gui::arrangement::computeResponsiveLayout(
             upper = candidate;
         }
     }
-    return reflowProjectedLayout(
-        projectDocumentAtScale(document, targetSize, lower), targetSize);
+    auto result = projectDocumentAtScale(document, targetSize, lower);
+    result.hasValidPlacement = responsiveLayoutIsValid(result, targetSize);
+    return result;
 }
 
 const ProjectedNodeGeometry *vmpc_juce::gui::arrangement::findProjectedGeometry(
@@ -736,6 +485,76 @@ vmpc_juce::gui::arrangement::findNearestAvailablePosition(
     return best;
 }
 
+std::optional<LogicalPoint>
+vmpc_juce::gui::arrangement::findNearestAvailableAxisTranslation(
+    const LogicalPoint requestedDelta,
+    const std::vector<LogicalRect> &movingItems, const LogicalSize bounds,
+    const std::vector<LogicalRect> &obstacles, const float searchStep)
+{
+    constexpr float epsilon = 0.001f;
+    const auto horizontal = std::abs(requestedDelta.x) > epsilon &&
+                            std::abs(requestedDelta.y) <= epsilon;
+    const auto vertical = std::abs(requestedDelta.y) > epsilon &&
+                          std::abs(requestedDelta.x) <= epsilon;
+    if ((!horizontal && !vertical) || movingItems.empty())
+    {
+        return std::nullopt;
+    }
+
+    const auto requested =
+        std::abs(horizontal ? requestedDelta.x : requestedDelta.y);
+    const auto direction =
+        (horizontal ? requestedDelta.x : requestedDelta.y) > 0.f ? 1.f : -1.f;
+    auto maximum = std::numeric_limits<float>::max();
+    for (const auto item : movingItems)
+    {
+        const auto available =
+            horizontal ? direction > 0.f
+                             ? bounds.width - item.position.x - item.size.width
+                             : item.position.x
+            : direction > 0.f
+                ? bounds.height - item.position.y - item.size.height
+                : item.position.y;
+        maximum = std::min(maximum, available);
+    }
+    maximum = std::max(0.f, maximum);
+    if (maximum <= epsilon)
+    {
+        return std::nullopt;
+    }
+
+    const auto translationIsValid = [&](const float distance)
+    {
+        const LogicalPoint delta{horizontal ? direction * distance : 0.f,
+                                 vertical ? direction * distance : 0.f};
+        return std::all_of(
+            movingItems.begin(), movingItems.end(),
+            [&](const auto item)
+            {
+                return isPlacementValid(
+                    {{item.position.x + delta.x, item.position.y + delta.y},
+                     item.size},
+                    bounds, obstacles);
+            });
+    };
+
+    auto distance = std::min(requested, maximum);
+    while (distance <= maximum + epsilon)
+    {
+        if (translationIsValid(distance))
+        {
+            return LogicalPoint{horizontal ? direction * distance : 0.f,
+                                vertical ? direction * distance : 0.f};
+        }
+        if (searchStep <= epsilon || distance >= maximum - epsilon)
+        {
+            break;
+        }
+        distance = std::min(maximum, distance + searchStep);
+    }
+    return std::nullopt;
+}
+
 std::string vmpc_juce::gui::arrangement::serializeArrangementDocument(
     const ArrangementDocument &document)
 {
@@ -757,12 +576,12 @@ vmpc_juce::gui::arrangement::deserializeArrangementDocument(
     {
         const auto source = json::parse(contents);
         const auto format = source.at("format").get<std::string>();
-        if (format != designFormat && format != legacyDesignFormat)
+        if (format != designFormat)
         {
             throw std::runtime_error("not a VMPC2000XL arrangement");
         }
         const auto version = source.at("version").get<int>();
-        if (version != 1 && version != designFormatVersion)
+        if (version != designFormatVersion)
         {
             throw std::runtime_error("unsupported design version");
         }
@@ -773,25 +592,9 @@ vmpc_juce::gui::arrangement::deserializeArrangementDocument(
         {
             throw std::runtime_error("nodes must be an array");
         }
-        if (version == designFormatVersion)
+        for (const auto &node : nodes)
         {
-            for (const auto &node : nodes)
-            {
-                result.nodes.push_back(parseNodeV2(node));
-            }
-        }
-        else
-        {
-            const auto referenceSize =
-                parseSize(source.at("reference").at("size"));
-            if (!validSize(referenceSize))
-            {
-                throw std::runtime_error("invalid legacy reference size");
-            }
-            for (const auto &node : nodes)
-            {
-                result.nodes.push_back(parseNodeV1(node, referenceSize));
-            }
+            result.nodes.push_back(parseNode(node));
         }
 
         if (!validateDocument(result, errorMessage))
@@ -856,7 +659,7 @@ vmpc_juce::gui::arrangement::deserializeArrangementSetup(
             throw std::runtime_error("not a VMPC2000XL arrangement setup");
         }
         const auto version = source.at("version").get<int>();
-        if (version != 1 && version != setupFormatVersion)
+        if (version != setupFormatVersion)
         {
             throw std::runtime_error("unsupported setup version");
         }
@@ -876,8 +679,7 @@ vmpc_juce::gui::arrangement::deserializeArrangementSetup(
                 continue;
             }
             ArrangementSlot slot;
-            slot.id = version == 1 ? createArrangementId()
-                                   : sourceSlot.at("id").get<std::string>();
+            slot.id = sourceSlot.at("id").get<std::string>();
             if (!isValidArrangementId(slot.id) ||
                 !arrangementIds.insert(slot.id).second)
             {
@@ -923,22 +725,20 @@ std::string vmpc_juce::gui::arrangement::createArrangementId()
 
 bool vmpc_juce::gui::arrangement::isValidArrangementId(const std::string &id)
 {
-    if (id.size() != 32 ||
-        !std::all_of(id.begin(), id.end(),
-                     [](const unsigned char character)
-                     {
-                         return std::isxdigit(character) != 0;
-                     }))
+    if (id.size() != 32 || !std::all_of(id.begin(), id.end(),
+                                        [](const unsigned char character)
+                                        {
+                                            return std::isxdigit(character) !=
+                                                   0;
+                                        }))
     {
         return false;
     }
     const juce::Uuid uuid{juce::String(id)};
-    return !uuid.isNull() &&
-           uuid.toString().equalsIgnoreCase(juce::String(id));
+    return !uuid.isNull() && uuid.toString().equalsIgnoreCase(juce::String(id));
 }
 
-std::optional<std::size_t>
-vmpc_juce::gui::arrangement::findArrangementSlotById(
+std::optional<std::size_t> vmpc_juce::gui::arrangement::findArrangementSlotById(
     const ArrangementSetup &setup, const std::string &id)
 {
     for (std::size_t i = 0; i < setup.slots.size(); ++i)
@@ -952,15 +752,13 @@ vmpc_juce::gui::arrangement::findArrangementSlotById(
     return std::nullopt;
 }
 
-std::optional<std::size_t>
-vmpc_juce::gui::arrangement::resolveArrangementSlot(
+std::optional<std::size_t> vmpc_juce::gui::arrangement::resolveArrangementSlot(
     const ArrangementSetup &setup,
     const std::optional<std::string> &preferredId)
 {
     if (preferredId.has_value())
     {
-        if (const auto preferred =
-                findArrangementSlotById(setup, *preferredId))
+        if (const auto preferred = findArrangementSlotById(setup, *preferredId))
         {
             return preferred;
         }
@@ -1013,179 +811,4 @@ LogicalPoint vmpc_juce::gui::arrangement::positionForResizedNode(
         default:
             return startGeometry.position;
     }
-}
-
-ArrangementAnchor
-vmpc_juce::gui::arrangement::inferAnchor(const LogicalPoint position,
-                                         const LogicalSize size,
-                                         const LogicalSize canvasSize)
-{
-    return {
-        inferAnchorAxis(position.x + size.width * 0.5f, canvasSize.width),
-        inferAnchorAxis(position.y + size.height * 0.5f, canvasSize.height)};
-}
-
-void vmpc_juce::gui::arrangement::bakeProjectedGeometry(
-    ArrangementNodeModel &node, const ProjectedNodeGeometry geometry,
-    const LogicalSize targetSize)
-{
-    if (targetSize.width <= 0.f || targetSize.height <= 0.f)
-    {
-        return;
-    }
-
-    node.widthFraction = geometry.size.width / targetSize.width;
-    node.anchor = inferAnchor(geometry.position, geometry.size, targetSize);
-    node.anchorPosition = normalizedAnchorPosition(
-        geometry.position, geometry.size, node.anchor, targetSize);
-}
-
-ArrangementNodeModel vmpc_juce::gui::arrangement::makeFixedGroup(
-    const std::uint64_t groupId,
-    const std::vector<ArrangementNodeModel> &itemNodes,
-    const ResponsiveLayout &layout, const LogicalSize targetSize)
-{
-    ArrangementNodeModel group;
-    group.id = groupId;
-    if (itemNodes.empty() || targetSize.width <= 0.f)
-    {
-        return group;
-    }
-
-    const auto *firstGeometry =
-        findProjectedGeometry(layout, itemNodes.front().id);
-    if (firstGeometry == nullptr)
-    {
-        return group;
-    }
-    auto left = firstGeometry->position.x;
-    auto top = firstGeometry->position.y;
-    auto right = left + firstGeometry->size.width;
-    auto bottom = top + firstGeometry->size.height;
-    for (const auto &node : itemNodes)
-    {
-        const auto *geometry = findProjectedGeometry(layout, node.id);
-        if (geometry == nullptr)
-        {
-            return {};
-        }
-        left = std::min(left, geometry->position.x);
-        top = std::min(top, geometry->position.y);
-        right = std::max(right, geometry->position.x + geometry->size.width);
-        bottom = std::max(bottom, geometry->position.y + geometry->size.height);
-    }
-
-    const LogicalPoint displayedPosition{left, top};
-    const LogicalSize displayedSize{right - left, bottom - top};
-    group.referenceSize = displayedSize;
-    group.widthFraction = group.referenceSize.width / targetSize.width;
-    group.anchor = inferAnchor(displayedPosition, displayedSize, targetSize);
-    group.anchorPosition = normalizedAnchorPosition(
-        displayedPosition, displayedSize, group.anchor, targetSize);
-    group.children.reserve(itemNodes.size());
-    for (const auto &node : itemNodes)
-    {
-        const auto *geometry = findProjectedGeometry(layout, node.id);
-        group.children.push_back(
-            {node.id,
-             node.catalogId,
-             {geometry->position.x - left, geometry->position.y - top},
-             geometry->scale,
-             node.referenceSize});
-    }
-    return group;
-}
-
-std::vector<ArrangementNodeModel>
-vmpc_juce::gui::arrangement::ungroupFixedGroup(
-    const ArrangementNodeModel &group,
-    const ProjectedNodeGeometry groupGeometry, const LogicalSize targetSize)
-{
-    std::vector<ArrangementNodeModel> result;
-    if (targetSize.width <= 0.f)
-    {
-        return result;
-    }
-    result.reserve(group.children.size());
-    for (const auto &child : group.children)
-    {
-        ArrangementNodeModel node;
-        node.id = child.id;
-        node.catalogId = child.catalogId;
-        node.referenceSize = child.referenceSize;
-        const LogicalPoint displayedPosition{
-            groupGeometry.position.x + child.position.x * groupGeometry.scale,
-            groupGeometry.position.y + child.position.y * groupGeometry.scale};
-        const LogicalSize displayedSize{
-            child.referenceSize.width * child.scale * groupGeometry.scale,
-            child.referenceSize.height * child.scale * groupGeometry.scale};
-        node.widthFraction = displayedSize.width / targetSize.width;
-        node.anchor = inferAnchor(displayedPosition, displayedSize, targetSize);
-        node.anchorPosition = normalizedAnchorPosition(
-            displayedPosition, displayedSize, node.anchor, targetSize);
-        result.push_back(std::move(node));
-    }
-    return result;
-}
-
-std::vector<std::uint64_t>
-vmpc_juce::gui::arrangement::ungroupFixedGroup(
-    ArrangementDocument &document, const std::uint64_t groupId,
-    const ResponsiveLayout &layout, const LogicalSize targetSize)
-{
-    const auto found =
-        std::find_if(document.nodes.begin(), document.nodes.end(),
-                     [groupId](const auto &node)
-                     {
-                         return node.id == groupId;
-                     });
-    if (found == document.nodes.end() || !found->isGroup())
-    {
-        return {};
-    }
-
-    const auto *groupGeometry = findProjectedGeometry(layout, groupId);
-    if (groupGeometry == nullptr)
-    {
-        return {};
-    }
-
-    const auto index =
-        static_cast<size_t>(std::distance(document.nodes.begin(), found));
-    auto children = ungroupFixedGroup(*found, *groupGeometry, targetSize);
-    if (children.empty())
-    {
-        return {};
-    }
-
-    // Unaffected nodes may currently be displayed away from their stored
-    // anchors because the collision resolver reflowed them around the group.
-    // Bake those visible positions alongside the children so removing the
-    // group cannot make an outsider jump back and displace a child.
-    for (auto &node : document.nodes)
-    {
-        if (node.id == groupId)
-        {
-            continue;
-        }
-        if (const auto *geometry = findProjectedGeometry(layout, node.id))
-        {
-            bakeProjectedGeometry(node, *geometry, targetSize);
-        }
-    }
-
-    std::vector<std::uint64_t> childIds;
-    childIds.reserve(children.size());
-    for (const auto &child : children)
-    {
-        childIds.push_back(child.id);
-    }
-
-    document.nodes.erase(document.nodes.begin() +
-                         static_cast<std::ptrdiff_t>(index));
-    document.nodes.insert(document.nodes.begin() +
-                              static_cast<std::ptrdiff_t>(index),
-                          std::make_move_iterator(children.begin()),
-                          std::make_move_iterator(children.end()));
-    return childIds;
 }

@@ -30,18 +30,7 @@ namespace vmpc_juce::gui::arrangement
                 setInterceptsMouseClicks(false, false);
                 for (const auto &node : document.nodes)
                 {
-                    if (!node.isGroup())
-                    {
-                        addItem(node.catalogId, {}, 1.f);
-                    }
-                    else
-                    {
-                        for (const auto &child : node.children)
-                        {
-                            addItem(child.catalogId, child.position,
-                                    child.scale);
-                        }
-                    }
+                    addItem(node.catalogId);
                 }
             }
 
@@ -66,31 +55,12 @@ namespace vmpc_juce::gui::arrangement
                 const LogicalSize target{static_cast<float>(getWidth()),
                                          static_cast<float>(getHeight())};
                 const auto layout = computeResponsiveLayout(document, target);
-                std::size_t itemIndex = 0;
                 for (std::size_t nodeIndex = 0;
                      nodeIndex < document.nodes.size(); ++nodeIndex)
                 {
-                    const auto &node = document.nodes[nodeIndex];
                     const auto &geometry = layout.nodes[nodeIndex].geometry;
-                    if (!node.isGroup())
-                    {
-                        setItemBounds(*items[itemIndex++], geometry.position,
-                                      geometry.size, geometry.scale);
-                        continue;
-                    }
-                    for (const auto &child : node.children)
-                    {
-                        auto &item = *items[itemIndex++];
-                        const auto scale = geometry.scale * child.scale;
-                        setItemBounds(item,
-                                      {geometry.position.x +
-                                           child.position.x * geometry.scale,
-                                       geometry.position.y +
-                                           child.position.y * geometry.scale},
-                                      {child.referenceSize.width * scale,
-                                       child.referenceSize.height * scale},
-                                      scale);
-                    }
+                    setItemBounds(*items[nodeIndex], geometry.position,
+                                  geometry.size, geometry.scale);
                 }
             }
 
@@ -105,7 +75,7 @@ namespace vmpc_juce::gui::arrangement
                 std::function<juce::Font &()> getFaceplateFont;
             };
 
-            void addItem(const std::string &catalogId, LogicalPoint, float)
+            void addItem(const std::string &catalogId)
             {
                 auto item = std::make_unique<Item>();
                 const auto *entry = findCatalogEntry(catalogId);

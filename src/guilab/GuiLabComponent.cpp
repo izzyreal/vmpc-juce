@@ -320,39 +320,6 @@ public:
         setFocusContainerType(
             juce::Component::FocusContainerType::focusContainer);
 
-        groupButton.onClick = [this]
-        {
-            groupSelection();
-        };
-        ungroupButton.onClick = [this]
-        {
-            ungroupSelection();
-        };
-        for (auto *button : {&groupButton, &ungroupButton})
-        {
-            button->setColour(juce::TextButton::buttonColourId,
-                              juce::Colour(0xff343a38));
-            button->setColour(juce::TextButton::textColourOffId,
-                              juce::Colour(0xffedf2ef));
-            addAndMakeVisible(*button);
-        }
-
-        const std::array<juce::juce_wchar, 9> labelCharacters{
-            0x2196, 0x2191, 0x2197, 0x2190, 0x2022,
-            0x2192, 0x2199, 0x2193, 0x2198};
-        for (size_t i = 0; i < anchorButtons.size(); ++i)
-        {
-            auto button = std::make_unique<juce::TextButton>(
-                juce::String::charToString(labelCharacters[i]));
-            button->setTooltip("Anchor selected component");
-            button->onClick = [this, i]
-            {
-                setSelectedAnchor({static_cast<AnchorAxis>(i % 3),
-                                   static_cast<AnchorAxis>(i / 3)});
-            };
-            addAndMakeVisible(*button);
-            anchorButtons[i] = std::move(button);
-        }
         refreshSelection();
         refreshResponsiveLayout();
     }
@@ -378,36 +345,21 @@ public:
     {
         for (const auto &node : newDocument.nodes)
         {
-            if (!node.isGroup() && findCatalogEntry(node.catalogId) == nullptr)
+            if (findCatalogEntry(node.catalogId) == nullptr)
             {
                 errorMessage =
                     "The design uses an unknown component: " + node.catalogId;
                 return false;
             }
-            for (const auto &child : node.children)
-            {
-                if (findCatalogEntry(child.catalogId) == nullptr)
-                {
-                    errorMessage = "The design uses an unknown component: " +
-                                   child.catalogId;
-                    return false;
-                }
-            }
         }
 
         document = newDocument;
         frozenResponsiveScale.reset();
-        frozenResponsiveLayout.reset();
-        activeGestureNodeId.reset();
         selectedIds.clear();
         nextNodeId = 1;
         for (const auto &node : document.nodes)
         {
             nextNodeId = std::max(nextNodeId, node.id + 1);
-            for (const auto &child : node.children)
-            {
-                nextNodeId = std::max(nextNodeId, child.id + 1);
-            }
         }
         rebuildNodeComponents();
         resized();
@@ -453,22 +405,7 @@ public:
     void resized() override
     {
         auto available = getLocalBounds().reduced(18);
-        auto toolbar = available.removeFromTop(54);
-
-        groupButton.setBounds(toolbar.removeFromLeft(66).withHeight(24));
-        toolbar.removeFromLeft(6);
-        ungroupButton.setBounds(toolbar.removeFromLeft(76).withHeight(24));
-        constexpr int anchorButtonSize = 17;
-        auto anchorArea = getLocalBounds().reduced(18).removeFromTop(51);
-        anchorArea = anchorArea.removeFromRight(anchorButtonSize * 3);
-        for (size_t i = 0; i < anchorButtons.size(); ++i)
-        {
-            anchorButtons[i]->setBounds(
-                anchorArea.getX() + static_cast<int>(i % 3) * anchorButtonSize,
-                anchorArea.getY() + static_cast<int>(i / 3) * anchorButtonSize,
-                anchorButtonSize, anchorButtonSize);
-        }
-
+        available.removeFromTop(54);
         const auto deviceSize = getEffectiveDeviceSize(device, orientation);
         const auto horizontalZoom =
             static_cast<float>(available.getWidth()) / deviceSize.width;
@@ -488,7 +425,6 @@ public:
         {
             updateNodeBounds(*node);
         }
-        bringToolbarToFront();
     }
 
     void mouseDown(const juce::MouseEvent &event) override
@@ -516,19 +452,6 @@ public:
             (key.getKeyCode() == 'A' || key.getKeyCode() == 'a'))
         {
             selectAllNodes();
-            return true;
-        }
-
-        if (commandDown && (key.getKeyCode() == 'G' || key.getKeyCode() == 'g'))
-        {
-            if (modifiers.isShiftDown())
-            {
-                ungroupSelection();
-            }
-            else
-            {
-                groupSelection();
-            }
             return true;
         }
 
@@ -652,9 +575,8 @@ public:
         {
             projectedPosition = *nearest;
         }
-        model.anchor = inferAnchor(projectedPosition, itemSize, deviceSize);
-        model.anchorPosition = normalizedAnchorPosition(
-            projectedPosition, itemSize, model.anchor, deviceSize);
+        model.center = normalizedCenter(
+            {projectedPosition, itemSize, projectedScale}, deviceSize);
 
         document.nodes.push_back(std::move(model));
         selectedIds = {document.nodes.back().id};
@@ -775,28 +697,13 @@ private:
         {
             setMouseCursor(juce::MouseCursor::DraggingHandCursor);
             const auto *model = workspace.findNode(nodeId);
-            if (model != nullptr && model->isGroup())
-            {
-                for (const auto &child : model->children)
-                {
-                    if (const auto *entry = findCatalogEntry(child.catalogId))
-                    {
-                        auto preview =
-                            std::make_unique<PreviewComponent>(*entry);
-                        preview->setInterceptsMouseClicks(false, false);
-                        addAndMakeVisible(*preview);
-                        previews.push_back(std::move(preview));
-                    }
-                }
-            }
-            else if (model != nullptr)
+            if (model != nullptr)
             {
                 if (const auto *entry = findCatalogEntry(model->catalogId))
                 {
-                    auto preview = std::make_unique<PreviewComponent>(*entry);
+                    preview = std::make_unique<PreviewComponent>(*entry);
                     preview->setInterceptsMouseClicks(false, false);
                     addAndMakeVisible(*preview);
-                    previews.push_back(std::move(preview));
                 }
             }
             addAndMakeVisible(interactionLayer);
@@ -860,7 +767,7 @@ private:
         {
             workspace.selectNode(nodeId, event.mods.isShiftDown());
             workspace.grabKeyboardFocus();
-            workspace.beginGesture(nodeId);
+            workspace.beginGesture();
             startPosition = workspace.getProjectedGeometry(nodeId).position;
             startScreenPosition = event.getScreenPosition();
         }
@@ -883,7 +790,7 @@ private:
         {
             workspace.selectNode(nodeId, false);
             workspace.grabKeyboardFocus();
-            workspace.beginGesture(nodeId);
+            workspace.beginGesture();
             resizeStartGeometry = workspace.getProjectedGeometry(nodeId);
             resizeStartScreenPosition = event.getScreenPosition();
             resizeCorner = corner;
@@ -910,46 +817,19 @@ private:
         void layoutPreviews()
         {
             const auto *model = workspace.findNode(nodeId);
-            if (model == nullptr || previews.empty())
+            if (model == nullptr || preview == nullptr)
             {
                 return;
             }
 
-            if (!model->isGroup())
-            {
-                const auto geometry = workspace.getProjectedGeometry(nodeId);
-                previews.front()->setHardwareScale(geometry.scale *
-                                                   workspace.zoom);
-                previews.front()->setBounds(getLocalBounds());
-                return;
-            }
-
-            size_t previewIndex = 0;
-            for (const auto &child : model->children)
-            {
-                if (findCatalogEntry(child.catalogId) == nullptr ||
-                    previewIndex >= previews.size())
-                {
-                    continue;
-                }
-                const auto localScale =
-                    workspace.getProjectedGeometry(nodeId).scale *
-                    workspace.zoom;
-                auto &preview = *previews[previewIndex++];
-                preview.setHardwareScale(child.scale * localScale);
-                preview.setBounds(
-                    juce::roundToInt(child.position.x * localScale),
-                    juce::roundToInt(child.position.y * localScale),
-                    std::max(1, juce::roundToInt(child.referenceSize.width *
-                                                 child.scale * localScale)),
-                    std::max(1, juce::roundToInt(child.referenceSize.height *
-                                                 child.scale * localScale)));
-            }
+            const auto geometry = workspace.getProjectedGeometry(nodeId);
+            preview->setHardwareScale(geometry.scale * workspace.zoom);
+            preview->setBounds(getLocalBounds());
         }
 
         ArrangementWorkspace &workspace;
         std::uint64_t nodeId;
-        std::vector<std::unique_ptr<PreviewComponent>> previews;
+        std::unique_ptr<PreviewComponent> preview;
         InteractionLayer interactionLayer;
         std::vector<std::unique_ptr<ResizeHandle>> resizeHandles;
         LogicalPoint startPosition;
@@ -995,8 +875,7 @@ private:
     void refreshResponsiveLayout()
     {
         const auto targetSize = getEffectiveDeviceSize(device, orientation);
-        if (!frozenResponsiveScale.has_value() ||
-            !frozenResponsiveLayout.has_value())
+        if (!frozenResponsiveScale.has_value())
         {
             responsiveLayout = computeResponsiveLayout(document, targetSize);
             return;
@@ -1004,32 +883,13 @@ private:
 
         responsiveLayout = projectDocumentAtScale(document, targetSize,
                                                   *frozenResponsiveScale);
-        for (auto &projected : responsiveLayout.nodes)
-        {
-            const auto *frozen =
-                findProjectedGeometry(*frozenResponsiveLayout, projected.id);
-            if (frozen == nullptr)
-            {
-                continue;
-            }
-            if (activeGestureNodeId.has_value() &&
-                projected.id == *activeGestureNodeId)
-            {
-                continue;
-            }
-            projected.geometry.reflowOffset = frozen->reflowOffset;
-            projected.geometry.position.x += frozen->reflowOffset.x;
-            projected.geometry.position.y += frozen->reflowOffset.y;
-        }
     }
 
-    void beginGesture(const std::uint64_t nodeId)
+    void beginGesture()
     {
         if (!frozenResponsiveScale.has_value())
         {
             frozenResponsiveScale = responsiveLayout.sharedScale;
-            frozenResponsiveLayout = responsiveLayout;
-            activeGestureNodeId = nodeId;
         }
     }
 
@@ -1040,8 +900,6 @@ private:
             return;
         }
         frozenResponsiveScale.reset();
-        frozenResponsiveLayout.reset();
-        activeGestureNodeId.reset();
         refreshResponsiveLayout();
         for (auto &component : nodeComponents)
         {
@@ -1115,9 +973,7 @@ private:
         const auto geometry = getProjectedGeometry(id);
         const auto targetSize = getEffectiveDeviceSize(device, orientation);
         std::vector<LogicalRect> obstacles;
-        const auto &obstacleLayout =
-            frozenResponsiveLayout.value_or(responsiveLayout);
-        for (const auto &projected : obstacleLayout.nodes)
+        for (const auto &projected : responsiveLayout.nodes)
         {
             if (projected.id != id)
             {
@@ -1132,8 +988,9 @@ private:
         {
             return;
         }
-        node->anchorPosition = normalizedAnchorPosition(
-            *nearest, geometry.size, node->anchor, targetSize);
+        auto movedGeometry = geometry;
+        movedGeometry.position = *nearest;
+        node->center = normalizedCenter(movedGeometry, targetSize);
         refreshResponsiveLayout();
         updateAllNodeBounds();
     }
@@ -1155,8 +1012,6 @@ private:
         selected.reserve(selectedIds.size());
         auto minimumX = std::numeric_limits<float>::max();
         auto minimumY = std::numeric_limits<float>::max();
-        auto maximumX = std::numeric_limits<float>::lowest();
-        auto maximumY = std::numeric_limits<float>::lowest();
         for (const auto id : selectedIds)
         {
             auto *node = findNode(id);
@@ -1169,10 +1024,6 @@ private:
             selected.push_back({node, *geometry});
             minimumX = std::min(minimumX, geometry->position.x);
             minimumY = std::min(minimumY, geometry->position.y);
-            maximumX =
-                std::max(maximumX, geometry->position.x + geometry->size.width);
-            maximumY = std::max(maximumY,
-                                geometry->position.y + geometry->size.height);
         }
         if (selected.empty())
         {
@@ -1207,14 +1058,6 @@ private:
             }
         }
 
-        const auto targetSize = getEffectiveDeviceSize(device, orientation);
-        delta.x = std::clamp(delta.x, -minimumX, targetSize.width - maximumX);
-        delta.y = std::clamp(delta.y, -minimumY, targetSize.height - maximumY);
-        if (std::abs(delta.x) < 0.001f && std::abs(delta.y) < 0.001f)
-        {
-            return;
-        }
-
         std::vector<LogicalRect> obstacles;
         obstacles.reserve(responsiveLayout.nodes.size() - selected.size());
         for (const auto &projected : responsiveLayout.nodes)
@@ -1226,23 +1069,29 @@ private:
             }
         }
 
+        std::vector<LogicalRect> movingItems;
+        movingItems.reserve(selected.size());
         for (const auto &item : selected)
         {
-            const LogicalRect candidate{{item.geometry.position.x + delta.x,
-                                         item.geometry.position.y + delta.y},
-                                        item.geometry.size};
-            if (!isPlacementValid(candidate, targetSize, obstacles))
-            {
-                return;
-            }
+            movingItems.push_back({item.geometry.position, item.geometry.size});
         }
+        const auto targetSize = getEffectiveDeviceSize(device, orientation);
+        const auto availableTranslation = findNearestAvailableAxisTranslation(
+            delta, movingItems, targetSize, obstacles,
+            shouldSnap ? arrangementGridSize : 0.f);
+        if (!availableTranslation.has_value())
+        {
+            return;
+        }
+        delta = *availableTranslation;
 
         for (auto &item : selected)
         {
             const LogicalPoint position{item.geometry.position.x + delta.x,
                                         item.geometry.position.y + delta.y};
-            item.node->anchorPosition = normalizedAnchorPosition(
-                position, item.geometry.size, item.node->anchor, targetSize);
+            auto movedGeometry = item.geometry;
+            movedGeometry.position = position;
+            item.node->center = normalizedCenter(movedGeometry, targetSize);
         }
         refreshResponsiveLayout();
         updateAllNodeBounds();
@@ -1295,9 +1144,7 @@ private:
             std::clamp(requestedScale, 0.01f,
                        targetSize.width * sharedScale / referenceSize.width);
         std::vector<LogicalRect> obstacles;
-        const auto &obstacleLayout =
-            frozenResponsiveLayout.value_or(responsiveLayout);
-        for (const auto &projected : obstacleLayout.nodes)
+        for (const auto &projected : responsiveLayout.nodes)
         {
             if (projected.id != id)
             {
@@ -1314,7 +1161,7 @@ private:
             const auto displayedPosition = positionForResizedNode(
                 startGeometry, requestedProjectedSize, corner, useCentrePivot);
             return ProjectedNodeGeometry{
-                displayedPosition, requestedProjectedSize, projectedScale, {}};
+                displayedPosition, requestedProjectedSize, projectedScale};
         };
 
         auto requestedGeometry = makeGeometry(requestedScale);
@@ -1347,9 +1194,7 @@ private:
 
         node->widthFraction =
             requestedGeometry.size.width / (targetSize.width * sharedScale);
-        node->anchorPosition = normalizedAnchorPosition(
-            requestedGeometry.position, requestedGeometry.size, node->anchor,
-            targetSize);
+        node->center = normalizedCenter(requestedGeometry, targetSize);
         refreshResponsiveLayout();
         updateAllNodeBounds();
     }
@@ -1421,131 +1266,6 @@ private:
         {
             component->setSelected(isSelected(component->getNodeId()), single);
         }
-
-        auto canGroup =
-            selectedIds.size() >= 2 &&
-            std::all_of(selectedIds.begin(), selectedIds.end(),
-                        [this](const auto id)
-                        {
-                            const auto *node = findNode(id);
-                            return node != nullptr && !node->isGroup();
-                        });
-        const auto *singleNode =
-            single ? findNode(selectedIds.front()) : nullptr;
-        groupButton.setEnabled(canGroup);
-        ungroupButton.setEnabled(singleNode != nullptr &&
-                                 singleNode->isGroup());
-
-        for (size_t i = 0; i < anchorButtons.size(); ++i)
-        {
-            auto &button = *anchorButtons[i];
-            button.setEnabled(singleNode != nullptr);
-            const ArrangementAnchor represented{static_cast<AnchorAxis>(i % 3),
-                                                static_cast<AnchorAxis>(i / 3)};
-            button.setColour(juce::TextButton::buttonColourId,
-                             singleNode != nullptr &&
-                                     singleNode->anchor == represented
-                                 ? juce::Colour(0xff43b3dd)
-                                 : juce::Colour(0xff343a38));
-        }
-        bringToolbarToFront();
-    }
-
-    void bringToolbarToFront()
-    {
-        groupButton.toFront(false);
-        ungroupButton.toFront(false);
-        for (auto &button : anchorButtons)
-        {
-            if (button != nullptr)
-            {
-                button->toFront(false);
-            }
-        }
-    }
-
-    void setSelectedAnchor(const ArrangementAnchor anchor)
-    {
-        if (selectedIds.size() != 1)
-        {
-            return;
-        }
-        auto *node = findNode(selectedIds.front());
-        if (node == nullptr || node->anchor == anchor)
-        {
-            return;
-        }
-        const auto projected = getProjectedGeometry(node->id);
-        node->anchor = anchor;
-        node->anchorPosition = normalizedAnchorPosition(
-            projected.position, projected.size, anchor,
-            getEffectiveDeviceSize(device, orientation));
-        refreshResponsiveLayout();
-        updateAllNodeBounds();
-    }
-
-    void groupSelection()
-    {
-        std::vector<ArrangementNodeModel> selectedNodes;
-        size_t insertionIndex = document.nodes.size();
-        for (size_t i = 0; i < document.nodes.size(); ++i)
-        {
-            if (isSelected(document.nodes[i].id))
-            {
-                if (document.nodes[i].isGroup())
-                {
-                    return;
-                }
-                insertionIndex = std::min(insertionIndex, i);
-                selectedNodes.push_back(document.nodes[i]);
-            }
-        }
-        if (selectedNodes.size() < 2)
-        {
-            return;
-        }
-
-        auto group =
-            makeFixedGroup(nextNodeId++, selectedNodes, responsiveLayout,
-                           getEffectiveDeviceSize(device, orientation));
-        if (!group.isGroup())
-        {
-            return;
-        }
-        document.nodes.erase(std::remove_if(document.nodes.begin(),
-                                            document.nodes.end(),
-                                            [this](const auto &node)
-                                            {
-                                                return isSelected(node.id);
-                                            }),
-                             document.nodes.end());
-        insertionIndex = std::min(insertionIndex, document.nodes.size());
-        const auto groupId = group.id;
-        document.nodes.insert(document.nodes.begin() +
-                                  static_cast<std::ptrdiff_t>(insertionIndex),
-                              std::move(group));
-        selectedIds = {groupId};
-        refreshResponsiveLayout();
-        rebuildNodeComponents();
-    }
-
-    void ungroupSelection()
-    {
-        if (selectedIds.size() != 1)
-        {
-            return;
-        }
-        const auto groupId = selectedIds.front();
-        const auto targetSize = getEffectiveDeviceSize(device, orientation);
-        auto childIds = ungroupFixedGroup(document, groupId, responsiveLayout,
-                                          targetSize);
-        if (childIds.empty())
-        {
-            return;
-        }
-        selectedIds = std::move(childIds);
-        refreshResponsiveLayout();
-        rebuildNodeComponents();
     }
 
     DeviceProfile device;
@@ -1553,16 +1273,11 @@ private:
     ArrangementDocument document;
     ResponsiveLayout responsiveLayout;
     std::optional<float> frozenResponsiveScale;
-    std::optional<ResponsiveLayout> frozenResponsiveLayout;
-    std::optional<std::uint64_t> activeGestureNodeId;
     std::uint64_t nextNodeId = 1;
     float zoom = 1.f;
     juce::Rectangle<int> surfaceBounds;
     std::vector<std::unique_ptr<ArrangementNode>> nodeComponents;
     std::vector<std::uint64_t> selectedIds;
-    juce::TextButton groupButton{"Group"};
-    juce::TextButton ungroupButton{"Ungroup"};
-    std::array<std::unique_ptr<juce::TextButton>, 9> anchorButtons;
     bool isDragOverSurface = false;
 };
 
@@ -2130,9 +1845,8 @@ void GuiLabComponent::persistActiveSlot(const bool replaceIdentity)
                                     ? setup.slots[activeSlot]->id
                                     : std::string{};
         ArrangementSlot slot;
-        slot.id = replaceIdentity || existingId.empty()
-                      ? createArrangementId()
-                      : existingId;
+        slot.id = replaceIdentity || existingId.empty() ? createArrangementId()
+                                                        : existingId;
         slot.orientation = orientationSelector.getSelectedId() == 2
                                ? Orientation::landscape
                                : Orientation::portrait;

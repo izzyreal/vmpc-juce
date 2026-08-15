@@ -19,16 +19,14 @@ namespace
     }
 
     ArrangementNodeModel makeNode(const std::uint64_t id,
-                                  const LogicalPoint anchorPosition,
+                                  const LogicalPoint center,
                                   const float widthFraction,
-                                  const LogicalSize referenceSize,
-                                  const ArrangementAnchor anchor = {})
+                                  const LogicalSize referenceSize)
     {
         ArrangementNodeModel node;
         node.id = id;
         node.catalogId = "cursor";
-        node.anchor = anchor;
-        node.anchorPosition = anchorPosition;
+        node.center = center;
         node.widthFraction = widthFraction;
         node.referenceSize = referenceSize;
         return node;
@@ -121,31 +119,105 @@ TEST_CASE("GUI Lab item scale remains proportional and fits the device",
     CHECK(constrainItemScale(3.f, reference, {390.f, 844.f}) == 390.f / 230.f);
 }
 
-TEST_CASE("GUI Lab normalized width and anchors project without a device",
+TEST_CASE("GUI Lab normalized centre geometry projects onto a target",
           "[gui-lab][arrangement][responsive]")
 {
     const LogicalSize viewport{400.f, 300.f};
-    const auto node = makeNode(1, {0.25f, 0.5f}, 0.5f, {100.f, 50.f},
-                               {AnchorAxis::centre, AnchorAxis::end});
+    const auto node = makeNode(1, {0.25f, 0.5f}, 0.5f, {100.f, 50.f});
     const auto projected = projectNode(node, viewport);
     CHECK(projected.size.width == Catch::Approx(200.f));
     CHECK(projected.size.height == Catch::Approx(100.f));
     CHECK(projected.scale == Catch::Approx(2.f));
     CHECK(projected.position.x == Catch::Approx(0.f));
-    CHECK(projected.position.y == Catch::Approx(50.f));
+    CHECK(projected.position.y == Catch::Approx(100.f));
 
-    const auto normalized = normalizedAnchorPosition(
-        projected.position, projected.size, node.anchor, viewport);
-    CHECK(normalized.x == Catch::Approx(node.anchorPosition.x));
-    CHECK(normalized.y == Catch::Approx(node.anchorPosition.y));
+    const auto center = normalizedCenter(projected, viewport);
+    CHECK(center.x == Catch::Approx(node.center.x));
+    CHECK(center.y == Catch::Approx(node.center.y));
+}
+
+TEST_CASE("GUI Lab responsive scaling preserves component centres",
+          "[gui-lab][arrangement][responsive]")
+{
+    const LogicalSize viewport{400.f, 300.f};
+    const auto node = makeNode(1, {0.5f, 0.4f}, 0.5f, {100.f, 50.f});
+    const auto full = projectNodeAtScale(node, viewport, 1.f);
+    const auto compressed = projectNodeAtScale(node, viewport, 0.5f);
+
+    CHECK(full.position.x == Catch::Approx(100.f));
+    CHECK(full.position.y == Catch::Approx(70.f));
+    CHECK(full.size.width == Catch::Approx(200.f));
+    CHECK(full.size.height == Catch::Approx(100.f));
+    CHECK(compressed.position.x == Catch::Approx(150.f));
+    CHECK(compressed.position.y == Catch::Approx(95.f));
+    CHECK(compressed.size.width == Catch::Approx(100.f));
+    CHECK(compressed.size.height == Catch::Approx(50.f));
+    CHECK(compressed.position.x + compressed.size.width * 0.5f ==
+          Catch::Approx(full.position.x + full.size.width * 0.5f));
+    CHECK(compressed.position.y + compressed.size.height * 0.5f ==
+          Catch::Approx(full.position.y + full.size.height * 0.5f));
+}
+
+TEST_CASE("GUI Lab responsive solver centres compressed edge components",
+          "[gui-lab][arrangement][responsive]")
+{
+    ArrangementDocument document;
+    document.nodes = {makeNode(1, {0.5f, 0.5f}, 1.f, {100.f, 200.f})};
+
+    const LogicalSize viewport{100.f, 100.f};
+    const auto layout = computeResponsiveLayout(document, viewport);
+    REQUIRE(layout.nodes.size() == 1);
+    CHECK(layout.sharedScale == Catch::Approx(0.5f).margin(0.0001f));
+
+    const auto &geometry = layout.nodes.front().geometry;
+    CHECK(geometry.position.x + geometry.size.width * 0.5f ==
+          Catch::Approx(viewport.width * 0.5f));
+    CHECK(geometry.position.x > 0.f);
+    CHECK(geometry.position.y == Catch::Approx(0.f).margin(0.0011f));
+}
+
+TEST_CASE("GUI Lab centre-scaled projection has an editing inverse",
+          "[gui-lab][arrangement][responsive]")
+{
+    const LogicalSize viewport{400.f, 300.f};
+    const auto node = makeNode(1, {0.3f, 0.4f}, 0.5f, {100.f, 50.f});
+    auto displayed = projectNodeAtScale(node, viewport, 0.5f);
+
+    const auto originalCenter = normalizedCenter(displayed, viewport);
+    CHECK(originalCenter.x == Catch::Approx(node.center.x));
+    CHECK(originalCenter.y == Catch::Approx(node.center.y));
+
+    displayed.position.x += 20.f;
+    displayed.position.y += 15.f;
+    const auto movedCenter = normalizedCenter(displayed, viewport);
+    auto moved = node;
+    moved.center = movedCenter;
+    const auto restored = projectNodeAtScale(moved, viewport, 0.5f);
+    CHECK(restored.position.x == Catch::Approx(displayed.position.x));
+    CHECK(restored.position.y == Catch::Approx(displayed.position.y));
+    CHECK(restored.size.width == Catch::Approx(displayed.size.width));
+    CHECK(restored.size.height == Catch::Approx(displayed.size.height));
+}
+
+TEST_CASE("GUI Lab adapted components can be moved to the screen edge",
+          "[gui-lab][arrangement][responsive]")
+{
+    const LogicalSize viewport{320.f, 480.f};
+    auto node = makeNode(1, {0.5f, 0.087f}, 1.f, {222.52338f, 84.19710f});
+    auto displayed = projectNodeAtScale(node, viewport, 0.69f);
+    displayed.position.y = 0.f;
+
+    node.center = normalizedCenter(displayed, viewport);
+    const auto restored = projectNodeAtScale(node, viewport, 0.69f);
+    CHECK(restored.position.y == Catch::Approx(0.f).margin(0.0001f));
+    CHECK(node.center.y > 0.f);
 }
 
 TEST_CASE("GUI Lab width fraction one spans the available width",
           "[gui-lab][arrangement][responsive]")
 {
     ArrangementDocument document;
-    document.nodes = {makeNode(1, {0.5f, 0.f}, 1.f, {200.f, 50.f},
-                               {AnchorAxis::centre, AnchorAxis::start})};
+    document.nodes = {makeNode(1, {0.5f, 0.5f}, 1.f, {200.f, 50.f})};
 
     for (const auto viewport :
          {LogicalSize{320.f, 568.f}, LogicalSize{428.f, 926.f},
@@ -160,28 +232,60 @@ TEST_CASE("GUI Lab width fraction one spans the available width",
     }
 }
 
-TEST_CASE("GUI Lab responsive layout compresses and reflows when necessary",
+TEST_CASE("GUI Lab normalized geometry adapts without mutating the document",
+          "[gui-lab][arrangement][responsive]")
+{
+    ArrangementDocument document{
+        {makeNode(1, {0.3f, 0.4f}, 0.4f, {100.f, 50.f})}};
+
+    for (const auto viewport :
+         {LogicalSize{320.f, 568.f}, LogicalSize{844.f, 390.f}})
+    {
+        const auto layout = computeResponsiveLayout(document, viewport);
+        REQUIRE(layout.nodes.size() == 1);
+        REQUIRE(layout.sharedScale == Catch::Approx(1.f));
+        const auto &geometry = layout.nodes.front().geometry;
+        CHECK(geometry.position.x + geometry.size.width * 0.5f ==
+              Catch::Approx(viewport.width * 0.3f));
+        CHECK(geometry.position.y + geometry.size.height * 0.5f ==
+              Catch::Approx(viewport.height * 0.4f));
+        CHECK(geometry.size.width == Catch::Approx(viewport.width * 0.4f));
+        CHECK(geometry.size.height == Catch::Approx(viewport.width * 0.2f));
+    }
+
+    CHECK(document.nodes.front().center.x == Catch::Approx(0.3f));
+    CHECK(document.nodes.front().center.y == Catch::Approx(0.4f));
+    CHECK(document.nodes.front().widthFraction == Catch::Approx(0.4f));
+}
+
+TEST_CASE("GUI Lab responsive layout compresses without moving centres",
           "[gui-lab][arrangement][responsive]")
 {
     ArrangementDocument document;
-    document.nodes = {makeNode(1, {0.5f, 0.5f}, 0.6f, {100.f, 100.f}),
-                      makeNode(2, {0.5f, 0.5f}, 0.6f, {100.f, 100.f})};
+    document.nodes = {makeNode(1, {0.35f, 0.5f}, 0.6f, {100.f, 100.f}),
+                      makeNode(2, {0.65f, 0.5f}, 0.6f, {100.f, 100.f})};
 
     const LogicalSize viewport{100.f, 100.f};
     const auto layout = computeResponsiveLayout(document, viewport);
     CHECK(layout.sharedScale > 0.f);
     CHECK(layout.sharedScale < 1.f);
     checkValidLayout(layout, viewport);
+    for (size_t i = 0; i < layout.nodes.size(); ++i)
+    {
+        const auto center =
+            normalizedCenter(layout.nodes[i].geometry, viewport);
+        CHECK(center.x == Catch::Approx(document.nodes[i].center.x));
+        CHECK(center.y == Catch::Approx(document.nodes[i].center.y));
+    }
 }
 
 TEST_CASE("GUI Lab normalized layout remains valid across catalog screens",
           "[gui-lab][arrangement][responsive]")
 {
     ArrangementDocument document;
-    document.nodes = {makeNode(1, {0.5f, 0.f}, 0.9f, {230.f, 116.f},
-                               {AnchorAxis::centre, AnchorAxis::start}),
-                      makeNode(2, {0.2f, 0.55f}, 0.28f, {85.f, 84.f}),
-                      makeNode(3, {0.75f, 0.55f}, 0.24f, {72.f, 80.f})};
+    document.nodes = {makeNode(1, {0.5f, 0.15f}, 0.9f, {230.f, 116.f}),
+                      makeNode(2, {0.3f, 0.65f}, 0.28f, {85.f, 84.f}),
+                      makeNode(3, {0.75f, 0.65f}, 0.24f, {72.f, 80.f})};
 
     for (const auto &device : getDeviceProfiles())
     {
@@ -201,155 +305,52 @@ TEST_CASE("GUI Lab normalized layout remains valid across catalog screens",
     }
 }
 
-TEST_CASE("GUI Lab fixed groups preserve displayed child geometry",
-          "[gui-lab][arrangement][responsive][group]")
+TEST_CASE("GUI Lab tall iPhone layout preserves its structure on iPhone 2G",
+          "[gui-lab][arrangement][responsive]")
 {
-    const LogicalSize viewport{100.f, 200.f};
-    auto first = makeNode(1, {0.1f, 0.1f}, 0.2f, {20.f, 10.f},
-                          {AnchorAxis::start, AnchorAxis::start});
-    first.catalogId = "cursor";
-    auto second = makeNode(2, {0.6f, 0.075f}, 0.1f, {10.f, 30.f},
-                           {AnchorAxis::start, AnchorAxis::start});
-    second.catalogId = "data-wheel";
-    ArrangementDocument document{{first, second}};
-    const auto originalLayout = computeResponsiveLayout(document, viewport);
-    REQUIRE(originalLayout.sharedScale == Catch::Approx(1.f));
+    ArrangementDocument document;
+    document.nodes = {makeNode(1, {0.5f, 0.087f}, 1.f, {222.52338f, 84.19710f}),
+                      makeNode(2, {0.5f, 0.207f}, 1.f, {180.f, 25.f}),
+                      makeNode(3, {0.5f, 0.434f}, 0.8426667f, {85.f, 84.f}),
+                      makeNode(4, {0.786f, 0.737f}, 0.4128024f, {72.f, 80.f}),
+                      makeNode(5, {0.320f, 0.657f}, 0.4906667f, {90.f, 21.f}),
+                      makeNode(6, {0.309f, 0.759f}, 0.5001716f, {48.f, 31.f}),
+                      makeNode(7, {0.5f, 0.879f}, 1.f, {179.f, 28.f}),
+                      makeNode(8, {0.5f, 0.961f}, 1.f, {179.f, 30.f})};
 
-    const auto group =
-        makeFixedGroup(3, document.nodes, originalLayout, viewport);
-    REQUIRE(group.isGroup());
-    CHECK(group.referenceSize.width == Catch::Approx(60.f));
-    CHECK(group.referenceSize.height == Catch::Approx(30.f));
-    REQUIRE(group.children.size() == 2);
+    const LogicalSize iphone2G{320.f, 480.f};
+    const auto layout = computeResponsiveLayout(document, iphone2G);
+    CHECK(layout.sharedScale > 0.65f);
+    checkValidLayout(layout, iphone2G);
 
-    ArrangementDocument grouped{{group}};
-    const auto groupLayout = computeResponsiveLayout(grouped, viewport);
-    REQUIRE(groupLayout.nodes.size() == 1);
-    const auto children =
-        ungroupFixedGroup(group, groupLayout.nodes[0].geometry, viewport);
-    ArrangementDocument ungrouped{children};
-    const auto restoredLayout = computeResponsiveLayout(ungrouped, viewport);
-    REQUIRE(restoredLayout.nodes.size() == originalLayout.nodes.size());
-    for (const auto &original : originalLayout.nodes)
+    for (size_t i = 0; i < layout.nodes.size(); ++i)
     {
-        const auto *restored =
-            findProjectedGeometry(restoredLayout, original.id);
-        REQUIRE(restored != nullptr);
-        CHECK(restored->position.x ==
-              Catch::Approx(original.geometry.position.x));
-        CHECK(restored->position.y ==
-              Catch::Approx(original.geometry.position.y));
-        CHECK(restored->size.width ==
-              Catch::Approx(original.geometry.size.width));
-        CHECK(restored->size.height ==
-              Catch::Approx(original.geometry.size.height));
+        const auto center =
+            normalizedCenter(layout.nodes[i].geometry, iphone2G);
+        CHECK(center.x == Catch::Approx(document.nodes[i].center.x));
+        CHECK(center.y == Catch::Approx(document.nodes[i].center.y));
     }
-}
 
-TEST_CASE("GUI Lab ungrouping preserves reflowed unrelated components",
-          "[gui-lab][arrangement][responsive][group]")
-{
-    const LogicalSize viewport{100.f, 100.f};
-
-    ArrangementNodeModel group;
-    group.id = 3;
-    group.anchor = {AnchorAxis::start, AnchorAxis::start};
-    group.anchorPosition = {0.f, 0.f};
-    group.widthFraction = 0.6f;
-    group.referenceSize = {60.f, 20.f};
-    group.children = {
-        {1, "cursor", {0.f, 0.f}, 1.f, {20.f, 20.f}},
-        {2, "data-wheel", {40.f, 0.f}, 1.f, {20.f, 20.f}}};
-
-    auto unrelated = makeNode(4, {0.f, 0.f}, 0.2f, {20.f, 20.f},
-                              {AnchorAxis::start, AnchorAxis::start});
-    unrelated.catalogId = "num-pad";
-    ArrangementDocument grouped{{group, unrelated}};
-    const auto groupedLayout = computeResponsiveLayout(grouped, viewport);
-    REQUIRE(groupedLayout.nodes.size() == 2);
-    REQUIRE(groupedLayout.sharedScale == Catch::Approx(1.f));
-
-    const auto *groupGeometry = findProjectedGeometry(groupedLayout, group.id);
-    const auto *unrelatedGeometry =
-        findProjectedGeometry(groupedLayout, unrelated.id);
-    REQUIRE(groupGeometry != nullptr);
-    REQUIRE(unrelatedGeometry != nullptr);
-    CHECK(unrelatedGeometry->position.y !=
-          Catch::Approx(unrelated.anchorPosition.y * viewport.height));
-
-    const std::array<ProjectedNodeGeometry, 2> displayedChildren{{
-        {{groupGeometry->position.x,
-          groupGeometry->position.y},
-         {20.f, 20.f},
-         1.f,
-         {}},
-        {{groupGeometry->position.x + 40.f,
-          groupGeometry->position.y},
-         {20.f, 20.f},
-         1.f,
-         {}}}};
-
-    const auto childIds =
-        ungroupFixedGroup(grouped, group.id, groupedLayout, viewport);
-    REQUIRE(childIds == std::vector<std::uint64_t>{1, 2});
-    REQUIRE(grouped.nodes.size() == 3);
-    CHECK(grouped.nodes[0].id == 1);
-    CHECK(grouped.nodes[0].catalogId == "cursor");
-    CHECK(grouped.nodes[1].id == 2);
-    CHECK(grouped.nodes[1].catalogId == "data-wheel");
-    CHECK(grouped.nodes[2].id == 4);
-    CHECK(grouped.nodes[2].catalogId == "num-pad");
-    const auto ungroupedLayout = computeResponsiveLayout(grouped, viewport);
-    REQUIRE(ungroupedLayout.sharedScale == Catch::Approx(1.f));
-
-    for (size_t i = 0; i < childIds.size(); ++i)
-    {
-        const auto *restored =
-            findProjectedGeometry(ungroupedLayout, childIds[i]);
-        REQUIRE(restored != nullptr);
-        CHECK(restored->position.x ==
-              Catch::Approx(displayedChildren[i].position.x));
-        CHECK(restored->position.y ==
-              Catch::Approx(displayedChildren[i].position.y));
-    }
-    const auto *restoredUnrelated =
-        findProjectedGeometry(ungroupedLayout, unrelated.id);
-    REQUIRE(restoredUnrelated != nullptr);
-    CHECK(restoredUnrelated->position.x ==
-          Catch::Approx(unrelatedGeometry->position.x));
-    CHECK(restoredUnrelated->position.y ==
-          Catch::Approx(unrelatedGeometry->position.y));
-}
-
-TEST_CASE(
-    "GUI Lab grouping a compressed layout bakes valid normalized geometry",
-    "[gui-lab][arrangement][responsive][group]")
-{
-    const LogicalSize viewport{100.f, 100.f};
-    auto first = makeNode(1, {0.5f, 0.5f}, 0.8f, {100.f, 100.f});
-    first.catalogId = "cursor";
-    auto second = makeNode(2, {0.5f, 0.5f}, 0.8f, {100.f, 100.f});
-    second.catalogId = "data-wheel";
-    ArrangementDocument document{{first, second}};
-    const auto compressed = computeResponsiveLayout(document, viewport);
-    REQUIRE(compressed.sharedScale > 0.f);
-    REQUIRE(compressed.sharedScale < 1.f);
-    REQUIRE(compressed.hasValidPlacement);
-
-    const auto group = makeFixedGroup(3, document.nodes, compressed, viewport);
-    REQUIRE(group.isGroup());
-    CHECK(group.widthFraction > 0.f);
-    CHECK(group.widthFraction <= 1.f);
-
-    ArrangementDocument grouped{{group}};
-    std::string error;
-    const auto restored = deserializeArrangementDocument(
-        serializeArrangementDocument(grouped), error);
-    INFO(error);
-    REQUIRE(restored.has_value());
-    REQUIRE(restored->nodes.size() == 1);
-    CHECK(restored->nodes[0].widthFraction ==
-          Catch::Approx(group.widthFraction));
+    const auto *lcd = findProjectedGeometry(layout, 1);
+    const auto *dataWheel = findProjectedGeometry(layout, 4);
+    const auto *cursor = findProjectedGeometry(layout, 6);
+    const auto *locate = findProjectedGeometry(layout, 7);
+    const auto *transport = findProjectedGeometry(layout, 8);
+    REQUIRE(lcd != nullptr);
+    REQUIRE(dataWheel != nullptr);
+    REQUIRE(cursor != nullptr);
+    REQUIRE(locate != nullptr);
+    REQUIRE(transport != nullptr);
+    CHECK(lcd->position.y < 1.f);
+    CHECK(locate->position.y >=
+          Catch::Approx(dataWheel->position.y + dataWheel->size.height)
+              .margin(0.01f));
+    CHECK(
+        locate->position.y >=
+        Catch::Approx(cursor->position.y + cursor->size.height).margin(0.01f));
+    CHECK(
+        transport->position.y >=
+        Catch::Approx(locate->position.y + locate->size.height).margin(0.01f));
 }
 
 TEST_CASE("GUI Lab placement finds the nearest non-overlapping gap",
@@ -363,6 +364,35 @@ TEST_CASE("GUI Lab placement finds the nearest non-overlapping gap",
     CHECK(nearest->y == Catch::Approx(30.f));
     CHECK(
         isPlacementValid({*nearest, {20.f, 20.f}}, {100.f, 100.f}, obstacles));
+}
+
+TEST_CASE("GUI Lab snapped keyboard movement skips blocked grid positions",
+          "[gui-lab][arrangement][collision]")
+{
+    const LogicalSize bounds{100.f, 100.f};
+    const std::vector<LogicalRect> moving{{{10.f, 40.f}, {10.f, 10.f}}};
+    const std::vector<LogicalRect> obstacles{{{22.f, 0.f}, {4.f, 100.f}}};
+
+    const auto snapped = findNearestAvailableAxisTranslation(
+        {4.f, 0.f}, moving, bounds, obstacles, 4.f);
+    REQUIRE(snapped.has_value());
+    CHECK(snapped->x == Catch::Approx(16.f));
+    CHECK(snapped->y == Catch::Approx(0.f));
+
+    CHECK_FALSE(findNearestAvailableAxisTranslation({4.f, 0.f}, moving, bounds,
+                                                    obstacles)
+                    .has_value());
+}
+
+TEST_CASE("GUI Lab keyboard movement clamps its final step to the edge",
+          "[gui-lab][arrangement][collision]")
+{
+    const std::vector<LogicalRect> moving{{{89.f, 40.f}, {10.f, 10.f}}};
+    const auto translation = findNearestAvailableAxisTranslation(
+        {4.f, 0.f}, moving, {100.f, 100.f}, {}, 4.f);
+    REQUIRE(translation.has_value());
+    CHECK(translation->x == Catch::Approx(1.f));
+    CHECK(translation->y == Catch::Approx(0.f));
 }
 
 TEST_CASE("GUI Lab corner resizing preserves the selected pivot",
@@ -383,67 +413,49 @@ TEST_CASE("GUI Lab corner resizing preserves the selected pivot",
     CHECK(centred.y == Catch::Approx(15.f));
 }
 
-TEST_CASE("GUI Lab version two designs are device agnostic",
+TEST_CASE("GUI Lab version four designs use normalized centre geometry",
           "[gui-lab][arrangement][serialization]")
 {
     ArrangementDocument document;
-    auto component = makeNode(1, {0.8f, 0.25f}, 0.2f, {48.f, 48.f},
-                              {AnchorAxis::end, AnchorAxis::centre});
+    auto component = makeNode(1, {0.8f, 0.25f}, 0.2f, {48.f, 48.f});
     component.catalogId = "cursor";
     document.nodes = {component};
 
     const auto contents = serializeArrangementDocument(document);
     const auto json = nlohmann::json::parse(contents);
-    CHECK(json.at("version") == 2);
+    CHECK(json.at("version") == 4);
     CHECK_FALSE(json.contains("reference"));
     CHECK_FALSE(json.contains("target"));
-    CHECK(json.at("nodes")[0].contains("anchorPosition"));
+    CHECK(json.at("nodes")[0].contains("center"));
+    CHECK_FALSE(json.at("nodes")[0].contains("position"));
     CHECK(json.at("nodes")[0].contains("widthFraction"));
+    CHECK_FALSE(json.at("nodes")[0].contains("anchor"));
+    CHECK_FALSE(json.at("nodes")[0].contains("anchorPosition"));
+    CHECK_FALSE(json.at("nodes")[0].contains("type"));
+    CHECK_FALSE(json.at("nodes")[0].contains("children"));
 
     std::string error;
     const auto loaded = deserializeArrangementDocument(contents, error);
     REQUIRE(loaded.has_value());
     REQUIRE(loaded->nodes.size() == 1);
-    CHECK(loaded->nodes[0].anchor == component.anchor);
-    CHECK(loaded->nodes[0].anchorPosition.x ==
-          Catch::Approx(component.anchorPosition.x));
+    CHECK(loaded->nodes[0].center.x == Catch::Approx(component.center.x));
+    CHECK(loaded->nodes[0].center.y == Catch::Approx(component.center.y));
     CHECK(loaded->nodes[0].widthFraction ==
           Catch::Approx(component.widthFraction));
 }
 
-TEST_CASE("GUI Lab version one designs migrate from their reference canvas",
-          "[gui-lab][arrangement][serialization][migration]")
+TEST_CASE("GUI Lab old arrangement versions are unsupported",
+          "[gui-lab][arrangement][serialization]")
 {
-    constexpr auto legacy = R"({
-      "format": "vmpc2000xl-gui-lab-arrangement",
-      "version": 1,
-      "reference": {
-        "device": "iphone-2g-3g-3gs",
-        "orientation": "portrait",
-        "size": { "width": 100, "height": 200 }
-      },
-      "target": {
-        "device": "galaxy-s9-plus",
-        "orientation": "landscape"
-      },
-      "nodes": [{
-        "id": 1,
-        "type": "component",
-        "component": "cursor",
-        "position": { "x": 10, "y": 20 },
-        "scale": 2,
-        "referenceSize": { "width": 20, "height": 10 },
-        "anchor": { "horizontal": "centre", "vertical": "end" }
-      }]
+    constexpr auto oldVersion = R"({
+      "format": "vmpc2000xl-arrangement",
+      "version": 3,
+      "nodes": []
     })";
 
     std::string error;
-    const auto loaded = deserializeArrangementDocument(legacy, error);
-    REQUIRE(loaded.has_value());
-    REQUIRE(loaded->nodes.size() == 1);
-    CHECK(loaded->nodes[0].widthFraction == Catch::Approx(0.4f));
-    CHECK(loaded->nodes[0].anchorPosition.x == Catch::Approx(0.3f));
-    CHECK(loaded->nodes[0].anchorPosition.y == Catch::Approx(0.2f));
+    CHECK_FALSE(deserializeArrangementDocument(oldVersion, error).has_value());
+    CHECK(error.find("unsupported design version") != std::string::npos);
 }
 
 TEST_CASE("GUI Lab arrangement loading rejects invalid normalized files",
@@ -478,9 +490,7 @@ TEST_CASE("Arrangement setup round-trips five ordered slots",
     ArrangementSlot first;
     first.id = arrangementId('1');
     first.orientation = Orientation::portrait;
-    first.arrangement.nodes = {
-        makeNode(1, {0.5f, 0.f}, 1.f, {210.f, 55.f},
-                 {AnchorAxis::centre, AnchorAxis::start})};
+    first.arrangement.nodes = {makeNode(1, {0.5f, 0.1f}, 1.f, {210.f, 55.f})};
     first.arrangement.nodes.front().catalogId = "lcd-bare";
     setup.slots[0] = first;
 
@@ -494,7 +504,7 @@ TEST_CASE("Arrangement setup round-trips five ordered slots",
     const auto contents = serializeArrangementSetup(setup);
     const auto json = nlohmann::json::parse(contents);
     CHECK(json.at("format") == "vmpc2000xl-arrangement-setup");
-    CHECK(json.at("version") == 2);
+    CHECK(json.at("version") == 4);
     CHECK(json.at("slots").size() == 5);
     CHECK(json.at("slots")[1].is_null());
     CHECK(json.at("slots")[0].at("id") == arrangementId('1'));
@@ -518,7 +528,14 @@ TEST_CASE("Arrangement setup rejects invalid shape and catalog entries",
     std::string error;
     CHECK_FALSE(
         deserializeArrangementSetup(
-            R"({"format":"vmpc2000xl-arrangement-setup","version":1,"slots":[]})",
+            R"({"format":"vmpc2000xl-arrangement-setup","version":3,"slots":[null,null,null,null,null]})",
+            error)
+            .has_value());
+    CHECK(error.find("unsupported setup version") != std::string::npos);
+
+    CHECK_FALSE(
+        deserializeArrangementSetup(
+            R"({"format":"vmpc2000xl-arrangement-setup","version":4,"slots":[]})",
             error)
             .has_value());
     CHECK(error.find("exactly five") != std::string::npos);
@@ -535,20 +552,18 @@ TEST_CASE("Arrangement setup rejects invalid shape and catalog entries",
     CHECK(error.find("Unknown arrangement component") != std::string::npos);
 }
 
-TEST_CASE("Arrangement setup IDs migrate and remain stable across reordering",
-          "[arrangement][setup][migration]")
+TEST_CASE("Arrangement setup IDs remain stable across reordering",
+          "[arrangement][setup]")
 {
     ArrangementSetup setup;
     ArrangementSlot first;
     first.id = arrangementId('1');
-    first.arrangement.nodes = {
-        makeNode(1, {0.5f, 0.5f}, 0.2f, {48.f, 48.f})};
+    first.arrangement.nodes = {makeNode(1, {0.5f, 0.5f}, 0.2f, {48.f, 48.f})};
     setup.slots[0] = first;
 
     ArrangementSlot second;
     second.id = arrangementId('2');
-    second.arrangement.nodes = {
-        makeNode(2, {0.5f, 0.5f}, 0.2f, {48.f, 48.f})};
+    second.arrangement.nodes = {makeNode(2, {0.5f, 0.5f}, 0.2f, {48.f, 48.f})};
     setup.slots[1] = second;
 
     CHECK(resolveArrangementSlot(setup, second.id) ==
@@ -558,32 +573,6 @@ TEST_CASE("Arrangement setup IDs migrate and remain stable across reordering",
           std::optional<std::size_t>(0));
     CHECK(resolveArrangementSlot(setup, arrangementId('3')) ==
           std::optional<std::size_t>(0));
-
-    auto legacy = nlohmann::json::parse(serializeArrangementSetup(setup));
-    legacy["version"] = 1;
-    for (auto &legacySlot : legacy["slots"])
-    {
-        if (!legacySlot.is_null())
-        {
-            legacySlot.erase("id");
-        }
-    }
-
-    std::string error;
-    const auto migrated = deserializeArrangementSetup(legacy.dump(), error);
-    INFO(error);
-    REQUIRE(migrated.has_value());
-    REQUIRE(migrated->slots[0].has_value());
-    REQUIRE(migrated->slots[1].has_value());
-    CHECK(isValidArrangementId(migrated->slots[0]->id));
-    CHECK(isValidArrangementId(migrated->slots[1]->id));
-    CHECK(migrated->slots[0]->id != migrated->slots[1]->id);
-
-    const auto migratedJson =
-        nlohmann::json::parse(serializeArrangementSetup(*migrated));
-    CHECK(migratedJson.at("version") == 2);
-    CHECK(migratedJson.at("slots")[0].at("id") ==
-          migrated->slots[0]->id);
 }
 
 TEST_CASE("Arrangement setup rejects invalid or duplicate IDs",
@@ -592,8 +581,7 @@ TEST_CASE("Arrangement setup rejects invalid or duplicate IDs",
     ArrangementSetup setup;
     ArrangementSlot slot;
     slot.id = arrangementId('1');
-    slot.arrangement.nodes = {
-        makeNode(1, {0.5f, 0.5f}, 0.2f, {48.f, 48.f})};
+    slot.arrangement.nodes = {makeNode(1, {0.5f, 0.5f}, 0.2f, {48.f, 48.f})};
     setup.slots[0] = slot;
     slot.arrangement.nodes.front().id = 2;
     setup.slots[1] = slot;
@@ -601,7 +589,7 @@ TEST_CASE("Arrangement setup rejects invalid or duplicate IDs",
     CHECK_THROWS(serializeArrangementSetup(setup));
 
     auto json = nlohmann::json::parse(
-        R"({"format":"vmpc2000xl-arrangement-setup","version":2,"slots":[null,null,null,null,null]})");
+        R"({"format":"vmpc2000xl-arrangement-setup","version":4,"slots":[null,null,null,null,null]})");
     json["slots"][0] = {
         {"id", "not-a-uuid"},
         {"orientation", "portrait"},
@@ -612,8 +600,8 @@ TEST_CASE("Arrangement setup rejects invalid or duplicate IDs",
     CHECK(error.find("UUID") != std::string::npos);
 }
 
-TEST_CASE("Arrangement document reader accepts the legacy format identifier",
-          "[arrangement][serialization][migration]")
+TEST_CASE("Arrangement document reader rejects the legacy format identifier",
+          "[arrangement][serialization]")
 {
     ArrangementDocument document;
     document.nodes = {makeNode(1, {0.5f, 0.5f}, 0.2f, {48.f, 48.f})};
@@ -621,5 +609,6 @@ TEST_CASE("Arrangement document reader accepts the legacy format identifier",
     CHECK(json.at("format") == "vmpc2000xl-arrangement");
     json["format"] = "vmpc2000xl-gui-lab-arrangement";
     std::string error;
-    CHECK(deserializeArrangementDocument(json.dump(), error).has_value());
+    CHECK_FALSE(deserializeArrangementDocument(json.dump(), error).has_value());
+    CHECK(error.find("not a VMPC2000XL arrangement") != std::string::npos);
 }
