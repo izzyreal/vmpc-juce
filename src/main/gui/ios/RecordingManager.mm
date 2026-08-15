@@ -8,12 +8,27 @@
 
 #include "Mpc.hpp"
 
-@interface RecordingsViewController : UIViewController <AVAudioPlayerDelegate>
+@interface RecordingsViewController
+    : UIViewController <AVAudioPlayerDelegate,
+                        UIAdaptivePresentationControllerDelegate>
 @property (nonatomic) mpc::Mpc *mpc;
 @property (nonatomic, strong) UIButton *currentlyPlayingButton;
 @property (nonatomic, strong) UIScrollView *scrollView;
 @property (nonatomic, strong) NSMutableArray<NSString *> *directoryPaths;
+@property (nonatomic, strong) UILabel *titleLabel;
+@property (nonatomic, strong) UIButton *doneButton;
 @end
+
+static void refreshViewControllerLayout(UIViewController *controller) {
+    if (controller == nil) {
+        return;
+    }
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [controller.view setNeedsLayout];
+      [controller.view layoutIfNeeded];
+    });
+}
 
 @implementation RecordingsViewController {
     AVAudioPlayer *audioPlayer;
@@ -35,6 +50,18 @@
     [super viewDidLoad];
     self.directoryPaths = [NSMutableArray new];
     fileManager = [NSFileManager defaultManager];
+
+    self.titleLabel = [[UILabel alloc] init];
+    self.titleLabel.text = @"Recording Manager";
+    self.titleLabel.textAlignment = NSTextAlignmentCenter;
+    [self.view addSubview:self.titleLabel];
+
+    self.doneButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.doneButton setTitle:@"Done" forState:UIControlStateNormal];
+    [self.doneButton addTarget:self
+                        action:@selector(doneButtonPressed:)
+              forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.doneButton];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -47,21 +74,45 @@
     [self stopPlayback];
 }
 
+- (void)layoutTopLevelViews {
+    const UIEdgeInsets safeAreaInsets = self.view.safeAreaInsets;
+    const CGFloat headerHeight = 40;
+    const CGFloat headerY = safeAreaInsets.top;
+    self.titleLabel.frame =
+        CGRectMake(safeAreaInsets.left, headerY,
+                   self.view.bounds.size.width - safeAreaInsets.left -
+                       safeAreaInsets.right,
+                   headerHeight);
+    const CGFloat doneButtonWidth = 60;
+    const CGFloat doneButtonMargin = 12;
+    self.doneButton.frame =
+        CGRectMake(self.view.bounds.size.width - safeAreaInsets.right -
+                       doneButtonWidth - doneButtonMargin,
+                   headerY, doneButtonWidth, headerHeight);
+
+    CGFloat margin = 30;
+    const CGFloat scrollViewY = CGRectGetMaxY(self.titleLabel.frame);
+    self.scrollView.frame =
+        CGRectMake(margin - 5, scrollViewY,
+                   self.view.bounds.size.width - 2 * margin,
+                   self.view.bounds.size.height - safeAreaInsets.bottom -
+                       scrollViewY);
+}
+
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    [self layoutTopLevelViews];
+}
+
 - (void)layoutScrollViewAndContents {
     [self.scrollView removeFromSuperview];
     self.scrollView = nil;
-    
 
-    // Title Label for Header
-    UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 40)];
-    titleLabel.text = @"Recording Manager";
-    titleLabel.textAlignment = NSTextAlignmentCenter;
-    [self.view addSubview:titleLabel];
-
-    CGFloat margin = 30;
-    CGRect scrollViewFrame = CGRectMake(margin - 5, titleLabel.frame.size.height, self.view.bounds.size.width - 2 * margin, self.view.bounds.size.height - titleLabel.frame.size.height);
-    self.scrollView = [[UIScrollView alloc] initWithFrame:scrollViewFrame];
+    self.scrollView = [[UIScrollView alloc] init];
     [self.view addSubview:self.scrollView];
+    [self layoutTopLevelViews];
+
+    const CGRect scrollViewFrame = self.scrollView.frame;
 
     CGFloat buttonWidth = 30;
     CGFloat sizeLabelWidth = 3 * buttonWidth;
@@ -125,15 +176,30 @@
     
     if (@available(iOS 13.0, *)) {
         self.view.backgroundColor = [UIColor systemBackgroundColor];
-        titleLabel.backgroundColor = [UIColor secondarySystemBackgroundColor];
-        titleLabel.textColor = [UIColor labelColor];
+        self.titleLabel.backgroundColor = [UIColor secondarySystemBackgroundColor];
+        self.titleLabel.textColor = [UIColor labelColor];
     } else {
         self.view.backgroundColor = [UIColor whiteColor];
-        titleLabel.backgroundColor = [UIColor lightGrayColor];
-        titleLabel.textColor = [UIColor blackColor];
+        self.titleLabel.backgroundColor = [UIColor lightGrayColor];
+        self.titleLabel.textColor = [UIColor blackColor];
     }
 
     self.scrollView.contentSize = CGSizeMake(scrollViewFrame.size.width, yPosition);
+}
+
+- (void)doneButtonPressed:(id)sender {
+    (void)sender;
+    UIViewController *presentingController = self.presentingViewController;
+    [self dismissViewControllerAnimated:YES
+                             completion:^{
+                               refreshViewControllerLayout(
+                                   presentingController);
+                             }];
+}
+
+- (void)presentationControllerDidDismiss:
+    (UIPresentationController *)presentationController {
+    refreshViewControllerLayout(presentationController.presentingViewController);
 }
 
 - (unsigned long long)directorySizeAtPath:(NSString *)path {
@@ -223,6 +289,10 @@
 - (void)presentRecordingManager:(mpc::Mpc*)mpc {
     RecordingsViewController *recordingsVC = [[RecordingsViewController alloc] init];
     recordingsVC.mpc = mpc;
+    if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPhone) {
+        recordingsVC.modalPresentationStyle = UIModalPresentationFullScreen;
+    }
+    recordingsVC.presentationController.delegate = recordingsVC;
     [self.rootViewController presentViewController:recordingsVC animated:YES completion:nil];
 }
 
