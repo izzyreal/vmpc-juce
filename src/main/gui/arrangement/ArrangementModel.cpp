@@ -180,6 +180,30 @@ float vmpc_juce::gui::arrangement::snapToGrid(const float value,
     return std::round(value / gridSize) * gridSize;
 }
 
+float vmpc_juce::gui::arrangement::snapAxisTranslationToGrid(
+    const float position, const float requestedTranslation,
+    const float gridSize)
+{
+    if (gridSize <= 0.f || requestedTranslation == 0.f)
+    {
+        return requestedTranslation;
+    }
+
+    constexpr float alignmentTolerance = 0.001f;
+    const auto gridIndex = position / gridSize;
+    const auto nearestGridIndex = std::round(gridIndex);
+    const auto isAligned =
+        std::abs(position - nearestGridIndex * gridSize) <= alignmentTolerance;
+    const auto direction = requestedTranslation > 0.f ? 1.f : -1.f;
+    const auto gridSteps =
+        std::max(1.f, std::round(std::abs(requestedTranslation) / gridSize));
+    const auto startingGridIndex = isAligned         ? nearestGridIndex
+                                   : direction > 0.f ? std::floor(gridIndex)
+                                                     : std::ceil(gridIndex);
+    const auto targetGridIndex = startingGridIndex + direction * gridSteps;
+    return targetGridIndex * gridSize - position;
+}
+
 float vmpc_juce::gui::arrangement::snapItemScaleToGrid(
     const float requestedScale, const LogicalSize referenceSize,
     const float gridSize)

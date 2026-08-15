@@ -1038,23 +1038,13 @@ private:
         {
             if (delta.x != 0.f)
             {
-                const auto gridSteps = std::max(
-                    1.f, std::round(std::abs(delta.x) / arrangementGridSize));
-                const auto targetGridIndex =
-                    delta.x > 0.f
-                        ? std::floor(minimumX / arrangementGridSize) + gridSteps
-                        : std::ceil(minimumX / arrangementGridSize) - gridSteps;
-                delta.x = targetGridIndex * arrangementGridSize - minimumX;
+                delta.x = snapAxisTranslationToGrid(minimumX, delta.x,
+                                                    arrangementGridSize);
             }
             if (delta.y != 0.f)
             {
-                const auto gridSteps = std::max(
-                    1.f, std::round(std::abs(delta.y) / arrangementGridSize));
-                const auto targetGridIndex =
-                    delta.y > 0.f
-                        ? std::floor(minimumY / arrangementGridSize) + gridSteps
-                        : std::ceil(minimumY / arrangementGridSize) - gridSteps;
-                delta.y = targetGridIndex * arrangementGridSize - minimumY;
+                delta.y = snapAxisTranslationToGrid(minimumY, delta.y,
+                                                    arrangementGridSize);
             }
         }
 

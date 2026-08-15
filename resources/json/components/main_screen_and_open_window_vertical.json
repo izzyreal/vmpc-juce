@@ -1,0 +1,25 @@
+{
+  "name" : "main_screen_and_open_window_vertical",
+  "type" : "grid",
+  "row_fractions" : [ 1, 1 ],
+  "column_fractions" : [ 1 ],
+  "shadow_size" : 2.0,
+  "children" : [
+    {
+      "name" : "main_screen",
+      "hardware_label" : "main-screen",
+      "key_hole_svg" : "medium_key_hole.svg",
+      "key_button_svg" : "medium_key_button.svg",
+      "label" : "MAIN SCREEN",
+      "area" : [ 1, 1, 1, 1 ]
+    },
+    {
+      "name" : "open_window",
+      "hardware_label" : "open-window",
+      "key_hole_svg" : "medium_key_hole.svg",
+      "key_button_svg" : "medium_key_yellow_button.svg",
+      "label" : "OPEN WINDOW",
+      "area" : [ 2, 1, 2, 1 ]
+    }
+  ]
+}

@@ -98,16 +98,16 @@
           },
           {
             "center": {
-              "x": 0.5385497212409973,
-              "y": 0.7765500545501709
+              "x": 0.5435897707939148,
+              "y": 0.7687203884124756
             },
-            "component": "main-open",
-            "id": 8,
+            "component": "main-open-vertical",
+            "id": 9,
             "referenceSize": {
-              "height": 21.0,
-              "width": 90.0
+              "height": 42.0,
+              "width": 45.0
             },
-            "widthFraction": 0.33864307403564453
+            "widthFraction": 0.24615386128425598
           }
         ],
         "version": 4

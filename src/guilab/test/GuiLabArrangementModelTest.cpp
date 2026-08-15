@@ -65,6 +65,24 @@ TEST_CASE("GUI Lab compact LCD sizes follow the production grid",
     CHECK(compactMountedLcdReferenceSize.height == Catch::Approx(88.19710f));
 }
 
+TEST_CASE("GUI Lab catalog contains compact function and vertical main assets",
+          "[gui-lab][arrangement][catalog]")
+{
+    const auto *functionKeys = findCatalogEntry("function-buttons-compact");
+    REQUIRE(functionKeys != nullptr);
+    CHECK(std::string(functionKeys->resourceName) ==
+          "components/f_keys_unlabelled_trimmed");
+    CHECK(functionKeys->referenceWidth == Catch::Approx(180.f));
+    CHECK(functionKeys->referenceHeight == Catch::Approx(10.f));
+
+    const auto *mainOpen = findCatalogEntry("main-open-vertical");
+    REQUIRE(mainOpen != nullptr);
+    CHECK(std::string(mainOpen->resourceName) ==
+          "components/main_screen_and_open_window_vertical");
+    CHECK(mainOpen->referenceWidth == Catch::Approx(45.f));
+    CHECK(mainOpen->referenceHeight == Catch::Approx(42.f));
+}
+
 TEST_CASE("GUI Lab device catalog contains Apple and Samsung profiles",
           "[gui-lab][arrangement]")
 {
@@ -382,6 +400,45 @@ TEST_CASE("GUI Lab snapped keyboard movement skips blocked grid positions",
     CHECK_FALSE(findNearestAvailableAxisTranslation({4.f, 0.f}, moving, bounds,
                                                     obstacles)
                     .has_value());
+}
+
+TEST_CASE("GUI Lab keyboard movement advances from a nearly aligned grid edge",
+          "[gui-lab][arrangement][collision][regression]")
+{
+    auto mainOpen = makeNode(9, {0.5846154093742371f, 0.7687203884124756f},
+                             0.24615386128425598f, {45.f, 42.f});
+    mainOpen.catalogId = "main-open-vertical";
+    const LogicalSize bounds{390.f, 844.f};
+    const auto geometry = projectNode(mainOpen, bounds);
+    REQUIRE(geometry.position.x > 180.f);
+    REQUIRE(geometry.position.x < 180.001f);
+
+    const auto requestedTranslation =
+        snapAxisTranslationToGrid(geometry.position.x, -4.f, 4.f);
+    CHECK(requestedTranslation == Catch::Approx(-4.f).margin(0.0001f));
+
+    const std::vector<LogicalRect> moving{{geometry.position, geometry.size}};
+    const std::vector<LogicalRect> obstacles{
+        {{0.f, 600.f}, {144.f, 93.f}},
+        {{276.0688f, 589.4108f}, {113.9312f, 126.5902f}}};
+    const auto translation = findNearestAvailableAxisTranslation(
+        {requestedTranslation, 0.f}, moving, bounds, obstacles, 4.f);
+    REQUIRE(translation.has_value());
+    CHECK(geometry.position.x + translation->x ==
+          Catch::Approx(176.f).margin(0.0001f));
+}
+
+TEST_CASE("GUI Lab directional grid snapping tolerates projection residue",
+          "[gui-lab][arrangement][collision]")
+{
+    CHECK(snapAxisTranslationToGrid(180.00002f, -4.f) ==
+          Catch::Approx(-4.00002f));
+    CHECK(snapAxisTranslationToGrid(179.99998f, 4.f) ==
+          Catch::Approx(4.00002f));
+    CHECK(snapAxisTranslationToGrid(181.f, -4.f) == Catch::Approx(-1.f));
+    CHECK(snapAxisTranslationToGrid(181.f, 4.f) == Catch::Approx(3.f));
+    CHECK(snapAxisTranslationToGrid(180.00002f, -16.f) ==
+          Catch::Approx(-16.00002f));
 }
 
 TEST_CASE("GUI Lab keyboard movement clamps its final step to the edge",

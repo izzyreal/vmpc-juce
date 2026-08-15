@@ -118,6 +118,8 @@ namespace vmpc_juce::gui::arrangement
     LogicalSize getEffectiveDeviceSize(const DeviceProfile &device,
                                        Orientation orientation);
     float snapToGrid(float value, float gridSize = 4.f);
+    float snapAxisTranslationToGrid(float position, float requestedTranslation,
+                                    float gridSize = 4.f);
     float snapItemScaleToGrid(float requestedScale, LogicalSize referenceSize,
                               float gridSize = 4.f);
     float constrainItemScale(float requestedScale, LogicalSize referenceSize,
