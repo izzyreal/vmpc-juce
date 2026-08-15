@@ -70,6 +70,18 @@ static juce::Component *
 createSvgLikeComponent(mpc::Mpc &mpc, const node &n, juce::Component *parent,
                        const std::function<float()> &getScale)
 {
+    if (n.name == "rec_gain")
+    {
+        return new Pot(mpc.getHardware()->getRecPot(), Pot::PotType::REC_GAIN,
+                       parent, getScale);
+    }
+
+    if (n.name == "main_volume")
+    {
+        return new Pot(mpc.getHardware()->getVolPot(),
+                       Pot::PotType::MAIN_VOLUME, parent, getScale);
+    }
+
     if (n.node_type == "cursor_keys")
     {
         using ComponentId = mpc::hardware::ComponentId;
@@ -363,24 +375,8 @@ void ViewUtil::createComponent(
                 getScale, n.label, Constants::labelColour, getMainFontScaled);
         }
 
-        juce::Component *svgLikeComponent = nullptr;
-
-        if (n.name == "rec_gain")
-        {
-            svgLikeComponent =
-                new Pot(mpc.getHardware()->getRecPot(), Pot::PotType::REC_GAIN,
-                        parent, getScale);
-        }
-        else if (n.name == "main_volume")
-        {
-            svgLikeComponent =
-                new Pot(mpc.getHardware()->getVolPot(),
-                        Pot::PotType::MAIN_VOLUME, parent, getScale);
-        }
-        else
-        {
-            svgLikeComponent = createSvgLikeComponent(mpc, n, parent, getScale);
-        }
+        auto *svgLikeComponent =
+            createSvgLikeComponent(mpc, n, parent, getScale);
 
         n.svg_component = svgLikeComponent;
         n.label_component = labelComponent;

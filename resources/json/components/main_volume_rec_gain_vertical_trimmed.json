@@ -1,0 +1,13 @@
+{
+  "name" : "main_volume_rec_gain_vertical_trimmed",
+  "type" : "grid",
+  "row_fractions" : [ 1, 1 ],
+  "column_fractions" : [ 1 ],
+  "shadow_size" : 5,
+  "children" : [
+    { "name" : "main_volume_paint", "svg" : "pot_paint.svg", "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "main_volume", "hardware_label" : "main-volume-pot", "svg" : "main_volume.svg", "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "rec_gain_paint", "svg" : "pot_paint.svg", "area" : [ 2, 1, 2, 1 ] },
+    { "name" : "rec_gain", "hardware_label" : "rec-gain-pot", "svg" : "rec_gain.svg", "area" : [ 2, 1, 2, 1 ] }
+  ]
+}

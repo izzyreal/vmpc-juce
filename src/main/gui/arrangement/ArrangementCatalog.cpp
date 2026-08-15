@@ -54,6 +54,11 @@ namespace vmpc_juce::gui::arrangement
              "components/rec_gain_main_volume", 84, 48},
             {"gain-volume-compact", "Rec Gain + Main Volume - compact",
              "components/rec_gain_main_volume_compact", 84, 38},
+            {"volume-gain-vertical", "Main Volume + Rec Gain - vertical",
+             "components/main_volume_rec_gain_vertical_trimmed", 42, 76},
+            {"main-volume", "Main Volume", "components/main_volume_trimmed", 42,
+             38},
+            {"rec-gain", "Rec Gain", "components/rec_gain_trimmed", 42, 38},
         };
         return catalog;
     }

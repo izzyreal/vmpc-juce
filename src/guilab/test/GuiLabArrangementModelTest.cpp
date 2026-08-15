@@ -83,6 +83,30 @@ TEST_CASE("GUI Lab catalog contains compact function and vertical main assets",
     CHECK(mainOpen->referenceHeight == Catch::Approx(42.f));
 }
 
+TEST_CASE("GUI Lab catalog contains trimmed knob variants",
+          "[gui-lab][arrangement][catalog]")
+{
+    const auto *vertical = findCatalogEntry("volume-gain-vertical");
+    REQUIRE(vertical != nullptr);
+    CHECK(std::string(vertical->resourceName) ==
+          "components/main_volume_rec_gain_vertical_trimmed");
+    CHECK(vertical->referenceWidth == Catch::Approx(42.f));
+    CHECK(vertical->referenceHeight == Catch::Approx(76.f));
+
+    const auto *mainVolume = findCatalogEntry("main-volume");
+    REQUIRE(mainVolume != nullptr);
+    CHECK(std::string(mainVolume->resourceName) ==
+          "components/main_volume_trimmed");
+    CHECK(mainVolume->referenceWidth == Catch::Approx(42.f));
+    CHECK(mainVolume->referenceHeight == Catch::Approx(38.f));
+
+    const auto *recGain = findCatalogEntry("rec-gain");
+    REQUIRE(recGain != nullptr);
+    CHECK(std::string(recGain->resourceName) == "components/rec_gain_trimmed");
+    CHECK(recGain->referenceWidth == Catch::Approx(42.f));
+    CHECK(recGain->referenceHeight == Catch::Approx(38.f));
+}
+
 TEST_CASE("GUI Lab device catalog contains Apple and Samsung profiles",
           "[gui-lab][arrangement]")
 {

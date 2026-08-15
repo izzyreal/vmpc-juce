@@ -20,21 +20,8 @@
           },
           {
             "center": {
-              "x": 0.5,
-              "y": 0.2074446976184845
-            },
-            "component": "function-buttons",
-            "id": 2,
-            "referenceSize": {
-              "height": 25.0,
-              "width": 180.0
-            },
-            "widthFraction": 1.0
-          },
-          {
-            "center": {
-              "x": 0.5,
-              "y": 0.47003066539764404
+              "x": 0.6461538672447205,
+              "y": 0.40328964591026306
             },
             "component": "num-pad",
             "id": 3,
@@ -42,12 +29,12 @@
               "height": 84.0,
               "width": 85.0
             },
-            "widthFraction": 1.0
+            "widthFraction": 0.7076923251152039
           },
           {
             "center": {
               "x": 0.8539343476295471,
-              "y": 0.7733482122421265
+              "y": 0.6674112677574158
             },
             "component": "data-wheel",
             "id": 4,
@@ -60,7 +47,7 @@
           {
             "center": {
               "x": 0.1846153885126114,
-              "y": 0.7659952640533447
+              "y": 0.660058319568634
             },
             "component": "cursor-compact",
             "id": 5,
@@ -86,7 +73,7 @@
           {
             "center": {
               "x": 0.5,
-              "y": 0.8844820261001587
+              "y": 0.8702639937400818
             },
             "component": "locate",
             "id": 7,
@@ -98,8 +85,8 @@
           },
           {
             "center": {
-              "x": 0.5435897707939148,
-              "y": 0.7687203884124756
+              "x": 0.5333333611488342,
+              "y": 0.6638230681419373
             },
             "component": "main-open-vertical",
             "id": 9,
@@ -107,7 +94,72 @@
               "height": 42.0,
               "width": 45.0
             },
-            "widthFraction": 0.24615386128425598
+            "widthFraction": 0.28717949986457825
+          },
+          {
+            "center": {
+              "x": 0.14615513384342194,
+              "y": 0.3996390998363495
+            },
+            "component": "note-variation",
+            "id": 10,
+            "referenceSize": {
+              "height": 130.0,
+              "width": 51.0
+            },
+            "widthFraction": 0.29231026768684387
+          },
+          {
+            "center": {
+              "x": 0.20512820780277252,
+              "y": 0.7851501107215881
+            },
+            "component": "levels-compact",
+            "id": 14,
+            "referenceSize": {
+              "height": 23.0,
+              "width": 69.0
+            },
+            "widthFraction": 0.41025641560554504
+          },
+          {
+            "center": {
+              "x": 0.6153846383094788,
+              "y": 0.7851501107215881
+            },
+            "component": "sequence-mute",
+            "id": 15,
+            "referenceSize": {
+              "height": 23.0,
+              "width": 69.0
+            },
+            "widthFraction": 0.41025641560554504
+          },
+          {
+            "center": {
+              "x": 0.9102551341056824,
+              "y": 0.7815961241722107
+            },
+            "component": "main-volume",
+            "id": 16,
+            "referenceSize": {
+              "height": 38.0,
+              "width": 42.0
+            },
+            "widthFraction": 0.17948977649211884
+          },
+          {
+            "center": {
+              "x": 0.5,
+              "y": 0.20240916311740875
+            },
+            "component": "function-buttons-compact",
+            "id": 17,
+            "referenceSize": {
+              "height": 10.0,
+              "width": 180.0
+            },
+            "widthFraction": 1.0
           }
         ],
         "version": 4
@@ -115,9 +167,374 @@
       "id": "a44324e6f44642a686543b18083b5c45",
       "orientation": "portrait"
     },
-    null,
-    null,
-    null,
+    {
+      "arrangement": {
+        "format": "vmpc2000xl-arrangement",
+        "nodes": [
+          {
+            "center": {
+              "x": 0.5,
+              "y": 0.08742057532072067
+            },
+            "component": "lcd-mounted",
+            "id": 1,
+            "referenceSize": {
+              "height": 84.19709777832031,
+              "width": 222.52337646484375
+            },
+            "widthFraction": 1.0
+          },
+          {
+            "center": {
+              "x": 0.10595709085464478,
+              "y": 0.3001585602760315
+            },
+            "component": "note-variation",
+            "id": 2,
+            "referenceSize": {
+              "height": 130.0,
+              "width": 51.0
+            },
+            "widthFraction": 0.21191418170928955
+          },
+          {
+            "center": {
+              "x": 0.5,
+              "y": 0.7124802470207214
+            },
+            "component": "pads-banks",
+            "id": 3,
+            "referenceSize": {
+              "height": 224.0,
+              "width": 180.0
+            },
+            "widthFraction": 1.0
+          },
+          {
+            "center": {
+              "x": 0.6059570908546448,
+              "y": 0.39070621132850647
+            },
+            "component": "transport-horizontal",
+            "id": 4,
+            "referenceSize": {
+              "height": 30.0,
+              "width": 179.0
+            },
+            "widthFraction": 0.7880910038948059
+          },
+          {
+            "center": {
+              "x": 0.4769230782985687,
+              "y": 0.242496058344841
+            },
+            "component": "levels-compact",
+            "id": 6,
+            "referenceSize": {
+              "height": 23.0,
+              "width": 69.0
+            },
+            "widthFraction": 0.37948721647262573
+          },
+          {
+            "center": {
+              "x": 0.4769230782985687,
+              "y": 0.3041074573993683
+            },
+            "component": "sequence-mute",
+            "id": 7,
+            "referenceSize": {
+              "height": 23.0,
+              "width": 69.0
+            },
+            "widthFraction": 0.37948721647262573
+          },
+          {
+            "center": {
+              "x": 0.8717948794364929,
+              "y": 0.22274881601333618
+            },
+            "component": "data-wheel",
+            "id": 8,
+            "referenceSize": {
+              "height": 80.0,
+              "width": 72.0
+            },
+            "widthFraction": 0.1846153885126114
+          },
+          {
+            "center": {
+              "x": 0.8650084137916565,
+              "y": 0.31990522146224976
+            },
+            "component": "cursor-compact",
+            "id": 9,
+            "referenceSize": {
+              "height": 31.0,
+              "width": 48.0
+            },
+            "widthFraction": 0.269983172416687
+          }
+        ],
+        "version": 4
+      },
+      "id": "3398e710f2674c1283c978d1b9000bff",
+      "orientation": "portrait"
+    },
+    {
+      "arrangement": {
+        "format": "vmpc2000xl-arrangement",
+        "nodes": [
+          {
+            "center": {
+              "x": 0.7781838774681091,
+              "y": 0.5000000596046448
+            },
+            "component": "pads",
+            "id": 1,
+            "referenceSize": {
+              "height": 188.0,
+              "width": 180.0
+            },
+            "widthFraction": 0.44242438673973083
+          },
+          {
+            "center": {
+              "x": 0.278486430644989,
+              "y": 0.1578429937362671
+            },
+            "component": "lcd-bare",
+            "id": 2,
+            "referenceSize": {
+              "height": 55.0,
+              "width": 210.0
+            },
+            "widthFraction": 0.5569729208946228
+          },
+          {
+            "center": {
+              "x": 0.3400978446006775,
+              "y": 0.9213396310806274
+            },
+            "component": "transport-horizontal",
+            "id": 3,
+            "referenceSize": {
+              "height": 30.0,
+              "width": 179.0
+            },
+            "widthFraction": 0.43375009298324585
+          },
+          {
+            "center": {
+              "x": 0.061611760407686234,
+              "y": 0.6601285338401794
+            },
+            "component": "note-variation",
+            "id": 4,
+            "referenceSize": {
+              "height": 130.0,
+              "width": 51.0
+            },
+            "widthFraction": 0.12322445958852768
+          },
+          {
+            "center": {
+              "x": 0.20853079855442047,
+              "y": 0.5502262711524963
+            },
+            "component": "tap-tempo",
+            "id": 5,
+            "referenceSize": {
+              "height": 30.0,
+              "width": 51.0
+            },
+            "widthFraction": 0.12322277575731277
+          },
+          {
+            "center": {
+              "x": 0.2014217972755432,
+              "y": 0.7311229109764099
+            },
+            "component": "undo-erase",
+            "id": 6,
+            "referenceSize": {
+              "height": 31.0,
+              "width": 58.0
+            },
+            "widthFraction": 0.14691945910453796
+          },
+          {
+            "center": {
+              "x": 0.24644549190998077,
+              "y": 0.37948718667030334
+            },
+            "component": "levels-compact",
+            "id": 7,
+            "referenceSize": {
+              "height": 23.0,
+              "width": 69.0
+            },
+            "widthFraction": 0.17061613500118256
+          },
+          {
+            "center": {
+              "x": 0.41706159710884094,
+              "y": 0.37948718667030334
+            },
+            "component": "sequence-mute",
+            "id": 8,
+            "referenceSize": {
+              "height": 23.0,
+              "width": 69.0
+            },
+            "widthFraction": 0.17061613500118256
+          },
+          {
+            "center": {
+              "x": 0.3364928960800171,
+              "y": 0.7564102411270142
+            },
+            "component": "cursor-compact",
+            "id": 9,
+            "referenceSize": {
+              "height": 31.0,
+              "width": 48.0
+            },
+            "widthFraction": 0.1137440949678421
+          },
+          {
+            "center": {
+              "x": 0.48270145058631897,
+              "y": 0.6410256624221802
+            },
+            "component": "data-wheel",
+            "id": 10,
+            "referenceSize": {
+              "height": 80.0,
+              "width": 72.0
+            },
+            "widthFraction": 0.14075833559036255
+          },
+          {
+            "center": {
+              "x": 0.33543410897254944,
+              "y": 0.5615410208702087
+            },
+            "component": "main-volume",
+            "id": 11,
+            "referenceSize": {
+              "height": 38.0,
+              "width": 42.0
+            },
+            "widthFraction": 0.10214784741401672
+          }
+        ],
+        "version": 4
+      },
+      "id": "82ae33f1bf0d462d913cfd9d59bd1439",
+      "orientation": "landscape"
+    },
+    {
+      "arrangement": {
+        "format": "vmpc2000xl-arrangement",
+        "nodes": [
+          {
+            "center": {
+              "x": 0.27878957986831665,
+              "y": 0.22828422486782074
+            },
+            "component": "lcd-mounted",
+            "id": 2,
+            "referenceSize": {
+              "height": 84.19709777832031,
+              "width": 222.52337646484375
+            },
+            "widthFraction": 0.5575791597366333
+          },
+          {
+            "center": {
+              "x": 0.7787895798683167,
+              "y": 0.49999865889549255
+            },
+            "component": "pads",
+            "id": 3,
+            "referenceSize": {
+              "height": 188.0,
+              "width": 180.0
+            },
+            "widthFraction": 0.4424231946468353
+          },
+          {
+            "center": {
+              "x": 0.31113800406455994,
+              "y": 0.6429437398910522
+            },
+            "component": "levels",
+            "id": 4,
+            "referenceSize": {
+              "height": 36.0,
+              "width": 69.0
+            },
+            "widthFraction": 0.15782101452350616
+          },
+          {
+            "center": {
+              "x": 0.2787889838218689,
+              "y": 0.5053132176399231
+            },
+            "component": "function-buttons-compact",
+            "id": 5,
+            "referenceSize": {
+              "height": 10.0,
+              "width": 180.0
+            },
+            "widthFraction": 0.557580292224884
+          },
+          {
+            "center": {
+              "x": 0.11485248804092407,
+              "y": 0.769414484500885
+            },
+            "component": "data-wheel",
+            "id": 6,
+            "referenceSize": {
+              "height": 80.0,
+              "width": 72.0
+            },
+            "widthFraction": 0.19179029762744904
+          },
+          {
+            "center": {
+              "x": 0.48007673025131226,
+              "y": 0.771794855594635
+            },
+            "component": "volume-gain-vertical",
+            "id": 8,
+            "referenceSize": {
+              "height": 76.0,
+              "width": 42.0
+            },
+            "widthFraction": 0.11655155569314957
+          },
+          {
+            "center": {
+              "x": 0.3151658773422241,
+              "y": 0.8708333373069763
+            },
+            "component": "cursor-compact",
+            "id": 9,
+            "referenceSize": {
+              "height": 31.0,
+              "width": 48.0
+            },
+            "widthFraction": 0.18483413755893707
+          }
+        ],
+        "version": 4
+      },
+      "id": "fa71f902d33445d0afcccde446ffc385",
+      "orientation": "landscape"
+    },
     null
   ],
   "version": 4

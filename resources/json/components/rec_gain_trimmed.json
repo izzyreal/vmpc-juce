@@ -1,0 +1,11 @@
+{
+  "name" : "rec_gain_trimmed",
+  "type" : "grid",
+  "row_fractions" : [ 1 ],
+  "column_fractions" : [ 1 ],
+  "shadow_size" : 5,
+  "children" : [
+    { "name" : "rec_gain_paint", "svg" : "pot_paint.svg", "area" : [ 1, 1, 1, 1 ] },
+    { "name" : "rec_gain", "hardware_label" : "rec-gain-pot", "svg" : "rec_gain.svg", "area" : [ 1, 1, 1, 1 ] }
+  ]
+}
