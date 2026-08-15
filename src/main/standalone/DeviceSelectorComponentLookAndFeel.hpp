@@ -70,10 +70,13 @@ namespace vmpc_juce::standalone
         {
             return mainFont.withHeight(18);
         }
-        void drawPopupMenuBackground(juce::Graphics &g, int /*width*/,
-                                     int /*height*/) override
+        void drawPopupMenuBackground(juce::Graphics &g, const int width,
+                                     const int height) override
         {
             g.fillAll(backgroundColour);
+
+            g.setColour(textColour);
+            g.drawRect(0, 0, width, height, 1);
         }
 
         void drawPopupMenuItem(

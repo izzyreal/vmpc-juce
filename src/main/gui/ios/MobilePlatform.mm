@@ -98,6 +98,35 @@ void vmpc_juce::gui::ios::setIPhoneOrientation(
             : Desktop::rotatedClockwise | Desktop::rotatedAntiClockwise);
 }
 
+std::string vmpc_juce::gui::ios::getAudioInputRouteDisplayName()
+{
+    const auto session = AVAudioSession.sharedInstance;
+
+    if (const auto input = session.currentRoute.inputs.firstObject)
+    {
+        if (input.portName.length > 0)
+        {
+            return input.portName.UTF8String;
+        }
+    }
+
+    for (AVAudioSessionPortDescription *output in session.currentRoute.outputs)
+    {
+        const auto isBuiltInOutput =
+            [output.portType
+                isEqualToString:AVAudioSessionPortBuiltInSpeaker] ||
+            [output.portType isEqualToString:AVAudioSessionPortBuiltInReceiver];
+        if (isBuiltInOutput)
+        {
+            const auto name = [UIDevice.currentDevice.localizedModel
+                stringByAppendingString:@" Microphone"];
+            return name.UTF8String;
+        }
+    }
+
+    return {};
+}
+
 vmpc_juce::gui::ios::AudioRecordingPermission
 vmpc_juce::gui::ios::getAudioRecordingPermission()
 {

@@ -594,15 +594,19 @@ void AudioDeviceSettingsPanel::updateRecordInComboBox(
     }
 
 #if JUCE_IOS
+    const auto displayNames = Utils::getRecordInputDisplayNames(
+        pairs, gui::ios::getAudioInputRouteDisplayName());
     recordInDropDown->addItem("Disabled", 1);
+#else
+    const auto &displayNames = pairs;
 #endif
 
-    for (int i = 0; i < pairs.size(); ++i)
+    for (int i = 0; i < displayNames.size(); ++i)
     {
 #if JUCE_IOS
-        recordInDropDown->addItem(pairs[i], i + 2);
+        recordInDropDown->addItem(displayNames[i], i + 2);
 #else
-        recordInDropDown->addItem(pairs[i], pairs[i].hashCode());
+        recordInDropDown->addItem(displayNames[i], displayNames[i].hashCode());
 #endif
     }
 
@@ -619,7 +623,12 @@ void AudioDeviceSettingsPanel::updateRecordInComboBox(
     {
         if (selectedInputChannels[i])
         {
+#if JUCE_IOS
+            recordInDropDown->setSelectedId(i / 2 + 2,
+                                            juce::dontSendNotification);
+#else
             recordInDropDown->setText(pairs[i / 2], juce::dontSendNotification);
+#endif
             break;
         }
     }

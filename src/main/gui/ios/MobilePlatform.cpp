@@ -12,6 +12,11 @@ void vmpc_juce::gui::ios::setIPhoneStatusBarHidden(bool) {}
 
 void vmpc_juce::gui::ios::setIPhoneOrientation(arrangement::Orientation) {}
 
+std::string vmpc_juce::gui::ios::getAudioInputRouteDisplayName()
+{
+    return {};
+}
+
 vmpc_juce::gui::ios::AudioRecordingPermission
 vmpc_juce::gui::ios::getAudioRecordingPermission()
 {

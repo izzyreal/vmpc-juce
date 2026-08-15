@@ -64,5 +64,27 @@ namespace vmpc_juce::standalone
             return name1.trim() + " + " +
                    name2.substring(commonBit.length()).trim();
         }
+
+        static juce::StringArray
+        getRecordInputDisplayNames(const juce::StringArray &channelPairNames,
+                                   const juce::String &routeDisplayName)
+        {
+            if (routeDisplayName.isEmpty())
+            {
+                return channelPairNames;
+            }
+
+            if (channelPairNames.size() == 1)
+            {
+                return {routeDisplayName};
+            }
+
+            juce::StringArray result;
+            for (const auto &channelPairName : channelPairNames)
+            {
+                result.add(routeDisplayName + " — " + channelPairName);
+            }
+            return result;
+        }
     };
 } // namespace vmpc_juce::standalone
