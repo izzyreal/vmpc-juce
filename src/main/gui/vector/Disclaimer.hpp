@@ -28,6 +28,12 @@ namespace vmpc_juce::gui::vector
             deleteMe();
         }
 
+        void setScaleMultiplier(const float multiplier)
+        {
+            scaleMultiplier = multiplier;
+            repaint();
+        }
+
         void paint(juce::Graphics &g) override
         {
             const std::string text =
@@ -38,7 +44,7 @@ namespace vmpc_juce::gui::vector
                 "inMusic.";
 
             auto font = getMainFontScaled();
-            font.setHeight(font.getHeight() * 1.5f);
+            font.setHeight(font.getHeight() * 1.5f * scaleMultiplier);
             g.setFont(font);
 
             auto rect = getLocalBounds() /*.reduced(10)*/;
@@ -50,22 +56,26 @@ namespace vmpc_juce::gui::vector
                 ((static_cast<float>(getHeight()) - (font.getHeight() * 4)) /
                  2) -
                 font.getHeight()));
-            rect.reduce(2.f, 2.f);
+            const auto edgeInset =
+                juce::roundToInt(2.f * scaleMultiplier);
+            rect.reduce(edgeInset, edgeInset);
 
             juce::Path p;
-            p.addRoundedRectangle(rect, 5);
+            p.addRoundedRectangle(rect, 5.f * scaleMultiplier);
 
             melatonin::DropShadow shadow;
             shadow.setColor(juce::Colours::black.withAlpha(0.5f));
-            shadow.setOffset(5, 5);
-            shadow.setRadius(8);
+            shadow.setOffset(juce::roundToInt(5.f * scaleMultiplier),
+                             juce::roundToInt(5.f * scaleMultiplier));
+            shadow.setRadius(juce::roundToInt(8.f * scaleMultiplier));
             shadow.render(g, p);
 
             g.setColour(juce::Colours::white);
-            g.fillRoundedRectangle(rect.toFloat(), 5);
+            g.fillRoundedRectangle(rect.toFloat(), 5.f * scaleMultiplier);
 
             g.setColour(juce::Colours::black);
-            g.drawRoundedRectangle(rect.toFloat(), 5, 2);
+            g.drawRoundedRectangle(rect.toFloat(), 5.f * scaleMultiplier,
+                                   2.f * scaleMultiplier);
 
             g.drawFittedText(
                 text,
@@ -76,5 +86,6 @@ namespace vmpc_juce::gui::vector
     private:
         const std::function<juce::Font &()> &getMainFontScaled;
         const std::function<void()> deleteMe;
+        float scaleMultiplier = 1.f;
     };
 } // namespace vmpc_juce::gui::vector

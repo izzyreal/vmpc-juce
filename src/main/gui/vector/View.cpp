@@ -623,7 +623,25 @@ void View::resized()
 
     if (disclaimer != nullptr)
     {
-        disclaimer->setBounds(rect);
+        if (phoneArrangementMode)
+        {
+            const auto widthFraction = getHeight() >= getWidth() ? 1.f : 0.8f;
+            constexpr auto originalSizeFraction = 0.5f;
+            disclaimer->setScaleMultiplier(widthFraction /
+                                            originalSizeFraction);
+
+            auto disclaimerBounds = getLocalBounds().withSizeKeepingCentre(
+                juce::roundToInt(static_cast<float>(getWidth()) *
+                                 widthFraction),
+                juce::roundToInt(static_cast<float>(getHeight()) *
+                                 widthFraction));
+            disclaimer->setBounds(disclaimerBounds);
+        }
+        else
+        {
+            disclaimer->setScaleMultiplier(1.f);
+            disclaimer->setBounds(rect);
+        }
     }
 
     if (about != nullptr)
