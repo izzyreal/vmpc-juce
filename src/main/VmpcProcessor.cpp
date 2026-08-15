@@ -864,6 +864,11 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
         juce_ui->setAttribute("vector_ui_width", editor->getWidth());
         juce_ui->setAttribute("vector_ui_height", editor->getHeight());
     }
+    if (activeArrangementId.has_value())
+    {
+        juce_ui->setAttribute("active_arrangement_id",
+                              juce::String(*activeArrangementId));
+    }
 
     if (juce::JUCEApplication::isStandaloneApp())
     {
@@ -927,13 +932,9 @@ void VmpcProcessor::setStateInformation(const void *data, const int sizeInBytes)
     if (juce::JUCEApplication::isStandaloneApp())
     {
         const std::unique_ptr xmlState(getXmlFromBinary(data, sizeInBytes));
-        if (const auto *juce_ui = xmlState->getChildByName("JUCE-UI"))
-        {
-            lastUIWidth =
-                juce_ui->getIntAttribute("vector_ui_width", lastUIWidth);
-            lastUIHeight =
-                juce_ui->getIntAttribute("vector_ui_height", lastUIHeight);
-        }
+        restoreUiState(xmlState != nullptr
+                           ? xmlState->getChildByName("JUCE-UI")
+                           : nullptr);
         return;
     }
 
@@ -979,16 +980,14 @@ void VmpcProcessor::setStateInformation(const void *data, const int sizeInBytes)
         juce::String xmlText = juce::String::fromUTF8(
             static_cast<const char *>(uiData.getData()), (int)uiData.getSize());
 
-        if (const std::unique_ptr xmlState(juce::parseXML(xmlText)); xmlState)
-        {
-            if (const auto *juce_ui = xmlState->getChildByName("JUCE-UI"))
-            {
-                lastUIWidth =
-                    juce_ui->getIntAttribute("vector_ui_width", lastUIWidth);
-                lastUIHeight =
-                    juce_ui->getIntAttribute("vector_ui_height", lastUIHeight);
-            }
-        }
+        const std::unique_ptr xmlState(juce::parseXML(xmlText));
+        restoreUiState(xmlState != nullptr
+                           ? xmlState->getChildByName("JUCE-UI")
+                           : nullptr);
+    }
+    else
+    {
+        restoreUiState(nullptr);
     }
 
     // Restore MPC autosave
@@ -1004,6 +1003,58 @@ void VmpcProcessor::setStateInformation(const void *data, const int sizeInBytes)
         mpc.getAutoSave()->restoreAutoSavedState(
             mpc, zipTarget,
             headless || !juce::JUCEApplication::isStandaloneApp());
+    }
+}
+
+std::optional<std::string> VmpcProcessor::getActiveArrangementId() const
+{
+    return activeArrangementId;
+}
+
+void VmpcProcessor::setActiveArrangementId(const std::string &id)
+{
+    if (activeArrangementId == id)
+    {
+        return;
+    }
+    activeArrangementId = id;
+    updateHostDisplay(
+        juce::AudioProcessorListener::ChangeDetails()
+            .withNonParameterStateChanged(true));
+}
+
+void VmpcProcessor::restoreUiState(const juce::XmlElement *uiState)
+{
+    if (uiState != nullptr)
+    {
+        lastUIWidth =
+            uiState->getIntAttribute("vector_ui_width", lastUIWidth);
+        lastUIHeight =
+            uiState->getIntAttribute("vector_ui_height", lastUIHeight);
+        const auto restoredId =
+            uiState->getStringAttribute("active_arrangement_id");
+        activeArrangementId = restoredId.isNotEmpty()
+                                  ? std::optional<std::string>(
+                                        restoredId.toStdString())
+                                  : std::nullopt;
+    }
+    else
+    {
+        activeArrangementId.reset();
+    }
+
+    if (auto *editor = dynamic_cast<VmpcEditor *>(getActiveEditor()))
+    {
+        juce::Component::SafePointer<VmpcEditor> safeEditor(editor);
+        const auto arrangementId = activeArrangementId;
+        juce::MessageManager::callAsync(
+            [safeEditor, arrangementId]
+            {
+                if (safeEditor != nullptr)
+                {
+                    safeEditor->restoreActiveArrangement(arrangementId);
+                }
+            });
     }
 }
 

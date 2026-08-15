@@ -5,6 +5,9 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include <optional>
+#include <string>
+
 #if __APPLE__
 #include <TargetConditionals.h>
 #endif
@@ -74,6 +77,9 @@ namespace vmpc_juce
         }
 
         void resized() override;
+
+        void restoreActiveArrangement(
+            const std::optional<std::string> &arrangementId);
 
     private:
         VmpcProcessor &vmpcProcessor;

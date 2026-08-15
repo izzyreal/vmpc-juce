@@ -1,8 +1,8 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-#include "gui/arrangement/ArrangementModel.hpp"
 #include "gui/arrangement/ArrangementCatalog.hpp"
+#include "gui/arrangement/ArrangementModel.hpp"
 
 #include <nlohmann/json.hpp>
 
@@ -13,6 +13,11 @@ using namespace vmpc_juce::gui::arrangement;
 
 namespace
 {
+    std::string arrangementId(const char digit)
+    {
+        return std::string(31, '0') + digit;
+    }
+
     ArrangementNodeModel makeNode(const std::uint64_t id,
                                   const LogicalPoint anchorPosition,
                                   const float widthFraction,
@@ -396,6 +401,7 @@ TEST_CASE("Arrangement setup round-trips five ordered slots",
 {
     ArrangementSetup setup;
     ArrangementSlot first;
+    first.id = arrangementId('1');
     first.orientation = Orientation::portrait;
     first.arrangement.nodes = {
         makeNode(1, {0.5f, 0.f}, 1.f, {210.f, 55.f},
@@ -404,6 +410,7 @@ TEST_CASE("Arrangement setup round-trips five ordered slots",
     setup.slots[0] = first;
 
     ArrangementSlot fifth;
+    fifth.id = arrangementId('2');
     fifth.orientation = Orientation::landscape;
     fifth.arrangement.nodes = {makeNode(2, {0.5f, 0.5f}, 0.25f, {48.f, 31.f})};
     fifth.arrangement.nodes.front().catalogId = "cursor-compact";
@@ -412,8 +419,10 @@ TEST_CASE("Arrangement setup round-trips five ordered slots",
     const auto contents = serializeArrangementSetup(setup);
     const auto json = nlohmann::json::parse(contents);
     CHECK(json.at("format") == "vmpc2000xl-arrangement-setup");
+    CHECK(json.at("version") == 2);
     CHECK(json.at("slots").size() == 5);
     CHECK(json.at("slots")[1].is_null());
+    CHECK(json.at("slots")[0].at("id") == arrangementId('1'));
     CHECK(json.at("slots")[4].at("orientation") == "landscape");
 
     std::string error;
@@ -421,6 +430,7 @@ TEST_CASE("Arrangement setup round-trips five ordered slots",
     INFO(error);
     REQUIRE(restored.has_value());
     REQUIRE(restored->slots[0].has_value());
+    CHECK(restored->slots[0]->id == arrangementId('1'));
     CHECK(restored->slots[0]->orientation == Orientation::portrait);
     REQUIRE(restored->slots[4].has_value());
     CHECK(restored->slots[4]->orientation == Orientation::landscape);
@@ -440,6 +450,7 @@ TEST_CASE("Arrangement setup rejects invalid shape and catalog entries",
 
     ArrangementSetup setup;
     ArrangementSlot slot;
+    slot.id = arrangementId('1');
     slot.arrangement.nodes = {makeNode(1, {0.5f, 0.5f}, 0.2f, {48.f, 48.f})};
     slot.arrangement.nodes.front().catalogId = "not-in-the-catalog";
     setup.slots[2] = slot;
@@ -447,6 +458,83 @@ TEST_CASE("Arrangement setup rejects invalid shape and catalog entries",
         deserializeArrangementSetup(serializeArrangementSetup(setup), error)
             .has_value());
     CHECK(error.find("Unknown arrangement component") != std::string::npos);
+}
+
+TEST_CASE("Arrangement setup IDs migrate and remain stable across reordering",
+          "[arrangement][setup][migration]")
+{
+    ArrangementSetup setup;
+    ArrangementSlot first;
+    first.id = arrangementId('1');
+    first.arrangement.nodes = {
+        makeNode(1, {0.5f, 0.5f}, 0.2f, {48.f, 48.f})};
+    setup.slots[0] = first;
+
+    ArrangementSlot second;
+    second.id = arrangementId('2');
+    second.arrangement.nodes = {
+        makeNode(2, {0.5f, 0.5f}, 0.2f, {48.f, 48.f})};
+    setup.slots[1] = second;
+
+    CHECK(resolveArrangementSlot(setup, second.id) ==
+          std::optional<std::size_t>(1));
+    std::swap(setup.slots[0], setup.slots[1]);
+    CHECK(resolveArrangementSlot(setup, second.id) ==
+          std::optional<std::size_t>(0));
+    CHECK(resolveArrangementSlot(setup, arrangementId('3')) ==
+          std::optional<std::size_t>(0));
+
+    auto legacy = nlohmann::json::parse(serializeArrangementSetup(setup));
+    legacy["version"] = 1;
+    for (auto &legacySlot : legacy["slots"])
+    {
+        if (!legacySlot.is_null())
+        {
+            legacySlot.erase("id");
+        }
+    }
+
+    std::string error;
+    const auto migrated = deserializeArrangementSetup(legacy.dump(), error);
+    INFO(error);
+    REQUIRE(migrated.has_value());
+    REQUIRE(migrated->slots[0].has_value());
+    REQUIRE(migrated->slots[1].has_value());
+    CHECK(isValidArrangementId(migrated->slots[0]->id));
+    CHECK(isValidArrangementId(migrated->slots[1]->id));
+    CHECK(migrated->slots[0]->id != migrated->slots[1]->id);
+
+    const auto migratedJson =
+        nlohmann::json::parse(serializeArrangementSetup(*migrated));
+    CHECK(migratedJson.at("version") == 2);
+    CHECK(migratedJson.at("slots")[0].at("id") ==
+          migrated->slots[0]->id);
+}
+
+TEST_CASE("Arrangement setup rejects invalid or duplicate IDs",
+          "[arrangement][setup]")
+{
+    ArrangementSetup setup;
+    ArrangementSlot slot;
+    slot.id = arrangementId('1');
+    slot.arrangement.nodes = {
+        makeNode(1, {0.5f, 0.5f}, 0.2f, {48.f, 48.f})};
+    setup.slots[0] = slot;
+    slot.arrangement.nodes.front().id = 2;
+    setup.slots[1] = slot;
+
+    CHECK_THROWS(serializeArrangementSetup(setup));
+
+    auto json = nlohmann::json::parse(
+        R"({"format":"vmpc2000xl-arrangement-setup","version":2,"slots":[null,null,null,null,null]})");
+    json["slots"][0] = {
+        {"id", "not-a-uuid"},
+        {"orientation", "portrait"},
+        {"arrangement", nlohmann::json::parse(
+                            serializeArrangementDocument(slot.arrangement))}};
+    std::string error;
+    CHECK_FALSE(deserializeArrangementSetup(json.dump(), error).has_value());
+    CHECK(error.find("UUID") != std::string::npos);
 }
 
 TEST_CASE("Arrangement document reader accepts the legacy format identifier",

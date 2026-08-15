@@ -1701,7 +1701,7 @@ void GuiLabComponent::loadDesignFile(const juce::File &file)
     }
 
     currentDesignFile = file;
-    persistActiveSlot();
+    persistActiveSlot(true);
 }
 
 void GuiLabComponent::saveDesignFile(juce::File file)
@@ -1852,7 +1852,7 @@ void GuiLabComponent::saveSetupFile(juce::File file)
     }
 }
 
-void GuiLabComponent::persistActiveSlot()
+void GuiLabComponent::persistActiveSlot(const bool replaceIdentity)
 {
     const auto document = workspace->getDocument();
     if (document.nodes.empty())
@@ -1861,10 +1861,18 @@ void GuiLabComponent::persistActiveSlot()
     }
     else
     {
-        setup.slots[activeSlot] = ArrangementSlot{
-            orientationSelector.getSelectedId() == 2 ? Orientation::landscape
-                                                     : Orientation::portrait,
-            document};
+        const auto existingId = setup.slots[activeSlot].has_value()
+                                    ? setup.slots[activeSlot]->id
+                                    : std::string{};
+        ArrangementSlot slot;
+        slot.id = replaceIdentity || existingId.empty()
+                      ? createArrangementId()
+                      : existingId;
+        slot.orientation = orientationSelector.getSelectedId() == 2
+                               ? Orientation::landscape
+                               : Orientation::portrait;
+        slot.arrangement = document;
+        setup.slots[activeSlot] = std::move(slot);
     }
     updateSlotButtons();
 }

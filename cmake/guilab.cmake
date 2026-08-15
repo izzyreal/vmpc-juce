@@ -86,3 +86,31 @@ source_group("GUI Lab" FILES
   "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/PreviewLcd.hpp"
   "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/PreviewViewUtil.cpp"
   "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/PreviewViewUtil.hpp")
+
+if(VMPC_BUILD_TESTS)
+  add_executable(vmpc-juce-guilab-tests
+    "${CMAKE_SOURCE_DIR}/src/guilab/test/GuiLabArrangementModelTest.cpp"
+    "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/ArrangementCatalog.cpp"
+    "${CMAKE_SOURCE_DIR}/src/main/gui/arrangement/ArrangementModel.cpp")
+
+  target_include_directories(vmpc-juce-guilab-tests PRIVATE
+    "${CMAKE_SOURCE_DIR}/src/main")
+
+  target_link_libraries(vmpc-juce-guilab-tests PRIVATE
+    Catch2::Catch2WithMain
+    juce::juce_core
+    nlohmann_json::nlohmann_json
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags)
+
+  target_compile_definitions(vmpc-juce-guilab-tests PRIVATE
+    JUCE_WEB_BROWSER=0
+    JUCE_USE_CURL=0)
+
+  set_target_properties(vmpc-juce-guilab-tests PROPERTIES
+    XCODE_GENERATE_SCHEME TRUE)
+
+  source_group("GUI Lab Tests" FILES
+    "${CMAKE_SOURCE_DIR}/src/guilab/test/GuiLabArrangementModelTest.cpp")
+endif()

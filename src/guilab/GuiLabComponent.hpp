@@ -98,7 +98,7 @@ namespace vmpc_juce::guilab
         void saveDesignFile(juce::File file);
         void loadSetupFile(const juce::File &file);
         void saveSetupFile(juce::File file);
-        void persistActiveSlot();
+        void persistActiveSlot(bool replaceIdentity = false);
         void selectSlot(std::size_t index);
         void clearActiveSlot();
         void updateSlotButtons();

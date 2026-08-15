@@ -1,9 +1,11 @@
 #include "gui/arrangement/ArrangementModel.hpp"
 #include "gui/arrangement/ArrangementCatalog.hpp"
 
+#include <juce_core/juce_core.h>
 #include <nlohmann/json.hpp>
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <limits>
 #include <unordered_set>
@@ -18,7 +20,7 @@ namespace
     constexpr auto legacyDesignFormat = "vmpc2000xl-gui-lab-arrangement";
     constexpr int designFormatVersion = 2;
     constexpr auto setupFormat = "vmpc2000xl-arrangement-setup";
-    constexpr int setupFormatVersion = 1;
+    constexpr int setupFormatVersion = 2;
 
     const char *orientationName(const Orientation orientation)
     {
@@ -815,6 +817,7 @@ std::string vmpc_juce::gui::arrangement::serializeArrangementSetup(
     const ArrangementSetup &setup)
 {
     json slots = json::array();
+    std::unordered_set<std::string> arrangementIds;
     for (const auto &slot : setup.slots)
     {
         if (!slot.has_value())
@@ -822,8 +825,15 @@ std::string vmpc_juce::gui::arrangement::serializeArrangementSetup(
             slots.push_back(nullptr);
             continue;
         }
+        if (!isValidArrangementId(slot->id) ||
+            !arrangementIds.insert(slot->id).second)
+        {
+            throw std::runtime_error(
+                "Arrangement setup IDs must be valid and unique UUIDs.");
+        }
         slots.push_back(
-            {{"orientation", orientationName(slot->orientation)},
+            {{"id", slot->id},
+             {"orientation", orientationName(slot->orientation)},
              {"arrangement",
               json::parse(serializeArrangementDocument(slot->arrangement))}});
     }
@@ -845,7 +855,8 @@ vmpc_juce::gui::arrangement::deserializeArrangementSetup(
         {
             throw std::runtime_error("not a VMPC2000XL arrangement setup");
         }
-        if (source.at("version").get<int>() != setupFormatVersion)
+        const auto version = source.at("version").get<int>();
+        if (version != 1 && version != setupFormatVersion)
         {
             throw std::runtime_error("unsupported setup version");
         }
@@ -856,6 +867,7 @@ vmpc_juce::gui::arrangement::deserializeArrangementSetup(
         }
 
         ArrangementSetup result;
+        std::unordered_set<std::string> arrangementIds;
         for (std::size_t i = 0; i < ArrangementSetup::slotCount; ++i)
         {
             const auto &sourceSlot = slots.at(i);
@@ -864,6 +876,15 @@ vmpc_juce::gui::arrangement::deserializeArrangementSetup(
                 continue;
             }
             ArrangementSlot slot;
+            slot.id = version == 1 ? createArrangementId()
+                                   : sourceSlot.at("id").get<std::string>();
+            if (!isValidArrangementId(slot.id) ||
+                !arrangementIds.insert(slot.id).second)
+            {
+                throw std::runtime_error(
+                    "slot " + std::to_string(i + 1) +
+                    ": arrangement ID must be a valid, unique UUID");
+            }
             slot.orientation = parseOrientation(sourceSlot.at("orientation"));
             std::string documentError;
             const auto document = deserializeArrangementDocument(
@@ -893,6 +914,58 @@ vmpc_juce::gui::arrangement::deserializeArrangementSetup(
         errorMessage = "Could not read the setup: unknown file error";
     }
     return std::nullopt;
+}
+
+std::string vmpc_juce::gui::arrangement::createArrangementId()
+{
+    return juce::Uuid().toString().toStdString();
+}
+
+bool vmpc_juce::gui::arrangement::isValidArrangementId(const std::string &id)
+{
+    if (id.size() != 32 ||
+        !std::all_of(id.begin(), id.end(),
+                     [](const unsigned char character)
+                     {
+                         return std::isxdigit(character) != 0;
+                     }))
+    {
+        return false;
+    }
+    const juce::Uuid uuid{juce::String(id)};
+    return !uuid.isNull() &&
+           uuid.toString().equalsIgnoreCase(juce::String(id));
+}
+
+std::optional<std::size_t>
+vmpc_juce::gui::arrangement::findArrangementSlotById(
+    const ArrangementSetup &setup, const std::string &id)
+{
+    for (std::size_t i = 0; i < setup.slots.size(); ++i)
+    {
+        if (setup.slots[i].has_value() && setup.slots[i]->id == id &&
+            !setup.slots[i]->arrangement.nodes.empty())
+        {
+            return i;
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::size_t>
+vmpc_juce::gui::arrangement::resolveArrangementSlot(
+    const ArrangementSetup &setup,
+    const std::optional<std::string> &preferredId)
+{
+    if (preferredId.has_value())
+    {
+        if (const auto preferred =
+                findArrangementSlotById(setup, *preferredId))
+        {
+            return preferred;
+        }
+    }
+    return findFirstOccupiedSlot(setup);
 }
 
 std::optional<std::size_t> vmpc_juce::gui::arrangement::findFirstOccupiedSlot(

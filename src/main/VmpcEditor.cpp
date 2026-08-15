@@ -22,7 +22,12 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
 
     view = new View(vmpcProcessor.mpc, vmpcProcessor.showAudioSettingsDialog,
                     vmpcProcessor.wrapperType, isInstrument,
-                    vmpcProcessor.shouldShowDisclaimer);
+                    vmpcProcessor.shouldShowDisclaimer,
+                    vmpcProcessor.getActiveArrangementId(),
+                    [this](const std::string &arrangementId)
+                    {
+                        vmpcProcessor.setActiveArrangementId(arrangementId);
+                    });
 
     auto initialWindowWidth = vmpcProcessor.lastUIWidth;
     auto initialWindowHeight = vmpcProcessor.lastUIHeight;
@@ -118,6 +123,15 @@ void VmpcEditor::timerCallback()
 {
     grabKeyboardFocus();
     stopTimer();
+}
+
+void VmpcEditor::restoreActiveArrangement(
+    const std::optional<std::string> &arrangementId)
+{
+    if (view != nullptr)
+    {
+        view->restoreArrangement(arrangementId);
+    }
 }
 
 void VmpcEditor::resized()

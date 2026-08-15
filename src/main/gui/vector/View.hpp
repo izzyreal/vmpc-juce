@@ -44,7 +44,9 @@ namespace vmpc_juce::gui::vector
              const std::function<void()> &showAudioSettingsDialog,
              juce::AudioProcessor::WrapperType wrapperType,
              const std::function<bool()> &isInstrument,
-             bool &shouldShowDisclaimer);
+             bool &shouldShowDisclaimer,
+             const std::optional<std::string> &preferredArrangementId,
+             std::function<void(const std::string &)> arrangementSelected);
 
         ~View() override;
 
@@ -61,6 +63,8 @@ namespace vmpc_juce::gui::vector
 
         Keyboard *getKeyboard() const;
         bool usesPhoneArrangements() const;
+        void restoreArrangement(
+            const std::optional<std::string> &arrangementId);
 
     private:
         void onKeyUp(int, bool ctrlDown, bool altDown, bool shiftDown) const;
@@ -71,7 +75,8 @@ namespace vmpc_juce::gui::vector
         void refreshHardwareRegistrations();
         void showArrangementSelector();
         void closeArrangementSelector();
-        void selectArrangementSlot(std::size_t index);
+        void selectArrangementSlot(std::size_t index,
+                                   bool reportSelection = true);
         void toggleIPhoneFullscreen();
         std::string layoutName = "default_compact";
         std::vector<Component *> components;
@@ -83,6 +88,7 @@ namespace vmpc_juce::gui::vector
         const std::function<juce::Font &()> getKeyTooltipFontScaled;
 
         std::function<void()> closeAbout;
+        std::function<void(const std::string &)> arrangementSelected;
 
         focus::FocusHelper *focusHelper = nullptr;
         Keyboard *keyboard = nullptr;

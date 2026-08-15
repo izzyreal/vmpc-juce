@@ -145,7 +145,9 @@ pipelines:
         timeout_seconds: 2700
         artifacts:
           - dist/result-junit-vmpc-juce.xml
+          - dist/result-junit-vmpc-juce-guilab.xml
           - dist/VMPC2000XL-macos-universal-Standalone.app/**
+          - dist/VMPC2000XL-GuiLab-macos-universal.app/**
           - dist/VMPC2000XL-macos-universal-AU.component/**
           - dist/VMPC2000XL-macos-universal-VST3.vst3/**
           - dist/VMPC2000XL-macos-universal-LV2.lv2/**
@@ -174,6 +176,10 @@ pipelines:
             run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_Standalone -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
+          - name: Build GUI Lab app
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_GuiLab -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - name: Build AU plugin
             run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc2000xl_AU -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
@@ -194,6 +200,10 @@ pipelines:
             run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc-juce-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
+          - name: Build GUI Lab tests
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc-juce-guilab-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - name: Run Mpc Tests
             test:
               name: mpc-tests
@@ -206,8 +216,16 @@ pipelines:
               command: ./build/Release/vmpc-juce-tests --reporter JUnit::out=dist/result-junit-vmpc-juce.xml
               format: junit-xml
               report: dist/result-junit-vmpc-juce.xml
+          - name: Run GUI Lab Tests
+            test:
+              name: vmpc-juce-guilab-tests
+              command: ./build/Release/vmpc-juce-guilab-tests --reporter JUnit::out=dist/result-junit-vmpc-juce-guilab.xml
+              format: junit-xml
+              report: dist/result-junit-vmpc-juce-guilab.xml
           - name: Copy app bundle
             run: cp -R build/vmpc2000xl_artefacts/Release/Standalone/VMPC2000XL.app dist/VMPC2000XL-macos-universal-Standalone.app
+          - name: Copy GUI Lab app bundle
+            run: cp -R "build/vmpc2000xl_GuiLab_artefacts/Release/VMPC2000XL GUI Lab.app" dist/VMPC2000XL-GuiLab-macos-universal.app
           - name: Copy AU component
             run: cp -R build/vmpc2000xl_artefacts/Release/AU/VMPC2000XL.component dist/VMPC2000XL-macos-universal-AU.component
           - name: Copy VST3 plugin
@@ -853,6 +871,7 @@ pipelines:
         timeout_seconds: 2700
         artifacts:
           - dist/result-junit-vmpc-juce.xml
+          - dist/result-junit-vmpc-juce-guilab.xml
           - dist/version-macos-universal.txt
         caches: *build_caches
         steps:
@@ -896,6 +915,10 @@ pipelines:
             run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc-juce-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
             env:
               VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
+          - name: Build GUI Lab tests
+            run: CCACHE_BASEDIR="$PWD" CCACHE_NOHASHDIR=true CCACHE_COMPILERCHECK=content xcodebuild -project build/vmpc2000xl.xcodeproj -scheme vmpc-juce-guilab-tests -destination "generic/platform=macOS,name=Any Mac" -configuration Release
+            env:
+              VMPC2000XL_DOCUMENTS_PATH: /tmp/vmpc2000xl_documents/
           - name: Run Mpc Tests
             test:
               name: mpc-tests
@@ -908,6 +931,12 @@ pipelines:
               command: ./build/Release/vmpc-juce-tests --reporter JUnit::out=dist/result-junit-vmpc-juce.xml
               format: junit-xml
               report: dist/result-junit-vmpc-juce.xml
+          - name: Run GUI Lab Tests
+            test:
+              name: vmpc-juce-guilab-tests
+              command: ./build/Release/vmpc-juce-guilab-tests --reporter JUnit::out=dist/result-junit-vmpc-juce-guilab.xml
+              format: junit-xml
+              report: dist/result-junit-vmpc-juce-guilab.xml
           - name: Copy version file
             run: cp build/version.txt dist/version-macos-universal.txt
   - id: ios

@@ -69,7 +69,7 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
-option(VMPC_BUILD_TESTS "Build vmpc-juce integration tests" ON)
+option(VMPC_BUILD_TESTS "Build vmpc-juce test targets" ON)
 
 set(VMPC_JUCE_REPO "https://github.com/izzyreal/JUCE.git")
 set(VMPC_JUCE_REF "7.0.9-vmpc")
@@ -286,7 +286,6 @@ if (VMPC_BUILD_TESTS)
 
   target_include_directories(vmpc-juce-tests PRIVATE
     ${_src_root_path}
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/guilab
     ${CMAKE_CURRENT_BINARY_DIR}/generated
     ${mpc_SOURCE_DIR}/src/main
   )
@@ -307,8 +306,6 @@ if (VMPC_BUILD_TESTS)
   )
 
   target_sources(vmpc-juce-tests PRIVATE
-    src/main/gui/arrangement/ArrangementCatalog.cpp
-    src/main/gui/arrangement/ArrangementModel.cpp
     src/main/ZipSaveTarget.cpp
     src/main/VmpcJuceResourceUtil.cpp
   )

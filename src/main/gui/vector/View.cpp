@@ -57,7 +57,9 @@ View::View(mpc::Mpc &mpcToUse,
            const std::function<void()> &showAudioSettingsDialog,
            const juce::AudioProcessor::WrapperType wrapperType,
            const std::function<bool()> &isInstrument,
-           bool &shouldShowDisclaimer)
+           bool &shouldShowDisclaimer,
+           const std::optional<std::string> &preferredArrangementId,
+           std::function<void(const std::string &)> arrangementSelectedToUse)
     : mpc(mpcToUse), getScale(
                          [this]
                          {
@@ -85,6 +87,7 @@ View::View(mpc::Mpc &mpcToUse,
           {
               return keyTooltipFont;
           }),
+      arrangementSelected(std::move(arrangementSelectedToUse)),
       processorWrapperType(wrapperType)
 {
     phoneArrangementMode =
@@ -262,11 +265,13 @@ View::View(mpc::Mpc &mpcToUse,
                                    ? "The bundled arrangement setup is missing."
                                    : error;
         }
-        else if (const auto first =
-                     gui::arrangement::findFirstOccupiedSlot(*setup))
+        else if (const auto selected = gui::arrangement::resolveArrangementSlot(
+                     *setup, preferredArrangementId))
         {
             arrangementSetup = *setup;
-            activeArrangementSlot = *first;
+            activeArrangementSlot = *selected;
+            arrangementSelected(
+                arrangementSetup.slots[activeArrangementSlot]->id);
             const auto orientation =
                 arrangementSetup.slots[activeArrangementSlot]->orientation;
             base_width = orientation == gui::arrangement::Orientation::portrait
@@ -831,7 +836,8 @@ void View::closeArrangementSelector()
     arrangementSelector = nullptr;
 }
 
-void View::selectArrangementSlot(const std::size_t index)
+void View::selectArrangementSlot(const std::size_t index,
+                                 const bool reportSelection)
 {
     if (index >= arrangementSetup.slots.size() ||
         !arrangementSetup.slots[index].has_value() ||
@@ -840,6 +846,10 @@ void View::selectArrangementSlot(const std::size_t index)
         return;
     }
     closeArrangementSelector();
+    if (reportSelection)
+    {
+        arrangementSelected(arrangementSetup.slots[index]->id);
+    }
     if (index == activeArrangementSlot)
     {
         return;
@@ -876,6 +886,24 @@ void View::selectArrangementSlot(const std::size_t index)
     {
         parent->resized();
     }
+}
+
+void View::restoreArrangement(
+    const std::optional<std::string> &arrangementId)
+{
+    if (!phoneArrangementMode)
+    {
+        return;
+    }
+    const auto resolved =
+        gui::arrangement::resolveArrangementSlot(arrangementSetup,
+                                                 arrangementId);
+    if (!resolved.has_value())
+    {
+        return;
+    }
+    arrangementSelected(arrangementSetup.slots[*resolved]->id);
+    selectArrangementSlot(*resolved, false);
 }
 
 void View::toggleIPhoneFullscreen()

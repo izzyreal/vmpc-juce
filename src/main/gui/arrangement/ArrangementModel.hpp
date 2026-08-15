@@ -113,6 +113,7 @@ namespace vmpc_juce::gui::arrangement
 
     struct ArrangementSlot
     {
+        std::string id;
         Orientation orientation = Orientation::portrait;
         ArrangementDocument arrangement;
     };
@@ -191,6 +192,14 @@ namespace vmpc_juce::gui::arrangement
     std::optional<ArrangementSetup>
     deserializeArrangementSetup(const std::string &contents,
                                 std::string &errorMessage);
+    std::string createArrangementId();
+    bool isValidArrangementId(const std::string &id);
+    std::optional<std::size_t>
+    findArrangementSlotById(const ArrangementSetup &setup,
+                            const std::string &id);
+    std::optional<std::size_t>
+    resolveArrangementSlot(const ArrangementSetup &setup,
+                           const std::optional<std::string> &preferredId);
     std::optional<std::size_t>
     findFirstOccupiedSlot(const ArrangementSetup &setup);
     LogicalPoint positionForResizedNode(ProjectedNodeGeometry startGeometry,
