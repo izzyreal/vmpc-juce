@@ -62,19 +62,9 @@ namespace vmpc_juce::standalone
         }
 
         void listBoxItemClicked(const int row,
-                                const juce::MouseEvent &e) override
+                                const juce::MouseEvent &) override
         {
             selectRow(row);
-
-            if (e.x < getTickX())
-            {
-                flipEnablement(row);
-            }
-        }
-
-        void listBoxItemDoubleClicked(const int row,
-                                      const juce::MouseEvent &) override
-        {
             flipEnablement(row);
         }
 

@@ -29,10 +29,7 @@ namespace vmpc_juce::standalone
         void paintListBoxItem(int row, juce::Graphics &g, int width, int height,
                               bool) override;
 
-        void listBoxItemClicked(int row, const juce::MouseEvent &e) override;
-
-        void listBoxItemDoubleClicked(int row,
-                                      const juce::MouseEvent &) override;
+        void listBoxItemClicked(int row, const juce::MouseEvent &) override;
 
         void returnKeyPressed(int row) override;
 

@@ -128,19 +128,9 @@ void ChannelSelectorListBox::paintListBoxItem(const int row, juce::Graphics &g,
 }
 
 void ChannelSelectorListBox::listBoxItemClicked(const int row,
-                                                const juce::MouseEvent &e)
+                                                const juce::MouseEvent &)
 {
     selectRow(row);
-
-    if (e.x < getTickX())
-    {
-        flipEnablement(row);
-    }
-}
-
-void ChannelSelectorListBox::listBoxItemDoubleClicked(const int row,
-                                                      const juce::MouseEvent &)
-{
     flipEnablement(row);
 }
 
