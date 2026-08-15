@@ -11,4 +11,21 @@ bool vmpc_juce::gui::ios::isRunningOnIPhone()
 void vmpc_juce::gui::ios::setIPhoneStatusBarHidden(bool) {}
 
 void vmpc_juce::gui::ios::setIPhoneOrientation(arrangement::Orientation) {}
+
+vmpc_juce::gui::ios::AudioRecordingPermission
+vmpc_juce::gui::ios::getAudioRecordingPermission()
+{
+    return AudioRecordingPermission::granted;
+}
+
+void vmpc_juce::gui::ios::requestAudioRecordingPermission(
+    std::function<void(bool)> callback)
+{
+    if (callback)
+    {
+        callback(true);
+    }
+}
+
+void vmpc_juce::gui::ios::openApplicationSettings() {}
 #endif

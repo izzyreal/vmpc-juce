@@ -4,6 +4,8 @@
 #include "standalone/DeviceSelectorComponent.hpp"
 #include "standalone/Utils.hpp"
 
+#include "gui/ios/MobilePlatform.hpp"
+
 #include "standalone/ChannelSelectorListBox.hpp"
 #include "standalone/AudioDeviceSetupDetails.hpp"
 #include "standalone/InputLevelMeter.hpp"
@@ -563,7 +565,7 @@ void AudioDeviceSettingsPanel::updateInputsComboBox() const
 }
 
 void AudioDeviceSettingsPanel::updateRecordInComboBox(
-    juce::AudioIODevice *currentDevice) const
+    juce::AudioIODevice *currentDevice)
 {
     recordInDropDown->clear();
     recordInDropDown->onChange = nullptr;
@@ -591,12 +593,27 @@ void AudioDeviceSettingsPanel::updateRecordInComboBox(
         }
     }
 
-    for (auto chName : pairs)
+#if JUCE_IOS
+    recordInDropDown->addItem("Disabled", 1);
+#endif
+
+    for (int i = 0; i < pairs.size(); ++i)
     {
-        recordInDropDown->addItem(chName, chName.hashCode());
+#if JUCE_IOS
+        recordInDropDown->addItem(pairs[i], i + 2);
+#else
+        recordInDropDown->addItem(pairs[i], pairs[i].hashCode());
+#endif
     }
 
     const auto selectedInputChannels = currentDevice->getActiveInputChannels();
+
+#if JUCE_IOS
+    if (selectedInputChannels.isZero())
+    {
+        recordInDropDown->setSelectedId(1, juce::dontSendNotification);
+    }
+#endif
 
     for (int i = 0; i < chNames.size(); ++i)
     {
@@ -607,6 +624,13 @@ void AudioDeviceSettingsPanel::updateRecordInComboBox(
         }
     }
 
+#if JUCE_IOS
+    recordInDropDown->setEnabled(!isRecordPermissionRequestPending);
+    recordInDropDown->onChange = [this, inputChCount = chNames.size()]
+    {
+        handleRecordInSelection(inputChCount);
+    };
+#else
     recordInDropDown->onChange = [this, inputChCount = chNames.size()]
     {
         auto config = setup.manager->getAudioDeviceSetup();
@@ -624,7 +648,136 @@ void AudioDeviceSettingsPanel::updateRecordInComboBox(
         setup.manager->getInputLevelGetter()->resetToZeroLevel();
         setup.manager->setAudioDeviceSetup(config, true);
     };
+#endif
 }
+
+#if JUCE_IOS
+void AudioDeviceSettingsPanel::handleRecordInSelection(
+    const int inputChannelCount)
+{
+    const auto selectedIndex = recordInDropDown->getSelectedItemIndex();
+    if (selectedIndex < 0)
+    {
+        return;
+    }
+
+    const auto pairIndex = selectedIndex - 1;
+    if (pairIndex < 0)
+    {
+        applyRecordInSelection(pairIndex, inputChannelCount);
+        return;
+    }
+
+    using gui::ios::AudioRecordingPermission;
+    switch (gui::ios::getAudioRecordingPermission())
+    {
+        case AudioRecordingPermission::granted:
+            applyRecordInSelection(pairIndex, inputChannelCount);
+            return;
+        case AudioRecordingPermission::denied:
+            updateRecordInComboBox(setup.manager->getCurrentAudioDevice());
+            showMicrophonePermissionDenied();
+            return;
+        case AudioRecordingPermission::undetermined:
+            break;
+    }
+
+    isRecordPermissionRequestPending = true;
+    recordInDropDown->setEnabled(false);
+    juce::Component::SafePointer<AudioDeviceSettingsPanel> safeThis(this);
+    gui::ios::requestAudioRecordingPermission(
+        [safeThis, pairIndex, inputChannelCount](const bool granted)
+        {
+            if (safeThis == nullptr)
+            {
+                return;
+            }
+
+            safeThis->isRecordPermissionRequestPending = false;
+            safeThis->recordInDropDown->setEnabled(true);
+            if (granted)
+            {
+                safeThis->applyRecordInSelection(pairIndex, inputChannelCount);
+            }
+            else
+            {
+                safeThis->updateRecordInComboBox(
+                    safeThis->setup.manager->getCurrentAudioDevice());
+                safeThis->showMicrophonePermissionDenied();
+            }
+        });
+}
+
+void AudioDeviceSettingsPanel::applyRecordInSelection(
+    const int pairIndex, const int inputChannelCount)
+{
+    const auto previousConfig = setup.manager->getAudioDeviceSetup();
+    auto config = previousConfig;
+    config.useDefaultInputChannels = false;
+    config.inputChannels.clear();
+
+    if (pairIndex >= 0)
+    {
+        const auto firstChannel = pairIndex * 2;
+        if (firstChannel < inputChannelCount)
+        {
+            config.inputChannels.setBit(firstChannel);
+        }
+        if (firstChannel + 1 < inputChannelCount)
+        {
+            config.inputChannels.setBit(firstChannel + 1);
+        }
+    }
+
+    setup.manager->getInputLevelGetter()->resetToZeroLevel();
+    const auto error = setup.manager->setAudioDeviceSetup(config, true);
+    if (error.isNotEmpty())
+    {
+        const auto rollbackError =
+            setup.manager->setAudioDeviceSetup(previousConfig, true);
+        showAudioDeviceError(
+            rollbackError.isEmpty()
+                ? error
+                : error +
+                      "\n\nRestoring the previous audio setup also failed: " +
+                      rollbackError);
+    }
+
+    updateRecordInComboBox(setup.manager->getCurrentAudioDevice());
+}
+
+void AudioDeviceSettingsPanel::showMicrophonePermissionDenied()
+{
+    juce::Component::SafePointer<AudioDeviceSettingsPanel> safeThis(this);
+    messageBox = juce::AlertWindow::showScopedAsync(
+        juce::MessageBoxOptions()
+            .withIconType(juce::MessageBoxIconType::WarningIcon)
+            .withTitle("Microphone Access Required")
+            .withMessage(
+                "Allow VMPC2000XL to access the microphone in iOS Settings, "
+                "then return here and select the input again.")
+            .withButton("Cancel")
+            .withButton("Open Settings"),
+        [safeThis](const int result)
+        {
+            if (safeThis != nullptr && result == 2)
+            {
+                gui::ios::openApplicationSettings();
+            }
+        });
+}
+
+void AudioDeviceSettingsPanel::showAudioDeviceError(const juce::String &error)
+{
+    messageBox = juce::AlertWindow::showScopedAsync(
+        juce::MessageBoxOptions()
+            .withIconType(juce::MessageBoxIconType::WarningIcon)
+            .withTitle("Error when trying to open audio device!")
+            .withMessage(error)
+            .withButton("OK"),
+        nullptr);
+}
+#endif
 
 void AudioDeviceSettingsPanel::updateSampleRateComboBox(
     juce::AudioIODevice *currentDevice)

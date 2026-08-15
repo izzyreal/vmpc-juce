@@ -77,7 +77,15 @@ namespace vmpc_juce::standalone
 
         void updateInputsComboBox() const;
 
-        void updateRecordInComboBox(juce::AudioIODevice *currentDevice) const;
+        void updateRecordInComboBox(juce::AudioIODevice *currentDevice);
+
+#if JUCE_IOS
+        void handleRecordInSelection(int inputChannelCount);
+        void applyRecordInSelection(int pairIndex, int inputChannelCount);
+        void showMicrophonePermissionDenied();
+        void showAudioDeviceError(const juce::String &error);
+        bool isRecordPermissionRequestPending = false;
+#endif
 
         void updateSampleRateComboBox(juce::AudioIODevice *currentDevice);
 

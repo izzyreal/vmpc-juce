@@ -3,6 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #if JUCE_IOS
+#import <AVFAudio/AVFAudio.h>
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
 
@@ -95,5 +96,79 @@ void vmpc_juce::gui::ios::setIPhoneOrientation(
         orientation == arrangement::Orientation::portrait
             ? Desktop::upright
             : Desktop::rotatedClockwise | Desktop::rotatedAntiClockwise);
+}
+
+vmpc_juce::gui::ios::AudioRecordingPermission
+vmpc_juce::gui::ios::getAudioRecordingPermission()
+{
+    if (@available(iOS 17.0, *))
+    {
+        switch (AVAudioApplication.sharedInstance.recordPermission)
+        {
+            case AVAudioApplicationRecordPermissionGranted:
+                return AudioRecordingPermission::granted;
+            case AVAudioApplicationRecordPermissionDenied:
+                return AudioRecordingPermission::denied;
+            case AVAudioApplicationRecordPermissionUndetermined:
+                return AudioRecordingPermission::undetermined;
+        }
+    }
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    switch (AVAudioSession.sharedInstance.recordPermission)
+    {
+        case AVAudioSessionRecordPermissionGranted:
+            return AudioRecordingPermission::granted;
+        case AVAudioSessionRecordPermissionDenied:
+            return AudioRecordingPermission::denied;
+        case AVAudioSessionRecordPermissionUndetermined:
+            return AudioRecordingPermission::undetermined;
+    }
+#pragma clang diagnostic pop
+
+    return AudioRecordingPermission::undetermined;
+}
+
+void vmpc_juce::gui::ios::requestAudioRecordingPermission(
+    std::function<void(bool)> callback)
+{
+    if (!callback)
+    {
+        return;
+    }
+
+    const auto completion = ^(BOOL granted) {
+      juce::MessageManager::callAsync(
+          [callback, granted]
+          {
+              callback(granted == YES);
+          });
+    };
+
+    if (@available(iOS 17.0, *))
+    {
+        [AVAudioApplication
+            requestRecordPermissionWithCompletionHandler:completion];
+        return;
+    }
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    [AVAudioSession.sharedInstance requestRecordPermission:completion];
+#pragma clang diagnostic pop
+}
+
+void vmpc_juce::gui::ios::openApplicationSettings()
+{
+    NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
+    if (url == nil)
+    {
+        return;
+    }
+
+    [UIApplication.sharedApplication openURL:url
+                                     options:@{}
+                           completionHandler:nil];
 }
 #endif

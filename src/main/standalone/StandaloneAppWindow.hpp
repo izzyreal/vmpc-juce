@@ -1,6 +1,7 @@
 #pragma once
 
 #include "standalone/AudioDeviceManager.hpp"
+#include "standalone/AudioInputState.hpp"
 #include "standalone/VmpcStandalonePlayer.hpp"
 #include "standalone/AudioMidiSettingsComponent.hpp"
 
@@ -60,8 +61,41 @@ namespace vmpc_juce::standalone
                     *preferredSetupOptions));
             }
 
-            const auto audioInputRequired = inChannels > 0;
+            std::unique_ptr<XmlElement> savedAudioSetup;
+            if (settings != nullptr)
+            {
+                savedAudioSetup = settings->getXmlValue("audioSetup");
+            }
 
+            const auto audioInputRequired =
+                inChannels > 0 &&
+                !isAudioInputExplicitlyDisabled(savedAudioSetup.get());
+
+#if JUCE_IOS
+            if (!audioInputRequired)
+            {
+                init(false, preferredDefaultDeviceName);
+                return;
+            }
+
+            using gui::ios::AudioRecordingPermission;
+            switch (gui::ios::getAudioRecordingPermission())
+            {
+                case AudioRecordingPermission::granted:
+                    init(true, preferredDefaultDeviceName);
+                    break;
+                case AudioRecordingPermission::denied:
+                    init(false, preferredDefaultDeviceName);
+                    break;
+                case AudioRecordingPermission::undetermined:
+                    gui::ios::requestAudioRecordingPermission(
+                        [this, preferredDefaultDeviceName](const bool granted)
+                        {
+                            init(granted, preferredDefaultDeviceName);
+                        });
+                    break;
+            }
+#else
             if (audioInputRequired &&
                 RuntimePermissions::isRequired(
                     RuntimePermissions::recordAudio) &&
@@ -78,6 +112,7 @@ namespace vmpc_juce::standalone
             {
                 init(audioInputRequired, preferredDefaultDeviceName);
             }
+#endif
         }
 
         void init(const bool enableAudioInput,
@@ -322,6 +357,13 @@ namespace vmpc_juce::standalone
             {
                 savedState = settings->getXmlValue("audioSetup");
             }
+
+#if JUCE_IOS
+            if (!enableAudioInput && savedState != nullptr)
+            {
+                forceAudioInputDisabled(*savedState);
+            }
+#endif
 
             const auto inputChannels = getNumInputChannels();
             auto outputChannels = getNumOutputChannels();
