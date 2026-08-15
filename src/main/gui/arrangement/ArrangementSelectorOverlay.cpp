@@ -12,6 +12,9 @@ namespace vmpc_juce::gui::arrangement
 {
     namespace
     {
+        constexpr auto thumbnailInset = 8;
+        constexpr float portraitAspect = 390.f / 844.f;
+
         class PreviewSurface final : public juce::Component
         {
         public:
@@ -191,10 +194,6 @@ namespace vmpc_juce::gui::arrangement
             g.setColour(selected ? juce::Colour(0xff67b8de)
                                  : juce::Colour(0xff8b9692));
             g.drawRoundedRectangle(bounds, 5.f, selected ? 3.f : 1.f);
-            g.setColour(juce::Colour(0xffedf2ef));
-            g.setFont(juce::Font(14.f, juce::Font::bold));
-            g.drawText(juce::String(static_cast<int>(index + 1)), 6, 4, 20, 18,
-                       juce::Justification::centredLeft);
             if (preview == nullptr)
             {
                 g.setColour(juce::Colour(0xff8b9692));
@@ -210,8 +209,7 @@ namespace vmpc_juce::gui::arrangement
             {
                 return;
             }
-            auto area = getLocalBounds().reduced(8).withTrimmedTop(20);
-            constexpr float portraitAspect = 390.f / 844.f;
+            auto area = getLocalBounds().reduced(thumbnailInset);
             const auto aspect = slot->orientation == Orientation::portrait
                                     ? portraitAspect
                                     : 1.f / portraitAspect;
@@ -274,6 +272,14 @@ namespace vmpc_juce::gui::arrangement
             std::max(12, juce::roundToInt(getWidth() * 0.035f)));
         const auto gap = std::max(6, juce::roundToInt(getWidth() * 0.012f));
         const auto width = std::max(1, (area.getWidth() - gap * 4) / 5);
+        const auto previewWidth = std::max(1, width - thumbnailInset * 2);
+        const auto heightNeededForPortraitPreview =
+            juce::roundToInt(static_cast<float>(previewWidth) /
+                             portraitAspect) +
+            thumbnailInset * 2;
+        const auto height =
+            std::min(area.getHeight(), heightNeededForPortraitPreview);
+        area = area.withSizeKeepingCentre(area.getWidth(), height);
         for (auto &thumbnail : thumbnails)
         {
             thumbnail->setBounds(area.removeFromLeft(width));
