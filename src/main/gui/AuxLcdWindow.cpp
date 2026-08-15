@@ -63,7 +63,29 @@ AuxLcdWindow::AuxLcdWindow(
 
     constrainer.setSizeLimits(minWidth, minHeight, maxWidth, maxHeight);
 
-    setBounds(0, 0, defaultWidth, defaultHeight);
+    auto initialBounds = juce::Rectangle(0, 0, defaultWidth, defaultHeight);
+
+    if (const auto *display =
+            juce::Desktop::getInstance().getDisplays().getPrimaryDisplay())
+    {
+        const auto availableBounds = display->userArea;
+
+        if (initialBounds.getWidth() > availableBounds.getWidth() ||
+            initialBounds.getHeight() > availableBounds.getHeight())
+        {
+            const auto scale = juce::jmin(
+                static_cast<float>(availableBounds.getWidth()) / defaultWidth,
+                static_cast<float>(availableBounds.getHeight()) /
+                    defaultHeight);
+
+            initialBounds.setSize(
+                juce::roundToInt(defaultWidth * scale),
+                juce::roundToInt(defaultHeight * scale));
+            initialBounds.setCentre(availableBounds.getCentre());
+        }
+    }
+
+    setBounds(initialBounds);
 
     auxLcd->setCentrePosition(getLocalBounds().getCentre());
 
