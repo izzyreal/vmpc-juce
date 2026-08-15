@@ -315,6 +315,28 @@ _bundle_vmpc_juce_resources(vmpc2000xl)
 
 include(cmake/guilab.cmake)
 
+if(CMAKE_GENERATOR STREQUAL "Xcode")
+  # Generating a scheme for any target disables Xcode's automatic schemes for
+  # the rest of the project. Keep every target used by CI explicit so adding a
+  # new app or test scheme cannot make an existing CI scheme disappear.
+  set(_vmpc_xcode_scheme_targets
+    vmpc2000xl_Standalone
+    vmpc2000xl_AU
+    vmpc2000xl_AUv3
+    vmpc2000xl_VST3
+    vmpc2000xl_LV2
+    vmpc2000xl_GuiLab
+    mpc-tests
+    vmpc-juce-tests
+    vmpc-juce-guilab-tests)
+
+  foreach(_target IN LISTS _vmpc_xcode_scheme_targets)
+    if(TARGET ${_target})
+      set_property(TARGET ${_target} PROPERTY XCODE_GENERATE_SCHEME TRUE)
+    endif()
+  endforeach()
+endif()
+
 if (VMPC_BUILD_TESTS AND TARGET vmpcjuce::rc)
   target_link_libraries(vmpc-juce-tests PRIVATE vmpcjuce::rc)
 endif()

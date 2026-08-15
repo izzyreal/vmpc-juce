@@ -70,7 +70,6 @@ target_sources(vmpc2000xl_GuiLab PRIVATE
   "${_guilab_lcd_fixture}")
 
 set_target_properties(vmpc2000xl_GuiLab PROPERTIES
-  XCODE_GENERATE_SCHEME TRUE
   SKIP_BUILD_RPATH FALSE
   BUILD_RPATH "${CMAKE_BINARY_DIR}/_deps/json-schema-validator-build/$<CONFIG>;${CMAKE_BINARY_DIR}/_deps/mpc-build/$<CONFIG>")
 
@@ -107,9 +106,6 @@ if(VMPC_BUILD_TESTS)
   target_compile_definitions(vmpc-juce-guilab-tests PRIVATE
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0)
-
-  set_target_properties(vmpc-juce-guilab-tests PROPERTIES
-    XCODE_GENERATE_SCHEME TRUE)
 
   source_group("GUI Lab Tests" FILES
     "${CMAKE_SOURCE_DIR}/src/guilab/test/GuiLabArrangementModelTest.cpp")
