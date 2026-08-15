@@ -18,7 +18,8 @@ namespace vmpc_juce::standalone
                                 int minAudioInputChannels,
                                 int maxAudioInputChannels,
                                 int minAudioOutputChannels,
-                                int maxAudioOutputChannels);
+                                int maxAudioOutputChannels,
+                                bool usePhoneLayout);
 
         ~DeviceSelectorComponent() override;
 
@@ -32,6 +33,10 @@ namespace vmpc_juce::standalone
         }
 
         juce::ListBox *getMidiInputSelectorListBox() const noexcept;
+
+        juce::Rectangle<int> getControlColumnBounds(int y, int height) const;
+
+        int getLabelAreaLeftMargin() const;
 
         void resized() override;
 
@@ -55,6 +60,7 @@ namespace vmpc_juce::standalone
         int itemHeight = 0;
         const int minOutputChannels, maxOutputChannels, minInputChannels,
             maxInputChannels;
+        const bool usePhoneLayout;
 
         juce::Array<juce::MidiDeviceInfo> currentMidiOutputs;
         std::unique_ptr<MidiInputListBox> midiInputsList;
