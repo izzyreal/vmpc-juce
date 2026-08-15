@@ -1536,31 +1536,14 @@ private:
             return;
         }
         const auto groupId = selectedIds.front();
-        const auto found =
-            std::find_if(document.nodes.begin(), document.nodes.end(),
-                         [groupId](const auto &node)
-                         {
-                             return node.id == groupId;
-                         });
-        if (found == document.nodes.end() || !found->isGroup())
+        const auto targetSize = getEffectiveDeviceSize(device, orientation);
+        auto childIds = ungroupFixedGroup(document, groupId, responsiveLayout,
+                                          targetSize);
+        if (childIds.empty())
         {
             return;
         }
-        const auto index =
-            static_cast<size_t>(std::distance(document.nodes.begin(), found));
-        const auto groupGeometry = getProjectedGeometry(groupId);
-        auto children = ungroupFixedGroup(
-            *found, groupGeometry, getEffectiveDeviceSize(device, orientation));
-        document.nodes.erase(found);
-        selectedIds.clear();
-        for (const auto &child : children)
-        {
-            selectedIds.push_back(child.id);
-        }
-        document.nodes.insert(document.nodes.begin() +
-                                  static_cast<std::ptrdiff_t>(index),
-                              std::make_move_iterator(children.begin()),
-                              std::make_move_iterator(children.end()));
+        selectedIds = std::move(childIds);
         refreshResponsiveLayout();
         rebuildNodeComponents();
     }

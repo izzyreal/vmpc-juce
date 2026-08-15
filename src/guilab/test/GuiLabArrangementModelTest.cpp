@@ -246,6 +246,81 @@ TEST_CASE("GUI Lab fixed groups preserve displayed child geometry",
     }
 }
 
+TEST_CASE("GUI Lab ungrouping preserves reflowed unrelated components",
+          "[gui-lab][arrangement][responsive][group]")
+{
+    const LogicalSize viewport{100.f, 100.f};
+
+    ArrangementNodeModel group;
+    group.id = 3;
+    group.anchor = {AnchorAxis::start, AnchorAxis::start};
+    group.anchorPosition = {0.f, 0.f};
+    group.widthFraction = 0.6f;
+    group.referenceSize = {60.f, 20.f};
+    group.children = {
+        {1, "cursor", {0.f, 0.f}, 1.f, {20.f, 20.f}},
+        {2, "data-wheel", {40.f, 0.f}, 1.f, {20.f, 20.f}}};
+
+    auto unrelated = makeNode(4, {0.f, 0.f}, 0.2f, {20.f, 20.f},
+                              {AnchorAxis::start, AnchorAxis::start});
+    unrelated.catalogId = "num-pad";
+    ArrangementDocument grouped{{group, unrelated}};
+    const auto groupedLayout = computeResponsiveLayout(grouped, viewport);
+    REQUIRE(groupedLayout.nodes.size() == 2);
+    REQUIRE(groupedLayout.sharedScale == Catch::Approx(1.f));
+
+    const auto *groupGeometry = findProjectedGeometry(groupedLayout, group.id);
+    const auto *unrelatedGeometry =
+        findProjectedGeometry(groupedLayout, unrelated.id);
+    REQUIRE(groupGeometry != nullptr);
+    REQUIRE(unrelatedGeometry != nullptr);
+    CHECK(unrelatedGeometry->position.y !=
+          Catch::Approx(unrelated.anchorPosition.y * viewport.height));
+
+    const std::array<ProjectedNodeGeometry, 2> displayedChildren{{
+        {{groupGeometry->position.x,
+          groupGeometry->position.y},
+         {20.f, 20.f},
+         1.f,
+         {}},
+        {{groupGeometry->position.x + 40.f,
+          groupGeometry->position.y},
+         {20.f, 20.f},
+         1.f,
+         {}}}};
+
+    const auto childIds =
+        ungroupFixedGroup(grouped, group.id, groupedLayout, viewport);
+    REQUIRE(childIds == std::vector<std::uint64_t>{1, 2});
+    REQUIRE(grouped.nodes.size() == 3);
+    CHECK(grouped.nodes[0].id == 1);
+    CHECK(grouped.nodes[0].catalogId == "cursor");
+    CHECK(grouped.nodes[1].id == 2);
+    CHECK(grouped.nodes[1].catalogId == "data-wheel");
+    CHECK(grouped.nodes[2].id == 4);
+    CHECK(grouped.nodes[2].catalogId == "num-pad");
+    const auto ungroupedLayout = computeResponsiveLayout(grouped, viewport);
+    REQUIRE(ungroupedLayout.sharedScale == Catch::Approx(1.f));
+
+    for (size_t i = 0; i < childIds.size(); ++i)
+    {
+        const auto *restored =
+            findProjectedGeometry(ungroupedLayout, childIds[i]);
+        REQUIRE(restored != nullptr);
+        CHECK(restored->position.x ==
+              Catch::Approx(displayedChildren[i].position.x));
+        CHECK(restored->position.y ==
+              Catch::Approx(displayedChildren[i].position.y));
+    }
+    const auto *restoredUnrelated =
+        findProjectedGeometry(ungroupedLayout, unrelated.id);
+    REQUIRE(restoredUnrelated != nullptr);
+    CHECK(restoredUnrelated->position.x ==
+          Catch::Approx(unrelatedGeometry->position.x));
+    CHECK(restoredUnrelated->position.y ==
+          Catch::Approx(unrelatedGeometry->position.y));
+}
+
 TEST_CASE(
     "GUI Lab grouping a compressed layout bakes valid normalized geometry",
     "[gui-lab][arrangement][responsive][group]")

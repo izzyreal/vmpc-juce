@@ -1025,6 +1025,21 @@ vmpc_juce::gui::arrangement::inferAnchor(const LogicalPoint position,
         inferAnchorAxis(position.y + size.height * 0.5f, canvasSize.height)};
 }
 
+void vmpc_juce::gui::arrangement::bakeProjectedGeometry(
+    ArrangementNodeModel &node, const ProjectedNodeGeometry geometry,
+    const LogicalSize targetSize)
+{
+    if (targetSize.width <= 0.f || targetSize.height <= 0.f)
+    {
+        return;
+    }
+
+    node.widthFraction = geometry.size.width / targetSize.width;
+    node.anchor = inferAnchor(geometry.position, geometry.size, targetSize);
+    node.anchorPosition = normalizedAnchorPosition(
+        geometry.position, geometry.size, node.anchor, targetSize);
+}
+
 ArrangementNodeModel vmpc_juce::gui::arrangement::makeFixedGroup(
     const std::uint64_t groupId,
     const std::vector<ArrangementNodeModel> &itemNodes,
@@ -1111,4 +1126,66 @@ vmpc_juce::gui::arrangement::ungroupFixedGroup(
         result.push_back(std::move(node));
     }
     return result;
+}
+
+std::vector<std::uint64_t>
+vmpc_juce::gui::arrangement::ungroupFixedGroup(
+    ArrangementDocument &document, const std::uint64_t groupId,
+    const ResponsiveLayout &layout, const LogicalSize targetSize)
+{
+    const auto found =
+        std::find_if(document.nodes.begin(), document.nodes.end(),
+                     [groupId](const auto &node)
+                     {
+                         return node.id == groupId;
+                     });
+    if (found == document.nodes.end() || !found->isGroup())
+    {
+        return {};
+    }
+
+    const auto *groupGeometry = findProjectedGeometry(layout, groupId);
+    if (groupGeometry == nullptr)
+    {
+        return {};
+    }
+
+    const auto index =
+        static_cast<size_t>(std::distance(document.nodes.begin(), found));
+    auto children = ungroupFixedGroup(*found, *groupGeometry, targetSize);
+    if (children.empty())
+    {
+        return {};
+    }
+
+    // Unaffected nodes may currently be displayed away from their stored
+    // anchors because the collision resolver reflowed them around the group.
+    // Bake those visible positions alongside the children so removing the
+    // group cannot make an outsider jump back and displace a child.
+    for (auto &node : document.nodes)
+    {
+        if (node.id == groupId)
+        {
+            continue;
+        }
+        if (const auto *geometry = findProjectedGeometry(layout, node.id))
+        {
+            bakeProjectedGeometry(node, *geometry, targetSize);
+        }
+    }
+
+    std::vector<std::uint64_t> childIds;
+    childIds.reserve(children.size());
+    for (const auto &child : children)
+    {
+        childIds.push_back(child.id);
+    }
+
+    document.nodes.erase(document.nodes.begin() +
+                         static_cast<std::ptrdiff_t>(index));
+    document.nodes.insert(document.nodes.begin() +
+                              static_cast<std::ptrdiff_t>(index),
+                          std::make_move_iterator(children.begin()),
+                          std::make_move_iterator(children.end()));
+    return childIds;
 }

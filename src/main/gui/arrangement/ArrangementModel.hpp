@@ -212,6 +212,9 @@ namespace vmpc_juce::gui::arrangement
                                         bool useCentrePivot);
     ArrangementAnchor inferAnchor(LogicalPoint position, LogicalSize size,
                                   LogicalSize canvasSize);
+    void bakeProjectedGeometry(ArrangementNodeModel &node,
+                               ProjectedNodeGeometry geometry,
+                               LogicalSize targetSize);
     ArrangementNodeModel
     makeFixedGroup(std::uint64_t groupId,
                    const std::vector<ArrangementNodeModel> &itemNodes,
@@ -220,4 +223,7 @@ namespace vmpc_juce::gui::arrangement
     ungroupFixedGroup(const ArrangementNodeModel &group,
                       ProjectedNodeGeometry groupGeometry,
                       LogicalSize targetSize);
+    std::vector<std::uint64_t>
+    ungroupFixedGroup(ArrangementDocument &document, std::uint64_t groupId,
+                      const ResponsiveLayout &layout, LogicalSize targetSize);
 } // namespace vmpc_juce::gui::arrangement
