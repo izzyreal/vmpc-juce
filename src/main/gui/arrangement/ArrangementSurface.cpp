@@ -147,11 +147,9 @@ namespace vmpc_juce::gui::arrangement
             const auto &geometry = layout.nodes[nodeIndex].geometry;
             auto &item = *items[nodeIndex];
             item.renderedScale = geometry.scale;
-            item.components.front()->setBounds(
-                juce::roundToInt(geometry.position.x),
-                juce::roundToInt(geometry.position.y),
-                std::max(1, juce::roundToInt(geometry.size.width)),
-                std::max(1, juce::roundToInt(geometry.size.height)));
+            const auto bounds = roundedPixelBounds(geometry);
+            item.components.front()->setBounds(bounds.x, bounds.y,
+                                               bounds.width, bounds.height);
         }
     }
 } // namespace vmpc_juce::gui::arrangement

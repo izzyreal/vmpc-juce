@@ -329,6 +329,7 @@ public:
     {
         device = newDevice;
         orientation = newOrientation;
+        frozenMoveScale.reset();
 
         refreshResponsiveLayout();
         resized();
@@ -364,6 +365,7 @@ public:
         }
 
         document = newDocument;
+        frozenMoveScale.reset();
         selectedIds.clear();
         nextNodeId = 1;
         for (const auto &node : document.nodes)
@@ -395,8 +397,11 @@ public:
             juce::String(juce::roundToInt(deviceSize.width)) + " × " +
             juce::String(juce::roundToInt(deviceSize.height)) + " pt — " +
             juce::String(juce::roundToInt(zoom * 100.f)) + "% view — " +
-            (responsiveLayout.hasValidPlacement ? "exact projection"
-                                                : "geometry conflict");
+            (responsiveLayout.hasValidPlacement
+                 ? juce::String(juce::roundToInt(
+                       responsiveLayout.uniformScale * 100.f)) +
+                       "% uniform fit"
+                 : juce::String("geometry conflict"));
         g.setColour(responsiveLayout.hasValidPlacement
                         ? juce::Colour(0xffaeb7b3)
                         : juce::Colour(0xffffa45c));
@@ -558,6 +563,8 @@ public:
             constrainItemScale(1.f, referenceSize, deviceSize);
         model.widthFraction =
             referenceSize.width * projectedScale / deviceSize.width;
+        const auto displayedScale =
+            projectedScale * responsiveLayout.uniformScale;
 
         const auto logicalDropX =
             static_cast<float>(details.localPosition.x - surfaceBounds.getX()) /
@@ -565,8 +572,8 @@ public:
         const auto logicalDropY =
             static_cast<float>(details.localPosition.y - surfaceBounds.getY()) /
             zoom;
-        const LogicalSize itemSize{referenceSize.width * projectedScale,
-                                   referenceSize.height * projectedScale};
+        const LogicalSize itemSize{referenceSize.width * displayedScale,
+                                   referenceSize.height * displayedScale};
         const LogicalPoint requested{logicalDropX - itemSize.width * 0.5f,
                                      logicalDropY - itemSize.height * 0.5f};
         const auto shouldSnap =
@@ -586,7 +593,7 @@ public:
             projectedPosition = *nearest;
         }
         model.center = normalizedCenter(
-            {projectedPosition, itemSize, projectedScale}, deviceSize);
+            {projectedPosition, itemSize, displayedScale}, deviceSize);
 
         document.nodes.push_back(std::move(model));
         selectedIds = {document.nodes.back().id};
@@ -628,6 +635,11 @@ private:
             void mouseDrag(const juce::MouseEvent &event) override
             {
                 owner.continueMove(event);
+            }
+
+            void mouseUp(const juce::MouseEvent &) override
+            {
+                owner.endMove();
             }
 
         private:
@@ -767,6 +779,7 @@ private:
         {
             workspace.selectNode(nodeId, event.mods.isShiftDown());
             workspace.grabKeyboardFocus();
+            workspace.beginMove();
             startPosition = workspace.getProjectedGeometry(nodeId).position;
             startScreenPosition = event.getScreenPosition();
         }
@@ -784,12 +797,17 @@ private:
             workspace.moveNode(nodeId, requested, !event.mods.isAltDown());
         }
 
+        void endMove()
+        {
+            workspace.endMove();
+        }
+
         void beginResize(const ResizeCorner corner,
                          const juce::MouseEvent &event)
         {
             workspace.selectNode(nodeId, false);
             workspace.grabKeyboardFocus();
-            resizeStartGeometry = workspace.getProjectedGeometry(nodeId);
+            resizeStartGeometry = workspace.getAuthoredGeometry(nodeId);
             resizeStartScreenPosition = event.getScreenPosition();
             resizeCorner = corner;
         }
@@ -873,7 +891,30 @@ private:
     void refreshResponsiveLayout()
     {
         const auto targetSize = getEffectiveDeviceSize(device, orientation);
-        responsiveLayout = computeResponsiveLayout(document, targetSize);
+        responsiveLayout = frozenMoveScale.has_value()
+                               ? projectDocumentAtScale(document, targetSize,
+                                                        *frozenMoveScale)
+                               : computeResponsiveLayout(document, targetSize);
+    }
+
+    void beginMove()
+    {
+        if (!frozenMoveScale.has_value())
+        {
+            frozenMoveScale = responsiveLayout.uniformScale;
+        }
+    }
+
+    void endMove()
+    {
+        if (!frozenMoveScale.has_value())
+        {
+            return;
+        }
+        frozenMoveScale.reset();
+        refreshResponsiveLayout();
+        updateAllNodeBounds();
+        repaint();
     }
 
     ProjectedNodeGeometry getProjectedGeometry(const std::uint64_t id) const
@@ -883,6 +924,15 @@ private:
             return *geometry;
         }
         return {};
+    }
+
+    ProjectedNodeGeometry getAuthoredGeometry(const std::uint64_t id) const
+    {
+        const auto *node = findNode(id);
+        return node != nullptr
+                   ? projectNode(*node,
+                                 getEffectiveDeviceSize(device, orientation))
+                   : ProjectedNodeGeometry{};
     }
 
     bool isSelected(const std::uint64_t id) const
@@ -1098,16 +1148,6 @@ private:
         requestedScale =
             std::clamp(requestedScale, 0.01f,
                        targetSize.width / referenceSize.width);
-        std::vector<LogicalRect> obstacles;
-        for (const auto &projected : responsiveLayout.nodes)
-        {
-            if (projected.id != id)
-            {
-                obstacles.push_back(
-                    {projected.geometry.position, projected.geometry.size});
-            }
-        }
-
         const auto makeGeometry = [&](const float projectedScale)
         {
             const LogicalSize requestedProjectedSize{
@@ -1120,32 +1160,6 @@ private:
         };
 
         auto requestedGeometry = makeGeometry(requestedScale);
-        if (!isPlacementValid(
-                {requestedGeometry.position, requestedGeometry.size},
-                targetSize, obstacles))
-        {
-            if (requestedScale <= startGeometry.scale)
-            {
-                return;
-            }
-            auto lower = startGeometry.scale;
-            auto upper = requestedScale;
-            for (int iteration = 0; iteration < 32; ++iteration)
-            {
-                const auto scale = (lower + upper) * 0.5f;
-                const auto geometry = makeGeometry(scale);
-                if (isPlacementValid({geometry.position, geometry.size},
-                                     targetSize, obstacles))
-                {
-                    lower = scale;
-                }
-                else
-                {
-                    upper = scale;
-                }
-            }
-            requestedGeometry = makeGeometry(lower);
-        }
 
         node->widthFraction =
             requestedGeometry.size.width / targetSize.width;
@@ -1227,6 +1241,7 @@ private:
     Orientation orientation = Orientation::portrait;
     ArrangementDocument document;
     ResponsiveLayout responsiveLayout;
+    std::optional<float> frozenMoveScale;
     std::uint64_t nextNodeId = 1;
     float zoom = 1.f;
     juce::Rectangle<int> surfaceBounds;

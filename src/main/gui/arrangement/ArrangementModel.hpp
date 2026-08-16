@@ -69,9 +69,9 @@ namespace vmpc_juce::gui::arrangement
         std::uint64_t id = 0;
         // Preferred centre in the normalized 0..1 document canvas.
         LogicalPoint center{0.5f, 0.5f};
-        // Width as a fraction of the target canvas width. Height follows the
-        // component's reference aspect ratio. Projection applies this value
-        // exactly; geometry conflicts are reported rather than auto-scaled.
+        // Authored width as a fraction of the target canvas width. Height
+        // follows the component's reference aspect ratio. Resolution may
+        // uniformly reduce all projected components to keep the layout legal.
         float widthFraction = 0.25f;
         LogicalSize referenceSize;
         std::string catalogId;
@@ -111,8 +111,17 @@ namespace vmpc_juce::gui::arrangement
 
     struct ResponsiveLayout
     {
+        float uniformScale = 1.f;
         bool hasValidPlacement = true;
         std::vector<ProjectedArrangementNode> nodes;
+    };
+
+    struct PixelBounds
+    {
+        int x = 0;
+        int y = 0;
+        int width = 0;
+        int height = 0;
     };
 
     const std::vector<DeviceProfile> &getDeviceProfiles();
@@ -133,11 +142,18 @@ namespace vmpc_juce::gui::arrangement
                                        float gridSize = 4.f);
     ProjectedNodeGeometry projectNode(const ArrangementNodeModel &node,
                                       LogicalSize targetSize);
+    ProjectedNodeGeometry projectNodeAtScale(
+        const ArrangementNodeModel &node, LogicalSize targetSize,
+        float uniformScale);
     LogicalPoint normalizedCenter(ProjectedNodeGeometry geometry,
                                   LogicalSize targetSize);
+    ResponsiveLayout projectDocumentAtScale(
+        const ArrangementDocument &document, LogicalSize targetSize,
+        float uniformScale);
     ResponsiveLayout
     computeResponsiveLayout(const ArrangementDocument &document,
                             LogicalSize targetSize);
+    PixelBounds roundedPixelBounds(ProjectedNodeGeometry geometry);
     const ProjectedNodeGeometry *
     findProjectedGeometry(const ResponsiveLayout &layout, std::uint64_t nodeId);
     bool rectanglesOverlap(LogicalRect first, LogicalRect second);

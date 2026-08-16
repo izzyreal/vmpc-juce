@@ -120,11 +120,10 @@ namespace vmpc_juce::gui::arrangement
                 item.renderedScale = scale;
                 if (!item.components.empty())
                 {
+                    const auto bounds = roundedPixelBounds(
+                        {position, size, scale});
                     item.components.front()->setBounds(
-                        juce::roundToInt(position.x),
-                        juce::roundToInt(position.y),
-                        std::max(1, juce::roundToInt(size.width)),
-                        std::max(1, juce::roundToInt(size.height)));
+                        bounds.x, bounds.y, bounds.width, bounds.height);
                 }
             }
 

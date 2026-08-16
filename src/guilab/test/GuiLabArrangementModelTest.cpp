@@ -32,6 +32,28 @@ namespace
         return node;
     }
 
+    void checkValidLayout(const ResponsiveLayout &layout,
+                          const LogicalSize bounds)
+    {
+        REQUIRE(layout.hasValidPlacement);
+        for (size_t i = 0; i < layout.nodes.size(); ++i)
+        {
+            const auto &first = layout.nodes[i].geometry;
+            CHECK(first.position.x >= Catch::Approx(0.f).margin(0.001f));
+            CHECK(first.position.y >= Catch::Approx(0.f).margin(0.001f));
+            CHECK(first.position.x + first.size.width <=
+                  Catch::Approx(bounds.width).margin(0.001f));
+            CHECK(first.position.y + first.size.height <=
+                  Catch::Approx(bounds.height).margin(0.001f));
+            for (size_t j = i + 1; j < layout.nodes.size(); ++j)
+            {
+                const auto &second = layout.nodes[j].geometry;
+                CHECK_FALSE(rectanglesOverlap({first.position, first.size},
+                                              {second.position, second.size}));
+            }
+        }
+    }
+
 } // namespace
 
 TEST_CASE("GUI Lab compact LCD sizes follow the production grid",
@@ -174,7 +196,22 @@ TEST_CASE("GUI Lab normalized centre geometry projects onto a target",
     CHECK(center.y == Catch::Approx(node.center.y));
 }
 
-TEST_CASE("GUI Lab exact projection reports out-of-bounds geometry",
+TEST_CASE("GUI Lab uniform projection scales about authored centres",
+          "[gui-lab][arrangement][responsive]")
+{
+    const LogicalSize viewport{400.f, 300.f};
+    const auto node = makeNode(1, {0.5f, 0.4f}, 0.5f, {100.f, 50.f});
+    const auto full = projectNodeAtScale(node, viewport, 1.f);
+    const auto reduced = projectNodeAtScale(node, viewport, 0.5f);
+
+    CHECK(reduced.size.width == Catch::Approx(full.size.width * 0.5f));
+    CHECK(reduced.size.height == Catch::Approx(full.size.height * 0.5f));
+    CHECK(reduced.scale == Catch::Approx(full.scale * 0.5f));
+    CHECK(normalizedCenter(reduced, viewport).x == Catch::Approx(node.center.x));
+    CHECK(normalizedCenter(reduced, viewport).y == Catch::Approx(node.center.y));
+}
+
+TEST_CASE("GUI Lab uniformly resolves out-of-bounds geometry",
           "[gui-lab][arrangement][responsive][regression]")
 {
     ArrangementDocument document;
@@ -183,13 +220,14 @@ TEST_CASE("GUI Lab exact projection reports out-of-bounds geometry",
     const LogicalSize viewport{100.f, 100.f};
     const auto layout = computeResponsiveLayout(document, viewport);
     REQUIRE(layout.nodes.size() == 1);
-    CHECK_FALSE(layout.hasValidPlacement);
+    checkValidLayout(layout, viewport);
+    CHECK(layout.uniformScale == Catch::Approx(0.5f).margin(0.0001f));
 
     const auto &geometry = layout.nodes.front().geometry;
-    CHECK(geometry.position.x == Catch::Approx(0.f));
-    CHECK(geometry.position.y == Catch::Approx(-50.f));
-    CHECK(geometry.size.width == Catch::Approx(100.f));
-    CHECK(geometry.size.height == Catch::Approx(200.f));
+    CHECK(geometry.position.x == Catch::Approx(25.f).margin(0.001f));
+    CHECK(geometry.position.y == Catch::Approx(0.f).margin(0.001f));
+    CHECK(geometry.size.width == Catch::Approx(50.f).margin(0.003f));
+    CHECK(geometry.size.height == Catch::Approx(100.f).margin(0.003f));
 }
 
 TEST_CASE("GUI Lab width fraction one spans the available width",
@@ -204,6 +242,7 @@ TEST_CASE("GUI Lab width fraction one spans the available width",
     {
         const auto layout = computeResponsiveLayout(document, viewport);
         REQUIRE(layout.nodes.size() == 1);
+        CHECK(layout.uniformScale == Catch::Approx(1.f));
         CHECK(layout.nodes[0].geometry.position.x == Catch::Approx(0.f));
         CHECK(layout.nodes[0].geometry.size.width ==
               Catch::Approx(viewport.width));
@@ -221,6 +260,7 @@ TEST_CASE("GUI Lab normalized geometry adapts without mutating the document",
     {
         const auto layout = computeResponsiveLayout(document, viewport);
         REQUIRE(layout.nodes.size() == 1);
+        CHECK(layout.uniformScale == Catch::Approx(1.f));
         const auto &geometry = layout.nodes.front().geometry;
         CHECK(geometry.position.x + geometry.size.width * 0.5f ==
               Catch::Approx(viewport.width * 0.3f));
@@ -235,7 +275,7 @@ TEST_CASE("GUI Lab normalized geometry adapts without mutating the document",
     CHECK(document.nodes.front().widthFraction == Catch::Approx(0.4f));
 }
 
-TEST_CASE("GUI Lab exact projection preserves conflicting geometry",
+TEST_CASE("GUI Lab uniformly resolves conflicting geometry",
           "[gui-lab][arrangement][responsive]")
 {
     ArrangementDocument document;
@@ -244,14 +284,56 @@ TEST_CASE("GUI Lab exact projection preserves conflicting geometry",
 
     const LogicalSize viewport{100.f, 100.f};
     const auto layout = computeResponsiveLayout(document, viewport);
-    CHECK_FALSE(layout.hasValidPlacement);
+    CHECK(layout.uniformScale > 0.f);
+    CHECK(layout.uniformScale < 1.f);
+    checkValidLayout(layout, viewport);
     for (size_t i = 0; i < layout.nodes.size(); ++i)
     {
         const auto center =
             normalizedCenter(layout.nodes[i].geometry, viewport);
         CHECK(center.x == Catch::Approx(document.nodes[i].center.x));
         CHECK(center.y == Catch::Approx(document.nodes[i].center.y));
-        CHECK(layout.nodes[i].geometry.size.width == Catch::Approx(60.f));
+        CHECK(layout.nodes[i].geometry.size.width ==
+              Catch::Approx(60.f * layout.uniformScale));
+    }
+}
+
+TEST_CASE("Landscape LCD and transport resolve across iPhone aspect ratios",
+          "[gui-lab][arrangement][responsive][regression]")
+{
+    ArrangementDocument document;
+    auto lcd = makeNode(1, {0.5052473545f, 0.3329692781f}, 0.9895052314f,
+                        {222.5233765f, 84.1970978f});
+    lcd.catalogId = "lcd-mounted";
+    auto transport = makeNode(2, {0.5000014901f, 0.8210502863f}, 1.f,
+                              {179.f, 30.f});
+    transport.catalogId = "transport-horizontal";
+    document.nodes = {lcd, transport};
+
+    const LogicalSize iphone7Landscape{667.f, 375.f};
+    const auto iphone7 = computeResponsiveLayout(document, iphone7Landscape);
+    CHECK(iphone7.uniformScale == Catch::Approx(1.f));
+    checkValidLayout(iphone7, iphone7Landscape);
+
+    const LogicalSize iphone11Landscape{896.f, 414.f};
+    const auto authored = projectDocumentAtScale(
+        document, iphone11Landscape, 1.f);
+    CHECK_FALSE(authored.hasValidPlacement);
+
+    const auto iphone11 =
+        computeResponsiveLayout(document, iphone11Landscape);
+    CHECK(iphone11.uniformScale > 0.f);
+    CHECK(iphone11.uniformScale < 1.f);
+    checkValidLayout(iphone11, iphone11Landscape);
+    for (size_t i = 0; i < document.nodes.size(); ++i)
+    {
+        const auto center = normalizedCenter(
+            iphone11.nodes[i].geometry, iphone11Landscape);
+        CHECK(center.x == Catch::Approx(document.nodes[i].center.x));
+        CHECK(center.y == Catch::Approx(document.nodes[i].center.y));
+        CHECK(iphone11.nodes[i].geometry.scale ==
+              Catch::Approx(authored.nodes[i].geometry.scale *
+                            iphone11.uniformScale));
     }
 }
 
@@ -271,6 +353,37 @@ TEST_CASE("GUI Lab projection uses each target device width",
     const auto fullWidth = projectNode(lcd, {375.f, 667.f});
     CHECK(fullWidth.position.x == Catch::Approx(0.f));
     CHECK(fullWidth.size.width == Catch::Approx(375.f));
+}
+
+TEST_CASE("Resolved pixel bounds round edges without introducing overlap",
+          "[gui-lab][arrangement][responsive][regression]")
+{
+    const auto first = roundedPixelBounds({{0.6f, 0.f}, {10.6f, 8.f}, 1.f});
+    const auto second =
+        roundedPixelBounds({{11.2f, 0.f}, {5.2f, 8.f}, 1.f});
+
+    CHECK(first.x + first.width <= second.x);
+    CHECK(first.y == second.y);
+    CHECK(first.height == second.height);
+}
+
+TEST_CASE("Coincident centres resolve without a pixel overlap",
+          "[gui-lab][arrangement][responsive][regression]")
+{
+    ArrangementDocument document;
+    document.nodes = {
+        makeNode(1, {0.5f, 0.5f}, 0.5f, {100.f, 50.f}),
+        makeNode(2, {0.5f, 0.5f}, 0.5f, {100.f, 50.f})};
+
+    const auto layout =
+        computeResponsiveLayout(document, {400.f, 300.f});
+    REQUIRE(layout.hasValidPlacement);
+    CHECK(layout.uniformScale < 0.000001f);
+
+    const auto first = roundedPixelBounds(layout.nodes[0].geometry);
+    const auto second = roundedPixelBounds(layout.nodes[1].geometry);
+    CHECK((first.width == 0 || first.height == 0));
+    CHECK((second.width == 0 || second.height == 0));
 }
 
 TEST_CASE("GUI Lab placement finds the nearest non-overlapping gap",

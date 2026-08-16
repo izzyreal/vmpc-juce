@@ -296,13 +296,23 @@ ProjectedNodeGeometry
 vmpc_juce::gui::arrangement::projectNode(const ArrangementNodeModel &node,
                                          const LogicalSize targetSize)
 {
+    return projectNodeAtScale(node, targetSize, 1.f);
+}
+
+ProjectedNodeGeometry vmpc_juce::gui::arrangement::projectNodeAtScale(
+    const ArrangementNodeModel &node, const LogicalSize targetSize,
+    const float uniformScale)
+{
     if (node.referenceSize.width <= 0.f || targetSize.width <= 0.f ||
         targetSize.height <= 0.f)
     {
         return {};
     }
-    const auto width = node.widthFraction * targetSize.width;
-    const auto projectedScale = width / node.referenceSize.width;
+    const auto fit = std::max(0.f, uniformScale);
+    const auto authoredWidth = node.widthFraction * targetSize.width;
+    const auto authoredScale = authoredWidth / node.referenceSize.width;
+    const auto width = authoredWidth * fit;
+    const auto projectedScale = authoredScale * fit;
     const LogicalSize size{width,
                            node.referenceSize.height * projectedScale};
     const LogicalPoint center{node.center.x * targetSize.width,
@@ -310,6 +320,23 @@ vmpc_juce::gui::arrangement::projectNode(const ArrangementNodeModel &node,
     return {{center.x - size.width * 0.5f, center.y - size.height * 0.5f},
             size,
             projectedScale};
+}
+
+ResponsiveLayout vmpc_juce::gui::arrangement::projectDocumentAtScale(
+    const ArrangementDocument &document, const LogicalSize targetSize,
+    const float uniformScale)
+{
+    ResponsiveLayout result;
+    result.uniformScale = std::max(0.f, uniformScale);
+    result.nodes.reserve(document.nodes.size());
+    for (const auto &node : document.nodes)
+    {
+        result.nodes.push_back(
+            {node.id, projectNodeAtScale(node, targetSize,
+                                         result.uniformScale)});
+    }
+    result.hasValidPlacement = responsiveLayoutIsValid(result, targetSize);
+    return result;
 }
 
 LogicalPoint vmpc_juce::gui::arrangement::normalizedCenter(
@@ -330,14 +357,49 @@ LogicalPoint vmpc_juce::gui::arrangement::normalizedCenter(
 ResponsiveLayout vmpc_juce::gui::arrangement::computeResponsiveLayout(
     const ArrangementDocument &document, const LogicalSize targetSize)
 {
-    ResponsiveLayout result;
-    result.nodes.reserve(document.nodes.size());
-    for (const auto &node : document.nodes)
+    auto fullSize = projectDocumentAtScale(document, targetSize, 1.f);
+    if (fullSize.hasValidPlacement || document.nodes.empty())
     {
-        result.nodes.push_back({node.id, projectNode(node, targetSize)});
+        return fullSize;
     }
-    result.hasValidPlacement = responsiveLayoutIsValid(result, targetSize);
+
+    auto lower = 0.f;
+    auto upper = 1.f;
+    auto result = projectDocumentAtScale(document, targetSize, lower);
+    if (!result.hasValidPlacement)
+    {
+        return result;
+    }
+
+    for (int iteration = 0; iteration < 40; ++iteration)
+    {
+        const auto candidate = (lower + upper) * 0.5f;
+        auto candidateLayout =
+            projectDocumentAtScale(document, targetSize, candidate);
+        if (candidateLayout.hasValidPlacement)
+        {
+            lower = candidate;
+            result = std::move(candidateLayout);
+        }
+        else
+        {
+            upper = candidate;
+        }
+    }
     return result;
+}
+
+PixelBounds vmpc_juce::gui::arrangement::roundedPixelBounds(
+    const ProjectedNodeGeometry geometry)
+{
+    const auto left = static_cast<int>(std::lround(geometry.position.x));
+    const auto top = static_cast<int>(std::lround(geometry.position.y));
+    const auto right = static_cast<int>(
+        std::lround(geometry.position.x + geometry.size.width));
+    const auto bottom = static_cast<int>(
+        std::lround(geometry.position.y + geometry.size.height));
+    return {left, top, std::max(0, right - left),
+            std::max(0, bottom - top)};
 }
 
 const ProjectedNodeGeometry *vmpc_juce::gui::arrangement::findProjectedGeometry(
@@ -354,11 +416,10 @@ const ProjectedNodeGeometry *vmpc_juce::gui::arrangement::findProjectedGeometry(
 bool vmpc_juce::gui::arrangement::rectanglesOverlap(const LogicalRect first,
                                                     const LogicalRect second)
 {
-    constexpr float epsilon = 0.001f;
-    return first.position.x + first.size.width > second.position.x + epsilon &&
-           second.position.x + second.size.width > first.position.x + epsilon &&
-           first.position.y + first.size.height > second.position.y + epsilon &&
-           second.position.y + second.size.height > first.position.y + epsilon;
+    return first.position.x + first.size.width > second.position.x &&
+           second.position.x + second.size.width > first.position.x &&
+           first.position.y + first.size.height > second.position.y &&
+           second.position.y + second.size.height > first.position.y;
 }
 
 bool vmpc_juce::gui::arrangement::isPlacementValid(
