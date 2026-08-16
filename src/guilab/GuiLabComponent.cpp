@@ -340,6 +340,16 @@ public:
         return document;
     }
 
+    bool isMenuAtTop() const
+    {
+        return document.menuAtTop;
+    }
+
+    void setMenuAtTop(const bool shouldBeAtTop)
+    {
+        document.menuAtTop = shouldBeAtTop;
+    }
+
     bool loadDocument(const ArrangementDocument &newDocument,
                       std::string &errorMessage)
     {
@@ -354,7 +364,6 @@ public:
         }
 
         document = newDocument;
-        frozenResponsiveScale.reset();
         selectedIds.clear();
         nextNodeId = 1;
         for (const auto &node : document.nodes)
@@ -386,10 +395,11 @@ public:
             juce::String(juce::roundToInt(deviceSize.width)) + " × " +
             juce::String(juce::roundToInt(deviceSize.height)) + " pt — " +
             juce::String(juce::roundToInt(zoom * 100.f)) + "% view — " +
-            juce::String(
-                juce::roundToInt(responsiveLayout.sharedScale * 100.f)) +
-            "% responsive scale";
-        g.setColour(juce::Colour(0xffaeb7b3));
+            (responsiveLayout.hasValidPlacement ? "exact projection"
+                                                : "geometry conflict");
+        g.setColour(responsiveLayout.hasValidPlacement
+                        ? juce::Colour(0xffaeb7b3)
+                        : juce::Colour(0xffffa45c));
         g.setFont(13.f);
         g.drawText(description, getLocalBounds().removeFromTop(54),
                    juce::Justification::centred);
@@ -620,11 +630,6 @@ private:
                 owner.continueMove(event);
             }
 
-            void mouseUp(const juce::MouseEvent &) override
-            {
-                owner.workspace.endGesture();
-            }
-
         private:
             ArrangementNode &owner;
         };
@@ -678,11 +683,6 @@ private:
             void mouseDrag(const juce::MouseEvent &event) override
             {
                 owner.continueResize(corner, event);
-            }
-
-            void mouseUp(const juce::MouseEvent &) override
-            {
-                owner.workspace.endGesture();
             }
 
         private:
@@ -767,7 +767,6 @@ private:
         {
             workspace.selectNode(nodeId, event.mods.isShiftDown());
             workspace.grabKeyboardFocus();
-            workspace.beginGesture();
             startPosition = workspace.getProjectedGeometry(nodeId).position;
             startScreenPosition = event.getScreenPosition();
         }
@@ -790,7 +789,6 @@ private:
         {
             workspace.selectNode(nodeId, false);
             workspace.grabKeyboardFocus();
-            workspace.beginGesture();
             resizeStartGeometry = workspace.getProjectedGeometry(nodeId);
             resizeStartScreenPosition = event.getScreenPosition();
             resizeCorner = corner;
@@ -875,37 +873,7 @@ private:
     void refreshResponsiveLayout()
     {
         const auto targetSize = getEffectiveDeviceSize(device, orientation);
-        if (!frozenResponsiveScale.has_value())
-        {
-            responsiveLayout = computeResponsiveLayout(document, targetSize);
-            return;
-        }
-
-        responsiveLayout = projectDocumentAtScale(document, targetSize,
-                                                  *frozenResponsiveScale);
-    }
-
-    void beginGesture()
-    {
-        if (!frozenResponsiveScale.has_value())
-        {
-            frozenResponsiveScale = responsiveLayout.sharedScale;
-        }
-    }
-
-    void endGesture()
-    {
-        if (!frozenResponsiveScale.has_value())
-        {
-            return;
-        }
-        frozenResponsiveScale.reset();
-        refreshResponsiveLayout();
-        for (auto &component : nodeComponents)
-        {
-            updateNodeBounds(*component);
-        }
-        repaint();
+        responsiveLayout = computeResponsiveLayout(document, targetSize);
     }
 
     ProjectedNodeGeometry getProjectedGeometry(const std::uint64_t id) const
@@ -1126,13 +1094,10 @@ private:
         {
             requestedScale = snapItemScaleToGrid(requestedScale, referenceSize);
         }
-        const auto sharedScale = std::max(
-            0.0001f,
-            frozenResponsiveScale.value_or(responsiveLayout.sharedScale));
         const auto targetSize = getEffectiveDeviceSize(device, orientation);
         requestedScale =
             std::clamp(requestedScale, 0.01f,
-                       targetSize.width * sharedScale / referenceSize.width);
+                       targetSize.width / referenceSize.width);
         std::vector<LogicalRect> obstacles;
         for (const auto &projected : responsiveLayout.nodes)
         {
@@ -1183,7 +1148,7 @@ private:
         }
 
         node->widthFraction =
-            requestedGeometry.size.width / (targetSize.width * sharedScale);
+            requestedGeometry.size.width / targetSize.width;
         node->center = normalizedCenter(requestedGeometry, targetSize);
         refreshResponsiveLayout();
         updateAllNodeBounds();
@@ -1262,7 +1227,6 @@ private:
     Orientation orientation = Orientation::portrait;
     ArrangementDocument document;
     ResponsiveLayout responsiveLayout;
-    std::optional<float> frozenResponsiveScale;
     std::uint64_t nextNodeId = 1;
     float zoom = 1.f;
     juce::Rectangle<int> surfaceBounds;
@@ -1399,6 +1363,8 @@ void GuiLabComponent::resized()
     constexpr int controlGap = 12;
     auto brandBounds = controls.removeFromLeft(150);
     controls.removeFromLeft(controlGap);
+    auto menuPositionBounds = controls.removeFromRight(140);
+    controls.removeFromRight(controlGap);
     auto orientationBounds = controls.removeFromRight(150);
     controls.removeFromRight(controlGap);
     auto deviceBounds = controls;
@@ -1412,6 +1378,7 @@ void GuiLabComponent::resized()
     placeControl(brandLabel, brandSelector, brandBounds);
     placeControl(deviceLabel, deviceSelector, deviceBounds);
     placeControl(orientationLabel, orientationSelector, orientationBounds);
+    menuAtTopToggle.setBounds(menuPositionBounds.removeFromBottom(30));
 
     bounds.removeFromTop(10);
     constexpr int paneGap = 14;
@@ -1434,6 +1401,10 @@ void GuiLabComponent::configureControls()
     styleComboBox(brandSelector);
     styleComboBox(deviceSelector);
     styleComboBox(orientationSelector);
+    menuAtTopToggle.setColour(juce::ToggleButton::textColourId,
+                              juce::Colour(0xffedf2ef));
+    menuAtTopToggle.setColour(juce::ToggleButton::tickColourId,
+                              juce::Colour(0xff67b8de));
 
     for (auto *button :
          {&loadButton, &saveButton, &saveSetupButton, &clearSlotButton})
@@ -1470,6 +1441,7 @@ void GuiLabComponent::configureControls()
     addAndMakeVisible(brandSelector);
     addAndMakeVisible(deviceSelector);
     addAndMakeVisible(orientationSelector);
+    addAndMakeVisible(menuAtTopToggle);
 
     brandSelector.addItem("Apple", 1);
     brandSelector.addItem("Samsung", 2);
@@ -1493,6 +1465,11 @@ void GuiLabComponent::configureControls()
         updateTarget();
         persistActiveSlot();
     };
+    menuAtTopToggle.onClick = [this]
+    {
+        workspace->setMenuAtTop(menuAtTopToggle.getToggleState());
+        persistActiveSlot();
+    };
     loadButton.onClick = [this]
     {
         chooseFileToLoad();
@@ -1510,6 +1487,7 @@ void GuiLabComponent::configureControls()
         clearActiveSlot();
     };
     updateSlotButtons();
+    syncArrangementControls();
     updateTarget();
 }
 
@@ -1614,6 +1592,7 @@ void GuiLabComponent::loadDesignFile(const juce::File &file)
         showFileError(errorMessage);
         return;
     }
+    syncArrangementControls();
 
     currentDesignFile = file;
     rememberRecentFile(file, false);
@@ -1751,6 +1730,7 @@ void GuiLabComponent::loadSetupFile(const juce::File &file)
         showFileError(errorMessage);
         return;
     }
+    syncArrangementControls();
     currentSetupFile = file;
     currentDesignFile = juce::File();
     rememberRecentFile(file, true);
@@ -1867,6 +1847,7 @@ void GuiLabComponent::selectSlot(const std::size_t index)
     {
         showFileError(errorMessage);
     }
+    syncArrangementControls();
     currentDesignFile = juce::File();
     updateTarget();
     updateSlotButtons();
@@ -1880,6 +1861,7 @@ void GuiLabComponent::clearActiveSlot()
         showFileError(errorMessage);
         return;
     }
+    syncArrangementControls();
     setup.slots[activeSlot] = std::nullopt;
     currentDesignFile = juce::File();
     updateSlotButtons();
@@ -1896,6 +1878,12 @@ void GuiLabComponent::updateSlotButtons()
         slotButtons[i].setButtonText(juce::String(static_cast<int>(i + 1)) +
                                      (occupied ? " •" : ""));
     }
+}
+
+void GuiLabComponent::syncArrangementControls()
+{
+    menuAtTopToggle.setToggleState(workspace->isMenuAtTop(),
+                                   juce::dontSendNotification);
 }
 
 void GuiLabComponent::setFileButtonsEnabled(const bool enabled)

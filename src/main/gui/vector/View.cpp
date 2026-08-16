@@ -613,8 +613,15 @@ void View::resized()
                             menuScale;
     const auto menuX = static_cast<float>(getWidth()) - menuWidth -
                        (menuMargin * scale);
-    const auto menuY = static_cast<float>(getHeight()) - menuHeight -
-                       (menuMargin * scale);
+    const auto menuAtTop =
+        phoneArrangementMode &&
+        activeArrangementSlot < arrangementSetup.slots.size() &&
+        arrangementSetup.slots[activeArrangementSlot].has_value() &&
+        arrangementSetup.slots[activeArrangementSlot]->arrangement.menuAtTop;
+    const auto menuY = menuAtTop
+                           ? menuMargin * scale
+                           : static_cast<float>(getHeight()) - menuHeight -
+                                 (menuMargin * scale);
 
     if (menu != nullptr)
     {

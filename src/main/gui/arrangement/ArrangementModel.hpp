@@ -70,7 +70,8 @@ namespace vmpc_juce::gui::arrangement
         // Preferred centre in the normalized 0..1 document canvas.
         LogicalPoint center{0.5f, 0.5f};
         // Width as a fraction of the target canvas width. Height follows the
-        // component's reference aspect ratio.
+        // component's reference aspect ratio. Projection applies this value
+        // exactly; geometry conflicts are reported rather than auto-scaled.
         float widthFraction = 0.25f;
         LogicalSize referenceSize;
         std::string catalogId;
@@ -79,6 +80,7 @@ namespace vmpc_juce::gui::arrangement
     struct ArrangementDocument
     {
         std::vector<ArrangementNodeModel> nodes;
+        bool menuAtTop = false;
     };
 
     struct ArrangementSlot
@@ -109,7 +111,6 @@ namespace vmpc_juce::gui::arrangement
 
     struct ResponsiveLayout
     {
-        float sharedScale = 1.f;
         bool hasValidPlacement = true;
         std::vector<ProjectedArrangementNode> nodes;
     };
@@ -132,14 +133,8 @@ namespace vmpc_juce::gui::arrangement
                                        float gridSize = 4.f);
     ProjectedNodeGeometry projectNode(const ArrangementNodeModel &node,
                                       LogicalSize targetSize);
-    ProjectedNodeGeometry projectNodeAtScale(const ArrangementNodeModel &node,
-                                             LogicalSize targetSize,
-                                             float sharedScale);
     LogicalPoint normalizedCenter(ProjectedNodeGeometry geometry,
                                   LogicalSize targetSize);
-    ResponsiveLayout projectDocumentAtScale(const ArrangementDocument &document,
-                                            LogicalSize targetSize,
-                                            float sharedScale);
     ResponsiveLayout
     computeResponsiveLayout(const ArrangementDocument &document,
                             LogicalSize targetSize);

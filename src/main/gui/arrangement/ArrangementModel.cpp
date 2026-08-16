@@ -259,10 +259,6 @@ namespace
     bool responsiveLayoutIsValid(const ResponsiveLayout &layout,
                                  const LogicalSize targetSize)
     {
-        if (!layout.hasValidPlacement)
-        {
-            return false;
-        }
         constexpr float epsilon = 0.001f;
         for (const auto &node : layout.nodes)
         {
@@ -300,28 +296,20 @@ ProjectedNodeGeometry
 vmpc_juce::gui::arrangement::projectNode(const ArrangementNodeModel &node,
                                          const LogicalSize targetSize)
 {
-    return projectNodeAtScale(node, targetSize, 1.f);
-}
-
-ProjectedNodeGeometry vmpc_juce::gui::arrangement::projectNodeAtScale(
-    const ArrangementNodeModel &node, const LogicalSize targetSize,
-    const float sharedScale)
-{
     if (node.referenceSize.width <= 0.f || targetSize.width <= 0.f ||
         targetSize.height <= 0.f)
     {
         return {};
     }
-    const auto scale = std::max(0.f, sharedScale);
-    const auto fullWidth = node.widthFraction * targetSize.width;
-    const auto fullProjectedScale = fullWidth / node.referenceSize.width;
-    const LogicalSize size{fullWidth * scale, node.referenceSize.height *
-                                                  fullProjectedScale * scale};
+    const auto width = node.widthFraction * targetSize.width;
+    const auto projectedScale = width / node.referenceSize.width;
+    const LogicalSize size{width,
+                           node.referenceSize.height * projectedScale};
     const LogicalPoint center{node.center.x * targetSize.width,
                               node.center.y * targetSize.height};
     return {{center.x - size.width * 0.5f, center.y - size.height * 0.5f},
             size,
-            fullProjectedScale * scale};
+            projectedScale};
 }
 
 LogicalPoint vmpc_juce::gui::arrangement::normalizedCenter(
@@ -339,55 +327,15 @@ LogicalPoint vmpc_juce::gui::arrangement::normalizedCenter(
                        0.f, 1.f)};
 }
 
-ResponsiveLayout vmpc_juce::gui::arrangement::projectDocumentAtScale(
-    const ArrangementDocument &document, const LogicalSize targetSize,
-    const float sharedScale)
-{
-    ResponsiveLayout result;
-    result.sharedScale = std::max(0.f, sharedScale);
-    result.nodes.reserve(document.nodes.size());
-    for (const auto &node : document.nodes)
-    {
-        result.nodes.push_back(
-            {node.id,
-             projectNodeAtScale(node, targetSize, result.sharedScale)});
-    }
-    return result;
-}
-
 ResponsiveLayout vmpc_juce::gui::arrangement::computeResponsiveLayout(
     const ArrangementDocument &document, const LogicalSize targetSize)
 {
-    if (document.nodes.empty() || targetSize.width <= 0.f ||
-        targetSize.height <= 0.f)
+    ResponsiveLayout result;
+    result.nodes.reserve(document.nodes.size());
+    for (const auto &node : document.nodes)
     {
-        return projectDocumentAtScale(document, targetSize, 1.f);
+        result.nodes.push_back({node.id, projectNode(node, targetSize)});
     }
-
-    constexpr float upperScale = 1.f;
-    auto upperLayout = projectDocumentAtScale(document, targetSize, upperScale);
-    if (responsiveLayoutIsValid(upperLayout, targetSize))
-    {
-        return upperLayout;
-    }
-
-    auto lower = 0.f;
-    auto upper = upperScale;
-    for (int iteration = 0; iteration < 40; ++iteration)
-    {
-        const auto candidate = (lower + upper) * 0.5f;
-        const auto layout =
-            projectDocumentAtScale(document, targetSize, candidate);
-        if (responsiveLayoutIsValid(layout, targetSize))
-        {
-            lower = candidate;
-        }
-        else
-        {
-            upper = candidate;
-        }
-    }
-    auto result = projectDocumentAtScale(document, targetSize, lower);
     result.hasValidPlacement = responsiveLayoutIsValid(result, targetSize);
     return result;
 }
@@ -584,6 +532,7 @@ std::string vmpc_juce::gui::arrangement::serializeArrangementDocument(
 {
     json result{{"format", designFormat},
                 {"version", designFormatVersion},
+                {"menuAtTop", document.menuAtTop},
                 {"nodes", json::array()}};
     for (const auto &node : document.nodes)
     {
@@ -611,6 +560,7 @@ vmpc_juce::gui::arrangement::deserializeArrangementDocument(
         }
 
         ArrangementDocument result;
+        result.menuAtTop = source.value("menuAtTop", false);
         const auto &nodes = source.at("nodes");
         if (!nodes.is_array())
         {

@@ -4,37 +4,12 @@
     {
       "arrangement": {
         "format": "vmpc2000xl-arrangement",
+        "menuAtTop": true,
         "nodes": [
           {
             "center": {
-              "x": 0.5,
-              "y": 0.08742057532072067
-            },
-            "component": "lcd-mounted",
-            "id": 1,
-            "referenceSize": {
-              "height": 84.19709777832031,
-              "width": 222.52337646484375
-            },
-            "widthFraction": 1.0
-          },
-          {
-            "center": {
-              "x": 0.6461538672447205,
-              "y": 0.40328964591026306
-            },
-            "component": "num-pad",
-            "id": 3,
-            "referenceSize": {
-              "height": 84.0,
-              "width": 85.0
-            },
-            "widthFraction": 0.7076923251152039
-          },
-          {
-            "center": {
-              "x": 0.8539343476295471,
-              "y": 0.6674112677574158
+              "x": 0.7983643412590027,
+              "y": 0.6695005893707275
             },
             "component": "data-wheel",
             "id": 4,
@@ -42,12 +17,12 @@
               "height": 80.0,
               "width": 72.0
             },
-            "widthFraction": 0.29213133454322815
+            "widthFraction": 0.2054242491722107
           },
           {
             "center": {
-              "x": 0.1846153885126114,
-              "y": 0.660058319568634
+              "x": 0.24637681245803833,
+              "y": 0.6758944988250732
             },
             "component": "cursor-compact",
             "id": 5,
@@ -55,12 +30,12 @@
               "height": 31.0,
               "width": 48.0
             },
-            "widthFraction": 0.3692307770252228
+            "widthFraction": 0.2801932394504547
           },
           {
             "center": {
-              "x": 0.5,
-              "y": 0.9612777233123779
+              "x": 0.5072463750839233,
+              "y": 0.9526960849761963
             },
             "component": "transport-horizontal",
             "id": 6,
@@ -68,12 +43,12 @@
               "height": 30.0,
               "width": 179.0
             },
-            "widthFraction": 1.0
+            "widthFraction": 0.95652174949646
           },
           {
             "center": {
               "x": 0.5,
-              "y": 0.8702639937400818
+              "y": 0.859211802482605
             },
             "component": "locate",
             "id": 7,
@@ -85,8 +60,8 @@
           },
           {
             "center": {
-              "x": 0.5333333611488342,
-              "y": 0.6638230681419373
+              "x": 0.5314009785652161,
+              "y": 0.6699275374412537
             },
             "component": "main-open-vertical",
             "id": 9,
@@ -94,12 +69,12 @@
               "height": 42.0,
               "width": 45.0
             },
-            "widthFraction": 0.28717949986457825
+            "widthFraction": 0.21256038546562195
           },
           {
             "center": {
-              "x": 0.14615513384342194,
-              "y": 0.3996390998363495
+              "x": 0.14496469497680664,
+              "y": 0.47373324632644653
             },
             "component": "note-variation",
             "id": 10,
@@ -107,12 +82,12 @@
               "height": 130.0,
               "width": 51.0
             },
-            "widthFraction": 0.29231026768684387
+            "widthFraction": 0.19331103563308716
           },
           {
             "center": {
-              "x": 0.20512820780277252,
-              "y": 0.7851501107215881
+              "x": 0.28717949986457825,
+              "y": 0.7721571922302246
             },
             "component": "levels-compact",
             "id": 14,
@@ -124,8 +99,8 @@
           },
           {
             "center": {
-              "x": 0.6153846383094788,
-              "y": 0.7851501107215881
+              "x": 0.7000371217727661,
+              "y": 0.7726449370384216
             },
             "component": "sequence-mute",
             "id": 15,
@@ -133,33 +108,85 @@
               "height": 23.0,
               "width": 69.0
             },
-            "widthFraction": 0.41025641560554504
+            "widthFraction": 0.41545888781547546
           },
           {
             "center": {
-              "x": 0.9102551341056824,
-              "y": 0.7815961241722107
+              "x": 0.19806763529777527,
+              "y": 0.038346100598573685
             },
-            "component": "main-volume",
-            "id": 16,
+            "component": "akai-logo",
+            "id": 18,
             "referenceSize": {
-              "height": 38.0,
+              "height": 22.965293884277344,
+              "width": 53.79373550415039
+            },
+            "widthFraction": 0.1835748851299286
+          },
+          {
+            "center": {
+              "x": 0.5700483322143555,
+              "y": 0.038987115025520325
+            },
+            "component": "mpc2000xl-logo",
+            "id": 19,
+            "referenceSize": {
+              "height": 20.439058303833008,
+              "width": 112.63539123535156
+            },
+            "widthFraction": 0.4444444477558136
+          },
+          {
+            "center": {
+              "x": 0.5046861171722412,
+              "y": 0.16700826585292816
+            },
+            "component": "lcd-mounted",
+            "id": 22,
+            "referenceSize": {
+              "height": 84.19709777832031,
+              "width": 222.52337646484375
+            },
+            "widthFraction": 0.95652174949646
+          },
+          {
+            "center": {
+              "x": 0.5458937883377075,
+              "y": 0.4683503806591034
+            },
+            "component": "num-pad",
+            "id": 23,
+            "referenceSize": {
+              "height": 84.0,
+              "width": 85.0
+            },
+            "widthFraction": 0.49275365471839905
+          },
+          {
+            "center": {
+              "x": 0.8913044333457947,
+              "y": 0.47580477595329285
+            },
+            "component": "volume-gain-vertical",
+            "id": 24,
+            "referenceSize": {
+              "height": 76.0,
               "width": 42.0
             },
-            "widthFraction": 0.17948977649211884
+            "widthFraction": 0.19807253777980804
           },
           {
             "center": {
-              "x": 0.5,
-              "y": 0.20240916311740875
+              "x": 0.49033233523368835,
+              "y": 0.2995566725730896
             },
-            "component": "function-buttons-compact",
-            "id": 17,
+            "component": "function-buttons",
+            "id": 25,
             "referenceSize": {
-              "height": 10.0,
+              "height": 25.0,
               "width": 180.0
             },
-            "widthFraction": 1.0
+            "widthFraction": 0.7874279618263245
           }
         ],
         "version": 4
@@ -170,11 +197,12 @@
     {
       "arrangement": {
         "format": "vmpc2000xl-arrangement",
+        "menuAtTop": true,
         "nodes": [
           {
             "center": {
-              "x": 0.5,
-              "y": 0.08742057532072067
+              "x": 0.5079448819160461,
+              "y": 0.0978267714381218
             },
             "component": "lcd-mounted",
             "id": 1,
@@ -182,64 +210,12 @@
               "height": 84.19709777832031,
               "width": 222.52337646484375
             },
-            "widthFraction": 1.0
+            "widthFraction": 0.9192713499069214
           },
           {
             "center": {
-              "x": 0.10595709085464478,
-              "y": 0.3001585602760315
-            },
-            "component": "note-variation",
-            "id": 2,
-            "referenceSize": {
-              "height": 130.0,
-              "width": 51.0
-            },
-            "widthFraction": 0.21191418170928955
-          },
-          {
-            "center": {
-              "x": 0.5,
-              "y": 0.7124802470207214
-            },
-            "component": "pads-banks",
-            "id": 3,
-            "referenceSize": {
-              "height": 224.0,
-              "width": 180.0
-            },
-            "widthFraction": 1.0
-          },
-          {
-            "center": {
-              "x": 0.6059570908546448,
-              "y": 0.39070621132850647
-            },
-            "component": "transport-horizontal",
-            "id": 4,
-            "referenceSize": {
-              "height": 30.0,
-              "width": 179.0
-            },
-            "widthFraction": 0.7880910038948059
-          },
-          {
-            "center": {
-              "x": 0.4769230782985687,
-              "y": 0.242496058344841
-            },
-            "component": "levels-compact",
-            "id": 6,
-            "referenceSize": {
-              "height": 23.0,
-              "width": 69.0
-            },
-            "widthFraction": 0.37948721647262573
-          },
-          {
-            "center": {
-              "x": 0.4769230782985687,
-              "y": 0.3041074573993683
+              "x": 0.30917873978614807,
+              "y": 0.31584450602531433
             },
             "component": "sequence-mute",
             "id": 7,
@@ -247,12 +223,12 @@
               "height": 23.0,
               "width": 69.0
             },
-            "widthFraction": 0.37948721647262573
+            "widthFraction": 0.28985506296157837
           },
           {
             "center": {
-              "x": 0.8717948794364929,
-              "y": 0.22274881601333618
+              "x": 0.8710145354270935,
+              "y": 0.2853260934352875
             },
             "component": "data-wheel",
             "id": 8,
@@ -260,12 +236,12 @@
               "height": 80.0,
               "width": 72.0
             },
-            "widthFraction": 0.1846153885126114
+            "widthFraction": 0.2347826212644577
           },
           {
             "center": {
-              "x": 0.8650084137916565,
-              "y": 0.31990522146224976
+              "x": 0.6086956262588501,
+              "y": 0.3119339346885681
             },
             "component": "cursor-compact",
             "id": 9,
@@ -273,7 +249,72 @@
               "height": 31.0,
               "width": 48.0
             },
-            "widthFraction": 0.269983172416687
+            "widthFraction": 0.25120773911476135
+          },
+          {
+            "center": {
+              "x": 0.4906832277774811,
+              "y": 0.71739262342453
+            },
+            "component": "pads-banks",
+            "id": 10,
+            "referenceSize": {
+              "height": 224.0,
+              "width": 180.0
+            },
+            "widthFraction": 0.8074533939361572
+          },
+          {
+            "center": {
+              "x": 0.30918243527412415,
+              "y": 0.2608702480792999
+            },
+            "component": "levels-compact",
+            "id": 11,
+            "referenceSize": {
+              "height": 23.0,
+              "width": 69.0
+            },
+            "widthFraction": 0.28986242413520813
+          },
+          {
+            "center": {
+              "x": 0.5748792290687561,
+              "y": 0.3928528130054474
+            },
+            "component": "transport-horizontal",
+            "id": 13,
+            "referenceSize": {
+              "height": 30.0,
+              "width": 179.0
+            },
+            "widthFraction": 0.7246376872062683
+          },
+          {
+            "center": {
+              "x": 0.07796673476696014,
+              "y": 0.31831225752830505
+            },
+            "component": "note-variation",
+            "id": 14,
+            "referenceSize": {
+              "height": 130.0,
+              "width": 51.0
+            },
+            "widthFraction": 0.1559334695339203
+          },
+          {
+            "center": {
+              "x": 0.5990338325500488,
+              "y": 0.23204375803470612
+            },
+            "component": "akai-logo",
+            "id": 15,
+            "referenceSize": {
+              "height": 22.965293884277344,
+              "width": 53.79373550415039
+            },
+            "widthFraction": 0.21256038546562195
           }
         ],
         "version": 4
@@ -284,24 +325,12 @@
     {
       "arrangement": {
         "format": "vmpc2000xl-arrangement",
+        "menuAtTop": true,
         "nodes": [
           {
             "center": {
-              "x": 0.7781838774681091,
-              "y": 0.5000000596046448
-            },
-            "component": "pads",
-            "id": 1,
-            "referenceSize": {
-              "height": 188.0,
-              "width": 180.0
-            },
-            "widthFraction": 0.44242438673973083
-          },
-          {
-            "center": {
-              "x": 0.278486430644989,
-              "y": 0.1578429937362671
+              "x": 0.2835215926170349,
+              "y": 0.13201004266738892
             },
             "component": "lcd-bare",
             "id": 2,
@@ -309,7 +338,7 @@
               "height": 55.0,
               "width": 210.0
             },
-            "widthFraction": 0.5569729208946228
+            "widthFraction": 0.5670431852340698
           },
           {
             "center": {
@@ -326,8 +355,8 @@
           },
           {
             "center": {
-              "x": 0.061611760407686234,
-              "y": 0.6601285338401794
+              "x": 0.06369215250015259,
+              "y": 0.7277666330337524
             },
             "component": "note-variation",
             "id": 4,
@@ -335,7 +364,7 @@
               "height": 130.0,
               "width": 51.0
             },
-            "widthFraction": 0.12322445958852768
+            "widthFraction": 0.11651473492383957
           },
           {
             "center": {
@@ -365,8 +394,8 @@
           },
           {
             "center": {
-              "x": 0.24644549190998077,
-              "y": 0.37948718667030334
+              "x": 0.09074285626411438,
+              "y": 0.35973167419433594
             },
             "component": "levels-compact",
             "id": 7,
@@ -378,8 +407,8 @@
           },
           {
             "center": {
-              "x": 0.41706159710884094,
-              "y": 0.37948718667030334
+              "x": 0.26135897636413574,
+              "y": 0.35973167419433594
             },
             "component": "sequence-mute",
             "id": 8,
@@ -391,8 +420,8 @@
           },
           {
             "center": {
-              "x": 0.3364928960800171,
-              "y": 0.7564102411270142
+              "x": 0.34755560755729675,
+              "y": 0.743708610534668
             },
             "component": "cursor-compact",
             "id": 9,
@@ -400,12 +429,12 @@
               "height": 31.0,
               "width": 48.0
             },
-            "widthFraction": 0.1137440949678421
+            "widthFraction": 0.135869562625885
           },
           {
             "center": {
-              "x": 0.48270145058631897,
-              "y": 0.6410256624221802
+              "x": 0.4888574481010437,
+              "y": 0.660759687423706
             },
             "component": "data-wheel",
             "id": 10,
@@ -417,8 +446,8 @@
           },
           {
             "center": {
-              "x": 0.33543410897254944,
-              "y": 0.5615410208702087
+              "x": 0.3228130638599396,
+              "y": 0.5652424693107605
             },
             "component": "main-volume",
             "id": 11,
@@ -427,6 +456,45 @@
               "width": 42.0
             },
             "widthFraction": 0.10214784741401672
+          },
+          {
+            "center": {
+              "x": 0.7880441546440125,
+              "y": 0.4979081153869629
+            },
+            "component": "pads-banks",
+            "id": 12,
+            "referenceSize": {
+              "height": 224.0,
+              "width": 180.0
+            },
+            "widthFraction": 0.4239144027233124
+          },
+          {
+            "center": {
+              "x": 0.465892493724823,
+              "y": 0.3562382757663727
+            },
+            "component": "akai-logo",
+            "id": 13,
+            "referenceSize": {
+              "height": 22.965293884277344,
+              "width": 53.79373550415039
+            },
+            "widthFraction": 0.135869562625885
+          },
+          {
+            "center": {
+              "x": 0.46435603499412537,
+              "y": 0.4460383951663971
+            },
+            "component": "mpc2000xl-logo",
+            "id": 14,
+            "referenceSize": {
+              "height": 20.439058303833008,
+              "width": 112.63539123535156
+            },
+            "widthFraction": 0.18958161771297455
           }
         ],
         "version": 4
@@ -437,24 +505,12 @@
     {
       "arrangement": {
         "format": "vmpc2000xl-arrangement",
+        "menuAtTop": true,
         "nodes": [
           {
             "center": {
-              "x": 0.27878957986831665,
-              "y": 0.22828422486782074
-            },
-            "component": "lcd-mounted",
-            "id": 2,
-            "referenceSize": {
-              "height": 84.19709777832031,
-              "width": 222.52337646484375
-            },
-            "widthFraction": 0.5575791597366333
-          },
-          {
-            "center": {
-              "x": 0.7787895798683167,
-              "y": 0.49999865889549255
+              "x": 0.7787895202636719,
+              "y": 0.5892563462257385
             },
             "component": "pads",
             "id": 3,
@@ -462,12 +518,12 @@
               "height": 188.0,
               "width": 180.0
             },
-            "widthFraction": 0.4424231946468353
+            "widthFraction": 0.44242337346076965
           },
           {
             "center": {
-              "x": 0.31113800406455994,
-              "y": 0.6429437398910522
+              "x": 0.3190247714519501,
+              "y": 0.633678138256073
             },
             "component": "levels",
             "id": 4,
@@ -475,25 +531,12 @@
               "height": 36.0,
               "width": 69.0
             },
-            "widthFraction": 0.15782101452350616
+            "widthFraction": 0.17028339207172394
           },
           {
             "center": {
-              "x": 0.2787889838218689,
-              "y": 0.5053132176399231
-            },
-            "component": "function-buttons-compact",
-            "id": 5,
-            "referenceSize": {
-              "height": 10.0,
-              "width": 180.0
-            },
-            "widthFraction": 0.557580292224884
-          },
-          {
-            "center": {
-              "x": 0.11485248804092407,
-              "y": 0.769414484500885
+              "x": 0.11905065923929214,
+              "y": 0.7567608952522278
             },
             "component": "data-wheel",
             "id": 6,
@@ -501,12 +544,12 @@
               "height": 80.0,
               "width": 72.0
             },
-            "widthFraction": 0.19179029762744904
+            "widthFraction": 0.22610731422901154
           },
           {
             "center": {
-              "x": 0.48007673025131226,
-              "y": 0.771794855594635
+              "x": 0.4794965088367462,
+              "y": 0.7178693413734436
             },
             "component": "volume-gain-vertical",
             "id": 8,
@@ -514,12 +557,12 @@
               "height": 76.0,
               "width": 42.0
             },
-            "widthFraction": 0.11655155569314957
+            "widthFraction": 0.12193622440099716
           },
           {
             "center": {
-              "x": 0.3151658773422241,
-              "y": 0.8708333373069763
+              "x": 0.3261127173900604,
+              "y": 0.8741615414619446
             },
             "component": "cursor-compact",
             "id": 9,
@@ -528,6 +571,45 @@
               "width": 48.0
             },
             "widthFraction": 0.18483413755893707
+          },
+          {
+            "center": {
+              "x": 0.635869562625885,
+              "y": 0.08814460784196854
+            },
+            "component": "akai-logo",
+            "id": 10,
+            "referenceSize": {
+              "height": 22.965293884277344,
+              "width": 53.79373550415039
+            },
+            "widthFraction": 0.1304347813129425
+          },
+          {
+            "center": {
+              "x": 0.8614137172698975,
+              "y": 0.08160236477851868
+            },
+            "component": "mpc2000xl-logo",
+            "id": 11,
+            "referenceSize": {
+              "height": 20.439058303833008,
+              "width": 112.63539123535156
+            },
+            "widthFraction": 0.26630571484565735
+          },
+          {
+            "center": {
+              "x": 0.2787896692752838,
+              "y": 0.2490444779396057
+            },
+            "component": "lcd-mounted-functions",
+            "id": 12,
+            "referenceSize": {
+              "height": 111.7586898803711,
+              "width": 222.52337646484375
+            },
+            "widthFraction": 0.5575793385505676
           }
         ],
         "version": 4
@@ -535,7 +617,43 @@
       "id": "fa71f902d33445d0afcccde446ffc385",
       "orientation": "landscape"
     },
-    null
+    {
+      "arrangement": {
+        "format": "vmpc2000xl-arrangement",
+        "menuAtTop": true,
+        "nodes": [
+          {
+            "center": {
+              "x": 0.5052473545074463,
+              "y": 0.3329692780971527
+            },
+            "component": "lcd-mounted",
+            "id": 6,
+            "referenceSize": {
+              "height": 84.19709777832031,
+              "width": 222.52337646484375
+            },
+            "widthFraction": 0.9895052313804626
+          },
+          {
+            "center": {
+              "x": 0.5000014901161194,
+              "y": 0.848283052444458
+            },
+            "component": "transport-horizontal",
+            "id": 7,
+            "referenceSize": {
+              "height": 30.0,
+              "width": 179.0
+            },
+            "widthFraction": 1.0
+          }
+        ],
+        "version": 4
+      },
+      "id": "e318af964179407dade1ac6b0b2edee1",
+      "orientation": "landscape"
+    }
   ],
   "version": 4
 }

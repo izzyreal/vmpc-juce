@@ -76,6 +76,7 @@ namespace vmpc_juce::guilab
         juce::ComboBox brandSelector;
         juce::ComboBox deviceSelector;
         juce::ComboBox orientationSelector;
+        juce::ToggleButton menuAtTopToggle{"Menu at top"};
         juce::Label paletteHeading;
         juce::Viewport paletteViewport;
         juce::Component paletteGallery;
@@ -108,6 +109,7 @@ namespace vmpc_juce::guilab
         void selectSlot(std::size_t index);
         void clearActiveSlot();
         void updateSlotButtons();
+        void syncArrangementControls();
         void setFileButtonsEnabled(bool enabled);
         void showFileError(const juce::String &message);
 

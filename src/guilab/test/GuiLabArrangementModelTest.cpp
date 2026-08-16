@@ -32,27 +32,6 @@ namespace
         return node;
     }
 
-    void checkValidLayout(const ResponsiveLayout &layout,
-                          const LogicalSize bounds)
-    {
-        REQUIRE(layout.hasValidPlacement);
-        for (size_t i = 0; i < layout.nodes.size(); ++i)
-        {
-            const auto &first = layout.nodes[i].geometry;
-            CHECK(first.position.x >= Catch::Approx(0.f).margin(0.001f));
-            CHECK(first.position.y >= Catch::Approx(0.f).margin(0.001f));
-            CHECK(first.position.x + first.size.width <=
-                  Catch::Approx(bounds.width).margin(0.001f));
-            CHECK(first.position.y + first.size.height <=
-                  Catch::Approx(bounds.height).margin(0.001f));
-            for (size_t j = i + 1; j < layout.nodes.size(); ++j)
-            {
-                const auto &second = layout.nodes[j].geometry;
-                CHECK_FALSE(rectanglesOverlap({first.position, first.size},
-                                              {second.position, second.size}));
-            }
-        }
-    }
 } // namespace
 
 TEST_CASE("GUI Lab compact LCD sizes follow the production grid",
@@ -195,30 +174,8 @@ TEST_CASE("GUI Lab normalized centre geometry projects onto a target",
     CHECK(center.y == Catch::Approx(node.center.y));
 }
 
-TEST_CASE("GUI Lab responsive scaling preserves component centres",
-          "[gui-lab][arrangement][responsive]")
-{
-    const LogicalSize viewport{400.f, 300.f};
-    const auto node = makeNode(1, {0.5f, 0.4f}, 0.5f, {100.f, 50.f});
-    const auto full = projectNodeAtScale(node, viewport, 1.f);
-    const auto compressed = projectNodeAtScale(node, viewport, 0.5f);
-
-    CHECK(full.position.x == Catch::Approx(100.f));
-    CHECK(full.position.y == Catch::Approx(70.f));
-    CHECK(full.size.width == Catch::Approx(200.f));
-    CHECK(full.size.height == Catch::Approx(100.f));
-    CHECK(compressed.position.x == Catch::Approx(150.f));
-    CHECK(compressed.position.y == Catch::Approx(95.f));
-    CHECK(compressed.size.width == Catch::Approx(100.f));
-    CHECK(compressed.size.height == Catch::Approx(50.f));
-    CHECK(compressed.position.x + compressed.size.width * 0.5f ==
-          Catch::Approx(full.position.x + full.size.width * 0.5f));
-    CHECK(compressed.position.y + compressed.size.height * 0.5f ==
-          Catch::Approx(full.position.y + full.size.height * 0.5f));
-}
-
-TEST_CASE("GUI Lab responsive solver centres compressed edge components",
-          "[gui-lab][arrangement][responsive]")
+TEST_CASE("GUI Lab exact projection reports out-of-bounds geometry",
+          "[gui-lab][arrangement][responsive][regression]")
 {
     ArrangementDocument document;
     document.nodes = {makeNode(1, {0.5f, 0.5f}, 1.f, {100.f, 200.f})};
@@ -226,50 +183,13 @@ TEST_CASE("GUI Lab responsive solver centres compressed edge components",
     const LogicalSize viewport{100.f, 100.f};
     const auto layout = computeResponsiveLayout(document, viewport);
     REQUIRE(layout.nodes.size() == 1);
-    CHECK(layout.sharedScale == Catch::Approx(0.5f).margin(0.0001f));
+    CHECK_FALSE(layout.hasValidPlacement);
 
     const auto &geometry = layout.nodes.front().geometry;
-    CHECK(geometry.position.x + geometry.size.width * 0.5f ==
-          Catch::Approx(viewport.width * 0.5f));
-    CHECK(geometry.position.x > 0.f);
-    CHECK(geometry.position.y == Catch::Approx(0.f).margin(0.0011f));
-}
-
-TEST_CASE("GUI Lab centre-scaled projection has an editing inverse",
-          "[gui-lab][arrangement][responsive]")
-{
-    const LogicalSize viewport{400.f, 300.f};
-    const auto node = makeNode(1, {0.3f, 0.4f}, 0.5f, {100.f, 50.f});
-    auto displayed = projectNodeAtScale(node, viewport, 0.5f);
-
-    const auto originalCenter = normalizedCenter(displayed, viewport);
-    CHECK(originalCenter.x == Catch::Approx(node.center.x));
-    CHECK(originalCenter.y == Catch::Approx(node.center.y));
-
-    displayed.position.x += 20.f;
-    displayed.position.y += 15.f;
-    const auto movedCenter = normalizedCenter(displayed, viewport);
-    auto moved = node;
-    moved.center = movedCenter;
-    const auto restored = projectNodeAtScale(moved, viewport, 0.5f);
-    CHECK(restored.position.x == Catch::Approx(displayed.position.x));
-    CHECK(restored.position.y == Catch::Approx(displayed.position.y));
-    CHECK(restored.size.width == Catch::Approx(displayed.size.width));
-    CHECK(restored.size.height == Catch::Approx(displayed.size.height));
-}
-
-TEST_CASE("GUI Lab adapted components can be moved to the screen edge",
-          "[gui-lab][arrangement][responsive]")
-{
-    const LogicalSize viewport{320.f, 480.f};
-    auto node = makeNode(1, {0.5f, 0.087f}, 1.f, {222.52338f, 84.19710f});
-    auto displayed = projectNodeAtScale(node, viewport, 0.69f);
-    displayed.position.y = 0.f;
-
-    node.center = normalizedCenter(displayed, viewport);
-    const auto restored = projectNodeAtScale(node, viewport, 0.69f);
-    CHECK(restored.position.y == Catch::Approx(0.f).margin(0.0001f));
-    CHECK(node.center.y > 0.f);
+    CHECK(geometry.position.x == Catch::Approx(0.f));
+    CHECK(geometry.position.y == Catch::Approx(-50.f));
+    CHECK(geometry.size.width == Catch::Approx(100.f));
+    CHECK(geometry.size.height == Catch::Approx(200.f));
 }
 
 TEST_CASE("GUI Lab width fraction one spans the available width",
@@ -284,7 +204,6 @@ TEST_CASE("GUI Lab width fraction one spans the available width",
     {
         const auto layout = computeResponsiveLayout(document, viewport);
         REQUIRE(layout.nodes.size() == 1);
-        CHECK(layout.sharedScale == Catch::Approx(1.f));
         CHECK(layout.nodes[0].geometry.position.x == Catch::Approx(0.f));
         CHECK(layout.nodes[0].geometry.size.width ==
               Catch::Approx(viewport.width));
@@ -302,7 +221,6 @@ TEST_CASE("GUI Lab normalized geometry adapts without mutating the document",
     {
         const auto layout = computeResponsiveLayout(document, viewport);
         REQUIRE(layout.nodes.size() == 1);
-        REQUIRE(layout.sharedScale == Catch::Approx(1.f));
         const auto &geometry = layout.nodes.front().geometry;
         CHECK(geometry.position.x + geometry.size.width * 0.5f ==
               Catch::Approx(viewport.width * 0.3f));
@@ -317,7 +235,7 @@ TEST_CASE("GUI Lab normalized geometry adapts without mutating the document",
     CHECK(document.nodes.front().widthFraction == Catch::Approx(0.4f));
 }
 
-TEST_CASE("GUI Lab responsive layout compresses without moving centres",
+TEST_CASE("GUI Lab exact projection preserves conflicting geometry",
           "[gui-lab][arrangement][responsive]")
 {
     ArrangementDocument document;
@@ -326,90 +244,33 @@ TEST_CASE("GUI Lab responsive layout compresses without moving centres",
 
     const LogicalSize viewport{100.f, 100.f};
     const auto layout = computeResponsiveLayout(document, viewport);
-    CHECK(layout.sharedScale > 0.f);
-    CHECK(layout.sharedScale < 1.f);
-    checkValidLayout(layout, viewport);
+    CHECK_FALSE(layout.hasValidPlacement);
     for (size_t i = 0; i < layout.nodes.size(); ++i)
     {
         const auto center =
             normalizedCenter(layout.nodes[i].geometry, viewport);
         CHECK(center.x == Catch::Approx(document.nodes[i].center.x));
         CHECK(center.y == Catch::Approx(document.nodes[i].center.y));
+        CHECK(layout.nodes[i].geometry.size.width == Catch::Approx(60.f));
     }
 }
 
-TEST_CASE("GUI Lab normalized layout remains valid across catalog screens",
-          "[gui-lab][arrangement][responsive]")
+TEST_CASE("GUI Lab projection uses each target device width",
+          "[gui-lab][arrangement][responsive][regression]")
 {
-    ArrangementDocument document;
-    document.nodes = {makeNode(1, {0.5f, 0.15f}, 0.9f, {230.f, 116.f}),
-                      makeNode(2, {0.3f, 0.65f}, 0.28f, {85.f, 84.f}),
-                      makeNode(3, {0.75f, 0.65f}, 0.24f, {72.f, 80.f})};
+    constexpr LogicalSize lcdReference{222.52338f, 84.19710f};
+    const auto droppedWidthFraction = lcdReference.width / 390.f;
+    auto lcd = makeNode(1, {0.5f, 0.17f}, droppedWidthFraction, lcdReference);
 
-    for (const auto &device : getDeviceProfiles())
-    {
-        for (const auto orientation :
-             {Orientation::portrait, Orientation::landscape})
-        {
-            const auto viewport = getEffectiveDeviceSize(device, orientation);
-            const auto layout = computeResponsiveLayout(document, viewport);
-            CHECK(layout.sharedScale > 0.f);
-            checkValidLayout(layout, viewport);
-        }
-    }
-    for (const auto viewport :
-         {LogicalSize{240.f, 1000.f}, LogicalSize{1200.f, 240.f}})
-    {
-        checkValidLayout(computeResponsiveLayout(document, viewport), viewport);
-    }
-}
+    CHECK(projectNode(lcd, {390.f, 844.f}).size.width ==
+          Catch::Approx(lcdReference.width));
+    CHECK(projectNode(lcd, {375.f, 667.f}).size.width ==
+          Catch::Approx(droppedWidthFraction * 375.f));
 
-TEST_CASE("GUI Lab tall iPhone layout preserves its structure on iPhone 2G",
-          "[gui-lab][arrangement][responsive]")
-{
-    ArrangementDocument document;
-    document.nodes = {makeNode(1, {0.5f, 0.087f}, 1.f, {222.52338f, 84.19710f}),
-                      makeNode(2, {0.5f, 0.207f}, 1.f, {180.f, 25.f}),
-                      makeNode(3, {0.5f, 0.434f}, 0.8426667f, {85.f, 84.f}),
-                      makeNode(4, {0.786f, 0.737f}, 0.4128024f, {72.f, 80.f}),
-                      makeNode(5, {0.320f, 0.657f}, 0.4906667f, {90.f, 21.f}),
-                      makeNode(6, {0.309f, 0.759f}, 0.5001716f, {48.f, 31.f}),
-                      makeNode(7, {0.5f, 0.879f}, 1.f, {179.f, 28.f}),
-                      makeNode(8, {0.5f, 0.961f}, 1.f, {179.f, 30.f})};
-
-    const LogicalSize iphone2G{320.f, 480.f};
-    const auto layout = computeResponsiveLayout(document, iphone2G);
-    CHECK(layout.sharedScale > 0.65f);
-    checkValidLayout(layout, iphone2G);
-
-    for (size_t i = 0; i < layout.nodes.size(); ++i)
-    {
-        const auto center =
-            normalizedCenter(layout.nodes[i].geometry, iphone2G);
-        CHECK(center.x == Catch::Approx(document.nodes[i].center.x));
-        CHECK(center.y == Catch::Approx(document.nodes[i].center.y));
-    }
-
-    const auto *lcd = findProjectedGeometry(layout, 1);
-    const auto *dataWheel = findProjectedGeometry(layout, 4);
-    const auto *cursor = findProjectedGeometry(layout, 6);
-    const auto *locate = findProjectedGeometry(layout, 7);
-    const auto *transport = findProjectedGeometry(layout, 8);
-    REQUIRE(lcd != nullptr);
-    REQUIRE(dataWheel != nullptr);
-    REQUIRE(cursor != nullptr);
-    REQUIRE(locate != nullptr);
-    REQUIRE(transport != nullptr);
-    CHECK(lcd->position.y < 1.f);
-    CHECK(locate->position.y >=
-          Catch::Approx(dataWheel->position.y + dataWheel->size.height)
-              .margin(0.01f));
-    CHECK(
-        locate->position.y >=
-        Catch::Approx(cursor->position.y + cursor->size.height).margin(0.01f));
-    CHECK(
-        transport->position.y >=
-        Catch::Approx(locate->position.y + locate->size.height).margin(0.01f));
+    lcd.widthFraction = 1.f;
+    const auto fullWidth = projectNode(lcd, {375.f, 667.f});
+    CHECK(fullWidth.position.x == Catch::Approx(0.f));
+    CHECK(fullWidth.size.width == Catch::Approx(375.f));
 }
 
 TEST_CASE("GUI Lab placement finds the nearest non-overlapping gap",
@@ -515,6 +376,7 @@ TEST_CASE("GUI Lab version four designs use normalized centre geometry",
           "[gui-lab][arrangement][serialization]")
 {
     ArrangementDocument document;
+    document.menuAtTop = true;
     auto component = makeNode(1, {0.8f, 0.25f}, 0.2f, {48.f, 48.f});
     component.catalogId = "cursor";
     document.nodes = {component};
@@ -522,6 +384,7 @@ TEST_CASE("GUI Lab version four designs use normalized centre geometry",
     const auto contents = serializeArrangementDocument(document);
     const auto json = nlohmann::json::parse(contents);
     CHECK(json.at("version") == 4);
+    CHECK(json.at("menuAtTop") == true);
     CHECK_FALSE(json.contains("reference"));
     CHECK_FALSE(json.contains("target"));
     CHECK(json.at("nodes")[0].contains("center"));
@@ -535,11 +398,26 @@ TEST_CASE("GUI Lab version four designs use normalized centre geometry",
     std::string error;
     const auto loaded = deserializeArrangementDocument(contents, error);
     REQUIRE(loaded.has_value());
+    CHECK(loaded->menuAtTop);
     REQUIRE(loaded->nodes.size() == 1);
     CHECK(loaded->nodes[0].center.x == Catch::Approx(component.center.x));
     CHECK(loaded->nodes[0].center.y == Catch::Approx(component.center.y));
     CHECK(loaded->nodes[0].widthFraction ==
           Catch::Approx(component.widthFraction));
+}
+
+TEST_CASE("GUI Lab version four designs default the menu to the bottom",
+          "[gui-lab][arrangement][serialization]")
+{
+    ArrangementDocument document;
+    auto json = nlohmann::json::parse(serializeArrangementDocument(document));
+    json.erase("menuAtTop");
+
+    std::string error;
+    const auto loaded = deserializeArrangementDocument(json.dump(), error);
+    INFO(error);
+    REQUIRE(loaded.has_value());
+    CHECK_FALSE(loaded->menuAtTop);
 }
 
 TEST_CASE("GUI Lab old arrangement versions are unsupported",
@@ -588,6 +466,7 @@ TEST_CASE("Arrangement setup round-trips five ordered slots",
     ArrangementSlot first;
     first.id = arrangementId('1');
     first.orientation = Orientation::portrait;
+    first.arrangement.menuAtTop = true;
     first.arrangement.nodes = {makeNode(1, {0.5f, 0.1f}, 1.f, {210.f, 55.f})};
     first.arrangement.nodes.front().catalogId = "lcd-bare";
     setup.slots[0] = first;
@@ -606,6 +485,8 @@ TEST_CASE("Arrangement setup round-trips five ordered slots",
     CHECK(json.at("slots").size() == 5);
     CHECK(json.at("slots")[1].is_null());
     CHECK(json.at("slots")[0].at("id") == arrangementId('1'));
+    CHECK(json.at("slots")[0].at("arrangement").at("menuAtTop") == true);
+    CHECK(json.at("slots")[4].at("arrangement").at("menuAtTop") == false);
     CHECK(json.at("slots")[4].at("orientation") == "landscape");
 
     std::string error;
@@ -615,8 +496,10 @@ TEST_CASE("Arrangement setup round-trips five ordered slots",
     REQUIRE(restored->slots[0].has_value());
     CHECK(restored->slots[0]->id == arrangementId('1'));
     CHECK(restored->slots[0]->orientation == Orientation::portrait);
+    CHECK(restored->slots[0]->arrangement.menuAtTop);
     REQUIRE(restored->slots[4].has_value());
     CHECK(restored->slots[4]->orientation == Orientation::landscape);
+    CHECK_FALSE(restored->slots[4]->arrangement.menuAtTop);
     CHECK(findFirstOccupiedSlot(*restored) == std::optional<std::size_t>(0));
 }
 
