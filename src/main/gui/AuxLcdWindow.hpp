@@ -30,11 +30,9 @@ namespace vmpc_juce::gui
     class AuxLcdWindow final : public juce::TopLevelWindow, public juce::Timer
     {
     public:
-        explicit AuxLcdWindow(
-            mpc::Mpc &mpc, const std::function<void()> &resetAuxWindowToUse,
-            const std::function<juce::Image &()> &getLcdImage,
-            const std::function<void()> &resetKeyboardAuxParentToUse,
-            juce::Colour backgroundColourToUse);
+        explicit AuxLcdWindow(mpc::Mpc &mpc,
+                              const std::function<juce::Image &()> &getLcdImage,
+                              juce::Colour backgroundColourToUse);
 
         void timerCallback() override;
 
@@ -59,8 +57,6 @@ namespace vmpc_juce::gui
         void mouseWheelMove(const juce::MouseEvent &,
                             const juce::MouseWheelDetails &) override;
 
-        void mouseDoubleClick(const juce::MouseEvent &) override;
-
         void showButtons();
 
         void repaintAuxLcdLocalBounds(juce::Rectangle<int> dirtyArea) const;
@@ -72,8 +68,6 @@ namespace vmpc_juce::gui
         AuxLcd *auxLcd = nullptr;
         AuxLcdWindowMaximizeButton maximizeButton;
         int buttonsHaveBeenShownForMs = 0;
-        const std::function<void()> resetKeyboardAuxParent;
-        const std::function<void()> resetAuxWindow;
         VmpcAuxLcdLookAndFeel lookAndFeel;
         juce::Colour backgroundColour;
 

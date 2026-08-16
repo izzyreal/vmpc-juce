@@ -43,15 +43,10 @@ void AuxLcdWindowMaximizeButton::paintButton(
 {
 }
 
-AuxLcdWindow::AuxLcdWindow(
-    mpc::Mpc &mpcToUse, const std::function<void()> &resetAuxWindowToUse,
-    const std::function<juce::Image &()> &getLcdImage,
-    const std::function<void()> &resetKeyboardAuxParentToUse,
-    const juce::Colour backgroundColourToUse)
-    : TopLevelWindow("auxlcdwindow", /*addToDesktop*/ true),
-      mpcRef(mpcToUse),
-      resetKeyboardAuxParent(resetKeyboardAuxParentToUse),
-      resetAuxWindow(resetAuxWindowToUse),
+AuxLcdWindow::AuxLcdWindow(mpc::Mpc &mpcToUse,
+                           const std::function<juce::Image &()> &getLcdImage,
+                           const juce::Colour backgroundColourToUse)
+    : TopLevelWindow("auxlcdwindow", /*addToDesktop*/ true), mpcRef(mpcToUse),
       backgroundColour(backgroundColourToUse)
 {
     setLookAndFeel(&lookAndFeel);
@@ -85,9 +80,8 @@ AuxLcdWindow::AuxLcdWindow(
                 static_cast<float>(availableBounds.getHeight()) /
                     defaultHeight);
 
-            initialBounds.setSize(
-                juce::roundToInt(defaultWidth * scale),
-                juce::roundToInt(defaultHeight * scale));
+            initialBounds.setSize(juce::roundToInt(defaultWidth * scale),
+                                  juce::roundToInt(defaultHeight * scale));
             initialBounds.setCentre(availableBounds.getCentre());
         }
     }
@@ -207,14 +201,13 @@ void AuxLcdWindow::resized()
 
     auxLcd->setCentrePosition(getLocalBounds().getCentre());
 
-    resizableCorner->setBounds(
-        getWidth() - CONTROL_HIT_TARGET_SIZE,
-        getHeight() - CONTROL_HIT_TARGET_SIZE + 2, CONTROL_HIT_TARGET_SIZE,
-        CONTROL_HIT_TARGET_SIZE);
+    resizableCorner->setBounds(getWidth() - CONTROL_HIT_TARGET_SIZE,
+                               getHeight() - CONTROL_HIT_TARGET_SIZE + 2,
+                               CONTROL_HIT_TARGET_SIZE,
+                               CONTROL_HIT_TARGET_SIZE);
 
     maximizeButton.setBounds(getWidth() - CONTROL_HIT_TARGET_SIZE, 0,
-                             CONTROL_HIT_TARGET_SIZE,
-                             CONTROL_HIT_TARGET_SIZE);
+                             CONTROL_HIT_TARGET_SIZE, CONTROL_HIT_TARGET_SIZE);
 }
 
 void AuxLcdWindow::mouseMove(const juce::MouseEvent &)
@@ -229,10 +222,10 @@ void AuxLcdWindow::mouseEnter(const juce::MouseEvent &)
 
 void AuxLcdWindow::mouseDown(const juce::MouseEvent &e)
 {
-    dragStarted = dispatchLcdPointerEvent(
-                      mpcRef, e, auxLcd->getBounds().toFloat(),
-                      mpc::input::GestureEvent::Type::BEGIN) ==
-                  mpc::input::HostInputResult::Ignored;
+    dragStarted =
+        dispatchLcdPointerEvent(mpcRef, e, auxLcd->getBounds().toFloat(),
+                                mpc::input::GestureEvent::Type::BEGIN) ==
+        mpc::input::HostInputResult::Ignored;
     if (dragStarted)
     {
         dragger.startDraggingComponent(this, e);
@@ -252,7 +245,7 @@ void AuxLcdWindow::mouseUp(const juce::MouseEvent &e)
 void AuxLcdWindow::mouseDrag(const juce::MouseEvent &e)
 {
     if (dispatchLcdPointerEvent(mpcRef, e, auxLcd->getBounds().toFloat(),
-                               mpc::input::GestureEvent::Type::UPDATE) ==
+                                mpc::input::GestureEvent::Type::UPDATE) ==
             mpc::input::HostInputResult::Ignored &&
         dragStarted)
     {
@@ -273,12 +266,6 @@ void AuxLcdWindow::mouseWheelMove(const juce::MouseEvent &e,
     }
 
     showButtons();
-}
-
-void AuxLcdWindow::mouseDoubleClick(const juce::MouseEvent &)
-{
-    resetKeyboardAuxParent();
-    resetAuxWindow();
 }
 
 AuxLcdWindow::~AuxLcdWindow()

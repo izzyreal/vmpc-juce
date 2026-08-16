@@ -35,6 +35,7 @@ namespace vmpc_juce::gui::vector
     class Menu;
     class Disclaimer;
     class About;
+    class Lcd;
     class Pad;
 
     class View final : public juce::Component, public juce::Timer
@@ -47,8 +48,7 @@ namespace vmpc_juce::gui::vector
              bool &shouldShowDisclaimer,
              const std::optional<std::string> &preferredArrangementId,
              std::function<void(const std::string &)> arrangementSelected,
-             bool menuExpanded,
-             std::function<void(bool)> menuExpandedChanged);
+             bool menuExpanded, std::function<void(bool)> menuExpandedChanged);
 
         ~View() override;
 
@@ -65,8 +65,8 @@ namespace vmpc_juce::gui::vector
 
         Keyboard *getKeyboard() const;
         bool usesPhoneArrangements() const;
-        void restoreArrangement(
-            const std::optional<std::string> &arrangementId);
+        void
+        restoreArrangement(const std::optional<std::string> &arrangementId);
         void restoreMenuExpanded(bool expanded);
 
     private:
@@ -78,6 +78,9 @@ namespace vmpc_juce::gui::vector
         void refreshHardwareRegistrations();
         void showArrangementSelector();
         void closeArrangementSelector();
+        Lcd *findRenderedLcd();
+        bool toggleAuxLcdWindow();
+        void closeAuxLcdWindow();
         void selectArrangementSlot(std::size_t index,
                                    bool reportSelection = true);
         void toggleIPhoneFullscreen();

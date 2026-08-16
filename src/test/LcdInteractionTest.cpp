@@ -70,23 +70,23 @@ TEST_CASE("LCD begins require primary contact inside rendered bounds",
                                       GestureEvent::Type::BEGIN));
 }
 
-TEST_CASE("Captured LCD updates and ends clamp outside positions",
+TEST_CASE("Captured LCD updates and ends preserve outside positions",
           "[vmpc][lcd][input]")
 {
     const juce::Rectangle<float> bounds{10.f, 20.f, 248.f, 60.f};
     const auto update = makeLcdHostInputEvent(pointer(-100.f, 200.f), bounds,
                                               GestureEvent::Type::UPDATE);
     REQUIRE(update);
-    CHECK(gesture(*update).normX == Catch::Approx(0.f));
-    CHECK(gesture(*update).normY == Catch::Approx(1.f));
+    CHECK(gesture(*update).normX == Catch::Approx(-110.f / 248.f));
+    CHECK(gesture(*update).normY == Catch::Approx(3.f));
 
     auto released = pointer(500.f, -50.f);
     released.isPrimary = false;
     const auto end =
         makeLcdHostInputEvent(released, bounds, GestureEvent::Type::END);
     REQUIRE(end);
-    CHECK(gesture(*end).normX == Catch::Approx(1.f));
-    CHECK(gesture(*end).normY == Catch::Approx(0.f));
+    CHECK(gesture(*end).normX == Catch::Approx(490.f / 248.f));
+    CHECK(gesture(*end).normY == Catch::Approx(-70.f / 60.f));
 }
 
 TEST_CASE("LCD adapter rejects invalid positions and repeat events",

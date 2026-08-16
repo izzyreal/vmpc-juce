@@ -43,8 +43,6 @@ namespace vmpc_juce::gui::vector
 
         void drawPixelsToImg();
 
-        void mouseDoubleClick(const juce::MouseEvent &) override;
-
         void mouseDown(const juce::MouseEvent &e) override;
 
         void mouseUp(const juce::MouseEvent &e) override;
@@ -53,6 +51,10 @@ namespace vmpc_juce::gui::vector
 
         void mouseWheelMove(const juce::MouseEvent &e,
                             const juce::MouseWheelDetails &wheel) override;
+
+        bool toggleAuxWindow();
+        void closeAuxWindow();
+        bool isAuxWindowOpen() const;
 
         float magicMultiplier = 0.55f;
 
@@ -64,16 +66,12 @@ namespace vmpc_juce::gui::vector
                                       mpc::lcdgui::LCD_WIDTH * 2,
                                       mpc::lcdgui::LCD_HEIGHT * 2, false);
 
-        std::function<void()> resetAuxWindowF;
-        std::function<void()> resetKeyboardAuxParent;
         std::function<juce::Image &()> getLcdImage;
 
         melatonin::DropShadow shadow;
 
         juce::AffineTransform getMyTransform() const;
         juce::Rectangle<float> getRenderedLcdBounds() const;
-
-        void resetAuxWindow();
 
         View *getView() const;
     };

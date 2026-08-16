@@ -8,6 +8,7 @@
 #include "gui/vector/TooltipOverlay.hpp"
 #include "gui/vector/Menu.hpp"
 #include "gui/vector/Disclaimer.hpp"
+#include "gui/vector/Lcd.hpp"
 #include "gui/vector/About.hpp"
 #include "gui/vector/Pad.hpp"
 #include "gui/vector/PadTimer.hpp"
@@ -322,6 +323,10 @@ View::View(mpc::Mpc &mpcToUse,
     {
         tooltipOverlay->setAllKeyTooltipsVisibility(visibleEnabled);
     };
+    const auto toggleAuxLcd = [this]
+    {
+        return toggleAuxLcdWindow();
+    };
 
     closeAbout = [this]
     {
@@ -407,10 +412,8 @@ View::View(mpc::Mpc &mpcToUse,
                       showArrangementSelector();
                   })
             : std::function<void()>(),
-        std::function<void()>(),
-        phoneArrangementMode,
-        wrapperType,
-        menuExpandedChanged);
+        std::function<void()>(), toggleAuxLcd, phoneArrangementMode,
+        wrapperType, menuExpandedChanged);
 
     menu->setExpanded(menuExpanded);
 
@@ -541,6 +544,7 @@ std::pair<int, int> View::getInitialRootWindowDimensions()
 View::~View()
 {
     stopTimer();
+    closeAuxLcdWindow();
 
     delete padTimer;
     delete arrangementSelector;
@@ -596,11 +600,9 @@ void View::resized()
     if (phoneArrangementMode && menu != nullptr)
     {
         constexpr auto preferredIPhoneMenuScaleMultiplier = 3.3f;
-        const auto availableWidth =
-            std::max(1.f, static_cast<float>(getWidth()) -
-                              (menuMargin * scale * 2.f));
-        const auto fitScale =
-            availableWidth / menu->getVisibleWidthAtScale1();
+        const auto availableWidth = std::max(
+            1.f, static_cast<float>(getWidth()) - (menuMargin * scale * 2.f));
+        const auto fitScale = availableWidth / menu->getVisibleWidthAtScale1();
         menuScale =
             std::min(scale * preferredIPhoneMenuScaleMultiplier, fitScale);
     }
@@ -609,25 +611,22 @@ void View::resized()
         menu->setScaleMultiplier(scale > 0.f ? menuScale / scale : 1.f);
     }
 
-    const auto menuWidth =
-        (menu != nullptr ? menu->getRequiredWidthAtScale1()
-                         : Menu::widthAtScale1) *
-        menuScale;
-    const auto menuHeight = (menu != nullptr
-                                 ? menu->getRequiredHeightAtScale1()
-                                 : Menu::heightAtScale1) *
+    const auto menuWidth = (menu != nullptr ? menu->getRequiredWidthAtScale1()
+                                            : Menu::widthAtScale1) *
+                           menuScale;
+    const auto menuHeight = (menu != nullptr ? menu->getRequiredHeightAtScale1()
+                                             : Menu::heightAtScale1) *
                             menuScale;
-    const auto menuX = static_cast<float>(getWidth()) - menuWidth -
-                       (menuMargin * scale);
+    const auto menuX =
+        static_cast<float>(getWidth()) - menuWidth - (menuMargin * scale);
     const auto menuAtTop =
         phoneArrangementMode &&
         activeArrangementSlot < arrangementSetup.slots.size() &&
         arrangementSetup.slots[activeArrangementSlot].has_value() &&
         arrangementSetup.slots[activeArrangementSlot]->arrangement.menuAtTop;
-    const auto menuY = menuAtTop
-                           ? menuMargin * scale
-                           : static_cast<float>(getHeight()) - menuHeight -
-                                 (menuMargin * scale);
+    const auto menuY = menuAtTop ? menuMargin * scale
+                                 : static_cast<float>(getHeight()) -
+                                       menuHeight - (menuMargin * scale);
 
     if (menu != nullptr)
     {
@@ -647,7 +646,7 @@ void View::resized()
             const auto widthFraction = getHeight() >= getWidth() ? 1.f : 0.8f;
             constexpr auto originalSizeFraction = 0.5f;
             disclaimer->setScaleMultiplier(widthFraction /
-                                            originalSizeFraction);
+                                           originalSizeFraction);
 
             auto disclaimerBounds = getLocalBounds().withSizeKeepingCentre(
                 juce::roundToInt(static_cast<float>(getWidth()) *
@@ -873,6 +872,7 @@ void View::selectArrangementSlot(const std::size_t index,
     padTimer = nullptr;
     pads.clear();
     timerCallbackComponents.clear();
+    closeAuxLcdWindow();
     if (arrangementSurface != nullptr)
     {
         removeChildComponent(arrangementSurface);
@@ -902,16 +902,14 @@ void View::selectArrangementSlot(const std::size_t index,
     }
 }
 
-void View::restoreArrangement(
-    const std::optional<std::string> &arrangementId)
+void View::restoreArrangement(const std::optional<std::string> &arrangementId)
 {
     if (!phoneArrangementMode)
     {
         return;
     }
-    const auto resolved =
-        gui::arrangement::resolveArrangementSlot(arrangementSetup,
-                                                 arrangementId);
+    const auto resolved = gui::arrangement::resolveArrangementSlot(
+        arrangementSetup, arrangementId);
     if (!resolved.has_value())
     {
         return;
@@ -925,6 +923,29 @@ void View::restoreMenuExpanded(const bool expanded)
     if (menu != nullptr)
     {
         menu->setExpanded(expanded);
+    }
+}
+
+Lcd *View::findRenderedLcd()
+{
+    return utils::findFirstChildComponentOfClass<Lcd>(this);
+}
+
+bool View::toggleAuxLcdWindow()
+{
+    auto *lcd = findRenderedLcd();
+    return lcd != nullptr ? lcd->toggleAuxWindow() : false;
+}
+
+void View::closeAuxLcdWindow()
+{
+    if (auto *lcd = findRenderedLcd())
+    {
+        lcd->closeAuxWindow();
+    }
+    if (menu != nullptr)
+    {
+        menu->setAuxLcdOpen(false);
     }
 }
 

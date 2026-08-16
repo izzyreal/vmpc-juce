@@ -3,6 +3,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 
+#include "AuxLcdMenuModel.hpp"
 #include "SvgComponent.hpp"
 #include "TooltipOverlay.hpp"
 #include "InfoTooltip.hpp"
@@ -50,6 +51,7 @@ namespace vmpc_juce::gui::vector
             const std::function<void()> &openAboutToUse,
             const std::function<void()> &openArrangementSelectorToUse,
             const std::function<void()> &toggleIPhoneFullscreenToUse,
+            const std::function<bool()> &toggleAuxLcdToUse,
             const bool useLargeIPhoneTooltips,
             juce::AudioProcessor::WrapperType wrapperTypeToUse,
             const std::function<void(bool)> &menuExpandedChangedToUse)
@@ -67,6 +69,7 @@ namespace vmpc_juce::gui::vector
               openAbout(openAboutToUse),
               openArrangementSelector(openArrangementSelectorToUse),
               toggleIPhoneFullscreen(toggleIPhoneFullscreenToUse),
+              auxLcdMenuModel(toggleAuxLcdToUse),
               menuExpandedChanged(menuExpandedChangedToUse),
               tooltipOverlay(tooltipOverlayToUse)
         {
@@ -75,6 +78,10 @@ namespace vmpc_juce::gui::vector
             menuIcon = new SvgComponent({"bars_3.svg"}, this, 0.f, getScale);
             menuIcon->setInterceptsMouseClicks(false, false);
             addAndMakeVisible(menuIcon);
+
+            auxLcdIcon = new SvgComponent({"auxlcd.svg"}, this, 0.f, getScale);
+            auxLcdIcon->setInterceptsMouseClicks(false, false);
+            addAndMakeVisible(auxLcdIcon);
 
             if (juce::JUCEApplicationBase::isStandaloneApp())
             {
@@ -147,9 +154,9 @@ namespace vmpc_juce::gui::vector
 
             setWantsKeyboardFocus(false);
 
-            infoTooltip = new InfoTooltip(
-                getScale, getMainFontScaled, tooltipOverlay,
-                useLargeIPhoneTooltips ? 3.f : 1.f);
+            infoTooltip =
+                new InfoTooltip(getScale, getMainFontScaled, tooltipOverlay,
+                                useLargeIPhoneTooltips ? 3.f : 1.f);
             tooltipOverlay->addChildComponent(infoTooltip);
         }
 
@@ -278,6 +285,7 @@ namespace vmpc_juce::gui::vector
             {
                 fullscreenIcon->setAlpha(1.f);
             }
+            auxLcdIcon->setAlpha(1.f);
             helpIcon->setAlpha(1.f);
             keyboardIcon->setAlpha(1.f);
             infoIcon->setAlpha(1.f);
@@ -403,6 +411,12 @@ namespace vmpc_juce::gui::vector
 
             g.setColour(juce::Colours::white);
             g.fillRoundedRectangle(rect, radius);
+            if (auxLcdMenuModel.isOpen() && auxLcdIcon->isVisible())
+            {
+                g.setColour(juce::Colours::black.withAlpha(0.12f));
+                g.fillRoundedRectangle(
+                    auxLcdIcon->getBounds().toFloat().expanded(scale), radius);
+            }
             g.setColour(juce::Colours::black);
             g.drawRoundedRectangle(rect, radius, lineThickness);
         }
@@ -414,6 +428,7 @@ namespace vmpc_juce::gui::vector
             delete infoTooltip;
 
             delete menuIcon;
+            delete auxLcdIcon;
             delete speakerIcon;
             delete importIcon;
             delete exportIcon;
@@ -426,7 +441,7 @@ namespace vmpc_juce::gui::vector
             delete fullscreenIcon;
         }
 
-        const static int totalAvailableIconCount = 9;
+        const static int totalAvailableIconCount = 10;
         constexpr static const float widthAtScale1 =
             15.f * totalAvailableIconCount * 1.1;
         constexpr static const float heightAtScale1 =
@@ -490,7 +505,38 @@ namespace vmpc_juce::gui::vector
             repaint();
         }
 
+        void setAuxLcdOpen(const bool shouldBeOpen)
+        {
+            if (!auxLcdMenuModel.setOpen(shouldBeOpen))
+            {
+                return;
+            }
+
+            if (infoTooltip->isVisible() &&
+                infoTooltip->getAnchor() == auxLcdIcon)
+            {
+                infoTooltip->configure(getAuxLcdTooltipText(), auxLcdIcon);
+            }
+            repaint();
+        }
+
     private:
+        void activateAuxLcdItem()
+        {
+            const auto wasOpen = auxLcdMenuModel.isOpen();
+            auxLcdMenuModel.activate();
+            if (wasOpen == auxLcdMenuModel.isOpen())
+            {
+                return;
+            }
+            if (infoTooltip->isVisible() &&
+                infoTooltip->getAnchor() == auxLcdIcon)
+            {
+                infoTooltip->configure(getAuxLcdTooltipText(), auxLcdIcon);
+            }
+            repaint();
+        }
+
         void handleClick(const juce::MouseEvent e)
         {
             if (menuIcon->getBounds()
@@ -525,6 +571,10 @@ namespace vmpc_juce::gui::vector
             if (clickedIcon == speakerIcon)
             {
                 showAudioSettingsDialog();
+            }
+            else if (clickedIcon == auxLcdIcon)
+            {
+                activateAuxLcdItem();
             }
 #if TARGET_OS_IPHONE
             else if (clickedIcon == importIcon)
@@ -586,6 +636,10 @@ namespace vmpc_juce::gui::vector
             else if (icon == resetZoomIcon)
             {
                 tooltipText = "Restore default window size";
+            }
+            else if (icon == auxLcdIcon)
+            {
+                tooltipText = getAuxLcdTooltipText();
             }
             else if (icon == helpIcon)
             {
@@ -652,6 +706,7 @@ namespace vmpc_juce::gui::vector
             {
                 result.push_back(resetZoomIcon);
             }
+            result.push_back(auxLcdIcon);
 #if TARGET_OS_IPHONE
             result.push_back(importIcon);
             result.push_back(exportIcon);
@@ -719,6 +774,11 @@ namespace vmpc_juce::gui::vector
             return getScale() * scaleMultiplier;
         }
 
+        std::string getAuxLcdTooltipText() const
+        {
+            return auxLcdMenuModel.tooltipText();
+        }
+
 #if TARGET_OS_IPHONE
         mpc::Mpc &mpc;
 #endif
@@ -736,6 +796,7 @@ namespace vmpc_juce::gui::vector
         const std::function<void()> openAbout;
         const std::function<void()> openArrangementSelector;
         const std::function<void()> toggleIPhoneFullscreen;
+        AuxLcdMenuModel auxLcdMenuModel;
         const std::function<void(bool)> &menuExpandedChanged;
         float scaleMultiplier = 1.f;
 
@@ -743,6 +804,7 @@ namespace vmpc_juce::gui::vector
         InfoTooltip *infoTooltip = nullptr;
 
         SvgComponent *menuIcon = nullptr;
+        SvgComponent *auxLcdIcon = nullptr;
         SvgComponent *speakerIcon = nullptr;
         SvgComponent *importIcon = nullptr;
         SvgComponent *exportIcon = nullptr;

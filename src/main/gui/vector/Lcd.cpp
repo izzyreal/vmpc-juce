@@ -17,16 +17,6 @@ using mpc::lcdgui::LCD_WIDTH;
 Lcd::Lcd(mpc::Mpc &mpcToUse) : mpc(mpcToUse)
 {
     shadow.setColor(Constants::lcdOffBacklit.brighter().withAlpha(0.4f));
-    resetAuxWindowF = [&]
-    {
-        resetAuxWindow();
-    };
-
-    resetKeyboardAuxParent = [&]
-    {
-        getView()->getFocusHelper()->setAuxComponent(nullptr);
-    };
-
     getLcdImage = [&]() -> juce::Image &
     {
         return img;
@@ -182,23 +172,38 @@ void Lcd::drawPixelsToImg()
     dirtyRect = juce::Rectangle<int>();
 }
 
-void Lcd::mouseDoubleClick(const juce::MouseEvent &)
+bool Lcd::toggleAuxWindow()
 {
     const auto view = getView();
 
     if (auxWindow == nullptr)
     {
-        auxWindow = new AuxLcdWindow(mpc, resetAuxWindowF, getLcdImage,
-                                     resetKeyboardAuxParent, Constants::lcdOff);
+        auxWindow = new AuxLcdWindow(mpc, getLcdImage, Constants::lcdOff);
         auxWindow->setVisible(true);
         view->getFocusHelper()->setAuxComponent(auxWindow);
     }
     else
     {
-        view->getFocusHelper()->setAuxComponent(nullptr);
-        delete auxWindow;
-        auxWindow = nullptr;
+        closeAuxWindow();
     }
+    return isAuxWindowOpen();
+}
+
+void Lcd::closeAuxWindow()
+{
+    if (auxWindow == nullptr)
+    {
+        return;
+    }
+
+    getView()->getFocusHelper()->setAuxComponent(nullptr);
+    delete auxWindow;
+    auxWindow = nullptr;
+}
+
+bool Lcd::isAuxWindowOpen() const
+{
+    return auxWindow != nullptr;
 }
 
 void Lcd::mouseDown(const juce::MouseEvent &e)
@@ -263,16 +268,6 @@ juce::Rectangle<float> Lcd::getRenderedLcdBounds() const
     return juce::Rectangle<float>(0.f, 0.f, static_cast<float>(img.getWidth()),
                                   static_cast<float>(img.getHeight()))
         .transformedBy(getMyTransform());
-}
-
-void Lcd::resetAuxWindow()
-{
-    if (auxWindow != nullptr)
-    {
-        auxWindow->removeFromDesktop();
-        delete auxWindow;
-        auxWindow = nullptr;
-    }
 }
 
 View *Lcd::getView() const

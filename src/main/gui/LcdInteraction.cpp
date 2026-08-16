@@ -2,7 +2,6 @@
 
 #include <hardware/ComponentId.hpp>
 
-#include <algorithm>
 #include <cmath>
 
 namespace vmpc_juce::gui
@@ -39,14 +38,10 @@ namespace vmpc_juce::gui
             return std::nullopt;
         }
 
-        const auto normX =
-            std::clamp((event.position.x - renderedLcdBounds.getX()) /
-                           renderedLcdBounds.getWidth(),
-                       0.f, 1.f);
-        const auto normY =
-            std::clamp((event.position.y - renderedLcdBounds.getY()) /
-                           renderedLcdBounds.getHeight(),
-                       0.f, 1.f);
+        const auto normX = (event.position.x - renderedLcdBounds.getX()) /
+                           renderedLcdBounds.getWidth();
+        const auto normY = (event.position.y - renderedLcdBounds.getY()) /
+                           renderedLcdBounds.getHeight();
 
         return mpc::input::HostInputEvent(mpc::input::GestureEvent{
             type, mpc::input::GestureEvent::Movement::Absolute, normX, normY,
