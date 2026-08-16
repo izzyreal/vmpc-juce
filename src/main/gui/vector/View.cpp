@@ -595,7 +595,7 @@ void View::resized()
     }
 
     const auto scale = getScale();
-    const auto menuMargin = phoneArrangementMode ? 10.f : 2.f;
+    const auto menuMargin = phoneArrangementMode ? 5.f : 2.f;
     auto menuScale = scale;
     if (phoneArrangementMode && menu != nullptr)
     {
