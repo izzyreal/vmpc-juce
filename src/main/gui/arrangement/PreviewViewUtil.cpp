@@ -192,7 +192,7 @@ void PreviewViewUtil::createComponent(
              n.node_type == "chassis_rectangle" ||
              n.node_type == "lcd_rectangle")
     {
-        auto *rectangle = new Rectangle(
+        auto *rectangle = new vector::Rectangle(
             n.node_type == "chassis_rectangle" ? Constants::chassisColour
             : n.node_type == "lcd_rectangle"   ? Constants::lcdOff
                                              : Constants::greyFacePaintColour);
