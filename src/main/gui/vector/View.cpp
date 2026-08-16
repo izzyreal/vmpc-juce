@@ -34,6 +34,7 @@
 
 #include <stdexcept>
 #include <tuple>
+#include <algorithm>
 
 #ifdef __APPLE__
 #include <TargetConditionals.h>
