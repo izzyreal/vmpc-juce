@@ -134,6 +134,11 @@ FetchContent_MakeAvailable(juce-raw-keyboard-input-module)
 message(STATUS "Resolving melatonin_blur...")
 FetchContent_MakeAvailable(melatonin_blur)
 
+if(WIN32)
+  # Prevent windows.h from defining min/max macros that break std::min/std::max.
+  add_compile_definitions(NOMINMAX)
+endif()
+
 if (IOS)
     set(IOS_SPECIFIC_SETTINGS
         REQUIRES_FULL_SCREEN TRUE
