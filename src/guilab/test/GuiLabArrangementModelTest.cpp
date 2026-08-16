@@ -107,6 +107,23 @@ TEST_CASE("GUI Lab catalog contains trimmed knob variants",
     CHECK(recGain->referenceHeight == Catch::Approx(38.f));
 }
 
+TEST_CASE("GUI Lab catalog contains isolated logo assets",
+          "[gui-lab][arrangement][catalog]")
+{
+    const auto *akaiLogo = findCatalogEntry("akai-logo");
+    REQUIRE(akaiLogo != nullptr);
+    CHECK(std::string(akaiLogo->resourceName) == "components/akai_logo");
+    CHECK(akaiLogo->referenceWidth == Catch::Approx(53.793735f));
+    CHECK(akaiLogo->referenceHeight == Catch::Approx(22.965294f));
+
+    const auto *mpcLogo = findCatalogEntry("mpc2000xl-logo");
+    REQUIRE(mpcLogo != nullptr);
+    CHECK(std::string(mpcLogo->resourceName) ==
+          "components/mpc2000xl_logo");
+    CHECK(mpcLogo->referenceWidth == Catch::Approx(112.635391f));
+    CHECK(mpcLogo->referenceHeight == Catch::Approx(20.439058f));
+}
+
 TEST_CASE("GUI Lab device catalog contains Apple and Samsung profiles",
           "[gui-lab][arrangement]")
 {

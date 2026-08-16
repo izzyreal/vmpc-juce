@@ -1,0 +1,9 @@
+{
+  "name" : "akai_logo",
+  "type" : "grid",
+  "row_fractions" : [ 1 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    { "name" : "akai_logo_graphic", "svg" : "akai_logo.svg", "area" : [ 1, 1, 1, 1 ] }
+  ]
+}

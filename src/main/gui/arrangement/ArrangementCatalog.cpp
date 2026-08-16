@@ -59,6 +59,10 @@ namespace vmpc_juce::gui::arrangement
             {"main-volume", "Main Volume", "components/main_volume_trimmed", 42,
              38},
             {"rec-gain", "Rec Gain", "components/rec_gain_trimmed", 42, 38},
+            {"akai-logo", "AKAI Professional logo", "components/akai_logo",
+             53.793735f, 22.965294f},
+            {"mpc2000xl-logo", "MPC2000XL logo",
+             "components/mpc2000xl_logo", 112.635391f, 20.439058f},
         };
         return catalog;
     }

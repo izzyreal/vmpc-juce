@@ -1,0 +1,9 @@
+{
+  "name" : "mpc2000xl_logo",
+  "type" : "grid",
+  "row_fractions" : [ 1 ],
+  "column_fractions" : [ 1 ],
+  "children" : [
+    { "name" : "mpc2000xl_logo_graphic", "svg" : "mpc2000xl_logo.svg", "area" : [ 1, 1, 1, 1 ] }
+  ]
+}
