@@ -306,6 +306,7 @@ if (VMPC_BUILD_TESTS)
   )
 
   target_sources(vmpc-juce-tests PRIVATE
+    src/main/gui/LcdInteraction.cpp
     src/main/ZipSaveTarget.cpp
     src/main/VmpcJuceResourceUtil.cpp
   )

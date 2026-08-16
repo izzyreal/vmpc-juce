@@ -3,8 +3,10 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/WithSharedTimerCallback.hpp"
+#include "gui/LcdInteraction.hpp"
 
 #include <Observer.hpp>
+#include <lcdgui/LcdGeometry.hpp>
 
 #include <melatonin_blur/melatonin/shadows.h>
 
@@ -45,7 +47,12 @@ namespace vmpc_juce::gui::vector
 
         void mouseDown(const juce::MouseEvent &e) override;
 
+        void mouseUp(const juce::MouseEvent &e) override;
+
         void mouseDrag(const juce::MouseEvent &e) override;
+
+        void mouseWheelMove(const juce::MouseEvent &e,
+                            const juce::MouseWheelDetails &wheel) override;
 
         float magicMultiplier = 0.55f;
 
@@ -53,8 +60,9 @@ namespace vmpc_juce::gui::vector
         mpc::Mpc &mpc;
         AuxLcdWindow *auxWindow = nullptr;
         juce::Rectangle<int> dirtyRect;
-        juce::Image img =
-            juce::Image(juce::Image::PixelFormat::RGB, 248 * 2, 60 * 2, false);
+        juce::Image img = juce::Image(juce::Image::PixelFormat::RGB,
+                                      mpc::lcdgui::LCD_WIDTH * 2,
+                                      mpc::lcdgui::LCD_HEIGHT * 2, false);
 
         std::function<void()> resetAuxWindowF;
         std::function<void()> resetKeyboardAuxParent;
@@ -63,6 +71,7 @@ namespace vmpc_juce::gui::vector
         melatonin::DropShadow shadow;
 
         juce::AffineTransform getMyTransform() const;
+        juce::Rectangle<float> getRenderedLcdBounds() const;
 
         void resetAuxWindow();
 

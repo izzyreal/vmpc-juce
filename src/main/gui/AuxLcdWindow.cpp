@@ -1,6 +1,10 @@
 #include "AuxLcdWindow.hpp"
 
+#include <Mpc.hpp>
+
 using namespace vmpc_juce::gui;
+using mpc::lcdgui::LCD_HEIGHT;
+using mpc::lcdgui::LCD_WIDTH;
 
 void AuxLcdWindowMaximizeButton::paint(juce::Graphics &g)
 {
@@ -40,18 +44,19 @@ void AuxLcdWindowMaximizeButton::paintButton(
 }
 
 AuxLcdWindow::AuxLcdWindow(
-    const std::function<void()> &resetAuxWindowToUse,
+    mpc::Mpc &mpcToUse, const std::function<void()> &resetAuxWindowToUse,
     const std::function<juce::Image &()> &getLcdImage,
     const std::function<void()> &resetKeyboardAuxParentToUse,
     const juce::Colour backgroundColourToUse)
     : TopLevelWindow("auxlcdwindow", /*addToDesktop*/ true),
+      mpcRef(mpcToUse),
       resetKeyboardAuxParent(resetKeyboardAuxParentToUse),
       resetAuxWindow(resetAuxWindowToUse),
       backgroundColour(backgroundColourToUse)
 {
     setLookAndFeel(&lookAndFeel);
-    constexpr int minWidth = LCD_W + MARGIN;
-    constexpr int minHeight = LCD_H + MARGIN;
+    constexpr int minWidth = LCD_WIDTH + MARGIN;
+    constexpr int minHeight = LCD_HEIGHT + MARGIN;
     constexpr int defaultWidth = minWidth * 3;
     constexpr int defaultHeight = minHeight * 3;
     constexpr int maxWidth = minWidth * 16;
@@ -190,8 +195,10 @@ void AuxLcdWindow::paint(juce::Graphics &g)
 
 void AuxLcdWindow::resized()
 {
-    constexpr auto hRatio = static_cast<float>(LCD_W) / (LCD_W + MARGIN);
-    constexpr auto vRatio = static_cast<float>(LCD_H) / (LCD_H + MARGIN);
+    constexpr auto hRatio =
+        static_cast<float>(LCD_WIDTH) / (LCD_WIDTH + MARGIN);
+    constexpr auto vRatio =
+        static_cast<float>(LCD_HEIGHT) / (LCD_HEIGHT + MARGIN);
 
     const auto bounds = getBounds().toFloat();
 
@@ -222,23 +229,47 @@ void AuxLcdWindow::mouseEnter(const juce::MouseEvent &)
 
 void AuxLcdWindow::mouseDown(const juce::MouseEvent &e)
 {
-    dragStarted = true;
-    dragger.startDraggingComponent(this, e);
+    dragStarted = dispatchLcdPointerEvent(
+                      mpcRef, e, auxLcd->getBounds().toFloat(),
+                      mpc::input::GestureEvent::Type::BEGIN) ==
+                  mpc::input::HostInputResult::Ignored;
+    if (dragStarted)
+    {
+        dragger.startDraggingComponent(this, e);
+    }
 
     showButtons();
 }
 
-void AuxLcdWindow::mouseUp(const juce::MouseEvent &)
+void AuxLcdWindow::mouseUp(const juce::MouseEvent &e)
 {
+    dispatchLcdPointerEvent(mpcRef, e, auxLcd->getBounds().toFloat(),
+                            mpc::input::GestureEvent::Type::END);
     dragStarted = false;
     showButtons();
 }
 
 void AuxLcdWindow::mouseDrag(const juce::MouseEvent &e)
 {
-    if (dragStarted)
+    if (dispatchLcdPointerEvent(mpcRef, e, auxLcd->getBounds().toFloat(),
+                               mpc::input::GestureEvent::Type::UPDATE) ==
+            mpc::input::HostInputResult::Ignored &&
+        dragStarted)
     {
         dragger.dragComponent(this, e, &constrainer);
+    }
+
+    showButtons();
+}
+
+void AuxLcdWindow::mouseWheelMove(const juce::MouseEvent &e,
+                                  const juce::MouseWheelDetails &wheel)
+{
+    if (dispatchLcdWheelEvent(mpcRef, e, wheel,
+                              auxLcd->getBounds().toFloat()) ==
+        mpc::input::HostInputResult::Ignored)
+    {
+        juce::TopLevelWindow::mouseWheelMove(e, wheel);
     }
 
     showButtons();
@@ -261,7 +292,7 @@ void AuxLcdWindow::repaintAuxLcdLocalBounds(
 {
     const auto auxBounds = auxLcd->getLocalBounds().toFloat();
 
-    const auto scale = auxBounds.getWidth() / LCD_W;
+    const auto scale = auxBounds.getWidth() / LCD_WIDTH;
 
     const auto dirtyAreaF = dirtyArea.toFloat();
 

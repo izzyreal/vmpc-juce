@@ -1,5 +1,6 @@
 #include "MpcHardwareMouseListener.hpp"
 
+#include "gui/MouseWheelInput.hpp"
 #include "gui/vector/MpcInputUtil.hpp"
 #include "gui/vector/TooltipOverlay.hpp"
 #include "utils/ComponentUtils.hpp"
@@ -70,19 +71,8 @@ void MpcHardwareMouseListener::mouseWheelMove(
     hideKeyTooltipUntilAfterMouseExit = true;
     setKeyTooltipVisibility(event.eventComponent, false);
 
-    float sensitivity = 10.0f;
-
-    if (wheel.isSmooth)
-    {
-        sensitivity *= 4.0f; // boost for touch/trackpad
-    }
-
-    if (wheel.isInertial)
-    {
-        sensitivity *= 2.0f; // boost inertial motion a bit too
-    }
-
-    const float continuousDelta = -wheel.deltaY * sensitivity;
+    const auto continuousDelta =
+        vmpc_juce::gui::mouseWheelContinuousDelta(wheel);
 
     if (const auto hostInputEvent = makeRelativeGestureFromMouse(
             event, label, GestureEvent::Type::UPDATE, continuousDelta);

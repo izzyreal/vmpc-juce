@@ -11,6 +11,8 @@
 #include <lcdgui/screens/OthersScreen.hpp>
 
 using namespace vmpc_juce::gui::vector;
+using mpc::lcdgui::LCD_HEIGHT;
+using mpc::lcdgui::LCD_WIDTH;
 
 Lcd::Lcd(mpc::Mpc &mpcToUse) : mpc(mpcToUse)
 {
@@ -29,7 +31,7 @@ Lcd::Lcd(mpc::Mpc &mpcToUse) : mpc(mpcToUse)
     {
         return img;
     };
-    dirtyRect = juce::Rectangle<int>(0, 0, 248, 60);
+    dirtyRect = juce::Rectangle<int>(0, 0, LCD_WIDTH, LCD_HEIGHT);
     drawPixelsToImg();
 
     const auto othersScreen =
@@ -72,15 +74,15 @@ void Lcd::paint(juce::Graphics &g)
 
     g.drawImageTransformed(img, t);
 
-    shadow.setRadius(std::round(static_cast<float>(getWidth()) / 248.f));
+    shadow.setRadius(std::round(static_cast<float>(getWidth()) / LCD_WIDTH));
 
     juce::Path p;
 
     const auto &rawPixels = *layeredScreen->getPixels();
 
-    for (uint8_t y = 0; y < 60; y++)
+    for (uint8_t y = 0; y < LCD_HEIGHT; y++)
     {
-        for (uint8_t x = 0; x < 248; x++)
+        for (uint8_t x = 0; x < LCD_WIDTH; x++)
         {
             const bool on = rawPixels[x][y];
             if (!on)
@@ -186,7 +188,7 @@ void Lcd::mouseDoubleClick(const juce::MouseEvent &)
 
     if (auxWindow == nullptr)
     {
-        auxWindow = new AuxLcdWindow(resetAuxWindowF, getLcdImage,
+        auxWindow = new AuxLcdWindow(mpc, resetAuxWindowF, getLcdImage,
                                      resetKeyboardAuxParent, Constants::lcdOff);
         auxWindow->setVisible(true);
         view->getFocusHelper()->setAuxComponent(auxWindow);
@@ -201,20 +203,50 @@ void Lcd::mouseDoubleClick(const juce::MouseEvent &)
 
 void Lcd::mouseDown(const juce::MouseEvent &e)
 {
-    getParentComponent()->mouseDown(e);
+    if (vmpc_juce::gui::dispatchLcdPointerEvent(
+            mpc, e, getRenderedLcdBounds(),
+            ::mpc::input::GestureEvent::Type::BEGIN) ==
+        ::mpc::input::HostInputResult::Ignored)
+    {
+        getParentComponent()->mouseDown(e);
+    }
+}
+
+void Lcd::mouseUp(const juce::MouseEvent &e)
+{
+    vmpc_juce::gui::dispatchLcdPointerEvent(
+        mpc, e, getRenderedLcdBounds(), ::mpc::input::GestureEvent::Type::END);
 }
 
 void Lcd::mouseDrag(const juce::MouseEvent &e)
 {
-    getParentComponent()->mouseDrag(e);
+    if (vmpc_juce::gui::dispatchLcdPointerEvent(
+            mpc, e, getRenderedLcdBounds(),
+            ::mpc::input::GestureEvent::Type::UPDATE) ==
+        ::mpc::input::HostInputResult::Ignored)
+    {
+        getParentComponent()->mouseDrag(e);
+    }
+}
+
+void Lcd::mouseWheelMove(const juce::MouseEvent &e,
+                         const juce::MouseWheelDetails &wheel)
+{
+    if (vmpc_juce::gui::dispatchLcdWheelEvent(mpc, e, wheel,
+                                              getRenderedLcdBounds()) ==
+        ::mpc::input::HostInputResult::Ignored)
+    {
+        juce::Component::mouseWheelMove(e, wheel);
+    }
 }
 
 juce::AffineTransform Lcd::getMyTransform() const
 {
-    constexpr auto asp_ratio = 60.f / 248.f;
+    constexpr auto asp_ratio =
+        static_cast<float>(LCD_HEIGHT) / static_cast<float>(LCD_WIDTH);
     const auto w = static_cast<float>(getWidth()) * magicMultiplier;
     const auto h = w * asp_ratio;
-    const auto img_scale = w / (248 * 2);
+    const auto img_scale = w / static_cast<float>(LCD_WIDTH * 2);
     const auto unused_h_px = static_cast<float>(getWidth()) - w;
     const auto unused_v_px = static_cast<float>(getHeight()) - h;
     const auto x_offset = unused_h_px * 0.5f;
@@ -224,6 +256,13 @@ juce::AffineTransform Lcd::getMyTransform() const
     t = t.scaled(img_scale);
     t = t.translated(x_offset, y_offset);
     return t;
+}
+
+juce::Rectangle<float> Lcd::getRenderedLcdBounds() const
+{
+    return juce::Rectangle<float>(0.f, 0.f, static_cast<float>(img.getWidth()),
+                                  static_cast<float>(img.getHeight()))
+        .transformedBy(getMyTransform());
 }
 
 void Lcd::resetAuxWindow()

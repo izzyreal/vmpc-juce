@@ -102,7 +102,7 @@ makeAbsoluteGestureFromMouse(const juce::MouseEvent &e,
                              : GestureEvent::InputDeviceType::Mouse;
 
     return HostInputEvent{
-        GestureEvent{type, GestureEvent::Movement::Absolute, normY, 0.f,
+        GestureEvent{type, GestureEvent::Movement::Absolute, 0.f, normY, 0.f,
                      e.getNumberOfClicks(), e.source.getIndex(), componentId,
                      e.mods.isShiftDown(), e.mods.isCtrlDown(),
                      e.mods.isAltDown(), deviceType}};
@@ -129,7 +129,7 @@ makeRelativeGestureFromMouse(const juce::MouseEvent &e,
                              : GestureEvent::InputDeviceType::Mouse;
 
     return HostInputEvent{GestureEvent{
-        type, GestureEvent::Movement::Relative, normY, continuousDelta,
+        type, GestureEvent::Movement::Relative, 0.f, normY, continuousDelta,
         e.getNumberOfClicks(), e.source.getIndex(),
         mpc::hardware::componentLabelToId.at(label), e.mods.isShiftDown(),
         e.mods.isCtrlDown(), e.mods.isAltDown(), deviceType}};

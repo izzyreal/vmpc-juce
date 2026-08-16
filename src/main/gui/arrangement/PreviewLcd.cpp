@@ -4,10 +4,12 @@
 #include "gui/vector/Constants.hpp"
 
 using namespace vmpc_juce::gui::arrangement;
+using mpc::lcdgui::LCD_HEIGHT;
+using mpc::lcdgui::LCD_WIDTH;
 using vmpc_juce::gui::vector::Constants;
 
 PreviewLcd::PreviewLcd()
-    : pixels(juce::Image::PixelFormat::RGB, 248 * 2, 60 * 2, true)
+    : pixels(juce::Image::PixelFormat::RGB, LCD_WIDTH * 2, LCD_HEIGHT * 2, true)
 {
     backlight.setColor(Constants::lcdOffBacklit.brighter().withAlpha(0.4f));
 
@@ -19,7 +21,7 @@ PreviewLcd::PreviewLcd()
 
     for (int y = 0; y < 50; ++y)
     {
-        for (int x = 0; x < 248; ++x)
+        for (int x = 0; x < LCD_WIDTH; ++x)
         {
             const bool on =
                 source.isValid() &&
@@ -41,7 +43,8 @@ void PreviewLcd::paint(juce::Graphics &g)
 {
     g.setImageResamplingQuality(juce::Graphics::highResamplingQuality);
 
-    constexpr float aspectRatio = 60.f / 248.f;
+    constexpr float aspectRatio =
+        static_cast<float>(LCD_HEIGHT) / static_cast<float>(LCD_WIDTH);
     const auto width = static_cast<float>(getWidth()) * magicMultiplier;
     const auto height = width * aspectRatio;
     const auto x = (static_cast<float>(getWidth()) - width) * 0.5f;
@@ -52,7 +55,7 @@ void PreviewLcd::paint(juce::Graphics &g)
 
     g.drawImageTransformed(pixels, transform);
 
-    backlight.setRadius(std::round(static_cast<float>(getWidth()) / 248.f));
+    backlight.setRadius(std::round(static_cast<float>(getWidth()) / LCD_WIDTH));
     juce::Path offPixels;
     for (size_t pixelX = 0; pixelX < pixelOn.size(); ++pixelX)
     {

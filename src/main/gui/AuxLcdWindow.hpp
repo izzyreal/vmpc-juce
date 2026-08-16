@@ -3,7 +3,13 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/AuxLcd.hpp"
+#include "gui/LcdInteraction.hpp"
 #include "gui/VmpcAuxLcdLookAndFeel.hpp"
+
+namespace mpc
+{
+    class Mpc;
+}
 
 namespace vmpc_juce::gui
 {
@@ -25,7 +31,7 @@ namespace vmpc_juce::gui
     {
     public:
         explicit AuxLcdWindow(
-            const std::function<void()> &resetAuxWindowToUse,
+            mpc::Mpc &mpc, const std::function<void()> &resetAuxWindowToUse,
             const std::function<juce::Image &()> &getLcdImage,
             const std::function<void()> &resetKeyboardAuxParentToUse,
             juce::Colour backgroundColourToUse);
@@ -50,6 +56,9 @@ namespace vmpc_juce::gui
 
         void mouseDrag(const juce::MouseEvent &) override;
 
+        void mouseWheelMove(const juce::MouseEvent &,
+                            const juce::MouseWheelDetails &) override;
+
         void mouseDoubleClick(const juce::MouseEvent &) override;
 
         void showButtons();
@@ -58,9 +67,8 @@ namespace vmpc_juce::gui
 
     private:
         static constexpr char MARGIN = 6;
-        static constexpr unsigned char LCD_W = 248;
-        static constexpr char LCD_H = 60;
         static constexpr int CONTROL_HIT_TARGET_SIZE = 40;
+        mpc::Mpc &mpcRef;
         AuxLcd *auxLcd = nullptr;
         AuxLcdWindowMaximizeButton maximizeButton;
         int buttonsHaveBeenShownForMs = 0;
