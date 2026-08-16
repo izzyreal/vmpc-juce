@@ -55,6 +55,8 @@ namespace vmpc_juce
 
         std::optional<std::string> getActiveArrangementId() const;
         void setActiveArrangementId(const std::string &id);
+        bool isMenuExpanded() const;
+        void setMenuExpanded(bool expanded);
 
         int lastUIWidth = 0, lastUIHeight = 0;
         bool hasRequiredResources() const;
@@ -98,6 +100,7 @@ namespace vmpc_juce
         std::atomic<bool> audioStreamActive{false};
         std::atomic<bool> physicalPowerOnRequested{false};
         std::optional<std::string> activeArrangementId;
+        bool menuExpanded = true;
 
     public:
         bool shouldShowDisclaimer = true;

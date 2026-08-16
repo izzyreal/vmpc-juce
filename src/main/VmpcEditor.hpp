@@ -80,6 +80,7 @@ namespace vmpc_juce
 
         void restoreActiveArrangement(
             const std::optional<std::string> &arrangementId);
+        void restoreMenuExpanded(bool expanded);
 
     private:
         VmpcProcessor &vmpcProcessor;

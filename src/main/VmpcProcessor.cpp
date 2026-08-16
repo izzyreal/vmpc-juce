@@ -869,6 +869,7 @@ void VmpcProcessor::getStateInformation(juce::MemoryBlock &destData)
         juce_ui->setAttribute("active_arrangement_id",
                               juce::String(*activeArrangementId));
     }
+    juce_ui->setAttribute("menu_expanded", menuExpanded);
 
     if (juce::JUCEApplication::isStandaloneApp())
     {
@@ -1023,6 +1024,23 @@ void VmpcProcessor::setActiveArrangementId(const std::string &id)
             .withNonParameterStateChanged(true));
 }
 
+bool VmpcProcessor::isMenuExpanded() const
+{
+    return menuExpanded;
+}
+
+void VmpcProcessor::setMenuExpanded(const bool expanded)
+{
+    if (menuExpanded == expanded)
+    {
+        return;
+    }
+    menuExpanded = expanded;
+    updateHostDisplay(
+        juce::AudioProcessorListener::ChangeDetails()
+            .withNonParameterStateChanged(true));
+}
+
 void VmpcProcessor::restoreUiState(const juce::XmlElement *uiState)
 {
     if (uiState != nullptr)
@@ -1037,22 +1055,27 @@ void VmpcProcessor::restoreUiState(const juce::XmlElement *uiState)
                                   ? std::optional<std::string>(
                                         restoredId.toStdString())
                                   : std::nullopt;
+        menuExpanded =
+            uiState->getBoolAttribute("menu_expanded", true);
     }
     else
     {
         activeArrangementId.reset();
+        menuExpanded = true;
     }
 
     if (auto *editor = dynamic_cast<VmpcEditor *>(getActiveEditor()))
     {
         juce::Component::SafePointer<VmpcEditor> safeEditor(editor);
         const auto arrangementId = activeArrangementId;
+        const auto restoredMenuExpanded = menuExpanded;
         juce::MessageManager::callAsync(
-            [safeEditor, arrangementId]
+            [safeEditor, arrangementId, restoredMenuExpanded]
             {
                 if (safeEditor != nullptr)
                 {
                     safeEditor->restoreActiveArrangement(arrangementId);
+                    safeEditor->restoreMenuExpanded(restoredMenuExpanded);
                 }
             });
     }

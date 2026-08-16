@@ -27,6 +27,11 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
                     [this](const std::string &arrangementId)
                     {
                         vmpcProcessor.setActiveArrangementId(arrangementId);
+                    },
+                    vmpcProcessor.isMenuExpanded(),
+                    [this](const bool expanded)
+                    {
+                        vmpcProcessor.setMenuExpanded(expanded);
                     });
 
     auto initialWindowWidth = vmpcProcessor.lastUIWidth;
@@ -131,6 +136,14 @@ void VmpcEditor::restoreActiveArrangement(
     if (view != nullptr)
     {
         view->restoreArrangement(arrangementId);
+    }
+}
+
+void VmpcEditor::restoreMenuExpanded(const bool expanded)
+{
+    if (view != nullptr)
+    {
+        view->restoreMenuExpanded(expanded);
     }
 }
 

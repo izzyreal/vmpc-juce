@@ -51,7 +51,8 @@ namespace vmpc_juce::gui::vector
             const std::function<void()> &openArrangementSelectorToUse,
             const std::function<void()> &toggleIPhoneFullscreenToUse,
             const bool useLargeIPhoneTooltips,
-            juce::AudioProcessor::WrapperType wrapperTypeToUse)
+            juce::AudioProcessor::WrapperType wrapperTypeToUse,
+            const std::function<void(bool)> &menuExpandedChangedToUse)
             :
 #if TARGET_OS_IPHONE
               mpc(mpcToUse),
@@ -66,6 +67,7 @@ namespace vmpc_juce::gui::vector
               openAbout(openAboutToUse),
               openArrangementSelector(openArrangementSelectorToUse),
               toggleIPhoneFullscreen(toggleIPhoneFullscreenToUse),
+              menuExpandedChanged(menuExpandedChangedToUse),
               tooltipOverlay(tooltipOverlayToUse)
         {
             juce::Desktop::getInstance().addFocusChangeListener(this);
@@ -460,6 +462,34 @@ namespace vmpc_juce::gui::vector
             repaint();
         }
 
+        void setExpanded(const bool shouldBeExpanded)
+        {
+            if (expanded == shouldBeExpanded)
+            {
+                return;
+            }
+
+            expanded = shouldBeExpanded;
+            mouseOverExpansion = false;
+            dontExpandUponMove = false;
+            menuIcon->setAlpha(expanded ? 1.f : 0.5f);
+            setKeyboardShortcutTooltipsVisibility(false);
+            infoTooltip->setVisible(false);
+
+            for (auto &icon : getPlatformAvailableIcons())
+            {
+                if (icon == menuIcon)
+                {
+                    continue;
+                }
+                icon->setVisible(expanded);
+                icon->setAlpha(1.f);
+            }
+
+            resized();
+            repaint();
+        }
+
     private:
         void handleClick(const juce::MouseEvent e)
         {
@@ -467,27 +497,13 @@ namespace vmpc_juce::gui::vector
                     .expanded(static_cast<int>(getMenuScale() * 3.f))
                     .contains(e.getPosition()))
             {
-                expanded = !expanded;
-                dontExpandUponMove = !expanded;
-                menuIcon->setAlpha(expanded ? 1.f : 0.5f);
-
-                if (!expanded)
+                const auto shouldBeExpanded = !expanded;
+                setExpanded(shouldBeExpanded);
+                dontExpandUponMove = !shouldBeExpanded;
+                if (menuExpandedChanged)
                 {
-                    mouseOverExpansion = false;
+                    menuExpandedChanged(shouldBeExpanded);
                 }
-
-                for (auto &icon : getPlatformAvailableIcons())
-                {
-                    if (icon == menuIcon)
-                    {
-                        continue;
-                    }
-                    icon->setVisible(expanded);
-                    icon->setAlpha(1.f);
-                }
-
-                resized();
-                repaint();
                 return;
             }
 
@@ -720,6 +736,7 @@ namespace vmpc_juce::gui::vector
         const std::function<void()> openAbout;
         const std::function<void()> openArrangementSelector;
         const std::function<void()> toggleIPhoneFullscreen;
+        const std::function<void(bool)> &menuExpandedChanged;
         float scaleMultiplier = 1.f;
 
         TooltipOverlay *tooltipOverlay;

@@ -59,7 +59,9 @@ View::View(mpc::Mpc &mpcToUse,
            const std::function<bool()> &isInstrument,
            bool &shouldShowDisclaimer,
            const std::optional<std::string> &preferredArrangementId,
-           std::function<void(const std::string &)> arrangementSelectedToUse)
+           std::function<void(const std::string &)> arrangementSelectedToUse,
+           const bool menuExpanded,
+           std::function<void(bool)> menuExpandedChangedToUse)
     : mpc(mpcToUse), getScale(
                          [this]
                          {
@@ -88,6 +90,7 @@ View::View(mpc::Mpc &mpcToUse,
               return keyTooltipFont;
           }),
       arrangementSelected(std::move(arrangementSelectedToUse)),
+      menuExpandedChanged(std::move(menuExpandedChangedToUse)),
       processorWrapperType(wrapperType)
 {
     phoneArrangementMode =
@@ -406,7 +409,10 @@ View::View(mpc::Mpc &mpcToUse,
             : std::function<void()>(),
         std::function<void()>(),
         phoneArrangementMode,
-        wrapperType);
+        wrapperType,
+        menuExpandedChanged);
+
+    menu->setExpanded(menuExpanded);
 
     addAndMakeVisible(menu);
     addAndMakeVisible(tooltipOverlay);
@@ -912,6 +918,14 @@ void View::restoreArrangement(
     }
     arrangementSelected(arrangementSetup.slots[*resolved]->id);
     selectArrangementSlot(*resolved, false);
+}
+
+void View::restoreMenuExpanded(const bool expanded)
+{
+    if (menu != nullptr)
+    {
+        menu->setExpanded(expanded);
+    }
 }
 
 void View::toggleIPhoneFullscreen()

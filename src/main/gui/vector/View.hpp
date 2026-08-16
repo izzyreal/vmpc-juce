@@ -46,7 +46,9 @@ namespace vmpc_juce::gui::vector
              const std::function<bool()> &isInstrument,
              bool &shouldShowDisclaimer,
              const std::optional<std::string> &preferredArrangementId,
-             std::function<void(const std::string &)> arrangementSelected);
+             std::function<void(const std::string &)> arrangementSelected,
+             bool menuExpanded,
+             std::function<void(bool)> menuExpandedChanged);
 
         ~View() override;
 
@@ -65,6 +67,7 @@ namespace vmpc_juce::gui::vector
         bool usesPhoneArrangements() const;
         void restoreArrangement(
             const std::optional<std::string> &arrangementId);
+        void restoreMenuExpanded(bool expanded);
 
     private:
         void onKeyUp(int, bool ctrlDown, bool altDown, bool shiftDown) const;
@@ -89,6 +92,7 @@ namespace vmpc_juce::gui::vector
 
         std::function<void()> closeAbout;
         std::function<void(const std::string &)> arrangementSelected;
+        std::function<void(bool)> menuExpandedChanged;
 
         focus::FocusHelper *focusHelper = nullptr;
         Keyboard *keyboard = nullptr;
