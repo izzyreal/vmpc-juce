@@ -14,11 +14,16 @@ namespace vmpc_juce::gui::vector
         AboutScrollBar(
             const std::function<float()> &getScaleToUse,
             const std::function<float()> getScrollOffsetFractionToUse,
-            const std::function<void(float)> setScrollOffsetFractionToUse)
+            const std::function<float()> getVisibleFractionToUse,
+            const std::function<void(float)> setScrollOffsetFractionToUse,
+            const bool interactiveToUse)
             : getScale(getScaleToUse),
               getScrollOffsetFraction(getScrollOffsetFractionToUse),
-              setScrollOffsetFraction(setScrollOffsetFractionToUse)
+              getVisibleFraction(getVisibleFractionToUse),
+              setScrollOffsetFraction(setScrollOffsetFractionToUse),
+              interactive(interactiveToUse)
         {
+            setInterceptsMouseClicks(interactive, false);
         }
 
         void paint(juce::Graphics &g) override
@@ -28,13 +33,19 @@ namespace vmpc_juce::gui::vector
 
             auto color = juce::Colours::black;
 
-            if (mouseIsOverScrollBarRect)
+            if (interactive && mouseIsOverScrollBarRect)
             {
                 color = color.brighter(0.8f);
             }
 
+            const auto scrollBarRect = getScrollBarRect();
+            if (scrollBarRect.isEmpty())
+            {
+                return;
+            }
+
             g.setColour(color);
-            g.fillRoundedRectangle(getScrollBarRect(), radius);
+            g.fillRoundedRectangle(scrollBarRect, radius);
         }
 
         void mouseExit(const juce::MouseEvent &) override
@@ -45,7 +56,7 @@ namespace vmpc_juce::gui::vector
 
         void mouseDown(const juce::MouseEvent &e) override
         {
-            if (getScrollBarRect().contains(e.position))
+            if (interactive && getScrollBarRect().contains(e.position))
             {
                 isDragging = true;
             }
@@ -53,6 +64,11 @@ namespace vmpc_juce::gui::vector
 
         void mouseMove(const juce::MouseEvent &e) override
         {
+            if (!interactive)
+            {
+                return;
+            }
+
             const auto currentMouseIsOverScrollBarRect =
                 mouseIsOverScrollBarRect;
             mouseIsOverScrollBarRect = getScrollBarRect().contains(e.position);
@@ -80,33 +96,47 @@ namespace vmpc_juce::gui::vector
 
             const auto distanceToProcess =
                 e.getDistanceFromDragStartY() - lastDy;
+            const auto availableTravel =
+                std::max(1.f, static_cast<float>(getHeight()) -
+                                  getScrollBarRect().getHeight());
             const auto scrollOffsetFraction =
                 getScrollOffsetFraction() +
-                (distanceToProcess /
-                 (getHeight() - getScrollBarRect().getHeight()));
+                (static_cast<float>(distanceToProcess) / availableTravel);
             setScrollOffsetFraction(scrollOffsetFraction);
             lastDy = e.getDistanceFromDragStartY();
-        }
-
-        const bool isCurrentlyDragging()
-        {
-            return isDragging;
         }
 
     private:
         juce::Rectangle<float> getScrollBarRect()
         {
+            if (getHeight() <= 0)
+            {
+                return {};
+            }
+
             const auto scale = getScale();
-            const auto rectHeight = scale * 15.f;
+            const auto visibleFraction =
+                std::clamp(getVisibleFraction(), 0.f, 1.f);
+            if (visibleFraction >= 1.f)
+            {
+                return {};
+            }
+
+            const auto rectHeight = std::clamp(
+                static_cast<float>(getHeight()) * visibleFraction,
+                scale * 15.f, static_cast<float>(getHeight()));
             const auto scrollOffset =
-                getScrollOffsetFraction() * (getHeight() - rectHeight);
+                std::clamp(getScrollOffsetFraction(), 0.f, 1.f) *
+                (static_cast<float>(getHeight()) - rectHeight);
             return juce::Rectangle<float>(0, scrollOffset, getWidth(),
                                           rectHeight);
         }
 
         const std::function<float()> &getScale;
         const std::function<float()> getScrollOffsetFraction;
+        const std::function<float()> getVisibleFraction;
         const std::function<void(const float)> setScrollOffsetFraction;
+        const bool interactive;
         bool isDragging = false;
         int lastDy = 0;
         bool mouseIsOverScrollBarRect = false;

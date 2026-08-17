@@ -19,7 +19,7 @@ namespace vmpc_juce::gui::vector
         {
             setOpaque(true);
             parse();
-            setInterceptsMouseClicks(false, false);
+            setInterceptsMouseClicks(true, false);
             setWantsKeyboardFocus(true);
         }
 
@@ -104,11 +104,21 @@ namespace vmpc_juce::gui::vector
         {
             const auto linkIndex = getLinkIndexAtPosition(e.getPosition());
 
+#if JUCE_IOS
+            if (e.source.isTouch())
+            {
+                pendingTouchLinkIndex = linkIndex;
+                touchGestureDragged = false;
+                selectionStart = -1;
+                selectionEnd = -1;
+                repaint();
+                return;
+            }
+#endif
+
             if (linkIndex != -1)
             {
-                updateLinkColor(linkIndex, juce::Colours::blue),
-                    juce::URL(links[static_cast<size_t>(linkIndex)].url)
-                        .launchInDefaultBrowser();
+                activateLink(linkIndex);
             }
 
             if (e.mods.isShiftDown() && selectionStart != -1)
@@ -132,6 +142,17 @@ namespace vmpc_juce::gui::vector
 
         void mouseDrag(const juce::MouseEvent &e) override
         {
+#if JUCE_IOS
+            if (e.source.isTouch())
+            {
+                constexpr auto viewportDragThreshold = 8;
+                touchGestureDragged =
+                    touchGestureDragged ||
+                    e.getDistanceFromDragStart() > viewportDragThreshold;
+                return;
+            }
+#endif
+
             if (e.getPosition().getY() < 0 || selectionStart == -1)
             {
                 return;
@@ -142,6 +163,13 @@ namespace vmpc_juce::gui::vector
 
         void mouseDoubleClick(const juce::MouseEvent &e) override
         {
+#if JUCE_IOS
+            if (e.source.isTouch())
+            {
+                return;
+            }
+#endif
+
             const bool selectLineEnabled = e.getNumberOfClicks() == 3;
             const auto charIndex = getCharacterIndexAtPosition(e.getPosition());
             const auto &text = parsedText.getText();
@@ -193,7 +221,25 @@ namespace vmpc_juce::gui::vector
             repaint();
         }
 
-        void mouseUp(const juce::MouseEvent &) override {}
+        void mouseUp(const juce::MouseEvent &e) override
+        {
+#if JUCE_IOS
+            if (e.source.isTouch())
+            {
+                const auto releasedLinkIndex =
+                    getLinkIndexAtPosition(e.getPosition());
+                if (!touchGestureDragged && pendingTouchLinkIndex != -1 &&
+                    releasedLinkIndex == pendingTouchLinkIndex)
+                {
+                    activateLink(pendingTouchLinkIndex);
+                }
+
+                pendingTouchLinkIndex = -1;
+                touchGestureDragged = false;
+            }
+#endif
+            juce::ignoreUnused(e);
+        }
 
         bool keyPressed(const juce::KeyPress &key) override
         {
@@ -235,6 +281,17 @@ namespace vmpc_juce::gui::vector
         int currentlyHoveringLinkIndex = -1;
         int selectionStart = -1;
         int selectionEnd = -1;
+#if JUCE_IOS
+        int pendingTouchLinkIndex = -1;
+        bool touchGestureDragged = false;
+#endif
+
+        void activateLink(const int linkIndex)
+        {
+            updateLinkColor(linkIndex, juce::Colours::blue);
+            juce::URL(links[static_cast<size_t>(linkIndex)].url)
+                .launchInDefaultBrowser();
+        }
 
         int getLinkIndexAtPosition(juce::Point<int> p)
         {

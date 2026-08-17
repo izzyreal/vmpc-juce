@@ -24,6 +24,20 @@ namespace vmpc_juce::gui::vector
         }
     };
 
+    class AboutViewport : public juce::Viewport
+    {
+    public:
+        std::function<void()> visibleAreaChangedFn;
+
+        void visibleAreaChanged(const juce::Rectangle<int> &) override
+        {
+            if (visibleAreaChangedFn)
+            {
+                visibleAreaChangedFn();
+            }
+        }
+    };
+
     class About : public juce::Component, juce::Timer
     {
     public:
@@ -33,9 +47,22 @@ namespace vmpc_juce::gui::vector
               const std::string wrapperTypeString)
             : getScale(getScaleToUse),
               getMainFontScaled(getMainFontScaledToUse),
+              getAboutScale(
+                  [this]
+                  {
+                      return getScale() * scaleMultiplier;
+                  }),
+              getAboutFontScaled(
+                  [this]() -> juce::Font &
+                  {
+                      auto &font = getMainFontScaled();
+                      font.setHeight(font.getHeight() * scaleMultiplier *
+                                     fontScaleMultiplier);
+                      return font;
+                  }),
               closeAboutFn(closeAboutToUse)
         {
-            aboutBorder = new AboutBorder(getScale);
+            aboutBorder = new AboutBorder(getAboutScale);
             const auto creditsTextData =
                 vmpc_juce::VmpcJuceResourceUtil::getResourceData(
                     "txt/credits.txt");
@@ -44,36 +71,91 @@ namespace vmpc_juce::gui::vector
 
             replaceFormatPlaceHolder(creditsText, wrapperTypeString);
 
-            textWithLinks = new TextWithLinks(creditsText, getMainFontScaled);
-            addAndMakeVisible(textWithLinks);
+            textWithLinks = new TextWithLinks(creditsText, getAboutFontScaled);
+            textViewport = new AboutViewport();
+            textViewport->visibleAreaChangedFn = [this]
+            {
+                viewportVisibleAreaChanged();
+            };
+            textViewport->setViewedComponent(textWithLinks, false);
+            textViewport->setScrollBarsShown(false, false, true, false);
+#if JUCE_IOS
+            textViewport->setScrollOnDragMode(
+                juce::Viewport::ScrollOnDragMode::nonHover);
+#else
+            textViewport->setScrollOnDragMode(
+                juce::Viewport::ScrollOnDragMode::never);
+#endif
+            addAndMakeVisible(textViewport);
             addAndMakeVisible(aboutBorder);
 
-            closeAbout = new CloseAbout(getScale, closeAboutToUse);
+            closeAbout = new CloseAbout(getAboutScale, closeAboutToUse);
             addAndMakeVisible(closeAbout);
 
             const auto setScrollOffsetFraction = [this](const float fr)
             {
-                setScrollOffset(fr * maxScrollOffset);
+                const auto maxScrollOffset = getMaxScrollOffset();
+                textViewport->setViewPosition(
+                    0, juce::roundToInt(std::clamp(fr, 0.f, 1.f) *
+                                        static_cast<float>(maxScrollOffset)));
             };
 
+#if JUCE_IOS
+            constexpr auto scrollBarInteractive = false;
+#else
+            constexpr auto scrollBarInteractive = true;
+#endif
             aboutScrollBar = new AboutScrollBar(
-                getScale,
+                getAboutScale,
                 [this]
                 {
-                    return scrollOffset / maxScrollOffset;
+                    const auto maxScrollOffset = getMaxScrollOffset();
+                    return maxScrollOffset > 0
+                               ? static_cast<float>(
+                                     textViewport->getViewPositionY()) /
+                                     static_cast<float>(maxScrollOffset)
+                               : 0.f;
                 },
-                setScrollOffsetFraction);
+                [this]
+                {
+                    const auto textHeight = textWithLinks->getHeight();
+                    return textHeight > 0
+                               ? std::min(
+                                     1.f,
+                                     static_cast<float>(
+                                         textViewport->getHeight()) /
+                                         static_cast<float>(textHeight))
+                               : 1.f;
+                },
+                setScrollOffsetFraction, scrollBarInteractive);
+#if JUCE_IOS
+            aboutScrollBar->setAlpha(0.f);
+#endif
             addAndMakeVisible(aboutScrollBar);
             setInterceptsMouseClicks(true, false);
             startTimer(100);
+        }
+
+        void setScaleMultipliers(const float multiplier,
+                                 const float fontMultiplier)
+        {
+            if (nearlyEqual(scaleMultiplier, multiplier) &&
+                nearlyEqual(fontScaleMultiplier, fontMultiplier))
+            {
+                return;
+            }
+
+            scaleMultiplier = multiplier;
+            fontScaleMultiplier = fontMultiplier;
+            resized();
+            repaint();
         }
 
         void timerCallback() override
         {
             if (!globalMouseListenerConfigured)
             {
-
-                const auto mouseDownFn = [&](const juce::MouseEvent &e)
+                const auto mouseDownFn = [this](const juce::MouseEvent &e)
                 {
                     if (!aboutBorder->getLocalBounds().contains(
                             e.getEventRelativeTo(this).getPosition()))
@@ -88,162 +170,35 @@ namespace vmpc_juce::gui::vector
                 juce::Desktop::getInstance().addGlobalMouseListener(
                     outsideAboutMouseClickListener);
                 globalMouseListenerConfigured = true;
-                stopTimer();
-                return;
             }
 
-            if (scrollAmountForTimer == 0)
-            {
-                stopTimer();
-                return;
-            }
-
-            setScrollOffset(scrollOffset +
-                            static_cast<float>(scrollAmountForTimer * 7));
-            textWithLinks->updateSelectionEnd(
-                textWithLinks->getMouseXYRelative());
-        }
-
-        juce::Rectangle<float> getVisualTextBounds()
-        {
-            const auto scale = getScale();
-            const auto lineThickness = scale;
-            const auto radius = scale * 3;
-            const auto margin = scale * marginAtScale1;
-            auto rect = getLocalBounds()
-                            .toFloat()
-                            .reduced(lineThickness * 0.5f)
-                            .withTrimmedLeft(radius)
-                            .withTrimmedRight(radius);
-            rect = rect.withTrimmedBottom(margin);
-            rect = rect.withTrimmedTop(margin);
-            return rect;
-        }
-
-        void mouseDrag(const juce::MouseEvent &e) override
-        {
-            if (aboutScrollBar->isCurrentlyDragging())
-            {
-                return;
-            }
-
-            const auto textBounds = getVisualTextBounds();
-
-            const bool increaseScrollOffset =
-                static_cast<float>(e.getPosition().getY()) >
-                textBounds.getBottom();
-            const bool decreaseScrollOffset =
-                static_cast<float>(e.getPosition().getY()) < textBounds.getY();
-            const int lengthOfAreaThatAffectsScrollSpeed = 100;
-
-            if (increaseScrollOffset)
-            {
-                const int distanceBetweenMouseAndTextBoundsBottom =
-                    std::min<int>(e.getPosition().getY() -
-                                      static_cast<int>(textBounds.getBottom()),
-                                  lengthOfAreaThatAffectsScrollSpeed);
-                const int interval = static_cast<int>(
-                    (lengthOfAreaThatAffectsScrollSpeed -
-                     (static_cast<float>(
-                          distanceBetweenMouseAndTextBoundsBottom) +
-                      75.f)) *
-                    6.f);
-
-                scrollAmountForTimer = 1;
-
-                if (isTimerRunning() && getTimerInterval() != interval)
-                {
-                    stopTimer();
-                    startTimer(interval);
-                }
-                else if (!isTimerRunning())
-                {
-                    startTimer(interval);
-                }
-
-                return;
-            }
-
-            if (decreaseScrollOffset)
-            {
-                const int distanceBetweenMouseAndTextBoundsTop =
-                    std::min<int>(static_cast<int>(textBounds.getY()) -
-                                      e.getPosition().getY(),
-                                  lengthOfAreaThatAffectsScrollSpeed);
-                const int interval = static_cast<int>(
-                    (lengthOfAreaThatAffectsScrollSpeed -
-                     (static_cast<float>(distanceBetweenMouseAndTextBoundsTop) +
-                      75.f)) *
-                    6.f);
-
-                scrollAmountForTimer = -1;
-
-                if (isTimerRunning() && getTimerInterval() != interval)
-                {
-                    stopTimer();
-                    startTimer(interval);
-                }
-                else if (!isTimerRunning())
-                {
-                    startTimer(interval);
-                }
-
-                return;
-            }
-
-            if (isTimerRunning())
-            {
-                stopTimer();
-            }
-
-            textWithLinks->mouseDrag(e.getEventRelativeTo(textWithLinks));
-        }
-
-        void mouseDown(const juce::MouseEvent &e) override
-        {
-            textWithLinks->mouseDown(e.getEventRelativeTo(textWithLinks));
-        }
-
-        void mouseDoubleClick(const juce::MouseEvent &e) override
-        {
-            textWithLinks->mouseDoubleClick(
-                e.getEventRelativeTo(textWithLinks));
-        }
-
-        void mouseUp(const juce::MouseEvent &e) override
-        {
-            if (isTimerRunning())
-            {
-                stopTimer();
-            }
-            textWithLinks->mouseUp(e.getEventRelativeTo(textWithLinks));
-        }
-
-        void mouseMove(const juce::MouseEvent &e) override
-        {
-            textWithLinks->mouseMove(e.getEventRelativeTo(textWithLinks));
+#if JUCE_IOS
+            updateScrollIndicatorAlpha();
+#else
+            stopTimer();
+#endif
         }
 
         void paint(juce::Graphics &g) override
         {
-            const auto scale = getScale();
+            const auto scale = getAboutScale();
             const auto rect = getLocalBounds().toFloat().reduced(scale);
 
             g.setColour(juce::Colours::white);
             g.fillRoundedRectangle(rect, scale);
         }
 
-        void mouseWheelMove(const juce::MouseEvent &,
-                            const juce::MouseWheelDetails &w) override
-        {
-            setScrollOffset(scrollOffset - (150 * w.deltaY));
-        }
-
         void resized() override
         {
             aboutBorder->setBounds(0, 0, getWidth(), getHeight());
 
-            const auto scale = getScale();
+            const auto scale = getAboutScale();
+            const auto oldMaxScrollOffset = getMaxScrollOffset();
+            const auto oldScrollFraction =
+                oldMaxScrollOffset > 0
+                    ? static_cast<float>(textViewport->getViewPositionY()) /
+                          static_cast<float>(oldMaxScrollOffset)
+                    : 0.f;
 
             const auto scrollBarWidth = scale * 4.f;
 
@@ -258,6 +213,29 @@ namespace vmpc_juce::gui::vector
             closeAbout->setBounds(closeAboutRect.toNearestInt());
 
             const auto margin = marginAtScale1 * scale;
+            const auto marginInt = juce::roundToInt(margin);
+
+#if JUCE_IOS
+            layoutInProgress = true;
+#endif
+            textViewport->setBounds(getLocalBounds().reduced(marginInt));
+
+            const auto textWidth = std::max(1, textViewport->getWidth());
+            textWithLinks->setBounds(0, 0, textWidth, 1);
+            textWithLinks->updateFont();
+            const auto newTextHeight = textWithLinks->getTextLayoutHeight();
+            textWithLinks->setBounds(
+                0, 0, textWidth,
+                std::max(newTextHeight, textViewport->getHeight()));
+
+            const auto newMaxScrollOffset = getMaxScrollOffset();
+            textViewport->setViewPosition(
+                0, juce::roundToInt(oldScrollFraction *
+                                    static_cast<float>(newMaxScrollOffset)));
+#if JUCE_IOS
+            layoutInProgress = false;
+            lastViewportPositionY = textViewport->getViewPositionY();
+#endif
 
             aboutScrollBar->setBounds(
                 static_cast<int>(static_cast<float>(getWidth()) -
@@ -266,35 +244,16 @@ namespace vmpc_juce::gui::vector
                 static_cast<int>(scrollBarWidth),
                 static_cast<int>(getHeight() -
                                  ((margin * 0.5) + closeAboutWidth)));
-
-            if (textWithLinks->getWidth() == 0)
+            aboutScrollBar->setVisible(newMaxScrollOffset > 0);
+#if JUCE_IOS
+            if (newMaxScrollOffset <= 0)
             {
-                textWithLinks->setBounds(
-                    static_cast<int>(margin), static_cast<int>(margin),
-                    static_cast<int>(static_cast<float>(getWidth()) -
-                                     std::ceil(margin * 2.f)),
-                    100000);
+                aboutScrollBar->setAlpha(0.f);
             }
-
-            textWithLinks->updateFont();
-            const auto newTextHeight = textWithLinks->getTextLayoutHeight();
-            textWithLinks->setBounds(
-                static_cast<int>(margin), static_cast<int>(margin),
-                static_cast<int>(static_cast<float>(getWidth()) -
-                                 std::ceil(margin * 2.f)),
-                newTextHeight);
-
-            const auto newMaxScrollOffset =
-                static_cast<float>(newTextHeight) -
-                (static_cast<float>(getHeight()) - (margin * 2));
-
-            if (scrollOffset != 0.f)
-            {
-                const auto resizeFactor = newMaxScrollOffset / maxScrollOffset;
-                setScrollOffset(scrollOffset * resizeFactor, true);
-            }
-
-            maxScrollOffset = newMaxScrollOffset;
+#else
+            aboutScrollBar->setAlpha(1.f);
+#endif
+            aboutScrollBar->repaint();
         }
 
         ~About() override
@@ -304,31 +263,77 @@ namespace vmpc_juce::gui::vector
             delete outsideAboutMouseClickListener;
             delete aboutBorder;
             delete closeAbout;
-            delete textWithLinks;
+            textViewport->visibleAreaChangedFn = nullptr;
+            delete textViewport;
             delete aboutScrollBar;
+            delete textWithLinks;
         }
 
     private:
-        void setScrollOffset(float newScrollOffset, bool force = false)
+        int getMaxScrollOffset() const
         {
-            const auto oldScrollOffset = scrollOffset;
+            return std::max(0, textWithLinks->getHeight() -
+                                   textViewport->getHeight());
+        }
 
-            scrollOffset =
-                std::clamp<float>(newScrollOffset, 0, maxScrollOffset);
-
-            if (nearlyEqual(scrollOffset, oldScrollOffset) && !force)
+        void viewportVisibleAreaChanged()
+        {
+            if (aboutScrollBar == nullptr)
             {
                 return;
             }
 
-            const auto scale = getScale();
-            const auto margin = marginAtScale1 * scale;
-
-            textWithLinks->setTopLeftPosition(
-                static_cast<int>(margin),
-                static_cast<int>(margin - scrollOffset));
-            repaint();
+            aboutScrollBar->repaint();
+#if JUCE_IOS
+            const auto currentPositionY = textViewport->getViewPositionY();
+            if (!layoutInProgress &&
+                currentPositionY != lastViewportPositionY &&
+                getMaxScrollOffset() > 0)
+            {
+                lastScrollActivityMs =
+                    juce::Time::getMillisecondCounterHiRes();
+                aboutScrollBar->setAlpha(1.f);
+                startTimerHz(30);
+            }
+            lastViewportPositionY = currentPositionY;
+#endif
         }
+
+#if JUCE_IOS
+        void updateScrollIndicatorAlpha()
+        {
+            if (lastScrollActivityMs <= 0.0)
+            {
+                if (globalMouseListenerConfigured)
+                {
+                    stopTimer();
+                }
+                return;
+            }
+
+            constexpr auto fadeDelayMs = 500.0;
+            constexpr auto fadeDurationMs = 250.0;
+            const auto elapsedMs =
+                juce::Time::getMillisecondCounterHiRes() -
+                lastScrollActivityMs;
+            if (elapsedMs <= fadeDelayMs)
+            {
+                return;
+            }
+
+            const auto alpha = static_cast<float>(std::clamp(
+                1.0 - ((elapsedMs - fadeDelayMs) / fadeDurationMs), 0.0, 1.0));
+            aboutScrollBar->setAlpha(alpha);
+            if (alpha <= 0.f)
+            {
+                lastScrollActivityMs = 0.0;
+                if (globalMouseListenerConfigured)
+                {
+                    stopTimer();
+                }
+            }
+        }
+#endif
 
         void replaceFormatPlaceHolder(std::string &rawText,
                                       const std::string format)
@@ -346,17 +351,24 @@ namespace vmpc_juce::gui::vector
 
         const std::function<float()> &getScale;
         const std::function<juce::Font &()> &getMainFontScaled;
+        float scaleMultiplier = 1.f;
+        float fontScaleMultiplier = 1.f;
+        const std::function<float()> getAboutScale;
+        const std::function<juce::Font &()> getAboutFontScaled;
         const std::function<void()> &closeAboutFn;
         TextWithLinks *textWithLinks = nullptr;
+        AboutViewport *textViewport = nullptr;
         std::string creditsText;
-        float scrollOffset = 0.f;
-        float maxScrollOffset = 0.f;
         juce::Component *aboutBorder = nullptr;
         juce::Component *closeAbout = nullptr;
         AboutScrollBar *aboutScrollBar = nullptr;
         OutsideAboutMouseClickListener *outsideAboutMouseClickListener =
             nullptr;
-        int scrollAmountForTimer = 0;
+#if JUCE_IOS
+        int lastViewportPositionY = 0;
+        double lastScrollActivityMs = 0.0;
+        bool layoutInProgress = false;
+#endif
         bool globalMouseListenerConfigured = false;
     };
 } // namespace vmpc_juce::gui::vector

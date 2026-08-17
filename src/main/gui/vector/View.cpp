@@ -636,36 +636,51 @@ void View::resized()
                         static_cast<int>(menuHeight));
     }
 
-    const auto rect = getLocalBounds().reduced(
+    const auto legacyOverlayBounds = getLocalBounds().reduced(
         static_cast<int>(static_cast<float>(getWidth()) * 0.25f),
         static_cast<int>(static_cast<float>(getHeight()) * 0.25f));
+    constexpr auto legacyOverlaySizeFraction = 0.5f;
+    const auto disclaimerSizeFraction =
+        phoneArrangementMode
+            ? (getHeight() >= getWidth() ? 1.f : 0.8f)
+            : legacyOverlaySizeFraction;
+    const auto disclaimerScaleMultiplier =
+        disclaimerSizeFraction / legacyOverlaySizeFraction;
+    const auto disclaimerBounds =
+        phoneArrangementMode
+            ? getLocalBounds().withSizeKeepingCentre(
+                  juce::roundToInt(static_cast<float>(getWidth()) *
+                                   disclaimerSizeFraction),
+                  juce::roundToInt(static_cast<float>(getHeight()) *
+                                   disclaimerSizeFraction))
+            : legacyOverlayBounds;
 
     if (disclaimer != nullptr)
     {
-        if (phoneArrangementMode)
-        {
-            const auto widthFraction = getHeight() >= getWidth() ? 1.f : 0.8f;
-            constexpr auto originalSizeFraction = 0.5f;
-            disclaimer->setScaleMultiplier(widthFraction /
-                                           originalSizeFraction);
-
-            auto disclaimerBounds = getLocalBounds().withSizeKeepingCentre(
-                juce::roundToInt(static_cast<float>(getWidth()) *
-                                 widthFraction),
-                juce::roundToInt(static_cast<float>(getHeight()) *
-                                 widthFraction));
-            disclaimer->setBounds(disclaimerBounds);
-        }
-        else
-        {
-            disclaimer->setScaleMultiplier(1.f);
-            disclaimer->setBounds(rect);
-        }
+        disclaimer->setScaleMultiplier(disclaimerScaleMultiplier);
+        disclaimer->setBounds(disclaimerBounds);
     }
 
     if (about != nullptr)
     {
-        about->setBounds(rect);
+        const auto aboutSizeFraction =
+            phoneArrangementMode
+                ? (getHeight() >= getWidth() ? 0.9f : 0.7f)
+                : legacyOverlaySizeFraction;
+        const auto aboutBounds =
+            phoneArrangementMode
+                ? getLocalBounds().withSizeKeepingCentre(
+                      juce::roundToInt(static_cast<float>(getWidth()) *
+                                       aboutSizeFraction),
+                      juce::roundToInt(static_cast<float>(getHeight()) *
+                                       aboutSizeFraction))
+                : legacyOverlayBounds;
+        constexpr auto iPhoneAboutFontScaleMultiplier = 1.75f;
+
+        about->setBounds(aboutBounds);
+        about->setScaleMultipliers(
+            aboutSizeFraction / legacyOverlaySizeFraction,
+            phoneArrangementMode ? iPhoneAboutFontScaleMultiplier : 1.f);
     }
     if (arrangementSelector != nullptr)
     {
