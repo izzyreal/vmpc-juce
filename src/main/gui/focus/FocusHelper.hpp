@@ -16,7 +16,9 @@ extern "C" bool isEditorKeyWindow(void *componentPeerNativeHandle);
 #endif
 #elif _WIN32
 extern "C" bool isEditorKeyWindow(void *componentPeerNativeHandle);
-#elif __linux__
+#elif defined(__ANDROID__)
+extern "C" bool isEditorKeyWindow(void *componentPeerNativeHandle);
+#elif defined(__linux__)
 extern "C" bool isEditorKeyWindow(void *componentPeerNativeHandle);
 #endif
 

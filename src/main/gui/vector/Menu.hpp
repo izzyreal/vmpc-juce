@@ -52,7 +52,7 @@ namespace vmpc_juce::gui::vector
             const std::function<void()> &openArrangementSelectorToUse,
             const std::function<void()> &toggleIPhoneFullscreenToUse,
             const std::function<bool()> &toggleAuxLcdToUse,
-            const bool useLargeIPhoneTooltips,
+            const bool useLargePhoneTooltips,
             juce::AudioProcessor::WrapperType wrapperTypeToUse,
             const std::function<void(bool)> &menuExpandedChangedToUse)
             :
@@ -90,7 +90,7 @@ namespace vmpc_juce::gui::vector
                 speakerIcon->setInterceptsMouseClicks(false, false);
                 addAndMakeVisible(speakerIcon);
 
-#if !TARGET_OS_IPHONE
+#if !JUCE_IOS && !JUCE_ANDROID
                 resetZoomIcon = new SvgComponent({"arrows_pointing_in.svg"},
                                                  this, 0.f, getScale);
                 resetZoomIcon->setInterceptsMouseClicks(false, false);
@@ -123,13 +123,6 @@ namespace vmpc_juce::gui::vector
             folderIcon->setInterceptsMouseClicks(false, false);
             addAndMakeVisible(folderIcon);
 
-            if (openArrangementSelector)
-            {
-                arrangementIcon =
-                    new SvgComponent({"layout_slots.svg"}, this, 0.f, getScale);
-                arrangementIcon->setInterceptsMouseClicks(false, false);
-                addAndMakeVisible(arrangementIcon);
-            }
             if (toggleIPhoneFullscreen)
             {
                 fullscreenIcon = new SvgComponent({"arrows_pointing_in.svg"},
@@ -138,6 +131,13 @@ namespace vmpc_juce::gui::vector
                 addAndMakeVisible(fullscreenIcon);
             }
 #endif
+            if (openArrangementSelector)
+            {
+                arrangementIcon =
+                    new SvgComponent({"layout_slots.svg"}, this, 0.f, getScale);
+                arrangementIcon->setInterceptsMouseClicks(false, false);
+                addAndMakeVisible(arrangementIcon);
+            }
             helpIcon = new SvgComponent({"question_mark_circle.svg"}, this, 0.f,
                                         getScale);
             helpIcon->setInterceptsMouseClicks(false, false);
@@ -156,7 +156,7 @@ namespace vmpc_juce::gui::vector
 
             infoTooltip =
                 new InfoTooltip(getScale, getMainFontScaled, tooltipOverlay,
-                                useLargeIPhoneTooltips ? 3.f : 1.f);
+                                useLargePhoneTooltips ? 3.f : 1.f);
             tooltipOverlay->addChildComponent(infoTooltip);
         }
 
@@ -171,7 +171,7 @@ namespace vmpc_juce::gui::vector
             infoTooltip->setVisible(false);
         }
 
-#if !TARGET_OS_IPHONE
+#if !JUCE_IOS && !JUCE_ANDROID
         void mouseMove(const juce::MouseEvent &e) override
         {
             if (e.getPosition() == lastKnownMousePos)
@@ -251,7 +251,7 @@ namespace vmpc_juce::gui::vector
         }
 #endif
 
-#if TARGET_OS_IPHONE
+#if JUCE_IOS || JUCE_ANDROID
         void mouseUp(const juce::MouseEvent &e) override
 #else
         void mouseUp(const juce::MouseEvent &) override
@@ -289,7 +289,7 @@ namespace vmpc_juce::gui::vector
             helpIcon->setAlpha(1.f);
             keyboardIcon->setAlpha(1.f);
             infoIcon->setAlpha(1.f);
-#if TARGET_OS_IPHONE
+#if JUCE_IOS || JUCE_ANDROID
             setKeyboardShortcutTooltipsVisibility(false);
             infoTooltip->setVisible(false);
             handleClick(e);
@@ -298,7 +298,7 @@ namespace vmpc_juce::gui::vector
 
         void mouseDown(const juce::MouseEvent &e) override
         {
-#if TARGET_OS_IPHONE
+#if JUCE_IOS || JUCE_ANDROID
             const auto icon = getIconAtPosition(e.getPosition());
 
             if (icon == nullptr || (!expanded && icon != menuIcon))
@@ -565,7 +565,7 @@ namespace vmpc_juce::gui::vector
             {
                 return;
             }
-#if !TARGET_OS_IPHONE
+#if !JUCE_IOS && !JUCE_ANDROID
             clickedIcon->setAlpha(0.5f);
 #endif
             if (clickedIcon == speakerIcon)
@@ -593,15 +593,15 @@ namespace vmpc_juce::gui::vector
                 auto uiView = getPeer()->getNativeHandle();
                 doPresentRecordingManager(uiView, &mpc);
             }
-            else if (clickedIcon == arrangementIcon)
-            {
-                openArrangementSelector();
-            }
             else if (clickedIcon == fullscreenIcon)
             {
                 toggleIPhoneFullscreen();
             }
 #endif
+            else if (clickedIcon == arrangementIcon)
+            {
+                openArrangementSelector();
+            }
             else if (clickedIcon == keyboardIcon)
             {
                 openKeyboardScreen();
@@ -697,7 +697,7 @@ namespace vmpc_juce::gui::vector
             if (juce::JUCEApplication::isStandaloneApp())
             {
                 result.push_back(speakerIcon);
-#if !TARGET_OS_IPHONE
+#if !JUCE_IOS && !JUCE_ANDROID
                 result.push_back(resetZoomIcon);
 #endif
             }
@@ -711,15 +711,15 @@ namespace vmpc_juce::gui::vector
             result.push_back(importIcon);
             result.push_back(exportIcon);
             result.push_back(folderIcon);
-            if (arrangementIcon != nullptr)
-            {
-                result.push_back(arrangementIcon);
-            }
             if (fullscreenIcon != nullptr)
             {
                 result.push_back(fullscreenIcon);
             }
 #endif
+            if (arrangementIcon != nullptr)
+            {
+                result.push_back(arrangementIcon);
+            }
             result.push_back(keyboardIcon);
             result.push_back(helpIcon);
             result.push_back(infoIcon);

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.24)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -30,8 +30,13 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_SKIP_BUILD_RPATH ON)
 set(CMAKE_SUPPRESS_REGENERATION true)
 
-if(APPLE)
-  if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
+set(VMPC_TARGET_SYSTEM_NAME "${CMAKE_SYSTEM_NAME}")
+if(VMPC_TARGET_SYSTEM_NAME STREQUAL "")
+  set(VMPC_TARGET_SYSTEM_NAME "${CMAKE_HOST_SYSTEM_NAME}")
+endif()
+
+if(VMPC_TARGET_SYSTEM_NAME STREQUAL "Darwin" OR VMPC_TARGET_SYSTEM_NAME STREQUAL "iOS")
+  if(VMPC_TARGET_SYSTEM_NAME STREQUAL "iOS")
     set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE INTERNAL "Minimum iOS deployment version")
   else()
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE INTERNAL "Minimum OS X deployment version")
@@ -44,7 +49,7 @@ if(NOT DEFINED JUCE_COPY_PLUGIN_AFTER_BUILD)
 endif()
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
-if (APPLE)
+if(VMPC_TARGET_SYSTEM_NAME STREQUAL "Darwin" OR VMPC_TARGET_SYSTEM_NAME STREQUAL "iOS")
     project(vmpc2000xl VERSION ${VMPC_VERSION} LANGUAGES C CXX OBJC OBJCXX)
 else()
     project(vmpc2000xl VERSION ${VMPC_VERSION} LANGUAGES C CXX)
@@ -61,7 +66,9 @@ endif()
 
 string(TIMESTAMP CONFIGURE_TIMESTAMP "%a, %d %b %Y %H:%M:%S")
 
-file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/src/main/build_info/VmpcJuceBuildInfo.hpp "#pragma once\nnamespace vmpc_juce::build_info { inline const char *getVersionString(){ return \"${VMPC_VERSION}\"; } inline const char *getTimeStampString(){ return \"${CONFIGURE_TIMESTAMP}\"; }}")
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/generated/build_info")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/generated/build_info/VmpcJuceBuildInfo.hpp"
+  "#pragma once\nnamespace vmpc_juce::build_info { inline const char *getVersionString(){ return \"${VMPC_VERSION}\"; } inline const char *getTimeStampString(){ return \"${CONFIGURE_TIMESTAMP}\"; }}")
 
 # The version.txt file can be picked up by the CI/CD, so it can inject version info
 # into binaries, installers, GitHub releases, etc.
@@ -78,7 +85,7 @@ set(VMPC_MELATONIN_BLUR_REF "main")
 set(VMPC_RAW_KBD_REPO "https://github.com/izzyreal/juce-raw-keyboard-input-module.git")
 set(VMPC_RAW_KBD_REF "external-focus-provider")
 set(VMPC_MPC_REPO "https://github.com/izzyreal/mpc.git")
-set(VMPC_MPC_REF "master")
+set(VMPC_MPC_REF "android")
 set(VMPC_MINIZ_REPO "https://github.com/richgel999/miniz")
 set(VMPC_MINIZ_REF "master")
 
@@ -151,6 +158,9 @@ if (IOS)
         DOCUMENT_BROWSER_ENABLED TRUE
         TARGETED_DEVICE_FAMILY "1,2"
         FORMATS AUv3 Standalone)
+elseif(ANDROID)
+    set(ANDROID_SPECIFIC_SETTINGS
+        FORMATS Standalone)
 else()
     set(NON_IOS_SPECIFIC_SETTINGS
         HARDENED_RUNTIME_ENABLED TRUE
@@ -180,7 +190,13 @@ juce_add_plugin(vmpc2000xl
     BLUETOOTH_PERMISSION_TEXT "This enables VMPC2000XL to use Bluetooth MIDI devices"
     PRODUCT_NAME "VMPC2000XL"
     ${IOS_SPECIFIC_SETTINGS}
+    ${ANDROID_SPECIFIC_SETTINGS}
     ${NON_IOS_SPECIFIC_SETTINGS})
+
+if(ANDROID)
+    set_target_properties(vmpc2000xl_Standalone PROPERTIES
+        OUTPUT_NAME juce_jni)
+endif()
 
 if (IOS)
     # "Designed for iPad on Mac" launch requires the embedded AUv3 appex to be
@@ -219,6 +235,7 @@ target_include_directories(vmpc2000xl PUBLIC
 if (APPLE)
   file(
     GLOB_RECURSE _source_list
+    CONFIGURE_DEPENDS
     LIST_DIRECTORIES false
     RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
     "${_src_root_path}/*.c"
@@ -229,11 +246,16 @@ if (APPLE)
 else()
   file(
     GLOB_RECURSE _source_list
+    CONFIGURE_DEPENDS
     LIST_DIRECTORIES false
     RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
     "${_src_root_path}/*.c*"
     "${_src_root_path}/*.h*"
   )
+endif()
+
+if(ANDROID)
+  list(REMOVE_ITEM _source_list "src/main/standalone/StandaloneApp.cpp")
 endif()
 
 foreach(_source IN ITEMS ${_source_list})
@@ -244,17 +266,21 @@ endforeach()
 
 target_sources(vmpc2000xl PRIVATE ${_source_list})
 
+if(ANDROID)
+  target_sources(vmpc2000xl_Standalone PRIVATE
+    src/main/standalone/StandaloneApp.cpp)
+endif()
+
 target_compile_definitions(vmpc2000xl
     PUBLIC
-    JUCE_JACK=1
-    JUCE_ASIO=1
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
     JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_DISPLAY_SPLASH_SCREEN=0
     JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1)
 
-if (UNIX AND NOT APPLE)
+if(UNIX AND NOT APPLE AND NOT ANDROID)
+    target_compile_definitions(vmpc2000xl PUBLIC JUCE_JACK=1)
     include(FindPkgConfig)
     pkg_search_module(udisks2 REQUIRED udisks2)
     target_link_libraries(vmpc2000xl PRIVATE ${udisks2_LIBRARIES} X11)
@@ -363,12 +389,13 @@ endif()
 endif()
 
 if(MSVC)
+    target_compile_definitions(vmpc2000xl PUBLIC JUCE_ASIO=1)
     getAndIncludeASIOSDK(asiosdk_2.3.3_2019-06-14)
     target_compile_options(vmpc2000xl PRIVATE "/MP")
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
 endif()
 
-if(GIT_FOUND)
+if(GIT_FOUND AND NOT ANDROID)
   if (EXISTS ${CMAKE_SOURCE_DIR}/editables/mpc/.git)
     execute_process(COMMAND ${GIT_EXECUTABLE} remote set-url --push origin git@github.com:izzyreal/mpc
                     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/editables/mpc
@@ -379,7 +406,7 @@ if(GIT_FOUND)
   endif()
 endif()
 
-if (PROJECT_IS_TOP_LEVEL)
+if(PROJECT_IS_TOP_LEVEL AND NOT ANDROID)
     # Create symlink to compile_commands.json for IDE to pick it up
     execute_process(
         COMMAND ${CMAKE_COMMAND} -E create_symlink

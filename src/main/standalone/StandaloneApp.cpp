@@ -4,17 +4,25 @@
 
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 
-#if JUCE_IOS
-void *juce_GetIOSCustomDelegateClass()
-{
-    return nullptr;
-}
-#endif
+#include <cstdlib>
 
 using namespace vmpc_juce::standalone;
 
 StandaloneApp::StandaloneApp()
 {
+#if JUCE_ANDROID
+    const auto appData = juce::File::getSpecialLocation(
+        juce::File::userApplicationDataDirectory);
+    const auto documents = appData.getChildFile("files").getChildFile("VMPC2000XL");
+    const auto configHome = appData.getChildFile("VMPC2000XL");
+
+    if (std::getenv("VMPC2000XL_DOCUMENTS_PATH") == nullptr)
+        setenv("VMPC2000XL_DOCUMENTS_PATH", documents.getFullPathName().toRawUTF8(), 1);
+
+    if (std::getenv("VMPC2000XL_CONFIG_HOME") == nullptr)
+        setenv("VMPC2000XL_CONFIG_HOME", configHome.getFullPathName().toRawUTF8(), 1);
+#endif
+
     appProperties.setStorageParameters(
         vmpc_juce::standalone::PropertiesFileOptions());
 }
@@ -123,7 +131,4 @@ void StandaloneApp::requestQuit() const
     }
 }
 
-JUCEApplicationBase *juce_CreateApplication()
-{
-    return new StandaloneApp();
-}
+START_JUCE_APPLICATION(vmpc_juce::standalone::StandaloneApp)

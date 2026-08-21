@@ -46,7 +46,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
         initialWindowHeight = initialDimensions.second;
     }
 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
     if (juce::JUCEApplication::isStandaloneApp())
     {
         const auto primaryDisplay =
@@ -154,16 +154,16 @@ void VmpcEditor::resized()
             juce::AudioProcessor::WrapperType::wrapperType_Standalone)
     {
         const auto landscape = getWidth() > getHeight();
-        if (stableIPhoneStandaloneViewBounds.isEmpty() ||
-            landscape != stableIPhoneLandscape)
+        if (stablePhoneStandaloneViewBounds.isEmpty() ||
+            landscape != stablePhoneLandscape)
         {
-            stableIPhoneLandscape = landscape;
-            stableIPhoneStandaloneViewBounds = getLocalBounds();
+            stablePhoneLandscape = landscape;
+            stablePhoneStandaloneViewBounds = getLocalBounds();
         }
         const auto width =
-            std::min(getWidth(), stableIPhoneStandaloneViewBounds.getWidth());
+            std::min(getWidth(), stablePhoneStandaloneViewBounds.getWidth());
         const auto height =
-            std::min(getHeight(), stableIPhoneStandaloneViewBounds.getHeight());
+            std::min(getHeight(), stablePhoneStandaloneViewBounds.getHeight());
         view->setBounds((getWidth() - width) / 2, (getHeight() - height) / 2,
                         width, height);
         return;
