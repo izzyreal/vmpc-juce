@@ -1,0 +1,115 @@
+plugins {
+    id 'com.android.application'
+}
+
+def versionNameFromFile = file('../../VERSION').text.trim()
+def versionMatch = versionNameFromFile =~ /^(\d+)\.(\d+)\.(\d+)$/
+if (!versionMatch.matches()) {
+    throw new GradleException("VERSION must contain major.minor.patch, got '${versionNameFromFile}'")
+}
+
+def versionMajor = versionMatch[0][1] as int
+def versionMinor = versionMatch[0][2] as int
+def versionPatch = versionMatch[0][3] as int
+if (versionMajor > 999 || versionMinor > 999 || versionPatch > 999) {
+    throw new GradleException('Each VERSION component must fit in the range 0...999')
+}
+def versionCodeFromFile = versionMajor * 1_000_000 + versionMinor * 1_000 + versionPatch
+
+def signingValue = { String name ->
+    providers.environmentVariable(name).orNull ?: providers.gradleProperty(name).orNull
+}
+def releaseSigning = [
+    storeFile: signingValue('VMPC_ANDROID_STORE_FILE'),
+    storePassword: signingValue('VMPC_ANDROID_STORE_PASSWORD'),
+    keyAlias: signingValue('VMPC_ANDROID_KEY_ALIAS'),
+    keyPassword: signingValue('VMPC_ANDROID_KEY_PASSWORD')
+]
+def releaseRequested = gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
+if (releaseRequested && releaseSigning.values().any { it == null || it.isBlank() }) {
+    throw new GradleException('Release builds require VMPC_ANDROID_STORE_FILE, VMPC_ANDROID_STORE_PASSWORD, VMPC_ANDROID_KEY_ALIAS, and VMPC_ANDROID_KEY_PASSWORD')
+}
+
+android {
+    namespace 'nl.izmar.vmpc2000xl'
+    compileSdk 36
+    ndkVersion '28.1.13356709'
+
+    defaultConfig {
+        applicationId 'nl.izmar.vmpc2000xl'
+        minSdk 24
+        targetSdk 36
+        versionCode versionCodeFromFile
+        versionName versionNameFromFile
+
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
+
+        externalNativeBuild {
+            cmake {
+                targets 'vmpc2000xl_Standalone'
+                arguments '-DANDROID_TOOLCHAIN=clang',
+                          '-DANDROID_PLATFORM=android-24',
+                          '-DANDROID_STL=c++_static',
+                          '-DANDROID_CPP_FEATURES=exceptions rtti',
+                          '-DANDROID_WEAK_API_DEFS=ON',
+                          '-DCMAKE_POLICY_VERSION_MINIMUM=3.5',
+                          '-DCMAKE_CXX_STANDARD=17',
+                          '-DCMAKE_CXX_EXTENSIONS=OFF',
+                          '-DVMPC_BUILD_TESTS=OFF'
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path file('../../CMakeLists.txt')
+        }
+    }
+
+    signingConfigs {
+        if (releaseSigning.values().every { it != null && !it.isBlank() }) {
+            release {
+                storeFile file(releaseSigning.storeFile)
+                storePassword releaseSigning.storePassword
+                keyAlias releaseSigning.keyAlias
+                keyPassword releaseSigning.keyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+            jniDebuggable true
+        }
+        release {
+            debuggable false
+            jniDebuggable false
+            minifyEnabled false
+            if (signingConfigs.findByName('release') != null) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging false
+        }
+    }
+
+    sourceSets {
+        main.java.srcDirs += [
+            '../../editables/JUCE/modules/juce_core/native/javacore/init',
+            '../../editables/JUCE/modules/juce_core/native/javacore/app',
+            '../../editables/JUCE/modules/juce_gui_basics/native/javaopt/app'
+        ]
+    }
+}

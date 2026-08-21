@@ -67,12 +67,6 @@ namespace
     }
 } // namespace
 
-bool vmpc_juce::gui::ios::isRunningOnIPhone()
-{
-    return UIDevice.currentDevice.userInterfaceIdiom ==
-           UIUserInterfaceIdiomPhone;
-}
-
 void vmpc_juce::gui::ios::setIPhoneStatusBarHidden(const bool hidden)
 {
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -86,16 +80,6 @@ void vmpc_juce::gui::ios::setIPhoneStatusBarHidden(const bool hidden)
                                OBJC_ASSOCIATION_RETAIN_NONATOMIC);
       [controller setNeedsStatusBarAppearanceUpdate];
     });
-}
-
-void vmpc_juce::gui::ios::setIPhoneOrientation(
-    const arrangement::Orientation orientation)
-{
-    using Desktop = juce::Desktop;
-    Desktop::getInstance().setOrientationsEnabled(
-        orientation == arrangement::Orientation::portrait
-            ? Desktop::upright
-            : Desktop::rotatedClockwise | Desktop::rotatedAntiClockwise);
 }
 
 std::string vmpc_juce::gui::ios::getAudioInputRouteDisplayName()

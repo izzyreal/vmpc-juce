@@ -1,4 +1,11 @@
-#ifdef __linux__
+#if defined(__ANDROID__)
+extern "C" bool isEditorKeyWindow(void *componentPeerNativeHandle)
+{
+    // Android has a single JUCE activity window. The remaining FocusHelper
+    // checks cover activity/process and component focus state.
+    return componentPeerNativeHandle != nullptr;
+}
+#elif defined(__linux__)
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <unistd.h>

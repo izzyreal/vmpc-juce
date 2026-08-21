@@ -16,6 +16,7 @@
 #include "gui/arrangement/ArrangementSelectorOverlay.hpp"
 #include "gui/arrangement/ArrangementSurface.hpp"
 #include "gui/ios/MobilePlatform.hpp"
+#include "gui/mobile/MobilePlatform.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "InitialWindowDimensions.hpp"
@@ -96,11 +97,18 @@ View::View(mpc::Mpc &mpcToUse,
       processorWrapperType(wrapperType)
 {
     phoneArrangementMode =
-        gui::ios::isRunningOnIPhone() &&
+        gui::mobile::isPhone() &&
         (wrapperType ==
              juce::AudioProcessor::WrapperType::wrapperType_Standalone ||
          wrapperType ==
              juce::AudioProcessor::WrapperType::wrapperType_AudioUnitv3);
+
+    if (gui::mobile::isMobilePlatform() && !phoneArrangementMode &&
+        wrapperType ==
+            juce::AudioProcessor::WrapperType::wrapperType_Standalone)
+    {
+        gui::mobile::setOrientation(gui::arrangement::Orientation::landscape);
+    }
     mainFontData =
         VmpcJuceResourceUtil::getResourceData("fonts/NeutralSans-Bold.ttf");
     FreeTypeFaces::addFaceFromMemory(1.f, 1.f, true, mainFontData.data(),
@@ -290,7 +298,7 @@ View::View(mpc::Mpc &mpcToUse,
             if (wrapperType ==
                 juce::AudioProcessor::WrapperType::wrapperType_Standalone)
             {
-                gui::ios::setIPhoneOrientation(orientation);
+                gui::mobile::setOrientation(orientation);
             }
         }
         else
@@ -301,7 +309,7 @@ View::View(mpc::Mpc &mpcToUse,
         }
         if (!arrangementError.empty())
         {
-            MLOG("iPhone arrangement setup: " + arrangementError);
+            MLOG("Phone arrangement setup: " + arrangementError);
         }
     }
     else
@@ -600,12 +608,12 @@ void View::resized()
     auto menuScale = scale;
     if (phoneArrangementMode && menu != nullptr)
     {
-        constexpr auto preferredIPhoneMenuScaleMultiplier = 3.3f;
+        constexpr auto preferredPhoneMenuScaleMultiplier = 3.3f;
         const auto availableWidth = std::max(
             1.f, static_cast<float>(getWidth()) - (menuMargin * scale * 2.f));
         const auto fitScale = availableWidth / menu->getVisibleWidthAtScale1();
         menuScale =
-            std::min(scale * preferredIPhoneMenuScaleMultiplier, fitScale);
+            std::min(scale * preferredPhoneMenuScaleMultiplier, fitScale);
     }
     if (menu != nullptr)
     {
@@ -675,12 +683,12 @@ void View::resized()
                       juce::roundToInt(static_cast<float>(getHeight()) *
                                        aboutSizeFraction))
                 : legacyOverlayBounds;
-        constexpr auto iPhoneAboutFontScaleMultiplier = 1.75f;
+        constexpr auto phoneAboutFontScaleMultiplier = 1.75f;
 
         about->setBounds(aboutBounds);
         about->setScaleMultipliers(
             aboutSizeFraction / legacyOverlaySizeFraction,
-            phoneArrangementMode ? iPhoneAboutFontScaleMultiplier : 1.f);
+            phoneArrangementMode ? phoneAboutFontScaleMultiplier : 1.f);
     }
     if (arrangementSelector != nullptr)
     {
@@ -790,7 +798,7 @@ void View::buildPhoneArrangement()
         delete arrangementSurface;
         arrangementSurface = nullptr;
         arrangementError = error;
-        MLOG("iPhone arrangement: " + arrangementError);
+        MLOG("Phone arrangement: " + arrangementError);
         return;
     }
     addAndMakeVisible(arrangementSurface);
@@ -907,7 +915,7 @@ void View::selectArrangementSlot(const std::size_t index,
     if (processorWrapperType ==
         juce::AudioProcessor::WrapperType::wrapperType_Standalone)
     {
-        gui::ios::setIPhoneOrientation(orientation);
+        gui::mobile::setOrientation(orientation);
     }
     initialRootWindowDimensions =
         InitialWindowDimensions::get(base_width, base_height);

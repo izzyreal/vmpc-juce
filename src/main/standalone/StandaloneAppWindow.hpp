@@ -7,6 +7,7 @@
 
 #include "VmpcProcessor.hpp"
 #include "gui/ios/MobilePlatform.hpp"
+#include "gui/mobile/MobilePlatform.hpp"
 
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 
@@ -265,7 +266,7 @@ namespace vmpc_juce::standalone
             auto contentW = content->getWidth();
             auto contentH = content->getHeight();
             auto maximumWindowSize = juce::Point<int>();
-            const auto usePhoneViewport = gui::ios::isRunningOnIPhone();
+            const auto usePhoneViewport = gui::mobile::isPhone();
 
             std::unique_ptr<juce::Component> dialogContent;
             if (usePhoneViewport)
@@ -317,7 +318,7 @@ namespace vmpc_juce::standalone
             o.escapeKeyTriggersCloseButton = true;
             o.resizable = false;
 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             o.useNativeTitleBar = false;
 #endif
 

@@ -4,8 +4,6 @@
 
 #include "standalone/StandaloneAppWindow.hpp"
 
-extern juce::JUCEApplicationBase *juce_CreateApplication();
-
 namespace vmpc_juce::standalone
 {
     class StandaloneApp final : public juce::JUCEApplication,

@@ -1,6 +1,6 @@
 #include "standalone/AudioMidiSettingsComponent.hpp"
 
-#include "gui/ios/MobilePlatform.hpp"
+#include "gui/mobile/MobilePlatform.hpp"
 #include "standalone/AudioDeviceManager.hpp"
 
 using namespace vmpc_juce::standalone;
@@ -10,7 +10,7 @@ AudioMidiSettingsComponent::AudioMidiSettingsComponent(
     const int maxAudioOutputChannels)
     : deviceSelector(deviceManagerToUse, 0, maxAudioInputChannels, 0,
                      maxAudioOutputChannels,
-                     gui::ios::isRunningOnIPhone())
+                     gui::mobile::isPhone())
 {
     juce::Font::setDefaultMinimumHorizontalScaleFactor(1.0f);
     setOpaque(true);

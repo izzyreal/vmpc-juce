@@ -85,8 +85,8 @@ namespace vmpc_juce
     private:
         VmpcProcessor &vmpcProcessor;
         vmpc_juce::gui::vector::View *view = nullptr;
-        juce::Rectangle<int> stableIPhoneStandaloneViewBounds;
-        bool stableIPhoneLandscape = false;
+        juce::Rectangle<int> stablePhoneStandaloneViewBounds;
+        bool stablePhoneLandscape = false;
 
         VmpcCornerResizerLookAndFeel lookAndFeel;
     };

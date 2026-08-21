@@ -79,7 +79,7 @@ namespace vmpc_juce::gui::vector
             };
             textViewport->setViewedComponent(textWithLinks, false);
             textViewport->setScrollBarsShown(false, false, true, false);
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             textViewport->setScrollOnDragMode(
                 juce::Viewport::ScrollOnDragMode::nonHover);
 #else
@@ -100,7 +100,7 @@ namespace vmpc_juce::gui::vector
                                         static_cast<float>(maxScrollOffset)));
             };
 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             constexpr auto scrollBarInteractive = false;
 #else
             constexpr auto scrollBarInteractive = true;
@@ -128,7 +128,7 @@ namespace vmpc_juce::gui::vector
                                : 1.f;
                 },
                 setScrollOffsetFraction, scrollBarInteractive);
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             aboutScrollBar->setAlpha(0.f);
 #endif
             addAndMakeVisible(aboutScrollBar);
@@ -172,7 +172,7 @@ namespace vmpc_juce::gui::vector
                 globalMouseListenerConfigured = true;
             }
 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             updateScrollIndicatorAlpha();
 #else
             stopTimer();
@@ -215,7 +215,7 @@ namespace vmpc_juce::gui::vector
             const auto margin = marginAtScale1 * scale;
             const auto marginInt = juce::roundToInt(margin);
 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             layoutInProgress = true;
 #endif
             textViewport->setBounds(getLocalBounds().reduced(marginInt));
@@ -232,7 +232,7 @@ namespace vmpc_juce::gui::vector
             textViewport->setViewPosition(
                 0, juce::roundToInt(oldScrollFraction *
                                     static_cast<float>(newMaxScrollOffset)));
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             layoutInProgress = false;
             lastViewportPositionY = textViewport->getViewPositionY();
 #endif
@@ -245,7 +245,7 @@ namespace vmpc_juce::gui::vector
                 static_cast<int>(getHeight() -
                                  ((margin * 0.5) + closeAboutWidth)));
             aboutScrollBar->setVisible(newMaxScrollOffset > 0);
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             if (newMaxScrollOffset <= 0)
             {
                 aboutScrollBar->setAlpha(0.f);
@@ -284,7 +284,7 @@ namespace vmpc_juce::gui::vector
             }
 
             aboutScrollBar->repaint();
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             const auto currentPositionY = textViewport->getViewPositionY();
             if (!layoutInProgress &&
                 currentPositionY != lastViewportPositionY &&
@@ -299,7 +299,7 @@ namespace vmpc_juce::gui::vector
 #endif
         }
 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         void updateScrollIndicatorAlpha()
         {
             if (lastScrollActivityMs <= 0.0)
@@ -364,7 +364,7 @@ namespace vmpc_juce::gui::vector
         AboutScrollBar *aboutScrollBar = nullptr;
         OutsideAboutMouseClickListener *outsideAboutMouseClickListener =
             nullptr;
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         int lastViewportPositionY = 0;
         double lastScrollActivityMs = 0.0;
         bool layoutInProgress = false;

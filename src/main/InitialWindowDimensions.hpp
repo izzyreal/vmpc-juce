@@ -7,7 +7,7 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
-#elif defined(__linux__)
+#elif defined(__linux__) && !defined(__ANDROID__)
 #include <X11/Xlib.h>
 #include <X11/extensions/Xrandr.h>
 #endif
@@ -71,7 +71,7 @@ namespace vmpc_juce
                                  scaleFactor);
             return static_cast<int>((totalHeight - frameHeight - 22) /
                                     scaleFactor);
-#elif defined(__linux__)
+#elif defined(__linux__) && !defined(__ANDROID__)
             Display *display = XOpenDisplay(nullptr);
 
             if (!display)

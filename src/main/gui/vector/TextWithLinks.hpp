@@ -104,7 +104,7 @@ namespace vmpc_juce::gui::vector
         {
             const auto linkIndex = getLinkIndexAtPosition(e.getPosition());
 
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             if (e.source.isTouch())
             {
                 pendingTouchLinkIndex = linkIndex;
@@ -142,7 +142,7 @@ namespace vmpc_juce::gui::vector
 
         void mouseDrag(const juce::MouseEvent &e) override
         {
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             if (e.source.isTouch())
             {
                 constexpr auto viewportDragThreshold = 8;
@@ -163,7 +163,7 @@ namespace vmpc_juce::gui::vector
 
         void mouseDoubleClick(const juce::MouseEvent &e) override
         {
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             if (e.source.isTouch())
             {
                 return;
@@ -223,7 +223,7 @@ namespace vmpc_juce::gui::vector
 
         void mouseUp(const juce::MouseEvent &e) override
         {
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
             if (e.source.isTouch())
             {
                 const auto releasedLinkIndex =
@@ -281,7 +281,7 @@ namespace vmpc_juce::gui::vector
         int currentlyHoveringLinkIndex = -1;
         int selectionStart = -1;
         int selectionEnd = -1;
-#if JUCE_IOS
+#if JUCE_IOS || JUCE_ANDROID
         int pendingTouchLinkIndex = -1;
         bool touchGestureDragged = false;
 #endif
