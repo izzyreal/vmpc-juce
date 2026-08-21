@@ -1,5 +1,7 @@
 #pragma once
 
+#include "gui/vector/DisclaimerLayout.hpp"
+
 #include <juce_graphics/juce_graphics.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
@@ -36,51 +38,28 @@ namespace vmpc_juce::gui::vector
 
         void paint(juce::Graphics &g) override
         {
-            const std::string text =
-                "MPC® and Akai Professional® are registered trademarks of\n"
-                "inMusic Brands. Inc. This emulator is not affiliated with\n"
-                "inMusic and use of the MPC® and Akai Professional® names has\n"
-                "not been authorized, sponsored or otherwise approved by "
-                "inMusic.";
-
-            auto font = getMainFontScaled();
-            font.setHeight(font.getHeight() * 1.5f * scaleMultiplier);
-            g.setFont(font);
-
-            auto rect = getLocalBounds() /*.reduced(10)*/;
-            rect = rect.withTrimmedTop(static_cast<int>(
-                ((static_cast<float>(getHeight()) - (font.getHeight() * 4)) /
-                 2) -
-                font.getHeight()));
-            rect = rect.withTrimmedBottom(static_cast<int>(
-                ((static_cast<float>(getHeight()) - (font.getHeight() * 4)) /
-                 2) -
-                font.getHeight()));
-            const auto edgeInset =
-                juce::roundToInt(2.f * scaleMultiplier);
-            rect.reduce(edgeInset, edgeInset);
+            const auto layout = disclaimer_layout::calculate(
+                getLocalBounds().toFloat(), getMainFontScaled(),
+                scaleMultiplier);
 
             juce::Path p;
-            p.addRoundedRectangle(rect, 5.f * scaleMultiplier);
+            p.addRoundedRectangle(layout.panelBounds, 5.f * layout.styleScale);
 
             melatonin::DropShadow shadow;
             shadow.setColor(juce::Colours::black.withAlpha(0.5f));
-            shadow.setOffset(juce::roundToInt(5.f * scaleMultiplier),
-                             juce::roundToInt(5.f * scaleMultiplier));
-            shadow.setRadius(juce::roundToInt(8.f * scaleMultiplier));
+            shadow.setOffset(juce::roundToInt(5.f * layout.styleScale),
+                             juce::roundToInt(5.f * layout.styleScale));
+            shadow.setRadius(juce::roundToInt(8.f * layout.styleScale));
             shadow.render(g, p);
 
             g.setColour(juce::Colours::white);
-            g.fillRoundedRectangle(rect.toFloat(), 5.f * scaleMultiplier);
+            g.fillRoundedRectangle(layout.panelBounds, 5.f * layout.styleScale);
 
             g.setColour(juce::Colours::black);
-            g.drawRoundedRectangle(rect.toFloat(), 5.f * scaleMultiplier,
-                                   2.f * scaleMultiplier);
+            g.drawRoundedRectangle(layout.panelBounds, 5.f * layout.styleScale,
+                                   2.f * layout.styleScale);
 
-            g.drawFittedText(
-                text,
-                getLocalBounds().reduced(static_cast<int>(font.getHeight())),
-                juce::Justification::centred, 4);
+            layout.text.draw(g, layout.contentBounds);
         }
 
     private:
