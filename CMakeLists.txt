@@ -12,6 +12,7 @@ include(cmake/ResourceBundling.cmake)
 include(cmake/ASIOSDK.cmake)
 include(cmake/ClangFormat.cmake)
 include(cmake/FetchContentCache.cmake)
+include(cmake/AndroidJavaSources.cmake)
 
 find_package(Git)
 
@@ -125,6 +126,16 @@ FetchContent_MakeAvailable(JUCE)
 
 message(STATUS "Resolving juce-raw-keyboard-input-module...")
 FetchContent_MakeAvailable(juce-raw-keyboard-input-module)
+
+if(ANDROID)
+  FetchContent_GetProperties(JUCE SOURCE_DIR _android_juce_source_dir)
+  FetchContent_GetProperties(
+    juce-raw-keyboard-input-module
+    SOURCE_DIR _android_raw_keyboard_source_dir)
+  vmpc_stage_android_java_sources(
+    "${_android_juce_source_dir}"
+    "${_android_raw_keyboard_source_dir}")
+endif()
 
 message(STATUS "Resolving melatonin_blur...")
 FetchContent_MakeAvailable(melatonin_blur)

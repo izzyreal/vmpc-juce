@@ -95,16 +95,10 @@ pipelines:
           shell: posix
           os: linux
           arch: amd64
-          container_image: vmpc-android-ci:api36-ndk28.1-r1
         requires:
           tools:
             git: "*"
             docker: "*"
-          container:
-            tools:
-              cmake: "3.28.*"
-              ninja: "*"
-              java: "17.*"
         timeout_seconds: 3600
         artifacts:
           - dist/VMPC2000XL-android-arm64-debug.apk
@@ -123,14 +117,16 @@ pipelines:
         steps:
           - name: Prepare Android build caches
             run: mkdir -p dist "$CIWI_FETCHCONTENT_SOURCES_DIR" "$CCACHE_DIR" "$GRADLE_USER_HOME"
+          - name: Build Android CI image
+            run: ./ci/android/build-image.sh
           - name: Reset ccache stats
-            run: ccache --zero-stats
+            run: ./ci/android/run-in-container.sh ccache --zero-stats
           - name: Build APK, unsigned release bundle, and lint
-            run: cd android && ./gradlew --no-daemon :app:assembleDebug :app:bundleRelease :app:lintDebug
+            run: ./ci/android/run-in-container.sh sh -c 'cd android && ./gradlew --no-daemon :app:assembleDebug :app:bundleRelease :app:lintDebug'
           - name: Validate debug APK
-            run: aapt2 dump badging android/app/build/outputs/apk/debug/app-debug.apk >/dev/null && zipinfo -1 android/app/build/outputs/apk/debug/app-debug.apk | grep -q '^lib/arm64-v8a/libjuce_jni.so$' && ! zipinfo -1 android/app/build/outputs/apk/debug/app-debug.apk | grep -q '^lib/x86'
+            run: ./ci/android/run-in-container.sh sh -c 'aapt2 dump badging android/app/build/outputs/apk/debug/app-debug.apk >/dev/null && zipinfo -1 android/app/build/outputs/apk/debug/app-debug.apk | grep -q "^lib/arm64-v8a/libjuce_jni.so$" && ! zipinfo -1 android/app/build/outputs/apk/debug/app-debug.apk | grep -q "^lib/x86"'
           - name: Validate release bundle
-            run: zipinfo -1 android/app/build/outputs/bundle/release/app-release.aab | grep -q '^base/lib/arm64-v8a/libjuce_jni.so$' && zipinfo -1 android/app/build/outputs/bundle/release/app-release.aab | grep -q '^BUNDLE-METADATA/com.android.tools.build.debugsymbols/arm64-v8a/libjuce_jni.so.dbg$' && ! zipinfo -1 android/app/build/outputs/bundle/release/app-release.aab | grep -q '^base/lib/x86' && java -jar /opt/android-tools/bundletool.jar build-apks --bundle android/app/build/outputs/bundle/release/app-release.aab --output dist/VMPC2000XL-android-arm64-universal.apks --mode universal --overwrite
+            run: ./ci/android/run-in-container.sh sh -c 'zipinfo -1 android/app/build/outputs/bundle/release/app-release.aab | grep -q "^base/lib/arm64-v8a/libjuce_jni.so$" && zipinfo -1 android/app/build/outputs/bundle/release/app-release.aab | grep -q "^BUNDLE-METADATA/com.android.tools.build.debugsymbols/arm64-v8a/libjuce_jni.so.dbg$" && ! zipinfo -1 android/app/build/outputs/bundle/release/app-release.aab | grep -q "^base/lib/x86" && java -jar /opt/android-tools/bundletool.jar build-apks --bundle android/app/build/outputs/bundle/release/app-release.aab --output dist/VMPC2000XL-android-arm64-universal.apks --mode universal --overwrite'
           - name: Collect Android artifacts
             run: cp android/app/build/outputs/apk/debug/app-debug.apk dist/VMPC2000XL-android-arm64-debug.apk && cp android/app/build/outputs/bundle/release/app-release.aab dist/VMPC2000XL-android-arm64-release.aab && cp android/app/build/reports/lint-results-debug.html dist/android-lint-results.html && cp android/app/build/reports/lint-results-debug.txt dist/android-lint-results.txt && cp VERSION dist/version-android.txt
 

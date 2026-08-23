@@ -74,6 +74,7 @@ android {
     externalNativeBuild {
         cmake {
             path file('../../CMakeLists.txt')
+            version = '3.24.0+'
         }
     }
 
@@ -120,18 +121,14 @@ android {
     }
 
     sourceSets {
-        main.java.srcDirs += [
-            '../../editables/JUCE/modules/juce_core/native/javacore/init',
-            '../../editables/JUCE/modules/juce_core/native/javacore/app',
-            '../../editables/JUCE/modules/juce_gui_basics/native/javaopt/app',
-            '../../editables/juce-raw-keyboard-input-module/android/java'
-        ]
+        debug.java.srcDir file('build/generated/source/vmpcNativeDependencies/debug')
+        release.java.srcDir file('build/generated/source/vmpcNativeDependencies/release')
     }
 }
 
-// The Java sources for JUCE and the raw-keyboard module live in repositories
-// populated by the root CMake configure. Make that ordering explicit so a
-// pristine checkout builds from Gradle/Android Studio on its first attempt.
+// CMake stages the dependency-owned JUCE and raw-keyboard Java sources into
+// the variant-specific generated source directories above. Make that ordering
+// explicit so a pristine checkout builds from Gradle/Android Studio immediately.
 tasks.configureEach { task ->
     if (task.name == 'compileDebugJavaWithJavac') {
         task.dependsOn(tasks.matching { it.name.startsWith('configureCMakeDebug') })
