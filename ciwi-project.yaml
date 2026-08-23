@@ -88,7 +88,8 @@ pipelines:
           - name: Copy LV2 plugin
             run: cp -R build/vmpc2000xl_artefacts/Release/LV2/VMPC2000XL.lv2 dist/VMPC2000XL-linux-amd64-LV2.lv2
 
-      - id: android-arm64
+      - &android_arm64_job
+        id: android-arm64
         runs_on:
           executor: script
           shell: posix
@@ -514,6 +515,16 @@ pipelines:
             run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\VST3\VMPC2000XL.vst3 dist\VMPC2000XL-windows7-x86-VST3.vst3
           - name: Copy LV2 plugin
             run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows7-x86-LV2.lv2
+
+  - id: android
+    trigger: manual
+    vcs_source:
+      repo: https://github.com/izzyreal/vmpc-juce.git
+    versioning:
+      file: VERSION
+      tag_prefix: v
+    jobs:
+      - *android_arm64_job
 
   - id: codesign-macos
     trigger: manual
