@@ -4,12 +4,13 @@ import static android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
 import static android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
 import static android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
 
-import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
-public final class VmpcActivity extends Activity
+import nl.izmar.rawkeyboardinput.RawKeyboardInputActivity;
+
+public final class VmpcActivity extends RawKeyboardInputActivity
 {
     @SuppressWarnings ("deprecation")
     private void initEdgeToEdge()
