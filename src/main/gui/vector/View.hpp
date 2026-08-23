@@ -27,6 +27,11 @@ namespace vmpc_juce::gui::arrangement
     class ArrangementSelectorOverlay;
 } // namespace vmpc_juce::gui::arrangement
 
+namespace vmpc_juce::gui::mobile
+{
+    class MobileFileWorkflow;
+}
+
 class Keyboard;
 
 namespace vmpc_juce::gui::vector
@@ -48,7 +53,10 @@ namespace vmpc_juce::gui::vector
              bool &shouldShowDisclaimer,
              const std::optional<std::string> &preferredArrangementId,
              std::function<void(const std::string &)> arrangementSelected,
-             bool menuExpanded, std::function<void(bool)> menuExpandedChanged);
+             bool menuExpanded, std::function<void(bool)> menuExpandedChanged,
+             std::function<bool(const juce::File &)> startRecordingPreview,
+             std::function<void()> stopRecordingPreview,
+             std::function<bool()> isRecordingPreviewPlaying);
 
         ~View() override;
 
@@ -130,6 +138,7 @@ namespace vmpc_juce::gui::vector
         std::size_t activeArrangementSlot = 0;
         arrangement::ArrangementSurface *arrangementSurface = nullptr;
         arrangement::ArrangementSelectorOverlay *arrangementSelector = nullptr;
+        std::unique_ptr<gui::mobile::MobileFileWorkflow> mobileFileWorkflow;
         std::string arrangementError;
     };
 

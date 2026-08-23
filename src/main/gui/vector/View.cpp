@@ -17,6 +17,7 @@
 #include "gui/arrangement/ArrangementSurface.hpp"
 #include "gui/ios/MobilePlatform.hpp"
 #include "gui/mobile/MobilePlatform.hpp"
+#include "gui/mobile/MobileFileWorkflow.hpp"
 
 #include "VmpcJuceResourceUtil.hpp"
 #include "InitialWindowDimensions.hpp"
@@ -64,7 +65,10 @@ View::View(mpc::Mpc &mpcToUse,
            const std::optional<std::string> &preferredArrangementId,
            std::function<void(const std::string &)> arrangementSelectedToUse,
            const bool menuExpanded,
-           std::function<void(bool)> menuExpandedChangedToUse)
+           std::function<void(bool)> menuExpandedChangedToUse,
+           std::function<bool(const juce::File &)> startRecordingPreview,
+           std::function<void()> stopRecordingPreview,
+           std::function<bool()> isRecordingPreviewPlaying)
     : mpc(mpcToUse), getScale(
                          [this]
                          {
@@ -405,10 +409,28 @@ View::View(mpc::Mpc &mpcToUse,
                                       initialRootWindowDimensions.second);
     };
 
-    menu = new Menu(
-#if TARGET_OS_IPHONE
-        mpc,
+    gui::mobile::MobileMenuActions mobileActions;
+    if (gui::mobile::isMobilePlatform())
+    {
+        mobileFileWorkflow = std::make_unique<gui::mobile::MobileFileWorkflow>(
+            mpc, *this, std::move(startRecordingPreview),
+            std::move(stopRecordingPreview),
+            std::move(isRecordingPreviewPlaying));
+        std::function<void()> togglePhoneFullscreen;
+#if JUCE_IOS
+        if (phoneArrangementMode)
+        {
+            togglePhoneFullscreen = [this]
+            {
+                toggleIPhoneFullscreen();
+            };
+        }
 #endif
+        mobileActions = mobileFileWorkflow->makeMenuActions(
+            std::move(togglePhoneFullscreen));
+    }
+
+    menu = new Menu(
         getScale, showAudioSettingsDialog, resetWindowSize, openKeyboardScreen,
         setKeyboardShortcutTooltipsVisibility, tooltipOverlay,
         getMainFontScaled, openAbout,
@@ -421,7 +443,7 @@ View::View(mpc::Mpc &mpcToUse,
                       showArrangementSelector();
                   })
             : std::function<void()>(),
-        std::function<void()>(), toggleAuxLcd, phoneArrangementMode,
+        std::move(mobileActions), toggleAuxLcd, phoneArrangementMode,
         wrapperType, menuExpandedChanged);
 
     menu->setExpanded(menuExpanded);
@@ -553,6 +575,7 @@ std::pair<int, int> View::getInitialRootWindowDimensions()
 View::~View()
 {
     stopTimer();
+    mobileFileWorkflow.reset();
     closeAuxLcdWindow();
 
     delete padTimer;
@@ -694,6 +717,10 @@ void View::resized()
     {
         arrangementSelector->setBounds(getLocalBounds());
         arrangementSelector->toFront(false);
+    }
+    if (mobileFileWorkflow != nullptr)
+    {
+        mobileFileWorkflow->resized();
     }
     repaint();
 }

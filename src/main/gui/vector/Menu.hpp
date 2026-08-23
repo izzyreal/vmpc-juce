@@ -8,24 +8,9 @@
 #include "TooltipOverlay.hpp"
 #include "InfoTooltip.hpp"
 #include "MenuGeometry.hpp"
+#include "gui/mobile/MobileMenuActions.hpp"
 
 #include <cmath>
-
-#ifdef __APPLE__
-#include <TargetConditionals.h>
-#if TARGET_OS_IPHONE
-#include "gui/ios/ImportDocumentUrlProcessor.hpp"
-
-void doPresentShareOptions(void *nativeWindowHandle, mpc::Mpc *);
-
-void doOpenIosImportDocumentBrowser(
-    vmpc_juce::gui::ios::ImportDocumentUrlProcessor *,
-    void *nativeWindowHandle);
-
-void doPresentRecordingManager(void *nativeWindowHandle, mpc::Mpc *);
-
-#endif
-#endif
 
 namespace vmpc_juce::gui::vector
 {
@@ -37,9 +22,6 @@ namespace vmpc_juce::gui::vector
 
     public:
         Menu(
-#if TARGET_OS_IPHONE
-            mpc::Mpc &mpcToUse,
-#endif
             const std::function<float()> &getScaleToUse,
             const std::function<void()> &showAudioSettingsDialogToUse,
             const std::function<void()> &resetWindowSizeToUse,
@@ -50,16 +32,12 @@ namespace vmpc_juce::gui::vector
             const std::function<juce::Font &()> &getMainFontScaledToUse,
             const std::function<void()> &openAboutToUse,
             const std::function<void()> &openArrangementSelectorToUse,
-            const std::function<void()> &toggleIPhoneFullscreenToUse,
+            gui::mobile::MobileMenuActions mobileActionsToUse,
             const std::function<bool()> &toggleAuxLcdToUse,
             const bool useLargePhoneTooltips,
             juce::AudioProcessor::WrapperType wrapperTypeToUse,
             const std::function<void(bool)> &menuExpandedChangedToUse)
-            :
-#if TARGET_OS_IPHONE
-              mpc(mpcToUse),
-#endif
-              wrapperType(wrapperTypeToUse), getScale(getScaleToUse),
+            : wrapperType(wrapperTypeToUse), getScale(getScaleToUse),
               showAudioSettingsDialog(showAudioSettingsDialogToUse),
               resetWindowSize(resetWindowSizeToUse),
               openKeyboardScreen(openKeyboardScreenToUse),
@@ -68,7 +46,7 @@ namespace vmpc_juce::gui::vector
               getMainFontScaled(getMainFontScaledToUse),
               openAbout(openAboutToUse),
               openArrangementSelector(openArrangementSelectorToUse),
-              toggleIPhoneFullscreen(toggleIPhoneFullscreenToUse),
+              mobileActions(std::move(mobileActionsToUse)),
               auxLcdMenuModel(toggleAuxLcdToUse),
               menuExpandedChanged(menuExpandedChangedToUse),
               tooltipOverlay(tooltipOverlayToUse)
@@ -106,31 +84,37 @@ namespace vmpc_juce::gui::vector
                 addAndMakeVisible(resetZoomIcon);
             }
 
-#if TARGET_OS_IPHONE
-            importDocumentUrlProcessor.mpc = &mpc;
+            if (mobileActions.importFiles)
+            {
+                importIcon = new SvgComponent({"arrow_down_on_square.svg"},
+                                              this, 0.f, getScale);
+                importIcon->setInterceptsMouseClicks(false, false);
+                addAndMakeVisible(importIcon);
+            }
 
-            importIcon = new SvgComponent({"arrow_down_on_square.svg"}, this,
-                                          0.f, getScale);
-            importIcon->setInterceptsMouseClicks(false, false);
-            addAndMakeVisible(importIcon);
+            if (mobileActions.exportFiles)
+            {
+                exportIcon = new SvgComponent({"arrow_up_on_square.svg"}, this,
+                                              0.f, getScale);
+                exportIcon->setInterceptsMouseClicks(false, false);
+                addAndMakeVisible(exportIcon);
+            }
 
-            exportIcon = new SvgComponent({"arrow_up_on_square.svg"}, this, 0.f,
-                                          getScale);
-            exportIcon->setInterceptsMouseClicks(false, false);
-            addAndMakeVisible(exportIcon);
+            if (mobileActions.openRecordingManager)
+            {
+                folderIcon =
+                    new SvgComponent({"folder.svg"}, this, 0.f, getScale);
+                folderIcon->setInterceptsMouseClicks(false, false);
+                addAndMakeVisible(folderIcon);
+            }
 
-            folderIcon = new SvgComponent({"folder.svg"}, this, 0.f, getScale);
-            folderIcon->setInterceptsMouseClicks(false, false);
-            addAndMakeVisible(folderIcon);
-
-            if (toggleIPhoneFullscreen)
+            if (mobileActions.togglePhoneFullscreen)
             {
                 fullscreenIcon = new SvgComponent({"arrows_pointing_in.svg"},
                                                   this, 0.f, getScale);
                 fullscreenIcon->setInterceptsMouseClicks(false, false);
                 addAndMakeVisible(fullscreenIcon);
             }
-#endif
             if (openArrangementSelector)
             {
                 arrangementIcon =
@@ -576,28 +560,22 @@ namespace vmpc_juce::gui::vector
             {
                 activateAuxLcdItem();
             }
-#if TARGET_OS_IPHONE
             else if (clickedIcon == importIcon)
             {
-                auto uiView = getPeer()->getNativeHandle();
-                doOpenIosImportDocumentBrowser(&importDocumentUrlProcessor,
-                                               uiView);
+                mobileActions.importFiles();
             }
             else if (clickedIcon == exportIcon)
             {
-                auto uiView = getPeer()->getNativeHandle();
-                doPresentShareOptions(uiView, &mpc);
+                mobileActions.exportFiles();
             }
             else if (clickedIcon == folderIcon)
             {
-                auto uiView = getPeer()->getNativeHandle();
-                doPresentRecordingManager(uiView, &mpc);
+                mobileActions.openRecordingManager();
             }
             else if (clickedIcon == fullscreenIcon)
             {
-                toggleIPhoneFullscreen();
+                mobileActions.togglePhoneFullscreen();
             }
-#endif
             else if (clickedIcon == arrangementIcon)
             {
                 openArrangementSelector();
@@ -707,15 +685,22 @@ namespace vmpc_juce::gui::vector
                 result.push_back(resetZoomIcon);
             }
             result.push_back(auxLcdIcon);
-#if TARGET_OS_IPHONE
-            result.push_back(importIcon);
-            result.push_back(exportIcon);
-            result.push_back(folderIcon);
+            if (importIcon != nullptr)
+            {
+                result.push_back(importIcon);
+            }
+            if (exportIcon != nullptr)
+            {
+                result.push_back(exportIcon);
+            }
+            if (folderIcon != nullptr)
+            {
+                result.push_back(folderIcon);
+            }
             if (fullscreenIcon != nullptr)
             {
                 result.push_back(fullscreenIcon);
             }
-#endif
             if (arrangementIcon != nullptr)
             {
                 result.push_back(arrangementIcon);
@@ -779,9 +764,6 @@ namespace vmpc_juce::gui::vector
             return auxLcdMenuModel.tooltipText();
         }
 
-#if TARGET_OS_IPHONE
-        mpc::Mpc &mpc;
-#endif
         juce::AudioProcessor::WrapperType wrapperType;
         const std::function<float()> &getScale;
         bool expanded = true;
@@ -795,7 +777,7 @@ namespace vmpc_juce::gui::vector
         const std::function<juce::Font &()> &getMainFontScaled;
         const std::function<void()> openAbout;
         const std::function<void()> openArrangementSelector;
-        const std::function<void()> toggleIPhoneFullscreen;
+        gui::mobile::MobileMenuActions mobileActions;
         AuxLcdMenuModel auxLcdMenuModel;
         const std::function<void(bool)> &menuExpandedChanged;
         float scaleMultiplier = 1.f;
@@ -821,9 +803,5 @@ namespace vmpc_juce::gui::vector
         // the last known mouse position.
         juce::Point<int> lastKnownMousePos{-1, -1};
 
-#if TARGET_OS_IPHONE
-        vmpc_juce::gui::ios::ImportDocumentUrlProcessor
-            importDocumentUrlProcessor;
-#endif
     };
 } // namespace vmpc_juce::gui::vector

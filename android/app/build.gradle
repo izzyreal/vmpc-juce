@@ -25,22 +25,24 @@ def releaseSigning = [
     keyAlias: signingValue('VMPC_ANDROID_KEY_ALIAS'),
     keyPassword: signingValue('VMPC_ANDROID_KEY_PASSWORD')
 ]
-def releaseRequested = gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
-if (releaseRequested && releaseSigning.values().any { it == null || it.isBlank() }) {
-    throw new GradleException('Release builds require VMPC_ANDROID_STORE_FILE, VMPC_ANDROID_STORE_PASSWORD, VMPC_ANDROID_KEY_ALIAS, and VMPC_ANDROID_KEY_PASSWORD')
+def releaseSigningValues = releaseSigning.values()
+def hasAnyReleaseSigningValue = releaseSigningValues.any { it != null && !it.isBlank() }
+def hasAllReleaseSigningValues = releaseSigningValues.every { it != null && !it.isBlank() }
+if (hasAnyReleaseSigningValue && !hasAllReleaseSigningValues) {
+    throw new GradleException('Android signing is partially configured. Set all four VMPC_ANDROID_* signing values, or none for an unsigned release build.')
 }
 
 android {
-    namespace 'nl.izmar.vmpc2000xl'
-    compileSdk 36
-    ndkVersion '28.1.13356709'
+    namespace = 'nl.izmar.vmpc2000xl'
+    compileSdk = 36
+    ndkVersion = '28.1.13356709'
 
     defaultConfig {
-        applicationId 'nl.izmar.vmpc2000xl'
-        minSdk 24
-        targetSdk 36
-        versionCode versionCodeFromFile
-        versionName versionNameFromFile
+        applicationId = 'nl.izmar.vmpc2000xl'
+        minSdk = 24
+        targetSdk = 36
+        versionCode = versionCodeFromFile
+        versionName = versionNameFromFile
 
         ndk {
             abiFilters 'arm64-v8a'
@@ -48,7 +50,7 @@ android {
 
         externalNativeBuild {
             cmake {
-                targets 'vmpc2000xl_Standalone'
+                targets = ['vmpc2000xl_Standalone']
                 arguments '-DANDROID_TOOLCHAIN=clang',
                           '-DANDROID_PLATFORM=android-24',
                           '-DANDROID_STL=c++_static',
@@ -58,6 +60,13 @@ android {
                           '-DCMAKE_CXX_STANDARD=17',
                           '-DCMAKE_CXX_EXTENSIONS=OFF',
                           '-DVMPC_BUILD_TESTS=OFF'
+                def fetchContentCache = System.getenv('CIWI_FETCHCONTENT_SOURCES_DIR')
+                if (fetchContentCache != null && !fetchContentCache.isBlank()) {
+                    arguments "-DFETCHCONTENT_CACHE_ROOT=${fetchContentCache}"
+                }
+                if (System.getenv('CCACHE_DIR') != null) {
+                    arguments '-DVMPC_BUILD_CCACHE_ENABLED=ON'
+                }
             }
         }
     }
@@ -69,27 +78,32 @@ android {
     }
 
     signingConfigs {
-        if (releaseSigning.values().every { it != null && !it.isBlank() }) {
+        if (hasAllReleaseSigningValues) {
             release {
-                storeFile file(releaseSigning.storeFile)
-                storePassword releaseSigning.storePassword
-                keyAlias releaseSigning.keyAlias
-                keyPassword releaseSigning.keyPassword
+                storeFile = file(releaseSigning.storeFile)
+                storePassword = releaseSigning.storePassword
+                keyAlias = releaseSigning.keyAlias
+                keyPassword = releaseSigning.keyPassword
             }
         }
     }
 
     buildTypes {
         debug {
-            debuggable true
-            jniDebuggable true
+            applicationIdSuffix = '.debug'
+            versionNameSuffix = '-debug'
+            debuggable = true
+            jniDebuggable = true
         }
         release {
-            debuggable false
-            jniDebuggable false
-            minifyEnabled false
+            debuggable = false
+            jniDebuggable = false
+            minifyEnabled = false
+            ndk {
+                debugSymbolLevel = 'FULL'
+            }
             if (signingConfigs.findByName('release') != null) {
-                signingConfig signingConfigs.release
+                signingConfig = signingConfigs.release
             }
         }
     }
@@ -112,5 +126,19 @@ android {
             '../../editables/JUCE/modules/juce_gui_basics/native/javaopt/app',
             '../../editables/juce-raw-keyboard-input-module/android/java'
         ]
+    }
+}
+
+// The Java sources for JUCE and the raw-keyboard module live in repositories
+// populated by the root CMake configure. Make that ordering explicit so a
+// pristine checkout builds from Gradle/Android Studio on its first attempt.
+tasks.configureEach { task ->
+    if (task.name == 'compileDebugJavaWithJavac') {
+        task.dependsOn(tasks.matching { it.name.startsWith('configureCMakeDebug') })
+    } else if (task.name == 'compileReleaseJavaWithJavac') {
+        task.dependsOn(tasks.matching {
+            it.name.startsWith('configureCMakeRelWithDebInfo') ||
+            it.name.startsWith('configureCMakeRelease')
+        })
     }
 }

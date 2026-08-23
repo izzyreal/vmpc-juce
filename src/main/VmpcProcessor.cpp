@@ -257,6 +257,10 @@ void VmpcProcessor::prepareToPlay(const double sampleRate,
     server->resizeBuffers(samplesPerBlock);
     audioStreamActive.store(true, std::memory_order_relaxed);
 
+#if JUCE_IOS || JUCE_ANDROID
+    recordingPreviewPlayer.prepare(sampleRate, samplesPerBlock);
+#endif
+
     if (!physicalPowerOnRequested.exchange(true, std::memory_order_relaxed))
     {
         engineHost->triggerPhysicalPowerOnSound();
@@ -274,6 +278,9 @@ void VmpcProcessor::prepareToPlay(const double sampleRate,
 void VmpcProcessor::releaseResources()
 {
     audioStreamActive.store(false, std::memory_order_relaxed);
+#if JUCE_IOS || JUCE_ANDROID
+    recordingPreviewPlayer.release();
+#endif
 }
 
 bool VmpcProcessor::beginStandalonePhysicalPowerOff()
@@ -717,6 +724,10 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
             buffer.clear(i, 0, buffer.getNumSamples());
         }
 
+#if JUCE_IOS || JUCE_ANDROID
+        recordingPreviewPlayer.render(buffer);
+#endif
+
         return;
     }
 
@@ -728,6 +739,9 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
         {
             buffer.clear(i, 0, buffer.getNumSamples());
         }
+#if JUCE_IOS || JUCE_ANDROID
+        recordingPreviewPlayer.render(buffer);
+#endif
 
         return;
     }
@@ -835,6 +849,36 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
     }
 
     previousHostOutputChannelIndicesToRender = hostOutputChannelIndicesToRender;
+
+#if JUCE_IOS || JUCE_ANDROID
+    recordingPreviewPlayer.render(buffer);
+#endif
+}
+
+bool VmpcProcessor::startRecordingPreview(const juce::File &file)
+{
+#if JUCE_IOS || JUCE_ANDROID
+    return recordingPreviewPlayer.start(file);
+#else
+    juce::ignoreUnused(file);
+    return false;
+#endif
+}
+
+void VmpcProcessor::stopRecordingPreview()
+{
+#if JUCE_IOS || JUCE_ANDROID
+    recordingPreviewPlayer.stop();
+#endif
+}
+
+bool VmpcProcessor::isRecordingPreviewPlaying() const
+{
+#if JUCE_IOS || JUCE_ANDROID
+    return recordingPreviewPlayer.isPlaying();
+#else
+    return false;
+#endif
 }
 
 bool VmpcProcessor::hasEditor() const

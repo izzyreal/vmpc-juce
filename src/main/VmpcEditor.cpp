@@ -32,6 +32,18 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
                     [this](const bool expanded)
                     {
                         vmpcProcessor.setMenuExpanded(expanded);
+                    },
+                    [this](const juce::File &file)
+                    {
+                        return vmpcProcessor.startRecordingPreview(file);
+                    },
+                    [this]
+                    {
+                        vmpcProcessor.stopRecordingPreview();
+                    },
+                    [this]
+                    {
+                        return vmpcProcessor.isRecordingPreviewPlaying();
                     });
 
     auto initialWindowWidth = vmpcProcessor.lastUIWidth;

@@ -131,4 +131,17 @@ void StandaloneApp::requestQuit() const
     }
 }
 
+#if JUCE_ANDROID
+// Keep the JUCE fork free of app-specific export requirements. Android loads
+// this factory with dlsym, so it must remain visible even with hidden symbols.
+extern "C" __attribute__((visibility("default")))
+juce::JUCEApplicationBase *juce_CreateApplication();
+
+extern "C" __attribute__((visibility("default")))
+juce::JUCEApplicationBase *juce_CreateApplication()
+{
+    return new vmpc_juce::standalone::StandaloneApp();
+}
+#else
 START_JUCE_APPLICATION(vmpc_juce::standalone::StandaloneApp)
+#endif

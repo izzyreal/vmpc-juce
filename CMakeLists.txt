@@ -86,8 +86,6 @@ set(VMPC_RAW_KBD_REPO "https://github.com/izzyreal/juce-raw-keyboard-input-modul
 set(VMPC_RAW_KBD_REF "external-focus-provider")
 set(VMPC_MPC_REPO "https://github.com/izzyreal/mpc.git")
 set(VMPC_MPC_REF "android")
-set(VMPC_MINIZ_REPO "https://github.com/richgel999/miniz")
-set(VMPC_MINIZ_REF "master")
 
 if(NOT DEFINED FETCHCONTENT_CACHE_ROOT OR "${FETCHCONTENT_CACHE_ROOT}" STREQUAL "")
   if(DEFINED VMPC_FETCHCONTENT_SOURCES_DIR AND NOT "${VMPC_FETCHCONTENT_SOURCES_DIR}" STREQUAL "")
@@ -111,16 +109,6 @@ fetchcontent_declare_cached_git(mpc "mpc" "${CMAKE_SOURCE_DIR}/editables/mpc" "$
 set(BUILD_EXAMPLES OFF)
 set(BUILD_TESTS OFF)
 set(INSTALL_PROJECT OFF)
-
-if(APPLE)
-if (CMAKE_SYSTEM_NAME STREQUAL "iOS")
-fetchcontent_declare_cached_git(miniz "miniz" "${CMAKE_SOURCE_DIR}/deps/miniz" "${VMPC_MINIZ_REPO}" "${VMPC_MINIZ_REF}"
-  GIT_SHALLOW    ON
-)
-message(STATUS "Resolving miniz...")
-FetchContent_MakeAvailable(miniz)
-endif()
-endif()
 
 message(STATUS "Resolving json...")
 FetchContent_MakeAvailable(json)
@@ -194,6 +182,8 @@ juce_add_plugin(vmpc2000xl
     ${NON_IOS_SPECIFIC_SETTINGS})
 
 if(ANDROID)
+    # JUCE's Android loader looks for libjuce_jni.so. The target name remains
+    # stable for the rest of the repository; only the packaged filename changes.
     set_target_properties(vmpc2000xl_Standalone PROPERTIES
         OUTPUT_NAME juce_jni)
 endif()
@@ -267,6 +257,9 @@ endforeach()
 target_sources(vmpc2000xl PRIVATE ${_source_list})
 
 if(ANDROID)
+  # JUCE normally owns the standalone entry point. Android needs the
+  # application factory in the shared object, so compile our app entry point
+  # into the wrapper target that actually produces libjuce_jni.so.
   target_sources(vmpc2000xl_Standalone PRIVATE
     src/main/standalone/StandaloneApp.cpp)
 endif()
@@ -279,6 +272,10 @@ target_compile_definitions(vmpc2000xl
     JUCE_DISPLAY_SPLASH_SCREEN=0
     JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1)
 
+if(IOS OR ANDROID)
+    target_compile_definitions(vmpc2000xl PUBLIC JUCE_CONTENT_SHARING=1)
+endif()
+
 if(UNIX AND NOT APPLE AND NOT ANDROID)
     target_compile_definitions(vmpc2000xl PUBLIC JUCE_JACK=1)
     include(FindPkgConfig)
@@ -287,7 +284,6 @@ if(UNIX AND NOT APPLE AND NOT ANDROID)
 endif()
 
 if (IOS)
-  target_link_libraries(vmpc2000xl PRIVATE miniz)
   set_target_properties(vmpc2000xl_Standalone PROPERTIES
     XCODE_EXPLICIT_FILE_TYPE "wrapper.application"
   )

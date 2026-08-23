@@ -13,6 +13,10 @@
 #include <string>
 #include <vector>
 
+#if JUCE_IOS || JUCE_ANDROID
+#include "gui/mobile/RecordingPreviewPlayer.hpp"
+#endif
+
 namespace vmpc_juce
 {
     class VmpcProcessor final : public juce::AudioProcessor
@@ -58,6 +62,10 @@ namespace vmpc_juce
         bool isMenuExpanded() const;
         void setMenuExpanded(bool expanded);
 
+        bool startRecordingPreview(const juce::File &file);
+        void stopRecordingPreview();
+        bool isRecordingPreviewPlaying() const;
+
         int lastUIWidth = 0, lastUIHeight = 0;
         bool hasRequiredResources() const;
         const std::string &getRequiredResourcesFailureMessage() const;
@@ -101,6 +109,10 @@ namespace vmpc_juce
         std::atomic<bool> physicalPowerOnRequested{false};
         std::optional<std::string> activeArrangementId;
         bool menuExpanded = true;
+
+#if JUCE_IOS || JUCE_ANDROID
+        gui::mobile::RecordingPreviewPlayer recordingPreviewPlayer;
+#endif
 
     public:
         bool shouldShowDisclaimer = true;

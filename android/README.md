@@ -27,11 +27,15 @@ cd android
 ```
 
 The APK is written below `app/build/outputs/apk/debug`.
+The debug application id is `nl.izmar.vmpc2000xl.debug`, so it can be installed
+alongside the release app.
 
 ## Play release bundle
 
-Release signing details are read from environment variables or equivalently
-named Gradle properties. Secrets must not be committed.
+Release builds are unsigned by default, which is useful for CI validation.
+Signing details are read from environment variables or equivalently named
+Gradle properties. If one is specified, all four are required. Secrets must not
+be committed.
 
 ```sh
 export VMPC_ANDROID_STORE_FILE=/absolute/path/to/upload-key.jks
@@ -42,6 +46,16 @@ export VMPC_ANDROID_KEY_PASSWORD=...
 ```
 
 The AAB is written below `app/build/outputs/bundle/release`.
+
+## Emulator keyboard input
+
+Set `hw.keyboard=yes` in the AVD configuration and start the emulator with raw
+Qt keyboard forwarding. The flag avoids the emulator's synthesized modifier
+repeats, and is required for representative VMPC keyboard behavior:
+
+```sh
+$ANDROID_HOME/emulator/emulator -avd YOUR_AVD -feature QtRawKeyboardInput
+```
 
 The initial build supports `arm64-v8a` and Android 7.0 (API 24) or newer.
 Before publishing, verify audio latency and USB/Bluetooth MIDI on physical
