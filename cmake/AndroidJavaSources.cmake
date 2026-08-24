@@ -35,6 +35,10 @@ function(vmpc_stage_android_java_sources juce_source_dir raw_keyboard_source_dir
       "Failed to lock Android Java staging directory for ${_variant}: ${_lock_result}")
   endif()
 
+  # file(COPY) does not remove files that disappeared from a source tree.
+  # Recreate the variant directory so incremental builds cannot compile stale
+  # Java sources from a dependency.
+  file(REMOVE_RECURSE "${_output_dir}")
   file(MAKE_DIRECTORY "${_output_dir}")
   foreach(_source_root IN LISTS _source_roots)
     file(COPY "${_source_root}/" DESTINATION "${_output_dir}")

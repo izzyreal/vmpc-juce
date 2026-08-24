@@ -103,9 +103,7 @@ pipelines:
         artifacts:
           - dist/VMPC2000XL-android-arm64-debug.apk
           - dist/VMPC2000XL-android-arm64-release.aab
-          - dist/VMPC2000XL-android-arm64-universal.apks
           - dist/android-lint-results.html
-          - dist/android-lint-results.txt
           - dist/version-android.txt
         caches:
           - id: fetchcontent
@@ -126,9 +124,9 @@ pipelines:
           - name: Validate debug APK
             run: ./ci/android/run-in-container.sh sh -c 'aapt2 dump badging android/app/build/outputs/apk/debug/app-debug.apk >/dev/null && zipinfo -1 android/app/build/outputs/apk/debug/app-debug.apk | grep -q "^lib/arm64-v8a/libjuce_jni.so$" && ! zipinfo -1 android/app/build/outputs/apk/debug/app-debug.apk | grep -q "^lib/x86"'
           - name: Validate release bundle
-            run: ./ci/android/run-in-container.sh sh -c 'zipinfo -1 android/app/build/outputs/bundle/release/app-release.aab | grep -q "^base/lib/arm64-v8a/libjuce_jni.so$" && zipinfo -1 android/app/build/outputs/bundle/release/app-release.aab | grep -q "^BUNDLE-METADATA/com.android.tools.build.debugsymbols/arm64-v8a/libjuce_jni.so.dbg$" && ! zipinfo -1 android/app/build/outputs/bundle/release/app-release.aab | grep -q "^base/lib/x86" && java -jar /opt/android-tools/bundletool.jar build-apks --bundle android/app/build/outputs/bundle/release/app-release.aab --output dist/VMPC2000XL-android-arm64-universal.apks --mode universal --overwrite'
+            run: ./ci/android/run-in-container.sh sh -c 'zipinfo -1 android/app/build/outputs/bundle/release/app-release.aab | grep -q "^base/lib/arm64-v8a/libjuce_jni.so$" && zipinfo -1 android/app/build/outputs/bundle/release/app-release.aab | grep -q "^BUNDLE-METADATA/com.android.tools.build.debugsymbols/arm64-v8a/libjuce_jni.so.dbg$" && ! zipinfo -1 android/app/build/outputs/bundle/release/app-release.aab | grep -q "^base/lib/x86" && java -jar /opt/android-tools/bundletool.jar build-apks --bundle android/app/build/outputs/bundle/release/app-release.aab --output /tmp/VMPC2000XL-android-arm64-universal.apks --mode universal --overwrite && zipinfo -1 /tmp/VMPC2000XL-android-arm64-universal.apks | grep -q "^universal.apk$"'
           - name: Collect Android artifacts
-            run: cp android/app/build/outputs/apk/debug/app-debug.apk dist/VMPC2000XL-android-arm64-debug.apk && cp android/app/build/outputs/bundle/release/app-release.aab dist/VMPC2000XL-android-arm64-release.aab && cp android/app/build/reports/lint-results-debug.html dist/android-lint-results.html && cp android/app/build/reports/lint-results-debug.txt dist/android-lint-results.txt && cp VERSION dist/version-android.txt
+            run: cp android/app/build/outputs/apk/debug/app-debug.apk dist/VMPC2000XL-android-arm64-debug.apk && cp android/app/build/outputs/bundle/release/app-release.aab dist/VMPC2000XL-android-arm64-release.aab && cp android/app/build/reports/lint-results-debug.html dist/android-lint-results.html && cp VERSION dist/version-android.txt
 
       - id: linux-offline-build-check
         runs_on:

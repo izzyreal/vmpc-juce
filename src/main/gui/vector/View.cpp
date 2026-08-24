@@ -143,7 +143,8 @@ View::View(mpc::Mpc &mpcToUse,
         wrapperType ==
         juce::AudioProcessor::WrapperType::wrapperType_AudioUnitv3;
 
-    keyboard = KeyboardFactory::instance(shouldSynthesizeKeyRepeatsForSomeKeys);
+    keyboard = KeyboardFactory::instance(
+        this, shouldSynthesizeKeyRepeatsForSomeKeys);
 
     focusHelper = new focus::FocusHelper(
         [clientEventController = mpc.clientEventController,
