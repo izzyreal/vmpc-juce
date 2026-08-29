@@ -56,6 +56,7 @@ namespace vmpc_juce::gui::mobile
         void importFiles();
         void importAndroidFiles();
         void importAndroidDirectory();
+        void defer(std::function<void()>);
         void collectAndroidDocument(const juce::AndroidDocument &,
                                     const juce::String &relativeDirectory);
         void beginAndroidImport();
@@ -65,6 +66,21 @@ namespace vmpc_juce::gui::mobile
         void refreshDiskFileList();
 
         void showExportOptions();
+        void saveCurrentProject();
+        void saveSelectedFileOrDirectory();
+        void saveFile(const juce::File &);
+        void saveDirectory(const juce::File &,
+                           const juce::String &destinationName);
+        bool copyDirectoryToDocument(const juce::File &source,
+                                     const juce::AndroidDocument &destination,
+                                     int &filesCopied);
+        bool copyFileToDocument(const juce::File &source,
+                                const juce::AndroidDocument &destination);
+        juce::AndroidDocument
+        createUniqueChildDirectory(const juce::AndroidDocument &parent,
+                                   const juce::String &requestedName,
+                                   juce::String &createdName);
+        juce::File prepareCurrentProject(const juce::String &failureTitle);
         void shareCurrentProject();
         void shareSelectedFileOrDirectory();
         void shareRecordingDirectory(const juce::File &);
@@ -75,6 +91,8 @@ namespace vmpc_juce::gui::mobile
         void showRecordingManager();
         void closeRecordingManager();
         void showError(const juce::String &title, const juce::String &message);
+        void showSuccess(const juce::String &title,
+                         const juce::String &message);
 
         mpc::Mpc &mpc;
         juce::Component &parent;

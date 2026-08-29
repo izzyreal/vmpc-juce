@@ -637,7 +637,7 @@ namespace vmpc_juce::gui::vector
             }
             else if (icon == exportIcon)
             {
-                tooltipText = "Export";
+                tooltipText = "Export / Share";
             }
             else if (icon == folderIcon)
             {

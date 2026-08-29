@@ -1,4 +1,5 @@
 #include "gui/mobile/MobileFileWorkflow.hpp"
+#include "gui/mobile/MobileFileWorkflowUtil.hpp"
 
 #include "gui/mobile/RecordingManager.hpp"
 #include "gui/ios/ImportDocumentUrlProcessor.hpp"
@@ -13,8 +14,6 @@
 #include "lcdgui/screens/LoadScreen.hpp"
 #include "sampler/Sampler.hpp"
 
-#include <algorithm>
-
 #if JUCE_IOS
 void doOpenIosImportDocumentBrowser(
     vmpc_juce::gui::ios::ImportDocumentUrlProcessor *,
@@ -27,18 +26,25 @@ namespace
 {
 #if JUCE_ANDROID
     constexpr auto supportedPatterns =
-        "*.wav;*.WAV;*.snd;*.SND;*.aps;*.APS;*.pgm;*.PGM;*.all;*.ALL;*.mid;*.MID";
+        "*.wav;*.WAV;*.snd;*.SND;*.aps;*.APS;*.pgm;*.PGM;*.all;*.ALL;*.mid;*."
+        "MID";
 
-    bool hasSupportedExtension(const juce::String &name)
+    juce::String mimeTypeForFile(const juce::File &file)
     {
-        static const juce::StringArray extensions{
-            ".wav", ".snd", ".aps", ".pgm", ".all", ".mid"};
-        const auto lower = name.toLowerCase();
-        return std::any_of(extensions.begin(), extensions.end(),
-                           [&](const auto &extension)
-                           {
-                               return lower.endsWith(extension);
-                           });
+        const auto extension = file.getFileExtension().toLowerCase();
+        if (extension == ".wav")
+        {
+            return "audio/wav";
+        }
+        if (extension == ".mid")
+        {
+            return "audio/midi";
+        }
+        if (extension == ".zip")
+        {
+            return "application/zip";
+        }
+        return "application/octet-stream";
     }
 #endif
 
@@ -69,10 +75,11 @@ MobileFileWorkflow::MobileFileWorkflow(
     iosImportProcessor->mpc = &mpc;
 #endif
 
-    const auto shareRoot = juce::File::getSpecialLocation(
-                               juce::File::tempDirectory)
-                               .getChildFile("VMPC2000XL-shares");
-    const auto oldest = juce::Time::getCurrentTime() - juce::RelativeTime::days(7);
+    const auto shareRoot =
+        juce::File::getSpecialLocation(juce::File::tempDirectory)
+            .getChildFile("VMPC2000XL-shares");
+    const auto oldest =
+        juce::Time::getCurrentTime() - juce::RelativeTime::days(7);
     for (const auto &entry :
          shareRoot.findChildFiles(juce::File::findDirectories, false))
     {
@@ -91,8 +98,8 @@ MobileFileWorkflow::~MobileFileWorkflow()
     shareSession.close();
 }
 
-MobileMenuActions MobileFileWorkflow::makeMenuActions(
-    std::function<void()> togglePhoneFullscreen)
+MobileMenuActions
+MobileFileWorkflow::makeMenuActions(std::function<void()> togglePhoneFullscreen)
 {
     MobileMenuActions result;
     result.importFiles = [this]
@@ -119,6 +126,19 @@ void MobileFileWorkflow::resized()
     }
 }
 
+void MobileFileWorkflow::defer(std::function<void()> deferredAction)
+{
+    const std::weak_ptr<int> weakLifetime(lifetime);
+    juce::MessageManager::callAsync(
+        [weakLifetime, callback = std::move(deferredAction)]
+        {
+            if (!weakLifetime.expired())
+            {
+                callback();
+            }
+        });
+}
+
 void MobileFileWorkflow::importFiles()
 {
 #if JUCE_IOS
@@ -141,11 +161,19 @@ void MobileFileWorkflow::importFiles()
                            }
                            if (result == 1)
                            {
-                               importAndroidFiles();
+                               defer(
+                                   [this]
+                                   {
+                                       importAndroidFiles();
+                                   });
                            }
                            else if (result == 2)
                            {
-                               importAndroidDirectory();
+                               defer(
+                                   [this]
+                                   {
+                                       importAndroidDirectory();
+                                   });
                            }
                        });
 #endif
@@ -161,22 +189,32 @@ void MobileFileWorkflow::importAndroidFiles()
                        juce::FileBrowserComponent::canSelectFiles |
                        juce::FileBrowserComponent::canSelectMultipleItems;
     const std::weak_ptr<int> weakLifetime(lifetime);
-    fileChooser->launchAsync(flags, [this, weakLifetime](const auto &chooser)
-                             {
-                                 if (weakLifetime.expired())
-                                 {
-                                     return;
-                                 }
-                                 pendingImports.clear();
-                                 for (const auto &url : chooser.getURLResults())
-                                 {
-                                     collectAndroidDocument(
-                                         juce::AndroidDocument::fromDocument(
-                                             url),
-                                         {});
-                                 }
-                                 beginAndroidImport();
-                             });
+    fileChooser->launchAsync(
+        flags,
+        [this, weakLifetime](const auto &chooser)
+        {
+            if (weakLifetime.expired())
+            {
+                return;
+            }
+            const auto urls = chooser.getURLResults();
+            defer(
+                [this, urls]
+                {
+                    fileChooser.reset();
+                    if (urls.isEmpty())
+                    {
+                        return;
+                    }
+                    pendingImports.clear();
+                    for (const auto &url : urls)
+                    {
+                        collectAndroidDocument(
+                            juce::AndroidDocument::fromDocument(url), {});
+                    }
+                    beginAndroidImport();
+                });
+        });
 #endif
 }
 
@@ -188,20 +226,29 @@ void MobileFileWorkflow::importAndroidDirectory()
     const auto flags = juce::FileBrowserComponent::openMode |
                        juce::FileBrowserComponent::canSelectDirectories;
     const std::weak_ptr<int> weakLifetime(lifetime);
-    fileChooser->launchAsync(flags, [this, weakLifetime](const auto &chooser)
-                             {
-                                 if (weakLifetime.expired() ||
-                                     chooser.getURLResults().isEmpty())
-                                 {
-                                     return;
-                                 }
-                                 pendingImports.clear();
-                                 collectAndroidDocument(
-                                     juce::AndroidDocument::fromTree(
-                                         chooser.getURLResult()),
-                                     {});
-                                 beginAndroidImport();
-                             });
+    fileChooser->launchAsync(
+        flags,
+        [this, weakLifetime](const auto &chooser)
+        {
+            if (weakLifetime.expired())
+            {
+                return;
+            }
+            const auto urls = chooser.getURLResults();
+            defer(
+                [this, urls]
+                {
+                    fileChooser.reset();
+                    if (urls.isEmpty())
+                    {
+                        return;
+                    }
+                    pendingImports.clear();
+                    collectAndroidDocument(
+                        juce::AndroidDocument::fromTree(urls.getFirst()), {});
+                    beginAndroidImport();
+                });
+        });
 #endif
 }
 
@@ -217,7 +264,7 @@ void MobileFileWorkflow::collectAndroidDocument(
     const auto info = document.getInfo();
     if (info.isFile())
     {
-        if (info.canRead() && hasSupportedExtension(info.getName()))
+        if (info.canRead() && hasSupportedMpcFileExtension(info.getName()))
         {
             pendingImports.push_back(
                 {document, relativeDirectory, info.getName()});
@@ -252,7 +299,6 @@ void MobileFileWorkflow::collectAndroidDocument(
 
 void MobileFileWorkflow::beginAndroidImport()
 {
-    fileChooser.reset();
     nextImport = 0;
     importedCount = skippedCount = failedCount = 0;
     existingFilePolicy = ExistingFilePolicy::ask;
@@ -309,24 +355,28 @@ void MobileFileWorkflow::processNextAndroidImport()
             {
                 return;
             }
-            if (result == 1 || result == 3)
-            {
-                if (result == 3)
+            defer(
+                [this, result]
                 {
-                    existingFilePolicy = ExistingFilePolicy::replaceAll;
-                }
-                copyCurrentAndroidImport();
-            }
-            else
-            {
-                if (result == 4)
-                {
-                    existingFilePolicy = ExistingFilePolicy::skipAll;
-                }
-                ++skippedCount;
-                ++nextImport;
-                processNextAndroidImport();
-            }
+                    if (result == 1 || result == 3)
+                    {
+                        if (result == 3)
+                        {
+                            existingFilePolicy = ExistingFilePolicy::replaceAll;
+                        }
+                        copyCurrentAndroidImport();
+                    }
+                    else
+                    {
+                        if (result == 4)
+                        {
+                            existingFilePolicy = ExistingFilePolicy::skipAll;
+                        }
+                        ++skippedCount;
+                        ++nextImport;
+                        processNextAndroidImport();
+                    }
+                });
         });
 #endif
 }
@@ -404,12 +454,25 @@ void MobileFileWorkflow::refreshDiskFileList()
 void MobileFileWorkflow::showExportOptions()
 {
     juce::PopupMenu menu;
+#if JUCE_ANDROID
+    menu.addItem(1, "Save current project to Files...");
+
+    const auto selected = mpc.screens->get<mpc::lcdgui::ScreenId::LoadScreen>()
+                              ->getSelectedFile();
+    menu.addItem(2, "Save selected file or folder...", selected != nullptr);
+    menu.addSeparator();
+    menu.addItem(3, "Share current project...");
+    menu.addItem(4, "Share selected file or folder...", selected != nullptr);
+    menu.addSeparator();
+    menu.addItem(5, "Recording Manager");
+#else
     menu.addItem(1, "Share current project");
 
-    const auto selected =
-        mpc.screens->get<mpc::lcdgui::ScreenId::LoadScreen>()->getSelectedFile();
+    const auto selected = mpc.screens->get<mpc::lcdgui::ScreenId::LoadScreen>()
+                              ->getSelectedFile();
     menu.addItem(2, "Share selected file or directory", selected != nullptr);
     menu.addItem(3, "Open Recording Manager");
+#endif
     const std::weak_ptr<int> weakLifetime(lifetime);
     menu.showMenuAsync(juce::PopupMenu::Options().withParentComponent(&parent),
                        [this, weakLifetime](const int result)
@@ -418,57 +481,366 @@ void MobileFileWorkflow::showExportOptions()
                            {
                                return;
                            }
+#if JUCE_ANDROID
                            if (result == 1)
                            {
-                               shareCurrentProject();
+                               defer(
+                                   [this]
+                                   {
+                                       saveCurrentProject();
+                                   });
                            }
                            else if (result == 2)
                            {
-                               shareSelectedFileOrDirectory();
+                               defer(
+                                   [this]
+                                   {
+                                       saveSelectedFileOrDirectory();
+                                   });
                            }
                            else if (result == 3)
                            {
-                               showRecordingManager();
+                               defer(
+                                   [this]
+                                   {
+                                       shareCurrentProject();
+                                   });
                            }
+                           else if (result == 4)
+                           {
+                               defer(
+                                   [this]
+                                   {
+                                       shareSelectedFileOrDirectory();
+                                   });
+                           }
+                           else if (result == 5)
+                           {
+                               defer(
+                                   [this]
+                                   {
+                                       showRecordingManager();
+                                   });
+                           }
+#else
+                           if (result == 1)
+                           {
+                               defer([this]
+                                     {
+                                         shareCurrentProject();
+                                     });
+                           }
+                           else if (result == 2)
+                           {
+                               defer([this]
+                                     {
+                                         shareSelectedFileOrDirectory();
+                                     });
+                           }
+                           else if (result == 3)
+                           {
+                               defer([this]
+                                     {
+                                         showRecordingManager();
+                                     });
+                           }
+#endif
                        });
 }
 
-void MobileFileWorkflow::shareCurrentProject()
+juce::File
+MobileFileWorkflow::prepareCurrentProject(const juce::String &failureTitle)
 {
     auto directory = createShareDirectory("project");
-    juce::Array<juce::File> files;
 
     const auto aps = directory.getChildFile("ALL_PGMS.APS");
     const auto all = directory.getChildFile("ALL_SEQS.ALL");
     if (!writeBytes(aps, mpc::file::kaitai::ApsIo::save(mpc, "ALL_PGMS")) ||
         !writeBytes(all, mpc::file::kaitai::AllIo::save(mpc)))
     {
-        showError("Share failed", "The project files could not be created.");
-        return;
+        directory.deleteRecursively();
+        showError(failureTitle, "The project files could not be created.");
+        return {};
     }
-    files.add(aps);
-    files.add(all);
 
     for (const auto &sound : mpc.getSampler()->getSounds())
     {
-        const auto filename = juce::File::createLegalFileName(
-                                  juce::String(sound->getName()).toUpperCase()) +
-                              ".SND";
+        const auto filename =
+            juce::File::createLegalFileName(
+                juce::String(sound->getName()).toUpperCase()) +
+            ".SND";
         const auto file = directory.getChildFile(filename);
         if (!writeBytes(file, mpc::file::kaitai::SndIo::saveSound(*sound)))
         {
-            showError("Share failed", "A sound file could not be created.");
-            return;
+            directory.deleteRecursively();
+            showError(failureTitle, "A sound file could not be created.");
+            return {};
         }
-        files.add(file);
     }
-    shareFiles(files);
+    return directory;
+}
+
+void MobileFileWorkflow::saveCurrentProject()
+{
+#if JUCE_ANDROID
+    const auto directory = prepareCurrentProject("Export failed");
+    if (directory == juce::File{})
+    {
+        return;
+    }
+    saveDirectory(directory,
+                  "VMPC2000XL Project " +
+                      juce::Time::getCurrentTime().formatted("%Y%m%d-%H%M%S"));
+#endif
+}
+
+void MobileFileWorkflow::saveSelectedFileOrDirectory()
+{
+#if JUCE_ANDROID
+    const auto selected = mpc.screens->get<mpc::lcdgui::ScreenId::LoadScreen>()
+                              ->getSelectedFile();
+    if (selected == nullptr)
+    {
+        showError("Nothing selected", "Select a file or directory first.");
+        return;
+    }
+
+    const auto selectedFile = asJuceFile(selected->getPath());
+    if (selected->isDirectory())
+    {
+        saveDirectory(selectedFile, selectedFile.getFileName());
+    }
+    else
+    {
+        saveFile(selectedFile);
+    }
+#endif
+}
+
+void MobileFileWorkflow::saveFile(const juce::File &source)
+{
+#if JUCE_ANDROID
+    fileChooser = std::make_unique<juce::FileChooser>(
+        "Save " + source.getFileName(), source, "*" + source.getFileExtension(),
+        true, false, &parent);
+    const auto flags = juce::FileBrowserComponent::saveMode |
+                       juce::FileBrowserComponent::canSelectFiles |
+                       juce::FileBrowserComponent::warnAboutOverwriting;
+    const std::weak_ptr<int> weakLifetime(lifetime);
+    fileChooser->launchAsync(
+        flags,
+        [this, weakLifetime, source](const auto &chooser)
+        {
+            if (weakLifetime.expired())
+            {
+                return;
+            }
+            const auto urls = chooser.getURLResults();
+            defer(
+                [this, source, urls]
+                {
+                    fileChooser.reset();
+                    if (urls.isEmpty())
+                    {
+                        return;
+                    }
+                    auto destination =
+                        juce::AndroidDocument::fromDocument(urls.getFirst());
+                    if (!destination.hasValue() ||
+                        !copyFileToDocument(source, destination))
+                    {
+                        showError("Export failed",
+                                  "The selected file could "
+                                  "not be saved.");
+                        return;
+                    }
+                    const auto name = destination.getInfo().getName();
+                    showSuccess(
+                        "Export complete",
+                        "Saved " +
+                            (name.isNotEmpty() ? name : source.getFileName()) +
+                            ".");
+                });
+        });
+#else
+    juce::ignoreUnused(source);
+#endif
+}
+
+void MobileFileWorkflow::saveDirectory(const juce::File &source,
+                                       const juce::String &destinationName)
+{
+#if JUCE_ANDROID
+    fileChooser = std::make_unique<juce::FileChooser>(
+        "Choose an export destination", juce::File{}, "*", true, false,
+        &parent);
+    const auto flags = juce::FileBrowserComponent::openMode |
+                       juce::FileBrowserComponent::canSelectDirectories;
+    const std::weak_ptr<int> weakLifetime(lifetime);
+    fileChooser->launchAsync(
+        flags,
+        [this, weakLifetime, source, destinationName](const auto &chooser)
+        {
+            if (weakLifetime.expired())
+            {
+                return;
+            }
+            const auto urls = chooser.getURLResults();
+            defer(
+                [this, source, destinationName, urls]
+                {
+                    fileChooser.reset();
+                    if (urls.isEmpty())
+                    {
+                        return;
+                    }
+                    const auto parentDocument =
+                        juce::AndroidDocument::fromTree(urls.getFirst());
+                    juce::String createdName;
+                    const auto destination = createUniqueChildDirectory(
+                        parentDocument, destinationName, createdName);
+                    if (!destination.hasValue())
+                    {
+                        showError("Export failed",
+                                  "A destination folder "
+                                  "could not be created.");
+                        return;
+                    }
+
+                    int filesCopied = 0;
+                    if (!copyDirectoryToDocument(source, destination,
+                                                 filesCopied))
+                    {
+                        destination.deleteDocument();
+                        showError("Export failed",
+                                  "The folder could not be "
+                                  "saved completely.");
+                        return;
+                    }
+
+                    showSuccess(
+                        "Export complete",
+                        "Saved " + juce::String(filesCopied) +
+                            (filesCopied == 1 ? " file to " : " files to ") +
+                            createdName + ".");
+                });
+        });
+#else
+    juce::ignoreUnused(source, destinationName);
+#endif
+}
+
+juce::AndroidDocument MobileFileWorkflow::createUniqueChildDirectory(
+    const juce::AndroidDocument &parentDocument,
+    const juce::String &requestedName, juce::String &createdName)
+{
+#if JUCE_ANDROID
+    if (!parentDocument.hasValue() ||
+        !parentDocument.getInfo().canCreateChildren())
+    {
+        return {};
+    }
+
+    juce::StringArray existingNames;
+    for (auto iterator =
+             juce::AndroidDocumentIterator::makeNonRecursive(parentDocument);
+         iterator != juce::AndroidDocumentIterator{}; ++iterator)
+    {
+        existingNames.add((*iterator).getInfo().getName());
+    }
+
+    createdName = makeUniqueDocumentName(requestedName, existingNames);
+    return parentDocument.createChildDirectory(createdName);
+#else
+    juce::ignoreUnused(parentDocument, requestedName, createdName);
+    return {};
+#endif
+}
+
+bool MobileFileWorkflow::copyDirectoryToDocument(
+    const juce::File &source, const juce::AndroidDocument &destination,
+    int &filesCopied)
+{
+#if JUCE_ANDROID
+    for (const auto &child :
+         source.findChildFiles(juce::File::findFilesAndDirectories, false, "*"))
+    {
+        if (child.isDirectory())
+        {
+            const auto childDestination =
+                destination.createChildDirectory(child.getFileName());
+            if (!childDestination.hasValue() ||
+                !copyDirectoryToDocument(child, childDestination, filesCopied))
+            {
+                return false;
+            }
+            continue;
+        }
+
+        const auto childDestination =
+            destination.createChildDocumentWithTypeAndName(
+                mimeTypeForFile(child), child.getFileName());
+        if (!childDestination.hasValue() ||
+            !copyFileToDocument(child, childDestination))
+        {
+            if (childDestination.hasValue())
+            {
+                childDestination.deleteDocument();
+            }
+            return false;
+        }
+        ++filesCopied;
+    }
+    return true;
+#else
+    juce::ignoreUnused(source, destination, filesCopied);
+    return false;
+#endif
+}
+
+bool MobileFileWorkflow::copyFileToDocument(
+    const juce::File &source, const juce::AndroidDocument &destination)
+{
+#if JUCE_ANDROID
+    auto input = source.createInputStream();
+    auto output = destination.createOutputStream();
+    if (input == nullptr || output == nullptr)
+    {
+        return false;
+    }
+
+    const auto sourceSize = source.getSize();
+    const auto bytesWritten = output->writeFromInputStream(*input, -1);
+    output->flush();
+    output.reset();
+    if (bytesWritten != sourceSize)
+    {
+        return false;
+    }
+
+    const auto destinationInfo = destination.getInfo();
+    return !destinationInfo.isSizeInBytesValid() ||
+           destinationInfo.getSizeInBytes() == sourceSize;
+#else
+    juce::ignoreUnused(source, destination);
+    return false;
+#endif
+}
+
+void MobileFileWorkflow::shareCurrentProject()
+{
+    const auto directory = prepareCurrentProject("Share failed");
+    if (directory == juce::File{})
+    {
+        return;
+    }
+    shareFiles(directory.findChildFiles(juce::File::findFiles, false, "*"));
 }
 
 void MobileFileWorkflow::shareSelectedFileOrDirectory()
 {
-    const auto selected =
-        mpc.screens->get<mpc::lcdgui::ScreenId::LoadScreen>()->getSelectedFile();
+    const auto selected = mpc.screens->get<mpc::lcdgui::ScreenId::LoadScreen>()
+                              ->getSelectedFile();
     if (selected == nullptr)
     {
         showError("Nothing selected", "Select a file or directory first.");
@@ -487,7 +859,8 @@ void MobileFileWorkflow::shareSelectedFileOrDirectory()
         shareDirectory.getChildFile(selectedFile.getFileName() + ".zip"));
     if (zip == juce::File{})
     {
-        showError("Share failed", "The selected directory could not be zipped.");
+        showError("Share failed",
+                  "The selected directory could not be zipped.");
         return;
     }
     shareFiles({zip});
@@ -523,22 +896,35 @@ void MobileFileWorkflow::shareFiles(const juce::Array<juce::File> &files)
         return;
     }
 
-    shareSession.close();
-    const std::weak_ptr<int> weakLifetime(lifetime);
-    shareSession = juce::ContentSharer::shareFilesScoped(
-        urls,
-        [this, weakLifetime](const bool success, const juce::String &error)
+    defer(
+        [this, urls]
         {
-            if (!weakLifetime.expired() && !success && error.isNotEmpty())
-            {
-                showError("Share failed", error);
-            }
-        },
-        &parent);
+            shareSession.close();
+            const std::weak_ptr<int> weakLifetime(lifetime);
+            shareSession = juce::ContentSharer::shareFilesScoped(
+                urls,
+                [this, weakLifetime](const bool success,
+                                     const juce::String &error)
+                {
+                    juce::MessageManager::callAsync(
+                        [this, weakLifetime, success, error]
+                        {
+                            if (weakLifetime.expired())
+                            {
+                                return;
+                            }
+                            shareSession.close();
+                            if (!success && error.isNotEmpty())
+                            {
+                                showError("Share failed", error);
+                            }
+                        });
+                },
+                &parent);
+        });
 }
 
-juce::File
-MobileFileWorkflow::createShareDirectory(const juce::String &stem)
+juce::File MobileFileWorkflow::createShareDirectory(const juce::String &stem)
 {
     auto root = juce::File::getSpecialLocation(juce::File::tempDirectory)
                     .getChildFile("VMPC2000XL-shares");
@@ -612,4 +998,12 @@ void MobileFileWorkflow::showError(const juce::String &title,
     MLOG(title.toStdString() + ": " + message.toStdString());
     juce::NativeMessageBox::showMessageBoxAsync(
         juce::MessageBoxIconType::WarningIcon, title, message, &parent);
+}
+
+void MobileFileWorkflow::showSuccess(const juce::String &title,
+                                     const juce::String &message)
+{
+    MLOG(title.toStdString() + ": " + message.toStdString());
+    juce::NativeMessageBox::showMessageBoxAsync(
+        juce::MessageBoxIconType::InfoIcon, title, message, &parent);
 }
