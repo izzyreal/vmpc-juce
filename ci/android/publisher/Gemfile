@@ -1,0 +1,6 @@
+source "https://rubygems.org"
+
+gem "fastlane", "2.235.0"
+# Required at runtime by Fastlane's Google API client, but omitted from its
+# current transitive dependency declarations.
+gem "multi_json", "1.19.1"
