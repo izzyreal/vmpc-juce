@@ -86,7 +86,7 @@ set(VMPC_MELATONIN_BLUR_REF "main")
 set(VMPC_RAW_KBD_REPO "https://github.com/izzyreal/juce-raw-keyboard-input-module.git")
 set(VMPC_RAW_KBD_REF "external-focus-provider")
 set(VMPC_MPC_REPO "https://github.com/izzyreal/mpc.git")
-set(VMPC_MPC_REF "android")
+set(VMPC_MPC_REF "master")
 
 if(NOT DEFINED FETCHCONTENT_CACHE_ROOT OR "${FETCHCONTENT_CACHE_ROOT}" STREQUAL "")
   if(DEFINED VMPC_FETCHCONTENT_SOURCES_DIR AND NOT "${VMPC_FETCHCONTENT_SOURCES_DIR}" STREQUAL "")
