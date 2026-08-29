@@ -520,6 +520,97 @@ pipelines:
     jobs:
       - *android_arm64_job
 
+  - id: sign-android
+    trigger: manual
+    depends_on:
+      - android
+    jobs:
+      - id: android-sign
+        artifact_sources:
+          - pipeline: android
+            job: android-arm64
+        runs_on:
+          executor: script
+          shell: posix
+          os: linux
+          arch: amd64
+          container_image: eclipse-temurin:17-jdk-alpine@sha256:0bd5d65efad5c8d9f8d8e6573aa5c8851237550605ff18ff78fee5810c2ebe25
+        requires:
+          tools:
+            docker: "*"
+        timeout_seconds: 600
+        artifacts:
+          - dist/VMPC2000XL-android-arm64-release-signed.aab
+          - dist/version-android.txt
+        steps:
+          - name: Verify Android signing inputs
+            run: test -f dist/VMPC2000XL-android-arm64-release.aab
+          - name: Sign and verify release bundle
+            run: |
+              set +x
+              set -eu
+              export PATH="/opt/java/openjdk/bin:$PATH"
+
+              : "${VMPC_ANDROID_UPLOAD_KEYSTORE_BASE64:?VMPC_ANDROID_UPLOAD_KEYSTORE_BASE64 is required}"
+              : "${VMPC_ANDROID_STORE_PASSWORD:?VMPC_ANDROID_STORE_PASSWORD is required}"
+              : "${VMPC_ANDROID_KEY_PASSWORD:?VMPC_ANDROID_KEY_PASSWORD is required}"
+
+              unsigned_bundle="dist/VMPC2000XL-android-arm64-release.aab"
+              signed_bundle="dist/VMPC2000XL-android-arm64-release-signed.aab"
+              key_alias="vmpc-upload"
+              expected_fingerprint="4e93ec98167e9102880079797ff80ca61d57542d455064a8243adf10ce371618"
+              keystore="$(mktemp)"
+
+              cleanup() {
+                rm -f "$keystore"
+              }
+              trap cleanup EXIT HUP INT TERM
+
+              printf '%s' "$VMPC_ANDROID_UPLOAD_KEYSTORE_BASE64" | base64 -d > "$keystore"
+              actual_fingerprint="$(
+                keytool -exportcert \
+                  -keystore "$keystore" \
+                  -storepass:env VMPC_ANDROID_STORE_PASSWORD \
+                  -alias "$key_alias" \
+                  | sha256sum \
+                  | cut -d ' ' -f 1
+              )"
+
+              if [ "$actual_fingerprint" != "$expected_fingerprint" ]; then
+                echo "Upload certificate fingerprint mismatch" >&2
+                exit 1
+              fi
+
+              cp "$unsigned_bundle" "$signed_bundle"
+              jarsigner \
+                -keystore "$keystore" \
+                -storepass:env VMPC_ANDROID_STORE_PASSWORD \
+                -keypass:env VMPC_ANDROID_KEY_PASSWORD \
+                -sigalg SHA256withRSA \
+                -digestalg SHA-256 \
+                "$signed_bundle" \
+                "$key_alias"
+              jarsigner -verify "$signed_bundle"
+            vault:
+              connection: home-vault
+              secrets:
+                - name: android-upload-keystore-base64
+                  mount: kv
+                  path: google-play
+                  key: upload-keystore-base64
+                - name: android-upload-keystore-password
+                  mount: kv
+                  path: google-play
+                  key: upload-keystore-password
+                - name: android-upload-key-password
+                  mount: kv
+                  path: google-play
+                  key: upload-key-password
+            env:
+              VMPC_ANDROID_UPLOAD_KEYSTORE_BASE64: "{{ secret.android-upload-keystore-base64 }}"
+              VMPC_ANDROID_STORE_PASSWORD: "{{ secret.android-upload-keystore-password }}"
+              VMPC_ANDROID_KEY_PASSWORD: "{{ secret.android-upload-key-password }}"
+
   - id: codesign-macos
     trigger: manual
     depends_on:
