@@ -7,11 +7,25 @@ set -eu
 bundle_path="dist/VMPC2000XL-android-arm64-release-signed.aab"
 version_path="dist/version-android.txt"
 
-test -f "$bundle_path"
-test -f "$version_path"
+require_nonempty_file() {
+  if [ ! -f "$1" ]; then
+    echo "Missing Android publishing input: $1" >&2
+    return 1
+  fi
+  if [ ! -s "$1" ]; then
+    echo "Empty Android publishing input: $1" >&2
+    return 1
+  fi
+}
+
+require_nonempty_file "$bundle_path"
+require_nonempty_file "$version_path"
 
 version="$(tr -d '\r\n' < "$version_path")"
-test -n "$version"
+if [ -z "$version" ]; then
+  echo "Android publishing input contains no version: $version_path" >&2
+  exit 1
+fi
 
 service_account_json="$(mktemp)"
 cleanup() {

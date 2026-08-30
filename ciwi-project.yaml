@@ -545,7 +545,20 @@ pipelines:
             - dist/version-android.txt
           steps:
             - name: Verify Android signing inputs
-              run: test -f dist/VMPC2000XL-android-arm64-release.aab && test -f dist/version-android.txt
+              run: |
+                require_nonempty_file() {
+                  if [ ! -f "$1" ]; then
+                    echo "Missing Android signing input: $1" >&2
+                    return 1
+                  fi
+                  if [ ! -s "$1" ]; then
+                    echo "Empty Android signing input: $1" >&2
+                    return 1
+                  fi
+                }
+
+                require_nonempty_file dist/VMPC2000XL-android-arm64-release.aab
+                require_nonempty_file dist/version-android.txt
             - name: Sign and verify release bundle
               run: |
                 set +x
@@ -592,7 +605,6 @@ pipelines:
                   "$signed_bundle" \
                   "$key_alias"
                 jarsigner -verify "$signed_bundle"
-              skip_dry_run: true
               vault:
                 connection: home-vault
                 secrets:
@@ -637,7 +649,21 @@ pipelines:
           timeout_seconds: 1200
           steps:
             - name: Verify Android publishing inputs
-              run: test -f ci/android/publisher/publish.sh && test -f dist/VMPC2000XL-android-arm64-release-signed.aab && test -f dist/version-android.txt
+              run: |
+                require_nonempty_file() {
+                  if [ ! -f "$1" ]; then
+                    echo "Missing Android publishing input: $1" >&2
+                    return 1
+                  fi
+                  if [ ! -s "$1" ]; then
+                    echo "Empty Android publishing input: $1" >&2
+                    return 1
+                  fi
+                }
+
+                require_nonempty_file ci/android/publisher/publish.sh
+                require_nonempty_file dist/VMPC2000XL-android-arm64-release-signed.aab
+                require_nonempty_file dist/version-android.txt
             - name: Build Android publisher image
               run: ./ci/android/publisher/build-image.sh
             - name: Publish release to Google Play internal testing
