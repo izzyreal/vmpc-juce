@@ -2,6 +2,8 @@
 #include "VmpcProcessor.hpp"
 
 #include "gui/vector/View.hpp"
+#include "gui/vector/Constants.hpp"
+#include "gui/mobile/SafeArea.hpp"
 
 #include <raw_keyboard_input/raw_keyboard_input.h>
 
@@ -138,8 +140,24 @@ VmpcEditor::~VmpcEditor()
 
 void VmpcEditor::timerCallback()
 {
-    grabKeyboardFocus();
+    if (initialFocusPending)
+    {
+        initialFocusPending = false;
+        grabKeyboardFocus();
+#if JUCE_IOS || JUCE_ANDROID
+        startTimer(100);
+#endif
+    }
+#if JUCE_IOS || JUCE_ANDROID
+    // Safe insets can change without a component resize (e.g. rotating
+    // between landscape orientations or showing system bars).
+    if (getAvailableViewBounds() != availableViewBounds)
+    {
+        resized();
+    }
+#else
     stopTimer();
+#endif
 }
 
 void VmpcEditor::restoreActiveArrangement(
@@ -159,31 +177,74 @@ void VmpcEditor::restoreMenuExpanded(const bool expanded)
     }
 }
 
+juce::Rectangle<int> VmpcEditor::getAvailableViewBounds() const
+{
+#if JUCE_IOS || JUCE_ANDROID
+    if (getPeer() != nullptr)
+    {
+        const auto screenBounds = getScreenBounds();
+        if (const auto *display =
+                juce::Desktop::getInstance().getDisplays().getDisplayForRect(
+                    screenBounds))
+        {
+            const auto safeBounds = gui::mobile::getSafeEditorScreenBounds(
+                screenBounds, display->totalArea, display->safeAreaInsets);
+            return getLocalArea(nullptr, safeBounds)
+                .getIntersection(getLocalBounds());
+        }
+    }
+#endif
+    return getLocalBounds();
+}
+
+void VmpcEditor::moved()
+{
+#if JUCE_IOS || JUCE_ANDROID
+    resized();
+#endif
+}
+
+void VmpcEditor::parentHierarchyChanged()
+{
+#if JUCE_IOS || JUCE_ANDROID
+    resized();
+#endif
+}
+
+void VmpcEditor::paint(juce::Graphics &g)
+{
+#if JUCE_IOS || JUCE_ANDROID
+    g.fillAll(Constants::chassisColour);
+#else
+    juce::ignoreUnused(g);
+#endif
+}
+
 void VmpcEditor::resized()
 {
+    if (view == nullptr)
+    {
+        return;
+    }
+
+    availableViewBounds = getAvailableViewBounds();
+    if (availableViewBounds.isEmpty())
+    {
+        view->setBounds(availableViewBounds);
+        return;
+    }
+
     if (view->usesPhoneArrangements() &&
         vmpcProcessor.wrapperType ==
             juce::AudioProcessor::WrapperType::wrapperType_Standalone)
     {
-        const auto landscape = getWidth() > getHeight();
-        if (stablePhoneStandaloneViewBounds.isEmpty() ||
-            landscape != stablePhoneLandscape)
-        {
-            stablePhoneLandscape = landscape;
-            stablePhoneStandaloneViewBounds = getLocalBounds();
-        }
-        const auto width =
-            std::min(getWidth(), stablePhoneStandaloneViewBounds.getWidth());
-        const auto height =
-            std::min(getHeight(), stablePhoneStandaloneViewBounds.getHeight());
-        view->setBounds((getWidth() - width) / 2, (getHeight() - height) / 2,
-                        width, height);
+        view->setBounds(availableViewBounds);
         return;
     }
 
     const float viewAspectRatio = view->getAspectRatio();
-    const int parentWidth = getWidth();
-    const int parentHeight = getHeight();
+    const int parentWidth = availableViewBounds.getWidth();
+    const int parentHeight = availableViewBounds.getHeight();
 
     float targetWidth = static_cast<float>(parentWidth);
     float targetHeight = targetWidth / viewAspectRatio;
@@ -199,7 +260,9 @@ void VmpcEditor::resized()
     const int viewOffsetY = static_cast<int>(
         (static_cast<float>(parentHeight) - targetHeight) / 2.f);
 
-    view->setBounds(viewOffsetX, viewOffsetY, static_cast<int>(targetWidth),
+    view->setBounds(availableViewBounds.getX() + viewOffsetX,
+                    availableViewBounds.getY() + viewOffsetY,
+                    static_cast<int>(targetWidth),
                     static_cast<int>(targetHeight));
 }
 

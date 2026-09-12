@@ -77,6 +77,9 @@ namespace vmpc_juce
         }
 
         void resized() override;
+        void moved() override;
+        void parentHierarchyChanged() override;
+        void paint(juce::Graphics &) override;
 
         void restoreActiveArrangement(
             const std::optional<std::string> &arrangementId);
@@ -85,8 +88,10 @@ namespace vmpc_juce
     private:
         VmpcProcessor &vmpcProcessor;
         vmpc_juce::gui::vector::View *view = nullptr;
-        juce::Rectangle<int> stablePhoneStandaloneViewBounds;
-        bool stablePhoneLandscape = false;
+        juce::Rectangle<int> availableViewBounds;
+        bool initialFocusPending = true;
+
+        juce::Rectangle<int> getAvailableViewBounds() const;
 
         VmpcCornerResizerLookAndFeel lookAndFeel;
     };
