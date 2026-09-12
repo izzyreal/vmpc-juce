@@ -236,6 +236,7 @@ void Pad::registerPress(const PressType type,
         p = Press{programPadIndex, velocity, Press::Phase::Immediate, 1.f};
     }
 
+    updatePressedPadSvg();
     mutatedSinceLastPaint = true;
     fadeFrameCounter = 0;
 }
@@ -250,7 +251,7 @@ void Pad::registerAftertouch(const PressType type, const mpc::Pressure pressure)
 void Pad::registerRelease(const PressType type)
 {
     auto &p = pressFor(type);
-    if (!p)
+    if (!p || p->pressCount == 0)
     {
         return;
     }
@@ -263,6 +264,7 @@ void Pad::registerRelease(const PressType type)
     }
 
     p->phase = Press::Phase::Releasing;
+    updatePressedPadSvg();
     mutatedSinceLastPaint = true;
     fadeFrameCounter = 0;
 }
@@ -333,7 +335,8 @@ void Pad::processDecay(std::optional<Press> &press, const bool isPrimary)
 
 void Pad::updatePressedPadSvg()
 {
-    const bool shouldShowPressedPadSvg = primaryPress.has_value();
+    const bool shouldShowPressedPadSvg =
+        primaryPress && primaryPress->pressCount > 0;
 
     if (pressedPadSvgVisible == shouldShowPressedPadSvg)
     {
