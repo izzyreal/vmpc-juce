@@ -6,6 +6,7 @@ set -eu
 
 bundle_path="dist/VMPC2000XL-android-arm64-release-signed.aab"
 version_path="dist/version-android.txt"
+version_code_path="dist/version-code-android.txt"
 
 require_nonempty_file() {
   if [ ! -f "$1" ]; then
@@ -20,10 +21,23 @@ require_nonempty_file() {
 
 require_nonempty_file "$bundle_path"
 require_nonempty_file "$version_path"
+require_nonempty_file "$version_code_path"
 
 version="$(tr -d '\r\n' < "$version_path")"
 if [ -z "$version" ]; then
   echo "Android publishing input contains no version: $version_path" >&2
+  exit 1
+fi
+
+version_code="$(tr -d '\r\n' < "$version_code_path")"
+case "$version_code" in
+  ''|*[!0-9]*)
+    echo "Invalid Android version code in $version_code_path" >&2
+    exit 1
+    ;;
+esac
+if [ "${#version_code}" -gt 10 ] || [ "$version_code" -lt 1 ] || [ "$version_code" -gt 2100000000 ]; then
+  echo "Android version code in $version_code_path is outside 1...2100000000" >&2
   exit 1
 fi
 
@@ -36,7 +50,7 @@ trap cleanup EXIT HUP INT TERM
 printf '%s' "$VMPC_GOOGLE_PLAY_SERVICE_ACCOUNT_JSON_BASE64" \
   | base64 -d > "$service_account_json"
 
-echo "Publishing VMPC2000XL ${version} to the Google Play internal track"
+echo "Publishing VMPC2000XL ${version} (versionCode ${version_code}) to the Google Play internal track"
 
 bundle exec fastlane supply \
   --aab "$bundle_path" \

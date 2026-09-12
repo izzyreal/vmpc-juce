@@ -8,13 +8,8 @@ if (!versionMatch.matches()) {
     throw new GradleException("VERSION must contain major.minor.patch, got '${versionNameFromFile}'")
 }
 
-def versionMajor = versionMatch[0][1] as int
-def versionMinor = versionMatch[0][2] as int
-def versionPatch = versionMatch[0][3] as int
-if (versionMajor > 999 || versionMinor > 999 || versionPatch > 999) {
-    throw new GradleException('Each VERSION component must fit in the range 0...999')
-}
-def versionCodeFromFile = versionMajor * 1_000_000 + versionMinor * 1_000 + versionPatch
+apply from: '../version-code.gradle'
+logger.lifecycle("Android version: ${versionNameFromFile} (${vmpcAndroidVersionCode})")
 
 def signingValue = { String name ->
     providers.environmentVariable(name).orNull ?: providers.gradleProperty(name).orNull
@@ -41,7 +36,7 @@ android {
         applicationId = 'nl.izmar.vmpc2000xl'
         minSdk = 24
         targetSdk = 36
-        versionCode = versionCodeFromFile
+        versionCode = vmpcAndroidVersionCode
         versionName = versionNameFromFile
 
         ndk {

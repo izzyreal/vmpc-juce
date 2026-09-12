@@ -47,6 +47,37 @@ export VMPC_ANDROID_KEY_PASSWORD=...
 
 The AAB is written below `app/build/outputs/bundle/release`.
 
+## Version names and build numbers
+
+The user-facing release `versionName` comes from the root `VERSION` file.
+The integer `versionCode` is generated once per Gradle invocation from whole
+UTC seconds since 2020-01-01. Multiple builds can therefore share the same
+visible version, such as `0.9.18`, while having different Play build numbers.
+Gradle prints both values during configuration. Debug builds retain the
+`-debug` version-name suffix.
+
+To select a code explicitly, set `VMPC_ANDROID_VERSION_CODE` in the environment
+or pass a Gradle property:
+
+```sh
+./gradlew :app:bundleRelease -PVMPC_ANDROID_VERSION_CODE=220000000
+```
+
+The environment variable takes precedence, including when it is empty (which
+is an error). Explicit codes must contain only decimal digits and be in
+`1...2100000000`. For an upload, choose a code higher than the highest one
+already accepted by Play; the example above is not a permanently safe value.
+An explicit override also allows reproducing a build with the same code.
+
+Automatic numbering depends on an accurate system clock. Builds started in
+the same second can share a code. Rebuild in a later second or supply a higher
+override in that case, and upload builds in increasing code order. No Play API
+query or shared counter is involved.
+
+Once Play has accepted an AAB's code, another upload needs a newly built AAB.
+Changing the code at the signing or publishing stage is not supported.
+You can keep `VERSION` unchanged when rebuilding for internal testing.
+
 ## Emulator keyboard input
 
 Set `hw.keyboard=yes` in the AVD configuration and start the emulator with raw

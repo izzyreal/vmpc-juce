@@ -1,0 +1,39 @@
+import java.time.Instant
+import org.gradle.api.GradleException
+import org.gradle.api.provider.ValueSource
+import org.gradle.api.provider.ValueSourceParameters
+
+class AndroidVersionCode {
+    static final long EPOCH_SECONDS = 1577836800L // 2020-01-01T00:00:00Z
+    static final long MAX_CODE = 2100000000L
+
+    static int parse(String value) {
+        if (value == null || !(value ==~ /[0-9]+/)) {
+            throw new GradleException('VMPC_ANDROID_VERSION_CODE must be a decimal integer between 1 and 2100000000')
+        }
+        def code = new BigInteger(value)
+        if (code < BigInteger.ONE || code > BigInteger.valueOf(MAX_CODE)) {
+            throw new GradleException('VMPC_ANDROID_VERSION_CODE must be between 1 and 2100000000')
+        }
+        return code.intValue()
+    }
+
+    static int fromEpochSeconds(long seconds) {
+        return parse(Long.toString(Math.subtractExact(seconds, EPOCH_SECONDS)))
+    }
+}
+
+// Gradle rechecks ValueSource inputs when considering configuration-cache reuse.
+abstract class AndroidBuildTimeSource implements ValueSource<Integer, ValueSourceParameters.None> {
+    @Override
+    Integer obtain() {
+        return AndroidVersionCode.fromEpochSeconds(Instant.now().epochSecond)
+    }
+}
+
+def explicitCode = providers.environmentVariable('VMPC_ANDROID_VERSION_CODE')
+    .orElse(providers.gradleProperty('VMPC_ANDROID_VERSION_CODE'))
+
+ext.vmpcAndroidVersionCode = explicitCode.map { AndroidVersionCode.parse(it) }
+    .orElse(providers.of(AndroidBuildTimeSource) {})
+    .get()

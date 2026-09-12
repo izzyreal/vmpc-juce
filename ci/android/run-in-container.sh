@@ -25,6 +25,7 @@ exec docker run --rm \
     --env CMAKE_C_COMPILER_LAUNCHER=ccache \
     --env CMAKE_CXX_COMPILER_LAUNCHER=ccache \
     --env GRADLE_USER_HOME=/gradle-cache \
+    --env VMPC_ANDROID_VERSION_CODE \
     --volume "$PWD:/work" \
     --volume "$CIWI_FETCHCONTENT_SOURCES_DIR:/ciwi-fetchcontent" \
     --volume "$CCACHE_DIR:/ccache" \

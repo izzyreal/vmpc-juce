@@ -30,6 +30,36 @@ pipelines. The separate pipeline IDs are needed because CIWI artifact sources
 must name their direct upstream pipeline. The full release reuses the Android
 artifact already produced by `build`; it does not run a second Android build.
 
+## Android build numbers
+
+Gradle automatically assigns a `versionCode` using whole UTC seconds since
+2020-01-01, independently of the version name in `VERSION`. To override it,
+set `VMPC_ANDROID_VERSION_CODE` on the Android build job; the container wrapper
+forwards it to Gradle. See `android/README.md` for validation and clock limits.
+
+After building, `collect-version-code.sh` reads the code from the actual AAB
+manifest using bundletool and writes `dist/version-code-android.txt`. The build
+and signing jobs both retain this artifact alongside `dist/version-android.txt`.
+Signing preserves the embedded code, and publishing logs the version name and
+code from those artifacts. Neither stage generates a new code.
+
+To publish another internal-testing binary with the same visible version,
+rerun the Android build, signing, and publishing chain with `VERSION` unchanged.
+Retrying only publishing with the already-uploaded AAB reuses its code and will
+still be rejected. Upload builds in increasing code order. This behavior does
+not alter the full release pipeline's existing semantic-version auto-bump.
+
+Run the focused versioning checks with Python 3 and the Android build's JDK:
+
+```sh
+python3 ci/android/test_versioning.py
+```
+
+These use a temporary SDK-free Gradle project, exercise configuration-cache
+behavior, and mock bundletool, Docker, and Fastlane. They do not build Android
+binaries or contact Play. The Gradle wrapper distribution must already be cached
+because the checks run Gradle offline.
+
 ## Release signing
 
 The build pipelines remain credential-free and publish an unsigned release
