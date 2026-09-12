@@ -1,6 +1,6 @@
 #include "gui/arrangement/PreviewLcd.hpp"
 
-#include "VmpcJuceResourceUtil.hpp"
+#include "MpcResourceUtil.hpp"
 #include "gui/vector/Constants.hpp"
 
 using namespace vmpc_juce::gui::arrangement;
@@ -13,8 +13,10 @@ PreviewLcd::PreviewLcd()
 {
     backlight.setColor(Constants::lcdOffBacklit.brighter().withAlpha(0.4f));
 
-    const auto source =
-        vmpc_juce::VmpcJuceResourceUtil::loadImage("screens/bg/sequencer.png");
+    const auto sourceData =
+        mpc::MpcResourceUtil::get_resource_data("screens/bg/sequencer.png");
+    const auto source = juce::ImageFileFormat::loadFrom(sourceData.data(),
+                                                     sourceData.size());
 
     juce::Graphics imageGraphics(pixels);
     imageGraphics.fillAll(Constants::lcdOff);
