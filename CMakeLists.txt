@@ -118,6 +118,17 @@ if(TARGET nlohmann_json::nlohmann_json AND NOT TARGET nlohmann_json)
   set_property(TARGET nlohmann_json PROPERTY INTERFACE_LINK_LIBRARIES nlohmann_json::nlohmann_json)
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+  # Resolve system libraries against the SDK selected at build time.
+  add_library(ZLIB::ZLIB INTERFACE IMPORTED)
+  set_target_properties(ZLIB::ZLIB PROPERTIES
+    IMPORTED_LIBNAME z)
+
+  add_library(Iconv::Iconv INTERFACE IMPORTED)
+  set_target_properties(Iconv::Iconv PROPERTIES
+    IMPORTED_LIBNAME iconv)
+endif()
+
 message(STATUS "Resolving mpc...")
 FetchContent_MakeAvailable(mpc)
 
