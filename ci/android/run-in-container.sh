@@ -10,7 +10,7 @@ fi
 : "${CCACHE_DIR:?CCACHE_DIR is required}"
 : "${GRADLE_USER_HOME:?GRADLE_USER_HOME is required}"
 
-image_tag="${VMPC_ANDROID_CI_IMAGE:-vmpc-android-ci:api36-ndk28.1-r6}"
+image_tag="${VMPC_ANDROID_CI_IMAGE:-vmpc-android-ci:api36-ndk28.1-r7}"
 
 exec docker run --rm \
     --user "$(id -u):$(id -g)" \

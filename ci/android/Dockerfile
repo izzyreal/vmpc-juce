@@ -16,7 +16,7 @@ ENV ANDROID_HOME=/opt/android-sdk \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates ccache curl g++ git libfreetype6-dev libx11-dev \
-        libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev \
+        libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxi-dev \
         openjdk-17-jdk-headless ninja-build pkg-config unzip zip \
     && rm -rf /var/lib/apt/lists/*
 

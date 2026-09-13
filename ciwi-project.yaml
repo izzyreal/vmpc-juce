@@ -17,7 +17,8 @@ pipelines:
           shell: posix
           os: linux
           arch: amd64
-          container_image: ubuntu-vmpc
+          container_build_context: ci/linux
+          container_platform: linux/amd64
           container_devices: /dev/snd
           container_groups: audio
         requires:
@@ -137,7 +138,8 @@ pipelines:
           shell: posix
           os: linux
           arch: amd64
-          container_image: ubuntu-vmpc
+          container_build_context: ci/linux
+          container_platform: linux/amd64
           container_devices: /dev/snd
           container_groups: audio
         requires:
