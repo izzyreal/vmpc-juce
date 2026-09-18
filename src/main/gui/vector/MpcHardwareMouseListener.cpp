@@ -143,6 +143,21 @@ void MpcHardwareMouseListener::mouseDrag(const juce::MouseEvent &e)
     const float deltaY = previousDragY[e.source.getIndex()] - e.position.getY();
     previousDragY[e.source.getIndex()] = e.position.getY();
 
+    // Rotary drags need both coordinates, including purely horizontal motion
+    // and captured motion outside the component. The core selects the mode.
+    if (auto hostInputEvent = makeAbsoluteGestureFromMouse(
+            e, label, GestureEvent::Type::UPDATE, std::nullopt);
+        hostInputEvent)
+    {
+        auto &gesture = std::get<GestureEvent>(hostInputEvent->payload);
+        if (gesture.movement == GestureEvent::Movement::RotaryDrag)
+        {
+            gesture.continuousDelta = deltaY;
+            mpc.dispatchHostInput(*hostInputEvent);
+            return;
+        }
+    }
+
     if (deltaY != 0.0f)
     {
         if (const auto hostInputEvent = makeRelativeGestureFromMouse(

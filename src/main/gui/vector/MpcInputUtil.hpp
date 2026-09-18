@@ -89,12 +89,18 @@ makeAbsoluteGestureFromMouse(const juce::MouseEvent &e,
         componentId = mpc::hardware::componentLabelToId.at(label);
     }
 
-    const float normY =
-        customNormY.has_value()
-            ? *customNormY
-            : juce::jlimit(0.0f, 1.0f,
-                           (float)e.position.getY() /
-                               (float)e.eventComponent->getHeight());
+    const bool rotary = componentId == mpc::hardware::DATA_WHEEL ||
+                        componentId == mpc::hardware::REC_GAIN_POT ||
+                        componentId == mpc::hardware::MAIN_VOLUME_POT;
+    const float normX =
+        e.position.getX() /
+        static_cast<float>(juce::jmax(1, e.eventComponent->getWidth()));
+    const float pointerNormY =
+        e.position.getY() /
+        static_cast<float>(juce::jmax(1, e.eventComponent->getHeight()));
+    const float normY = customNormY.has_value() ? *customNormY
+                        : rotary                ? pointerNormY
+                                 : juce::jlimit(0.0f, 1.0f, pointerNormY);
 
     const GestureEvent::InputDeviceType deviceType =
         e.source.isPen()     ? GestureEvent::InputDeviceType::Pen
@@ -102,10 +108,12 @@ makeAbsoluteGestureFromMouse(const juce::MouseEvent &e,
                              : GestureEvent::InputDeviceType::Mouse;
 
     return HostInputEvent{
-        GestureEvent{type, GestureEvent::Movement::Absolute, 0.f, normY, 0.f,
-                     e.getNumberOfClicks(), e.source.getIndex(), componentId,
-                     e.mods.isShiftDown(), e.mods.isCtrlDown(),
-                     e.mods.isAltDown(), deviceType}};
+        GestureEvent{type,
+                     rotary ? GestureEvent::Movement::RotaryDrag
+                            : GestureEvent::Movement::Absolute,
+                     normX, normY, 0.f, e.getNumberOfClicks(),
+                     e.source.getIndex(), componentId, e.mods.isShiftDown(),
+                     e.mods.isCtrlDown(), e.mods.isAltDown(), deviceType}};
 }
 
 inline std::optional<mpc::input::HostInputEvent>
