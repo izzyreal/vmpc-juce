@@ -38,7 +38,9 @@ endif()
 
 if(VMPC_TARGET_SYSTEM_NAME STREQUAL "Darwin" OR VMPC_TARGET_SYSTEM_NAME STREQUAL "iOS")
   if(VMPC_TARGET_SYSTEM_NAME STREQUAL "iOS")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE INTERNAL "Minimum iOS deployment version")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0" CACHE INTERNAL "Minimum iOS deployment version")
+    # Dependencies set their own cached minimum; preserve this project's target.
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "15.0")
   else()
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE INTERNAL "Minimum OS X deployment version")
   endif()
