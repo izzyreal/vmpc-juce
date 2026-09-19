@@ -1456,7 +1456,7 @@ void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
         // It's not trivial to figure out if an MPC mixer strip is mono or
         // stereo, because it it depends on whether the strip is associated with
         // a mono or stereo sound. The main idea behind
-        // `getPossiblyActiveMpcMonoOutChannels` is to avoid unnecessary
+        // `computePossiblyActiveMpcMonoOutChannels` is to avoid unnecessary
         // rendering of MIX busses in AUv2 and AUv3. The problem here is that,
         // so far, I'm not aware of a way to make an AUv2/3 expose 2 fixed bus
         // layouts to Logic, of which one has mixed mono and stereo channels:
