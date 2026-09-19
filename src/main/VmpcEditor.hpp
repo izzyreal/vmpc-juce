@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gui/VmpcCornerResizerLookAndFeel.hpp"
+#include "gui/ios/IosPadDropBridge.hpp"
 
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -90,6 +91,9 @@ namespace vmpc_juce
         vmpc_juce::gui::vector::View *view = nullptr;
         juce::Rectangle<int> availableViewBounds;
         bool initialFocusPending = true;
+#if JUCE_IOS
+        std::unique_ptr<gui::ios::IosPadDropBridge> padDropBridge;
+#endif
 
         juce::Rectangle<int> getAvailableViewBounds() const;
 

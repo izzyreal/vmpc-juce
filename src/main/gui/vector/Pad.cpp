@@ -103,10 +103,14 @@ void Pad::loadFile(const juce::String &path, bool shouldBeConverted)
 
         if (result.canBeConverted)
         {
-            auto loadRoutine = [&, path]
+            const juce::Component::SafePointer<Pad> safePad(this);
+            auto loadRoutine = [safePad, path]
             {
-                constexpr bool shouldBeConverted2 = true;
-                loadFile(path, shouldBeConverted2);
+                if (safePad != nullptr)
+                {
+                    constexpr bool shouldBeConverted2 = true;
+                    safePad->loadFile(path, shouldBeConverted2);
+                }
             };
             auto convertAndLoadWavScreen =
                 mpc.screens->get<ScreenId::VmpcConvertAndLoadWavScreen>();

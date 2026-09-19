@@ -127,11 +127,21 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
 
     addAndMakeVisible(view);
 
+#if JUCE_IOS
+    if (vmpcProcessor.wrapperType == juce::AudioProcessor::wrapperType_AudioUnitv3)
+    {
+        padDropBridge = std::make_unique<gui::ios::IosPadDropBridge>(*this);
+    }
+#endif
+
     startTimer(500);
 }
 
 VmpcEditor::~VmpcEditor()
 {
+#if JUCE_IOS
+    padDropBridge.reset();
+#endif
     vmpcProcessor.lastUIWidth = getWidth();
     vmpcProcessor.lastUIHeight = getHeight();
     setLookAndFeel(nullptr);
@@ -206,6 +216,12 @@ void VmpcEditor::moved()
 
 void VmpcEditor::parentHierarchyChanged()
 {
+#if JUCE_IOS
+    if (padDropBridge != nullptr)
+    {
+        padDropBridge->refreshPeer();
+    }
+#endif
 #if JUCE_IOS || JUCE_ANDROID
     resized();
 #endif
