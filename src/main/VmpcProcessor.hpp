@@ -7,7 +7,6 @@
 #include <Mpc.hpp>
 
 #include <atomic>
-#include <bitset>
 #include <limits>
 #include <optional>
 #include <string>
@@ -81,13 +80,6 @@ namespace vmpc_juce
             mpcMonoOutputChannelIndices, hostInputChannelIndices,
             hostOutputChannelIndices;
 
-        std::vector<int8_t> mpcMonoOutputChannelIndicesToRender;
-        std::vector<int8_t> hostOutputChannelIndicesToRender;
-        std::vector<int8_t> previousHostOutputChannelIndicesToRender;
-
-        void computeMpcAndHostOutputChannelIndicesToRender();
-
-        int8_t lastHostChannelIndexThatWillBeWritten = 0;
         int previousTempo10 = 0;
         bool wasPlaying = false;
         int framesProcessed = 0;
@@ -95,10 +87,6 @@ namespace vmpc_juce
             std::numeric_limits<double>::lowest();
 
         static BusesProperties getBusesProperties();
-
-        std::bitset<12> possiblyActiveMpcMonoOutChannels;
-
-        void computePossiblyActiveMpcMonoOutChannels();
 
         void logActualBusLayout();
 
