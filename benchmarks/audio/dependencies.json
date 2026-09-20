@@ -1,0 +1,120 @@
+[
+  {
+    "path": "editables/JUCE",
+    "revision": "6d073794f28b349706ba5a8573d04db6fd9b05b6",
+    "url": "https://github.com/izzyreal/JUCE",
+    "name": "JUCE"
+  },
+  {
+    "path": "editables/akaifat",
+    "revision": "a001b3016c0be74b4441a80dc571fb0e66a7b69d",
+    "url": "https://github.com/izzyreal/akaifat.git",
+    "name": "akaifat"
+  },
+  {
+    "path": "editables/juce-raw-keyboard-input-module",
+    "revision": "c30d07bc08c021d9b830d886de7a3bbf0262cb83",
+    "url": "https://github.com/izzyreal/juce-raw-keyboard-input-module.git",
+    "name": "juce-raw-keyboard-input-module"
+  },
+  {
+    "path": "editables/mpc",
+    "revision": "99bfb9b65c2399edfdce5731036c6bf57f3ed176",
+    "url": "https://github.com/izzyreal/mpc.git",
+    "name": "mpc",
+    "channel_index_fix": {
+      "path": "src/main/engine/audio/server/RealTimeAudioServer.cpp",
+      "before_sha256": "7e808641371db3d49f506d8ef76b01e5be0408b9863a7b3550b013ade227456d",
+      "after_sha256": "a9a10dce8654ebc1e6c47fd12c4556d9b858e722ce18c90f891f273e11db8a11"
+    }
+  },
+  {
+    "path": "deps/Catch2",
+    "revision": "b3fb4b9feafcd8d91c5cb510a4775143fdbef02f",
+    "url": "https://github.com/catchorg/Catch2.git",
+    "name": "Catch2"
+  },
+  {
+    "path": "deps/expected",
+    "revision": "1770e3559f2f6ea4a5fb4f577ad22aeb30fbd8e4",
+    "url": "https://github.com/TartanLlama/expected.git",
+    "name": "tl-expected"
+  },
+  {
+    "path": "deps/filesystem",
+    "revision": "8a2edd6d92ed820521d42c94d179462bf06b5ed3",
+    "url": "https://github.com/gulrak/filesystem.git",
+    "name": "filesystem"
+  },
+  {
+    "path": "deps/json-schema-validator",
+    "revision": "349cba9f7e3cb423bbc1811bdd9f6770f520b468",
+    "url": "https://github.com/pboettch/json-schema-validator.git",
+    "name": "json-schema-validator"
+  },
+  {
+    "path": "deps/kaitai_runtime",
+    "revision": "146b7b69b29cca2bb5ae8e62ae766093fb145814",
+    "url": "https://github.com/izzyreal/kaitai_struct_cpp_stl_runtime",
+    "name": "kaitai_runtime"
+  },
+  {
+    "path": "deps/libsamplerate",
+    "revision": "0844c208f683527c08ea8a80acc13b398aa9c8bf",
+    "url": "https://github.com/libsndfile/libsamplerate.git",
+    "name": "libsamplerate"
+  },
+  {
+    "path": "deps/melatonin_blur",
+    "revision": "fcc18578d9db3f9400c74ee1bb2eb1070ee959f9",
+    "url": "https://github.com/sudara/melatonin_blur.git",
+    "name": "melatonin_blur"
+  },
+  {
+    "path": "deps/miniz",
+    "revision": "77d0dce8627735138c51770d1799a1ef48f2117d",
+    "url": "https://github.com/richgel999/miniz",
+    "name": "miniz"
+  },
+  {
+    "path": "deps/platformfolders",
+    "revision": "f2625faed48bc891eb624187f8a0e4a1d1cd6ad6",
+    "url": "https://github.com/sago007/PlatformFolders.git",
+    "name": "platformfolders"
+  },
+  {
+    "path": "deps/readerwriterqueue",
+    "revision": "6867b56452352acf077fccd5f6cc7e3a8cfde0fb",
+    "url": "https://github.com/cameron314/readerwriterqueue.git",
+    "name": "readerwriterqueue"
+  },
+  {
+    "path": "deps/rtmidi",
+    "revision": "a3233c22949342f6697681e2cf2403e27fcf0c9e",
+    "url": "https://github.com/thestk/rtmidi.git",
+    "name": "rtmidi"
+  },
+  {
+    "path": "deps/json",
+    "name": "json",
+    "url": "https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz",
+    "tree_sha256": "b1701e995672d04647bdcef1797d65ee84ed69187c477364599b21d84491d872"
+  },
+  {
+    "path": "deps/lodepng",
+    "name": "lodepng",
+    "revision": "ed6fe5825c6a4fbb7f58ab35a4231c7543cd452a",
+    "files": [
+      {
+        "name": "lodepng.cpp",
+        "url": "https://raw.githubusercontent.com/lvandeve/lodepng/ed6fe5825c6a4fbb7f58ab35a4231c7543cd452a/lodepng.cpp",
+        "sha256": "d98e1f40d303c1038a096ebf93b413a565a91cf2c72b9d2fa5c625c4279c3cb6"
+      },
+      {
+        "name": "lodepng.h",
+        "url": "https://raw.githubusercontent.com/lvandeve/lodepng/ed6fe5825c6a4fbb7f58ab35a4231c7543cd452a/lodepng.h",
+        "sha256": "23c27abb06883ed98184d16d0b20771b526dca1e8e13236c2397316769c0dc8b"
+      }
+    ]
+  }
+]

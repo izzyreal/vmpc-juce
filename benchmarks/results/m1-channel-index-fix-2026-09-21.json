@@ -1,0 +1,216 @@
+{
+  "validation": "macOS arm64 functional validation; not a performance verdict",
+  "raw_report": "build/audio-benchmark/package/results/20260921-200636-f2d3dd37/report.json",
+  "verdict": "SMOKE PASSED (no performance verdict)",
+  "cases": 13,
+  "stable_audio_and_routing_valid": true,
+  "tail_valid": true,
+  "tail_energy": {
+    "before": 0.0,
+    "after": 376.4524981249415,
+    "reference": 376.4524981249415
+  },
+  "builder_tests_passed": 14,
+  "production_routing_tests": "Both revisions passed: 12 input/output channels, reversed host mapping, frame sizes 1/64/256/1024, two repetitions.",
+  "negative_controls": "Temporary production builds with input index forced to zero and output index forced to zero each failed the routing test as expected.",
+  "saved_report_oracle_check": {
+    "old_win7": {
+      "accepted_trials": 324,
+      "rejected_trials": 144
+    },
+    "windows11_smoke": {
+      "accepted_trials": 52,
+      "rejected_trials": 0
+    }
+  },
+  "manifest": {
+    "schema": 1,
+    "revisions": {
+      "before": "eeb8d07c7d5e2166fc2d2a1dd2d3febf491dd010",
+      "after": "a45d440806f43b9702947ca22cc648aa23cfa5eb"
+    },
+    "dependencies": [
+      {
+        "path": "editables/JUCE",
+        "revision": "6d073794f28b349706ba5a8573d04db6fd9b05b6",
+        "url": "https://github.com/izzyreal/JUCE",
+        "name": "JUCE"
+      },
+      {
+        "path": "editables/akaifat",
+        "revision": "a001b3016c0be74b4441a80dc571fb0e66a7b69d",
+        "url": "https://github.com/izzyreal/akaifat.git",
+        "name": "akaifat"
+      },
+      {
+        "path": "editables/juce-raw-keyboard-input-module",
+        "revision": "c30d07bc08c021d9b830d886de7a3bbf0262cb83",
+        "url": "https://github.com/izzyreal/juce-raw-keyboard-input-module.git",
+        "name": "juce-raw-keyboard-input-module"
+      },
+      {
+        "path": "editables/mpc",
+        "revision": "99bfb9b65c2399edfdce5731036c6bf57f3ed176",
+        "url": "https://github.com/izzyreal/mpc.git",
+        "name": "mpc",
+        "channel_index_fix": {
+          "path": "src/main/engine/audio/server/RealTimeAudioServer.cpp",
+          "before_sha256": "7e808641371db3d49f506d8ef76b01e5be0408b9863a7b3550b013ade227456d",
+          "after_sha256": "a9a10dce8654ebc1e6c47fd12c4556d9b858e722ce18c90f891f273e11db8a11"
+        }
+      },
+      {
+        "path": "deps/Catch2",
+        "revision": "b3fb4b9feafcd8d91c5cb510a4775143fdbef02f",
+        "url": "https://github.com/catchorg/Catch2.git",
+        "name": "Catch2"
+      },
+      {
+        "path": "deps/expected",
+        "revision": "1770e3559f2f6ea4a5fb4f577ad22aeb30fbd8e4",
+        "url": "https://github.com/TartanLlama/expected.git",
+        "name": "tl-expected"
+      },
+      {
+        "path": "deps/filesystem",
+        "revision": "8a2edd6d92ed820521d42c94d179462bf06b5ed3",
+        "url": "https://github.com/gulrak/filesystem.git",
+        "name": "filesystem"
+      },
+      {
+        "path": "deps/json-schema-validator",
+        "revision": "349cba9f7e3cb423bbc1811bdd9f6770f520b468",
+        "url": "https://github.com/pboettch/json-schema-validator.git",
+        "name": "json-schema-validator"
+      },
+      {
+        "path": "deps/kaitai_runtime",
+        "revision": "146b7b69b29cca2bb5ae8e62ae766093fb145814",
+        "url": "https://github.com/izzyreal/kaitai_struct_cpp_stl_runtime",
+        "name": "kaitai_runtime"
+      },
+      {
+        "path": "deps/libsamplerate",
+        "revision": "0844c208f683527c08ea8a80acc13b398aa9c8bf",
+        "url": "https://github.com/libsndfile/libsamplerate.git",
+        "name": "libsamplerate"
+      },
+      {
+        "path": "deps/melatonin_blur",
+        "revision": "fcc18578d9db3f9400c74ee1bb2eb1070ee959f9",
+        "url": "https://github.com/sudara/melatonin_blur.git",
+        "name": "melatonin_blur"
+      },
+      {
+        "path": "deps/miniz",
+        "revision": "77d0dce8627735138c51770d1799a1ef48f2117d",
+        "url": "https://github.com/richgel999/miniz",
+        "name": "miniz"
+      },
+      {
+        "path": "deps/platformfolders",
+        "revision": "f2625faed48bc891eb624187f8a0e4a1d1cd6ad6",
+        "url": "https://github.com/sago007/PlatformFolders.git",
+        "name": "platformfolders"
+      },
+      {
+        "path": "deps/readerwriterqueue",
+        "revision": "6867b56452352acf077fccd5f6cc7e3a8cfde0fb",
+        "url": "https://github.com/cameron314/readerwriterqueue.git",
+        "name": "readerwriterqueue"
+      },
+      {
+        "path": "deps/rtmidi",
+        "revision": "a3233c22949342f6697681e2cf2403e27fcf0c9e",
+        "url": "https://github.com/thestk/rtmidi.git",
+        "name": "rtmidi"
+      },
+      {
+        "path": "deps/json",
+        "name": "json",
+        "url": "https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz",
+        "tree_sha256": "b1701e995672d04647bdcef1797d65ee84ed69187c477364599b21d84491d872"
+      },
+      {
+        "path": "deps/lodepng",
+        "name": "lodepng",
+        "revision": "ed6fe5825c6a4fbb7f58ab35a4231c7543cd452a",
+        "files": [
+          {
+            "name": "lodepng.cpp",
+            "url": "https://raw.githubusercontent.com/lvandeve/lodepng/ed6fe5825c6a4fbb7f58ab35a4231c7543cd452a/lodepng.cpp",
+            "sha256": "d98e1f40d303c1038a096ebf93b413a565a91cf2c72b9d2fa5c625c4279c3cb6"
+          },
+          {
+            "name": "lodepng.h",
+            "url": "https://raw.githubusercontent.com/lvandeve/lodepng/ed6fe5825c6a4fbb7f58ab35a4231c7543cd452a/lodepng.h",
+            "sha256": "23c27abb06883ed98184d16d0b20771b526dca1e8e13236c2397316769c0dc8b"
+          }
+        ]
+      }
+    ],
+    "dependency_lock_sha256": "2a8d394f55c9f28964504beb3179d36fe1a061af8b77e027707c322e0360c67e",
+    "builds": {
+      "before": {
+        "compiler": "AppleClang 21.0.0.21000101",
+        "config": "Release",
+        "pointer_bytes": 8,
+        "revision": "eeb8d07c7d5e2166fc2d2a1dd2d3febf491dd010",
+        "effective_flags": {
+          "CMAKE_CXX_FLAGS": "",
+          "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG",
+          "CMAKE_C_FLAGS": "",
+          "CMAKE_C_FLAGS_RELEASE": "-O3 -DNDEBUG",
+          "CMAKE_EXE_LINKER_FLAGS": "",
+          "CMAKE_EXE_LINKER_FLAGS_RELEASE": "",
+          "CMAKE_GENERATOR_PLATFORM": "",
+          "CMAKE_OSX_DEPLOYMENT_TARGET": "10.13"
+        },
+        "cmake_options": [
+          "-DCMAKE_BUILD_TYPE=Release",
+          "-DVMPC_BUILD_AUDIO_BENCHMARK=ON",
+          "-DVMPC_BUILD_TESTS=OFF",
+          "-DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF",
+          "-DFETCHCONTENT_FULLY_DISCONNECTED=ON",
+          "-DFETCHCONTENT_CACHE_ROOT=",
+          "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache",
+          "-DCMAKE_C_COMPILER_LAUNCHER=ccache",
+          "-DCMAKE_OSX_ARCHITECTURES=arm64"
+        ],
+        "binary_sha256": "65363b2f6078a5ed001ca662b5b727c51041e0f86eeaedd7e7eaa7958cde853b"
+      },
+      "after": {
+        "compiler": "AppleClang 21.0.0.21000101",
+        "config": "Release",
+        "pointer_bytes": 8,
+        "revision": "a45d440806f43b9702947ca22cc648aa23cfa5eb",
+        "effective_flags": {
+          "CMAKE_CXX_FLAGS": "",
+          "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG",
+          "CMAKE_C_FLAGS": "",
+          "CMAKE_C_FLAGS_RELEASE": "-O3 -DNDEBUG",
+          "CMAKE_EXE_LINKER_FLAGS": "",
+          "CMAKE_EXE_LINKER_FLAGS_RELEASE": "",
+          "CMAKE_GENERATOR_PLATFORM": "",
+          "CMAKE_OSX_DEPLOYMENT_TARGET": "10.13"
+        },
+        "cmake_options": [
+          "-DCMAKE_BUILD_TYPE=Release",
+          "-DVMPC_BUILD_AUDIO_BENCHMARK=ON",
+          "-DVMPC_BUILD_TESTS=OFF",
+          "-DJUCE_COPY_PLUGIN_AFTER_BUILD=OFF",
+          "-DFETCHCONTENT_FULLY_DISCONNECTED=ON",
+          "-DFETCHCONTENT_CACHE_ROOT=",
+          "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache",
+          "-DCMAKE_C_COMPILER_LAUNCHER=ccache",
+          "-DCMAKE_OSX_ARCHITECTURES=arm64"
+        ],
+        "binary_sha256": "f0fac673171191a060d9bae36f07a99df5b13159ccc44c74fd900a9781f06a9c"
+      }
+    },
+    "harness_sha256": "41d426f36d51ab2276a07318a2196392e0be79ddb034ab0b8e43ca0ba0426c0a",
+    "builder": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "asio_enabled": false,
+    "allocation_coverage": "C++ new/new[] (including aligned) on callback thread; excludes malloc and OS allocators"
+  }
+}

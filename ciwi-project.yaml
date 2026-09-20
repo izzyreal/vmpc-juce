@@ -515,6 +515,37 @@ pipelines:
           - name: Copy LV2 plugin
             run: xcopy /E /I /Y build\vmpc2000xl_artefacts\Release\LV2\VMPC2000XL.lv2 dist\VMPC2000XL-windows7-x86-LV2.lv2
 
+  - id: audio-benchmark
+    trigger: manual
+    vcs_source:
+      repo: https://github.com/izzyreal/vmpc-juce.git
+    jobs:
+      - id: windows7-x86-audio-benchmark
+        runs_on:
+          executor: script
+          shell: cmd
+          os: windows
+        requires:
+          tools:
+            git: "*"
+            cmake: "*"
+            python: ">=3.9"
+        timeout_seconds: 7200
+        artifacts:
+          - dist/audio-benchmark-windows7-x86.zip
+          - build/audio-benchmark/package/manifest.json
+          - build/audio-benchmark/package/*-imports.txt
+          - build/audio-benchmark/package/results/**
+        steps:
+          - name: Validate benchmark builder
+            run: python benchmarks/audio/test_build.py
+          - name: Build pinned before and after Release workers for Windows 7 Win32
+            run: python benchmarks/audio/build.py --output build/audio-benchmark --generator "Visual Studio 17 2022" --jobs 2 --smoke
+          - name: Collect portable benchmark
+            run: if not exist dist mkdir dist
+          - name: Copy benchmark ZIP
+            run: copy /Y build\audio-benchmark\audio-benchmark-windows7-x86.zip dist\audio-benchmark-windows7-x86.zip
+
   - id: android
     trigger: manual
     vcs_source:

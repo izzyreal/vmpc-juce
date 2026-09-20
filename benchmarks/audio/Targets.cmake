@@ -1,0 +1,46 @@
+# Also appended to pristine historical exports by build.py.
+if(NOT VMPC_BUILD_AUDIO_BENCHMARK)
+  return()
+endif()
+if(NOT DEFINED VMPC_BENCHMARK_REVISION)
+  execute_process(COMMAND git rev-parse HEAD WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    OUTPUT_VARIABLE VMPC_BENCHMARK_REVISION OUTPUT_STRIP_TRAILING_WHITESPACE)
+endif()
+set(_bench "${CMAKE_CURRENT_LIST_DIR}")
+add_executable(vmpc-audio-routing-test "${_bench}/RoutingTest.cpp")
+target_link_libraries(vmpc-audio-routing-test PRIVATE mpc)
+add_executable(vmpc-audio-worker "${_bench}/Worker.cpp" "${_bench}/Allocations.cpp")
+target_link_libraries(vmpc-audio-worker PRIVATE vmpc2000xl juce::juce_audio_utils
+  nlohmann_json::nlohmann_json mpc)
+target_compile_definitions(vmpc-audio-worker PRIVATE
+  VMPC_BENCHMARK_REVISION="${VMPC_BENCHMARK_REVISION}")
+add_executable(vmpc-audio-benchmark "${_bench}/Runner.cpp" "${_bench}/Allocations.cpp")
+target_link_libraries(vmpc-audio-benchmark PRIVATE juce::juce_core juce::juce_cryptography nlohmann_json::nlohmann_json
+  juce::juce_recommended_config_flags)
+target_compile_definitions(vmpc-audio-benchmark PRIVATE JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+if(WIN32)
+  target_link_libraries(vmpc-audio-worker PRIVATE psapi)
+  if(MSVC)
+    target_compile_options(vmpc-audio-worker PRIVATE /arch:SSE2)
+    target_compile_options(vmpc-audio-benchmark PRIVATE /arch:SSE2)
+  endif()
+endif()
+if(APPLE)
+  set_target_properties(vmpc-audio-worker PROPERTIES MACOSX_BUNDLE TRUE
+    MACOSX_BUNDLE_GUI_IDENTIFIER nl.izmar.vmpc2000xl.benchmark
+    SKIP_BUILD_RPATH FALSE)
+  file(GLOB_RECURSE _bench_resources "${CMAKE_SOURCE_DIR}/resources/*" "${mpc_SOURCE_DIR}/resources/*")
+  list(FILTER _bench_resources EXCLUDE REGEX "\\.DS_Store$")
+  foreach(_file IN LISTS _bench_resources)
+    if(_file MATCHES "^${mpc_SOURCE_DIR}/resources/")
+      file(RELATIVE_PATH _relative "${mpc_SOURCE_DIR}/resources" "${_file}")
+    else()
+      file(RELATIVE_PATH _relative "${CMAKE_SOURCE_DIR}/resources" "${_file}")
+    endif()
+    get_filename_component(_dir "${_relative}" DIRECTORY)
+    set_source_files_properties("${_file}" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/${_dir}")
+  endforeach()
+  target_sources(vmpc-audio-worker PRIVATE ${_bench_resources})
+endif()
+file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/benchmark-build-$<CONFIG>.json" CONTENT
+  "{\"compiler\":\"${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}\",\"config\":\"$<CONFIG>\",\"pointer_bytes\":${CMAKE_SIZEOF_VOID_P},\"revision\":\"${VMPC_BENCHMARK_REVISION}\"}\n")

@@ -80,6 +80,7 @@ file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/version.txt "${VMPC_VERSION}")
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 
 option(VMPC_BUILD_TESTS "Build vmpc-juce test targets" ON)
+option(VMPC_BUILD_AUDIO_BENCHMARK "Build the portable audio benchmark" OFF)
 
 set(VMPC_JUCE_REPO "https://github.com/izzyreal/JUCE.git")
 set(VMPC_JUCE_REF "7.0.9-vmpc")
@@ -442,3 +443,7 @@ set(CPACK_SOURCE_IGNORE_FILES
     /\\\\.DS_Store
 )
 include(CPack)
+
+if(VMPC_BUILD_AUDIO_BENCHMARK)
+  include(benchmarks/audio/Targets.cmake)
+endif()
