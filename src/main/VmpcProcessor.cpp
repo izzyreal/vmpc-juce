@@ -31,7 +31,6 @@
 
 #include <disk/AbstractDisk.hpp>
 #include <input/HostInputEvent.hpp>
-#include <performance/PerformanceManager.hpp>
 
 #include <sequencer/Sequencer.hpp>
 #include <sequencer/Transport.hpp>
@@ -40,8 +39,6 @@
 
 #include <lcdgui/screens/SyncScreen.hpp>
 #include <lcdgui/screens/window/DirectoryScreen.hpp>
-#include <lcdgui/screens/dialog/MetronomeSoundScreen.hpp>
-#include <lcdgui/screens/MixerSetupScreen.hpp>
 
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_audio_processors/juce_audio_processors.h>
@@ -92,10 +89,6 @@ std::string buildRequiredResourcesFailureMessage(
 VmpcProcessor::VmpcProcessor() : AudioProcessor(getBusesProperties())
 {
     midiOutputBuffer.resize(512);
-
-    mpcMonoOutputChannelIndicesToRender.reserve(20);
-    hostOutputChannelIndicesToRender.reserve(20);
-    previousHostOutputChannelIndicesToRender.reserve(20);
 
     const time_t currentTime = time(nullptr);
     const tm *currentLocalTime = localtime(&currentTime);
@@ -267,10 +260,6 @@ void VmpcProcessor::prepareToPlay(const double sampleRate,
     }
 
     computeHostToMpcChannelMappings();
-
-    previousHostOutputChannelIndicesToRender.clear();
-    previousHostOutputChannelIndicesToRender.push_back(
-        std::numeric_limits<int8_t>::max());
 
     // logActualBusLayout();
 }
@@ -647,39 +636,6 @@ void VmpcProcessor::processTransport()
     }
 }
 
-void VmpcProcessor::computeMpcAndHostOutputChannelIndicesToRender()
-{
-    computePossiblyActiveMpcMonoOutChannels();
-
-    mpcMonoOutputChannelIndicesToRender.clear();
-    hostOutputChannelIndicesToRender.clear();
-
-    for (size_t i = 0; i < mpcMonoOutputChannelIndices.size(); i++)
-    {
-        if (possiblyActiveMpcMonoOutChannels[static_cast<size_t>(
-                mpcMonoOutputChannelIndices[i])])
-        {
-            mpcMonoOutputChannelIndicesToRender.push_back(
-                mpcMonoOutputChannelIndices[i]);
-            hostOutputChannelIndicesToRender.push_back(
-                hostOutputChannelIndices[i]);
-        }
-    }
-
-    for (const auto &i : mpcMonoOutputChannelIndicesToRender)
-    {
-        assert(i >= 0);
-    }
-    for (const auto &i : hostOutputChannelIndicesToRender)
-    {
-        assert(i >= 0);
-    }
-    for (const auto &i : previousHostOutputChannelIndicesToRender)
-    {
-        assert(i >= 0);
-    }
-}
-
 static void propagateTransportInfo(mpc::sequencer::Clock &clock,
                                    const juce::AudioPlayHead *playHead,
                                    const uint32_t sampleRate,
@@ -712,7 +668,6 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
     }
 
     const int totalNumInputChannels = getTotalNumInputChannels();
-    const int totalNumOutputChannels = getTotalNumOutputChannels();
     const auto engineHost = mpc.getEngineHost();
 
     const auto server = engineHost->getAudioServer();
@@ -798,27 +753,21 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
     const auto chDataIn = buffer.getArrayOfReadPointers();
     const auto chDataOut = buffer.getArrayOfWritePointers();
 
-    computeMpcAndHostOutputChannelIndicesToRender();
-
+    // A playing voice retains its note-on routing even if the current INDIV
+    // assignment changes. Copy every host-enabled output so its tail survives.
     server->work(chDataIn, chDataOut, buffer.getNumSamples(),
-                 mpcMonoInputChannelIndices,
-                 mpcMonoOutputChannelIndicesToRender, hostInputChannelIndices,
-                 hostOutputChannelIndicesToRender);
+                 mpcMonoInputChannelIndices, mpcMonoOutputChannelIndices,
+                 hostInputChannelIndices, hostOutputChannelIndices);
 
-    const bool shouldClearSomeHostChannels =
-        previousHostOutputChannelIndicesToRender !=
-        hostOutputChannelIndicesToRender;
-
-    if (shouldClearSomeHostChannels)
+    // Inputs and outputs can share channels in the host buffer, so clear
+    // unmapped channels only after the server has consumed the input.
+    for (int i = 0; i < buffer.getNumChannels(); ++i)
     {
-        for (int i = 0; i < totalNumOutputChannels; i++)
+        if (std::find(hostOutputChannelIndices.begin(),
+                      hostOutputChannelIndices.end(), i) ==
+            hostOutputChannelIndices.end())
         {
-            if (std::find(hostOutputChannelIndicesToRender.begin(),
-                          hostOutputChannelIndicesToRender.end(),
-                          i) == hostOutputChannelIndicesToRender.end())
-            {
-                buffer.clear(i, 0, buffer.getNumSamples());
-            }
+            buffer.clear(i, 0, buffer.getNumSamples());
         }
     }
 
@@ -834,21 +783,6 @@ void VmpcProcessor::processBlock(juce::AudioSampleBuffer &buffer,
     {
         processMidiOut(midiMessages, false);
     }
-
-    if (totalNumOutputChannels < 1)
-    {
-        buffer.clear();
-    }
-    else
-    {
-        for (int i = lastHostChannelIndexThatWillBeWritten + 1;
-             i < buffer.getNumChannels(); i++)
-        {
-            buffer.clear(i, 0, buffer.getNumSamples());
-        }
-    }
-
-    previousHostOutputChannelIndicesToRender = hostOutputChannelIndicesToRender;
 
 #if JUCE_IOS || JUCE_ANDROID
     recordingPreviewPlayer.render(buffer);
@@ -1222,7 +1156,6 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
     mpcMonoOutputChannelIndices.clear();
     hostInputChannelIndices.clear();
     hostOutputChannelIndices.clear();
-    lastHostChannelIndexThatWillBeWritten = 0;
 
     if (juce::JUCEApplication::isStandaloneApp())
     {
@@ -1238,9 +1171,6 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
             mpcMonoOutputChannelIndices.push_back(static_cast<int8_t>(i));
             hostOutputChannelIndices.push_back(static_cast<int8_t>(
                 getBus(false, 0)->getChannelIndexInProcessBlockBuffer(i)));
-            lastHostChannelIndexThatWillBeWritten =
-                std::max<int8_t>(lastHostChannelIndexThatWillBeWritten,
-                                 hostOutputChannelIndices.back());
         }
 
         for (int i = 0; i < getBus(true, 0)->getNumberOfChannels(); i++)
@@ -1378,23 +1308,12 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
             mpcMonoOutputChannelIndices.push_back(
                 static_cast<int8_t>(mpcMonoChannelCounter));
 
-            if (busWasRequestedToBeStereoButIsMono)
-            {
-                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(
-                    lastHostChannelIndexThatWillBeWritten,
-                    static_cast<int8_t>(
-                        bus->getChannelIndexInProcessBlockBuffer(0)));
-            }
-            else
+            if (!busWasRequestedToBeStereoButIsMono)
             {
                 hostOutputChannelIndices.push_back(static_cast<int8_t>(
                     bus->getChannelIndexInProcessBlockBuffer(1)));
                 mpcMonoOutputChannelIndices.push_back(
                     static_cast<int8_t>(mpcMonoChannelCounter + 1));
-                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(
-                    lastHostChannelIndexThatWillBeWritten,
-                    static_cast<int8_t>(
-                        bus->getChannelIndexInProcessBlockBuffer(1)));
             }
         }
         else
@@ -1411,17 +1330,6 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
                     bus->getChannelIndexInProcessBlockBuffer(1)));
                 mpcMonoOutputChannelIndices.push_back(
                     static_cast<int8_t>(mpcMonoChannelCounter + 2));
-                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(
-                    lastHostChannelIndexThatWillBeWritten,
-                    static_cast<int8_t>(
-                        bus->getChannelIndexInProcessBlockBuffer(1)));
-            }
-            else
-            {
-                lastHostChannelIndexThatWillBeWritten = std::max<int8_t>(
-                    lastHostChannelIndexThatWillBeWritten,
-                    static_cast<int8_t>(
-                        bus->getChannelIndexInProcessBlockBuffer(0)));
             }
         }
 
@@ -1443,110 +1351,6 @@ void VmpcProcessor::computeHostToMpcChannelMappings()
     }
     MLOG("==============================================");
     */
-}
-
-void VmpcProcessor::computePossiblyActiveMpcMonoOutChannels()
-{
-    possiblyActiveMpcMonoOutChannels.reset();
-
-    auto insertValue = [&](const int8_t value)
-    {
-        possiblyActiveMpcMonoOutChannels.set(static_cast<size_t>(value));
-
-        // It's not trivial to figure out if an MPC mixer strip is mono or
-        // stereo, because it it depends on whether the strip is associated with
-        // a mono or stereo sound. The main idea behind
-        // `computePossiblyActiveMpcMonoOutChannels` is to avoid unnecessary
-        // rendering of MIX busses in AUv2 and AUv3. The problem here is that,
-        // so far, I'm not aware of a way to make an AUv2/3 expose 2 fixed bus
-        // layouts to Logic, of which one has mixed mono and stereo channels:
-        // 1. 1x stereo in, 1x stereo out
-        // 2. 1x stereo in, 6x stereo out and 8x mono out
-        // This has led to the decision to rely on "implicit" or "default"
-        // layouts. See https://github.com/juce-framework/JUCE/issues/1508 This
-        // in turn poses the problem that in Logic, all 14 busses are always
-        // reported to be active, even if the user loads the 1x stereo in, 1x
-        // stereo out plugin flavor. So it's fine if we assume all busses are
-        // stereo, as this will still prevent rendering MIX1...8, as long as the
-        // user has not configured to use individual outputs. That's why for
-        // every mono channel, we always ensure its stereo counterpart is also
-        // rendered. I.e. if we render channel 0, we also render channel 1 and
-        // vice versa.
-        if (value % 2 == 0)
-        {
-            possiblyActiveMpcMonoOutChannels.set(
-                static_cast<size_t>(value + 1));
-        }
-        else
-        {
-            possiblyActiveMpcMonoOutChannels.set(
-                static_cast<size_t>(value - 1));
-        }
-    };
-
-    // We always render STEREO L/R
-    insertValue(0);
-    insertValue(1);
-
-    const auto engineHost = mpc.getEngineHost();
-    if (engineHost->arePhysicalSoundsEnabled() &&
-        engineHost->getPhysicalSoundsMixMode() ==
-            mpc::engine::PhysicalSoundsMixMode::Dedicated)
-    {
-        insertValue(10);
-        insertValue(11);
-    }
-
-    const auto metronomeSoundScreen =
-        mpc.screens->get<ScreenId::MetronomeSoundScreen>();
-
-    if (metronomeSoundScreen->getSound() == 0)
-    {
-        const auto output = metronomeSoundScreen->getOutput();
-
-        if (output > 0)
-        {
-            insertValue(static_cast<int8_t>(output + 1));
-        }
-    }
-
-    const auto snapshot = mpc.getPerformanceManager().lock()->getSnapshot();
-    const auto mixerSetupScreen =
-        mpc.screens->get<ScreenId::MixerSetupScreen>();
-    const auto stereoMixSourceIsDrum =
-        mixerSetupScreen->isStereoMixSourceDrum();
-
-    for (int8_t i = 0; i < 4; ++i)
-    {
-        if (stereoMixSourceIsDrum)
-        {
-            const auto drum = snapshot.getDrum(mpc::DrumBusIndex(i));
-            for (auto &m : drum.indivFxMixers)
-            {
-                const auto output = m.individualOutput;
-
-                if (output > 0)
-                {
-                    insertValue(output + 1);
-                }
-            }
-        }
-        else
-        {
-            const auto program = snapshot.getProg(
-                snapshot.getDrum(mpc::DrumBusIndex(i)).programIndex);
-
-            for (const auto &n : program.noteParameters)
-            {
-                const auto output = n.indivFxMixer.individualOutput;
-
-                if (output > 0)
-                {
-                    insertValue(output + 1);
-                }
-            }
-        }
-    }
 }
 
 juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
