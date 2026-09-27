@@ -116,6 +116,7 @@ android {
     }
 
     sourceSets {
+        main.java.srcDirs += ['../../editables/mpc/platform/android']
         debug.java.srcDir file('build/generated/source/vmpcNativeDependencies/debug')
         release.java.srcDir file('build/generated/source/vmpcNativeDependencies/release')
     }

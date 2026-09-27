@@ -5,6 +5,7 @@ import static android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
 import static android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
 
 import android.os.Build;
+import org.vmpc.platform.NativeImagePicker;
 import android.os.Bundle;
 import android.view.View;
 
@@ -43,6 +44,13 @@ public final class VmpcActivity extends RawKeyboardInputActivity
     protected void onCreate (Bundle savedInstanceState)
     {
         initEdgeToEdge();
+        NativeImagePicker.attach(this);
         super.onCreate (savedInstanceState);
+    }
+    @Override
+    protected void onDestroy()
+    {
+        NativeImagePicker.detach(this);
+        super.onDestroy();
     }
 }

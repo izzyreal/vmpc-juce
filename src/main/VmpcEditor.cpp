@@ -1,5 +1,6 @@
 #include "VmpcEditor.hpp"
 #include "VmpcProcessor.hpp"
+#include <disk/DiskController.hpp>
 
 #include "gui/vector/View.hpp"
 #include "gui/vector/Constants.hpp"
@@ -140,6 +141,7 @@ VmpcEditor::VmpcEditor(VmpcProcessor &vmpcProcessorToUse)
 VmpcEditor::~VmpcEditor()
 {
 #if JUCE_IOS
+    vmpcProcessor.mpc.getDiskController()->setFilePickerParent(nullptr);
     padDropBridge.reset();
 #endif
     vmpcProcessor.lastUIWidth = getWidth();
@@ -150,6 +152,11 @@ VmpcEditor::~VmpcEditor()
 
 void VmpcEditor::timerCallback()
 {
+#if JUCE_IOS
+    const auto peer = getPeer();
+    vmpcProcessor.mpc.getDiskController()->setFilePickerParent(
+        peer ? peer->getNativeHandle() : nullptr);
+#endif
     if (initialFocusPending)
     {
         initialFocusPending = false;
