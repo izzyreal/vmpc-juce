@@ -116,13 +116,12 @@ android {
     }
 
     sourceSets {
-        main.java.srcDirs += ['../../editables/mpc/platform/android']
         debug.java.srcDir file('build/generated/source/vmpcNativeDependencies/debug')
         release.java.srcDir file('build/generated/source/vmpcNativeDependencies/release')
     }
 }
 
-// CMake stages the dependency-owned JUCE and raw-keyboard Java sources into
+// CMake stages the dependency-owned JUCE, raw-keyboard, and MPC Java sources into
 // the variant-specific generated source directories above. Make that ordering
 // explicit so a pristine checkout builds from Gradle/Android Studio immediately.
 tasks.configureEach { task ->

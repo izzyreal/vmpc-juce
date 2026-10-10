@@ -1,4 +1,4 @@
-function(vmpc_stage_android_java_sources juce_source_dir raw_keyboard_source_dir)
+function(vmpc_stage_android_java_sources juce_source_dir raw_keyboard_source_dir mpc_source_dir)
   if(NOT ANDROID)
     return()
   endif()
@@ -13,7 +13,8 @@ function(vmpc_stage_android_java_sources juce_source_dir raw_keyboard_source_dir
     "${juce_source_dir}/modules/juce_core/native/javacore/init"
     "${juce_source_dir}/modules/juce_core/native/javacore/app"
     "${juce_source_dir}/modules/juce_gui_basics/native/javaopt/app"
-    "${raw_keyboard_source_dir}/android/java")
+    "${raw_keyboard_source_dir}/android/java"
+    "${mpc_source_dir}/platform/android")
 
   foreach(_source_root IN LISTS _source_roots)
     if(NOT IS_DIRECTORY "${_source_root}")
