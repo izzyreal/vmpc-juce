@@ -503,12 +503,24 @@ bool VmpcProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
 
 void VmpcProcessor::processMidiIn(const juce::MidiBuffer &midiMessages) const
 {
+    mpc::sequencer::SysExReportBatch reportBatch;
     for (const auto &meta : midiMessages)
     {
+        if (meta.numBytes > 0 && meta.data[0] == 0xF0)
+        {
+            mpc::client::event::ClientMidiEvent event;
+            event.setSysExPayload(
+                mpc::sequencer::SysExPayloadOwner(mpc.sysExPool->acquire(
+                    meta.data, meta.numBytes,
+                    mpc::sequencer::SysExAllocation::Transient)));
+            event.setBufferOffset(meta.samplePosition);
+            mpc.dispatchHostInput(mpc::input::HostInputEvent(std::move(event)));
+            continue;
+        }
         const auto &m = meta.getMessage();
 
         auto mpcMidiEvent =
-            JuceToMpcMidiEventConvertor::convert(m);
+            JuceToMpcMidiEventConvertor::convert(m, mpc.sysExPool.get());
         mpcMidiEvent.setBufferOffset(meta.samplePosition);
         mpc.dispatchHostInput(mpc::input::HostInputEvent(mpcMidiEvent));
     }
@@ -522,19 +534,16 @@ void VmpcProcessor::processMidiOut(juce::MidiBuffer &midiMessages,
     const auto eventCount =
         static_cast<size_t>(mpc.getMidiOutput()->dequeue(midiOutputBuffer));
 
-    if (discard)
-    {
-        return;
-    }
-
     for (size_t i = 0; i < eventCount; ++i)
     {
-        if (const auto juceMsgAndSampleNumber =
-                MpcToJuceMidiEventConvertor::convert(midiOutputBuffer[i]))
+        auto &event = midiOutputBuffer[i];
+        if (discard)
         {
-            midiMessages.addEvent(juceMsgAndSampleNumber->first,
-                                  juceMsgAndSampleNumber->second);
+            event.releaseSysExPayload();
+            continue;
         }
+        MpcToJuceMidiEventConvertor::addToBuffer(event, midiMessages);
+        event.releaseSysExPayload();
     }
 }
 

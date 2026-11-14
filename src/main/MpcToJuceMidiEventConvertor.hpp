@@ -1,6 +1,6 @@
 #pragma once
 
-#include <juce_audio_utils/juce_audio_utils.h>
+#include <juce_audio_basics/juce_audio_basics.h>
 
 #include <client/event/ClientMidiEvent.hpp>
 
@@ -9,6 +9,21 @@ namespace vmpc_juce
     class MpcToJuceMidiEventConvertor
     {
     public:
+        static void
+        addToBuffer(const mpc::client::event::ClientMidiEvent &event,
+                    juce::MidiBuffer &buffer)
+        {
+            if (const auto *payload = event.getSysExPayload())
+            {
+                buffer.addEvent(payload->bytes, payload->byteCount,
+                                static_cast<int>(event.getBufferOffset()));
+            }
+            else if (const auto converted = convert(event))
+            {
+                buffer.addEvent(converted->first, converted->second);
+            }
+        }
+
         using JuceMidiMessageAndSampleNumber =
             std::pair<juce::MidiMessage, int>;
 

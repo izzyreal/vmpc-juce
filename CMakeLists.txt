@@ -348,6 +348,7 @@ if (VMPC_BUILD_TESTS)
       Catch2::Catch2WithMain
       juce::juce_gui_basics
       juce::juce_core
+      juce::juce_audio_basics
       nlohmann_json::nlohmann_json
       mpc
   )

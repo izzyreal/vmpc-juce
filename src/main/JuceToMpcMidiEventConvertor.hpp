@@ -1,6 +1,6 @@
 #pragma once
 
-#include <juce_audio_utils/juce_audio_utils.h>
+#include <juce_audio_basics/juce_audio_basics.h>
 
 #include <client/event/ClientMidiEvent.hpp>
 
@@ -10,13 +10,24 @@ namespace vmpc_juce
     {
     public:
         static mpc::client::event::ClientMidiEvent
-        convert(const juce::MidiMessage &m)
+        convert(const juce::MidiMessage &m,
+                mpc::sequencer::SysExPool *pool = nullptr)
         {
             mpc::client::event::ClientMidiEvent mpcMidiEvent;
             mpcMidiEvent.setChannel(m.getChannel() - 1);
             mpcMidiEvent.setBufferOffset(m.getTimeStamp());
 
-            if (m.isNoteOn())
+            if (m.isSysEx())
+            {
+                if (pool)
+                {
+                    mpcMidiEvent.setSysExPayload(
+                        mpc::sequencer::SysExPayloadOwner(pool->acquire(
+                            m.getRawData(), m.getRawDataSize(),
+                            mpc::sequencer::SysExAllocation::Transient)));
+                }
+            }
+            else if (m.isNoteOn())
             {
                 mpcMidiEvent.setMessageType(
                     mpc::client::event::ClientMidiEvent::NOTE_ON);
