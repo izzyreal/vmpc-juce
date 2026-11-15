@@ -1,12 +1,11 @@
 #pragma once
 
 #include "SvgComponent.hpp"
-#include "controller/Bank.hpp"
+#include "PadGlowState.hpp"
 
 #include <IntTypes.hpp>
 
 #include <memory>
-#include <optional>
 
 namespace mpc
 {
@@ -22,51 +21,12 @@ namespace vmpc_juce::gui::vector
 {
     class Pad final : public SvgComponent, public juce::FileDragAndDropTarget
     {
-    public:
-        enum class PressType
-        {
-            Primary,
-            Secondary,
-            Tertiary
-        };
-
     private:
-        struct Press
-        {
-            mpc::ProgramPadIndex programPadIndex;
-
-            mpc::VelocityOrPressure velocityOrPressure;
-
-            enum class Phase
-            {
-                Immediate,
-                Sustained,
-                Releasing
-            } phase = Phase::Immediate;
-
-            float alpha;
-
-            int pressCount = 1;
-
-            bool wasPaintedWithInitialAlpha = false;
-
-            float getAlphaWithVeloApplied() const
-            {
-                return alpha *
-                       (static_cast<float>(std::clamp(
-                            static_cast<int>(velocityOrPressure), 50, 127)) /
-                        127.f);
-            }
-        };
-
-        std::optional<Press> primaryPress;
-        std::optional<Press> secondaryPress;
-        std::optional<Press> tertiaryPress;
+        PadGlowState glowState;
 
         mpc::Mpc &mpc;
         std::shared_ptr<mpc::hardware::Pad> mpcPad;
         SvgComponent *glowSvg = nullptr;
-        std::optional<int> pressedBank = std::nullopt;
 
         int getVelo(int veloY) const;
         void loadFile(const juce::String &path, bool shouldBeConverted);
@@ -76,15 +36,16 @@ namespace vmpc_juce::gui::vector
         int fadeFrameCounter = 0;
         const int fadeRepaintInterval = 5;
 
-        std::optional<Press> &pressFor(PressType type);
-        void processDecay(std::optional<Press> &press, bool isPrimary);
         void updatePressedPadSvg();
 
     public:
-        void registerPress(PressType, mpc::ProgramPadIndex, mpc::Velocity);
-        void registerAftertouch(PressType, mpc::Pressure);
-        void registerRelease(PressType);
-        void registerBankSwitch(mpc::controller::Bank);
+        void registerPhysicalPress(mpc::Velocity);
+        void registerPhysicalAftertouch(mpc::Pressure);
+        void registerPhysicalRelease();
+        void registerProgramPress(mpc::ProgramPadIndex, mpc::Velocity);
+        void registerProgramAftertouch(mpc::ProgramPadIndex, mpc::Pressure);
+        void registerProgramRelease(mpc::ProgramPadIndex);
+        void setActiveBank(mpc::controller::Bank);
         void resized() override;
         void mouseDrag(const juce::MouseEvent &) override;
         void padTimerCallback();

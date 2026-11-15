@@ -211,136 +211,66 @@ Pad::~Pad()
     delete glowSvg;
 }
 
-std::optional<Pad::Press> &Pad::pressFor(const PressType type)
+void Pad::registerPhysicalPress(const mpc::Velocity velocity)
 {
-    if (type == PressType::Primary)
-    {
-        return primaryPress;
-    }
-    if (type == PressType::Secondary)
-    {
-        return secondaryPress;
-    }
-    return tertiaryPress;
-}
-
-void Pad::registerPress(const PressType type,
-                        const mpc::ProgramPadIndex programPadIndex,
-                        const mpc::Velocity velocity)
-{
-    if (auto &p = pressFor(type))
-    {
-        p->pressCount++;
-        p->velocityOrPressure = velocity;
-        p->phase = Press::Phase::Immediate;
-        p->alpha = 1.f;
-    }
-    else
-    {
-        p = Press{programPadIndex, velocity, Press::Phase::Immediate, 1.f};
-    }
-
+    glowState.registerPhysicalPress(velocity);
     updatePressedPadSvg();
     mutatedSinceLastPaint = true;
     fadeFrameCounter = 0;
 }
 
-void Pad::registerAftertouch(const PressType type, const mpc::Pressure pressure)
+void Pad::registerPhysicalAftertouch(const mpc::Pressure pressure)
 {
-    auto &p = pressFor(type);
-    p->velocityOrPressure = pressure;
-    mutatedSinceLastPaint = true;
+    mutatedSinceLastPaint =
+        glowState.registerPhysicalAftertouch(pressure) || mutatedSinceLastPaint;
 }
 
-void Pad::registerRelease(const PressType type)
+void Pad::registerPhysicalRelease()
 {
-    auto &p = pressFor(type);
-    if (!p || p->pressCount == 0)
+    if (glowState.registerPhysicalRelease())
     {
-        return;
+        updatePressedPadSvg();
+        mutatedSinceLastPaint = true;
+        fadeFrameCounter = 0;
     }
+}
 
-    p->pressCount--;
-
-    if (p->pressCount > 0)
-    {
-        return;
-    }
-
-    p->phase = Press::Phase::Releasing;
-    updatePressedPadSvg();
+void Pad::registerProgramPress(const mpc::ProgramPadIndex index,
+                               const mpc::Velocity velocity)
+{
+    glowState.registerProgramPress(index, velocity);
     mutatedSinceLastPaint = true;
     fadeFrameCounter = 0;
 }
 
-void Pad::registerBankSwitch(const mpc::controller::Bank bank)
+void Pad::registerProgramAftertouch(const mpc::ProgramPadIndex index,
+                                    const mpc::Pressure pressure)
 {
-    auto &secondary = pressFor(PressType::Secondary);
-    auto &tertiary = pressFor(PressType::Tertiary);
+    mutatedSinceLastPaint =
+        glowState.registerProgramAftertouch(index, pressure) ||
+        mutatedSinceLastPaint;
+}
 
-    if ((secondary && mpc::controller::programPadIndexToBank(
-                          secondary->programPadIndex) != bank) ||
-        (tertiary && mpc::controller::programPadIndexToBank(
-                         tertiary->programPadIndex) == bank))
+void Pad::registerProgramRelease(const mpc::ProgramPadIndex index)
+{
+    if (glowState.registerProgramRelease(index))
     {
-        std::swap(secondary, tertiary);
         mutatedSinceLastPaint = true;
+        fadeFrameCounter = 0;
     }
 }
 
-void Pad::processDecay(std::optional<Press> &press, const bool isPrimary)
+void Pad::setActiveBank(const mpc::controller::Bank bank)
 {
-    if (!press)
+    if (glowState.setActiveBank(bank))
     {
-        return;
-    }
-
-    if (press->alpha == 1.f && !press->wasPaintedWithInitialAlpha)
-    {
-        return;
-    }
-
-    static constexpr float decay = 0.025f;
-    static constexpr float immediateDecay = 0.035f;
-    static constexpr float pFade = 0.8f;
-    static constexpr float sFade = 0.6f;
-    static constexpr float threshold = 0.f;
-
-    const float fadeFactor = isPrimary ? pFade : sFade;
-    bool faded = false;
-
-    if (press->phase == Press::Phase::Immediate)
-    {
-        press->alpha -= immediateDecay;
-        if (press->alpha <= fadeFactor)
-        {
-            press->alpha = fadeFactor;
-            press->phase = Press::Phase::Sustained;
-        }
-        faded = true;
-    }
-    else if (press->phase == Press::Phase::Releasing)
-    {
-        press->alpha -= decay;
-        if (press->alpha <= threshold)
-        {
-            press.reset();
-            mutatedSinceLastPaint = true;
-            return;
-        }
-        faded = true;
-    }
-
-    if (faded)
-    {
-        mutatedSinceLastPaint = true;
+        repaint();
     }
 }
 
 void Pad::updatePressedPadSvg()
 {
-    const bool shouldShowPressedPadSvg =
-        primaryPress && primaryPress->pressCount > 0;
+    const bool shouldShowPressedPadSvg = glowState.isPhysicallyPressed();
 
     if (pressedPadSvgVisible == shouldShowPressedPadSvg)
     {
@@ -355,23 +285,11 @@ void Pad::updatePressedPadSvg()
 void Pad::padTimerCallback()
 {
     const float oldAlpha = glowSvg->getAlpha();
-    float newAlpha = 0.f;
-
-    processDecay(primaryPress, true);
-    processDecay(secondaryPress, false);
-    processDecay(tertiaryPress, false);
+    mutatedSinceLastPaint = glowState.advance() || mutatedSinceLastPaint;
     updatePressedPadSvg();
 
-    if (primaryPress)
-    {
-        newAlpha =
-            std::clamp(primaryPress->getAlphaWithVeloApplied(), 0.f, 1.f);
-        if (primaryPress->alpha == 1.f &&
-            !primaryPress->wasPaintedWithInitialAlpha)
-        {
-            primaryPress->wasPaintedWithInitialAlpha = true;
-        }
-    }
+    const float newAlpha = glowState.getLayers().physical;
+    glowState.markPhysicalGlowDisplayed();
 
     if (!nearlyEqual(oldAlpha, newAlpha))
     {
@@ -397,24 +315,11 @@ void Pad::paint(juce::Graphics &g)
     SvgComponent::paint(g);
     const float scale = getScale();
 
-    auto drawOutline =
-        [&](std::optional<Press> &press, const juce::Colour baseColour,
-            const float inset, const float baseThickness,
-            const float baseCornerRadius, const bool addInwardGlow = true)
+    auto drawOutline = [&](const float alpha, const juce::Colour baseColour,
+                           const float inset, const float baseThickness,
+                           const float baseCornerRadius,
+                           const bool addInwardGlow = true)
     {
-        if (!press)
-        {
-            return;
-        }
-
-        if (press->alpha == 1.f && !press->wasPaintedWithInitialAlpha)
-        {
-            press->wasPaintedWithInitialAlpha = true;
-        }
-
-        const float alpha =
-            std::clamp(press->getAlphaWithVeloApplied(), 0.f, 1.f);
-
         if (alpha <= 0.f)
         {
             return;
@@ -447,11 +352,13 @@ void Pad::paint(juce::Graphics &g)
         g.drawRoundedRectangle(bounds, cornerRadius, thickness);
     };
 
-    static const auto secondaryColor =
+    static const auto selectedBankColor =
         juce::Colour::fromFloatRGBA(0.95f, 0.65f, 0.25f, 1.f);
-    static const auto tertiaryColor =
+    static const auto otherBanksColor =
         juce::Colour::fromFloatRGBA(0.35f, 0.55f, 1.f, 1.f).brighter();
 
-    drawOutline(secondaryPress, secondaryColor, 2.65f, 1.5f, .4f, true);
-    drawOutline(tertiaryPress, tertiaryColor, 2.65f, 1.5f, .4f, true);
+    const auto layers = glowState.getLayers();
+    drawOutline(layers.selectedBank, selectedBankColor, 2.65f, 1.5f, .4f, true);
+    drawOutline(layers.otherBanks, otherBanksColor, 2.65f, 1.5f, .4f, true);
+    glowState.markProgramGlowsDisplayed();
 }

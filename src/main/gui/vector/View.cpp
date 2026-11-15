@@ -466,6 +466,11 @@ View::View(mpc::Mpc &mpcToUse,
     startTimer(WithSharedTimerCallback::baseIntervalMs);
 
     pads = utils::findChildComponentsOfClass<Pad>(this);
+    const auto initialBank = mpc.clientEventController->getActiveBank();
+    for (const auto &pad : pads)
+    {
+        pad->setActiveBank(initialBank);
+    }
 
     static const std::map<uint8_t, uint8_t> padMap{
         {12, 0}, {13, 1}, {14, 2}, {15, 3}, {8, 4},  {9, 5},  {10, 6}, {11, 7},
@@ -477,7 +482,7 @@ View::View(mpc::Mpc &mpcToUse,
             {
                 for (const auto &p : pads)
                 {
-                    p->registerBankSwitch(bank);
+                    p->setActiveBank(bank);
                 }
             });
 
@@ -491,39 +496,25 @@ View::View(mpc::Mpc &mpcToUse,
                 {
                     return;
                 }
-                const std::function isActiveBank = [&]
-                {
-                    const auto bank =
-                        mpc::controller::programPadIndexToBank(programPadIndex);
-
-                    const auto activeBank =
-                        mpc.clientEventController->getActiveBank();
-
-                    return bank == activeBank;
-                };
-
-                const auto pressType = isActiveBank()
-                                           ? Pad::PressType::Secondary
-                                           : Pad::PressType::Tertiary;
-
                 const auto pad = pads[static_cast<size_t>(
                     padMap.at(static_cast<uint8_t>(programPadIndex % 16)))];
 
                 if (eventType ==
                     mpc::performance::UiCallbackPadEventType::Press)
                 {
-                    pad->registerPress(pressType, programPadIndex,
-                                       velocityOrPressure);
+                    pad->registerProgramPress(programPadIndex,
+                                              velocityOrPressure);
                 }
                 else if (eventType ==
                          mpc::performance::UiCallbackPadEventType::Aftertouch)
                 {
-                    pad->registerAftertouch(pressType, velocityOrPressure);
+                    pad->registerProgramAftertouch(programPadIndex,
+                                                   velocityOrPressure);
                 }
                 else if (eventType ==
                          mpc::performance::UiCallbackPadEventType::Release)
                 {
-                    pad->registerRelease(pressType);
+                    pad->registerProgramRelease(programPadIndex);
                 }
             });
 
@@ -537,26 +528,23 @@ View::View(mpc::Mpc &mpcToUse,
                 {
                     return;
                 }
-                constexpr auto pressType = Pad::PressType::Primary;
-
                 const auto pad = pads[static_cast<size_t>(
                     padMap.at(static_cast<uint8_t>(physicalPadIndex)))];
 
                 if (eventType ==
                     mpc::performance::UiCallbackPadEventType::Press)
                 {
-                    pad->registerPress(pressType, physicalPadIndex,
-                                       velocityOrPressure);
+                    pad->registerPhysicalPress(velocityOrPressure);
                 }
                 else if (eventType ==
                          mpc::performance::UiCallbackPadEventType::Aftertouch)
                 {
-                    pad->registerAftertouch(pressType, velocityOrPressure);
+                    pad->registerPhysicalAftertouch(velocityOrPressure);
                 }
                 else if (eventType ==
                          mpc::performance::UiCallbackPadEventType::Release)
                 {
-                    pad->registerRelease(pressType);
+                    pad->registerPhysicalRelease();
                 }
             });
 
